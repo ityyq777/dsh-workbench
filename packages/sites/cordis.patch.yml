@@ -1,0 +1,7 @@
+- insert:
+    - id: workbench
+      name: 'dsh-workbench-host'
+      config:
+        enabled: true
+    - id: workbench-sites
+      name: 'dsh-workbench-sites'

@@ -1,0 +1,6 @@
+url: https://github.com/ityyq777/dsh-workbench/tree/main/packages/tags
+name: ityyq777/dsh-workbench#tags
+category: tools
+description:
+  en: 'Tag manager for DSH: create, search and delete tags, with soft-delete and per-item mappings used by the Sites plugin.'
+  zh: 'DSH 标签管理：创建、搜索、删除标签，支持软删除与条目映射，供站点插件使用。'

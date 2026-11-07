@@ -1,0 +1,100 @@
+{
+  "name": "dsh-workbench-tasks",
+  "version": "2.0.5",
+  "description": "个人工作台任务插件：任务树、优先级、截止日、时间线与重启",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "wb": {
+    "addon": {
+      "id": "wb-addon-tasks",
+      "title": "任务记录",
+      "description": "任务树 + 9 个视图：紧急/工作/生活/学习/开发/已开启/已关闭/已完成/总览",
+      "version": "2.0.5",
+      "minShell": "0.2.0",
+      "tables": [
+        "task",
+        "task_node"
+      ],
+      "views": [
+        "tasks"
+      ],
+      "toolActions": [
+        "tasks.list",
+        "tasks.create",
+        "tasks.update",
+        "tasks.selected",
+        "tasks.timeline",
+        "tasks.restart",
+        "tasks.timelineRefactor",
+        "tasks.migrate",
+        "tasks.sweepShutdown",
+        "tasks.stats",
+        "tasks.delete",
+        "tasks.complete",
+        "taskNodes.tree",
+        "taskNodes.children",
+        "taskNodes.multipleChildren",
+        "taskNodes.path",
+        "taskNodes.create",
+        "taskNodes.rename",
+        "taskNodes.move",
+        "taskNodes.delete"
+      ],
+      "client": "lib/client.js"
+    }
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "dsh-workbench-host": "^0.2.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "dsh-workbench-host"
+      ]
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0"
+    }
+  },
+  "license": "MIT",
+  "author": "ityyq777",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "tasks",
+    "todo",
+    "tree",
+    "timeline"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ityyq777/dsh-workbench.git",
+    "directory": "packages/tasks"
+  },
+  "homepage": "https://github.com/ityyq777/dsh-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/ityyq777/dsh-workbench/issues"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
