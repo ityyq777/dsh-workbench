@@ -26,15 +26,13 @@ dsh plugin --profile web add dsh-workbench-sites
 
 只装需要的业务插件即可。安装/升级/卸载后按 DSH 提示重启或刷新。
 
-也可以直接从本仓库安装：
+也可以从发布仓库查看代码与各包 README：
 
-```sh
-dsh plugin --profile web add github:ityyq777/dsh-workbench#path:/packages/host
-dsh plugin --profile web add github:ityyq777/dsh-workbench#path:/packages/tasks
-```
+- 发布仓库：https://github.com/ityyq777/dsh-workbench
+- 包目录：[`packages/host`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/host)、[`packages/tasks`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/tasks)、[`packages/tags`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/tags)、[`packages/sites`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/sites)
 
-> 本仓库由主仓库的 `scripts/stage-release.mjs` 生成，四个目录分别是可安装的 npm 包。
-> 修改代码请回主仓库，不要直接编辑这里生成的文件。
+> 发布仓库由主仓库的 `scripts/stage-release.mjs` 生成，四个目录分别是可发布的 npm 包。
+> 修改代码请回主仓库，不要直接编辑生成出来的文件。
 
 ## 数据与隐私
 
