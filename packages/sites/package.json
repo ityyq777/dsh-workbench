@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-sites",
-  "version": "1.0.3",
+  "version": "1.2.1",
   "type": "module",
   "description": "个人工作台站点插件：目录树、链接与标签",
   "main": "lib/index.js",
@@ -9,12 +9,13 @@
       "id": "wb-addon-sites",
       "title": "站点",
       "description": "站点收藏：目录树、链接与标签",
-      "version": "1.0.3",
-      "minShell": "0.2.0",
+      "version": "1.2.1",
+      "minShell": "0.3.0",
       "tables": [
         "site",
         "site_node",
-        "site_node_mapping"
+        "site_node_mapping",
+        "tag_mapping"
       ],
       "views": [
         "sites"
@@ -48,7 +49,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.2.0"
+    "dsh-workbench-host": "^0.3.1"
   },
   "dsh": {
     "bundle": {

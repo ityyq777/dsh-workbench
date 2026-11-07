@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-tasks",
-  "version": "2.0.5",
+  "version": "2.1.1",
   "description": "个人工作台任务插件：任务树、优先级、截止日、时间线与重启",
   "type": "module",
   "main": "lib/index.js",
@@ -15,8 +15,8 @@
       "id": "wb-addon-tasks",
       "title": "任务记录",
       "description": "任务树 + 9 个视图：紧急/工作/生活/学习/开发/已开启/已关闭/已完成/总览",
-      "version": "2.0.5",
-      "minShell": "0.2.0",
+      "version": "2.1.1",
+      "minShell": "0.3.0",
       "tables": [
         "task",
         "task_node"
@@ -55,7 +55,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.2.0"
+    "dsh-workbench-host": "^0.3.1"
   },
   "dsh": {
     "bundle": {

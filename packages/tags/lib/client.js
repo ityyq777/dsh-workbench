@@ -389,7 +389,7 @@
 
   host.registerAddon({
     id: "wb-addon-tags",
-    version: "1.0.0",
+    version: "1.1.1",
     views: [{
       id: "tags",
       title: { zh: "标签", en: "Tags" },

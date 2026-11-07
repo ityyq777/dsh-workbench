@@ -13,13 +13,14 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node
 import { join } from "node:path";
 import { openDb } from "./core/index.js";
 import { runSyncRound } from "./sync.js";
+import { createBackup, importBackup, normalizeImportPolicy, } from "./backup.js";
 export const name = "dsh-workbench";
 export const inject = ["webServer", "tools", "connection"];
 /** 本地库与云端配置路径（05 文档约定目录）。 */
 const WB_HOME = process.env.WB_HOME ?? join(homedir(), ".dsh", "workbench");
 const CLOUD_DEFAULT = process.env.WB_CLOUD_URL ?? "http://127.0.0.1:8791";
 /** 宿主 API 版本：业务插件用它做兼容判断。 */
-export const SHELL_VERSION = "0.2.0";
+export const SHELL_VERSION = "0.3.1";
 const DOMAIN_ID_RE = /^[a-z][a-z0-9_-]{2,63}$/;
 const ACTION_RE = /^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/i;
 function loadCreds() {
@@ -64,6 +65,10 @@ export function apply(ctx) {
             error: rec.error,
             tables: rec.def.tables ?? [],
             views: rec.def.views ?? [],
+            backup: {
+                export: typeof rec.def.exportData === "function",
+                import: typeof rec.def.importData === "function",
+            },
         };
     }
     function registerAction(rec, action, def) {
@@ -134,6 +139,9 @@ export function apply(ctx) {
     }
     function listDomains() {
         return [...domains.values()].map(publicInfo);
+    }
+    function backupDomains() {
+        return [...domains.values()].map((rec) => ({ def: rec.def, enabled: rec.error === null, error: rec.error }));
     }
     function actionNames() {
         const out = [];
@@ -232,6 +240,18 @@ export function apply(ctx) {
                     return {};
                 }
             };
+            const rawBodyOf = async (maxBytes = 64 * 1024 * 1024) => {
+                const chunks = [];
+                let total = 0;
+                for await (const c of req) {
+                    const buf = c;
+                    total += buf.length;
+                    if (total > maxBytes)
+                        throw new Error("请求体超过上限（" + Math.round(maxBytes / 1024 / 1024) + "MB）");
+                    chunks.push(buf);
+                }
+                return Buffer.concat(chunks);
+            };
             const send = (code, obj) => {
                 res.writeHead(code, { "content-type": "application/json" });
                 res.end(JSON.stringify(obj));
@@ -250,6 +270,55 @@ export function apply(ctx) {
                 }
                 if (p === "/domains" && m === "GET") {
                     return send(200, { ok: true, domains: listDomains(), shellVersion: SHELL_VERSION });
+                }
+                if (p === "/backup/export" && m === "GET") {
+                    try {
+                        const raw = url.searchParams.get("modules");
+                        const ids = raw && raw !== "all" ? raw.split(",").map((x) => x.trim()).filter(Boolean) : null;
+                        const backup = await createBackup({ domains: backupDomains(), shellVersion: SHELL_VERSION, moduleIds: ids });
+                        res.writeHead(200, {
+                            "content-type": "application/zip",
+                            "content-disposition": "attachment; filename=\"" + backup.filename + "\"",
+                            "content-length": backup.buffer.length,
+                            "cache-control": "no-store",
+                        });
+                        res.end(backup.buffer);
+                        return;
+                    }
+                    catch (e) {
+                        return send(500, { ok: false, error: String((e && e.message) || e) });
+                    }
+                }
+                if (p === "/backup/import" && m === "POST") {
+                    try {
+                        const buf = await rawBodyOf();
+                        const policies = {};
+                        const rawPolicy = req.headers?.["x-wb-backup-policy"];
+                        if (typeof rawPolicy === "string" && rawPolicy) {
+                            try {
+                                const parsed = JSON.parse(rawPolicy);
+                                if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                                    for (const key of Object.keys(parsed))
+                                        policies[key] = normalizeImportPolicy(parsed[key]);
+                                }
+                            }
+                            catch {
+                                // 策略头损坏时按默认 newest 处理，不阻断备份导入
+                            }
+                        }
+                        const result = await importBackup({ buffer: buf, domains: backupDomains(), policies });
+                        emit("backup-imported", { summary: result.summary, exportedAt: result.exportedAt });
+                        return send(200, result);
+                    }
+                    catch (e) {
+                        const err = e;
+                        const code = err && err.code ? err.code : "invalid";
+                        return send(code === "incompatible" ? 422 : 400, {
+                            ok: false,
+                            code,
+                            error: String((e && e.message) || e),
+                        });
+                    }
                 }
                 const actionM = /^\/domains\/([^/]+)\/actions\/([^/]+)$/.exec(p);
                 if (actionM && m === "POST") {

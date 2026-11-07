@@ -1076,7 +1076,7 @@
 
   host.registerAddon({
     id: "wb-addon-tasks",
-    version: "2.0.5",
+    version: "2.1.1",
     views: [{
       id: "tasks",
       title: { zh: "任务记录", en: "Tasks" },
