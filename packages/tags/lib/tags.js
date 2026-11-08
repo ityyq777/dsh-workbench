@@ -79,15 +79,9 @@ function createTag(db, args, origin, api) {
   const name = String(args && args.name !== undefined && args.name !== null ? args.name : "").trim();
   if (!name) throw new Error("标签名称不能为空");
   if (name.length > MAX_NAME) throw new Error("标签名称不能超过 " + MAX_NAME + " 个字符");
-  if (getTagByName(db, name)) throw new Error("标签已存在");
   const ts = now();
   const id = newId();
-  try {
-    db.prepare("INSERT INTO tag(id,name,created_at,updated_at,deleted_at,rev) VALUES(?,?,?,?,NULL,1)").run(id, name, ts, ts);
-  } catch (e) {
-    if (String((e && e.message) || e).indexOf("UNIQUE") >= 0) throw new Error("标签已存在");
-    throw e;
-  }
+  db.prepare("INSERT INTO tag(id,name,created_at,updated_at,deleted_at,rev) VALUES(?,?,?,?,NULL,1)").run(id, name, ts, ts);
   const row = getTag(db, id);
   logChange(db, TAG_TABLE, id, "upsert", rowTag(row), origin, ts);
   api.emit("tags-changed", { id: id, op: "create", name: name });
@@ -105,9 +99,11 @@ function deleteTag(db, args, origin, api) {
     db.prepare("UPDATE tag SET deleted_at=?, updated_at=?, rev=rev+1 WHERE id=?").run(ts, ts, id);
     db.prepare("UPDATE tag_mapping SET deleted_at=?, updated_at=?, rev=rev+1 WHERE tag_id=? AND deleted_at IS NULL").run(ts, ts, id);
     for (const m of mappings) {
-      logChange(db, MAPPING_TABLE, String(m.id), "delete", null, origin, ts);
+      const tomb = Object.assign({}, m, { deleted_at: ts, updated_at: ts, rev: Number(m.rev) + 1 });
+      logChange(db, MAPPING_TABLE, String(m.id), "delete", tomb, origin, ts);
     }
-    logChange(db, TAG_TABLE, id, "delete", null, origin, ts);
+    const tomb = Object.assign({}, row, { deleted_at: ts, updated_at: ts, rev: Number(row.rev) + 1 });
+    logChange(db, TAG_TABLE, id, "delete", tomb, origin, ts);
   });
   api.emit("tags-changed", { id: id, op: "delete", name: String(row.name || "") });
   return { id: id, deleted: true, missing: false, removedMappings: mappings.length };
@@ -126,6 +122,140 @@ function byIds(db, args) {
   const marks = clean.map(function () { return "?"; }).join(",");
   const rows = db.prepare("SELECT * FROM tag WHERE deleted_at IS NULL AND id IN (" + marks + ") ORDER BY updated_at DESC").all(...clean);
   return { records: rows.map(rowTag) };
+}
+
+function itemTypeArg(args) {
+  const type = String(args && args.itemType !== undefined && args.itemType !== null ? args.itemType : "task").trim();
+  if (!type) throw new Error("itemType 不能为空");
+  if (type.length > 32) throw new Error("itemType 不能超过 32 个字符");
+  return type;
+}
+
+function idListArg(raw, label) {
+  let list = raw;
+  if (typeof list === "string") list = list.split(",");
+  if (!Array.isArray(list)) list = [];
+  const out = [];
+  for (const item of list) {
+    const id = idOf(item);
+    if (id && out.indexOf(id) < 0 && out.length < 500) out.push(id);
+  }
+  if (!out.length && label !== "tagIds") throw new Error(label + " 不能为空");
+  return out;
+}
+
+function mapRow(row) {
+  return {
+    id: String(row.id),
+    tagId: String(row.tag_id),
+    itemId: String(row.item_id),
+    itemType: String(row.item_type),
+  };
+}
+
+function linkTags(db, args, origin, api) {
+  const itemType = itemTypeArg(args);
+  const tagIds = idListArg(args.tagIds, "tagIds");
+  const itemIds = idListArg(args.itemIds !== undefined ? args.itemIds : args.itemId, "itemIds");
+  if (!tagIds.length) throw new Error("tagIds 不能为空");
+  const ts = now();
+  const linked = [];
+  const skipped = [];
+  tx(db, function () {
+    for (const itemId of itemIds) {
+      for (const tagId of tagIds) {
+        const tag = getTag(db, tagId);
+        if (!tag) throw new Error("标签不存在：" + tagId);
+        const existing = db.prepare(
+          "SELECT * FROM tag_mapping WHERE tag_id=? AND item_id=? AND item_type=? AND deleted_at IS NULL",
+        ).get(tagId, itemId, itemType);
+        if (existing) {
+          skipped.push({ itemId: itemId, tagId: tagId });
+          continue;
+        }
+        const deleted = db.prepare(
+          "SELECT * FROM tag_mapping WHERE tag_id=? AND item_id=? AND item_type=? AND deleted_at IS NOT NULL ORDER BY updated_at DESC LIMIT 1",
+        ).get(tagId, itemId, itemType);
+        if (deleted) {
+          db.prepare("UPDATE tag_mapping SET deleted_at=NULL, updated_at=?, rev=rev+1 WHERE id=?").run(ts, String(deleted.id));
+          logChange(db, MAPPING_TABLE, String(deleted.id), "upsert", {
+            id: String(deleted.id), tag_id: tagId, item_id: itemId, item_type: itemType, updated_at: ts, deleted_at: null, rev: Number(deleted.rev) + 1,
+          }, origin, ts);
+          linked.push({ id: String(deleted.id), tagId: tagId, itemId: itemId });
+        } else {
+          const id = newId();
+          db.prepare(
+            "INSERT INTO tag_mapping(id,tag_id,item_id,item_type,created_at,updated_at,deleted_at,rev) VALUES(?,?,?,?,?,?,NULL,1)",
+          ).run(id, tagId, itemId, itemType, ts, ts);
+          logChange(db, MAPPING_TABLE, id, "create", {
+            id: id, tag_id: tagId, item_id: itemId, item_type: itemType, created_at: ts, updated_at: ts, deleted_at: null, rev: 1,
+          }, origin, ts);
+          linked.push({ id: id, tagId: tagId, itemId: itemId });
+        }
+      }
+    }
+  });
+  if (linked.length) api.emit("tags-changed", { op: "link", itemType: itemType, count: linked.length });
+  return { itemType: itemType, linked: linked.length, skipped: skipped.length, mappings: linked, skippedMappings: skipped };
+}
+
+function unlinkTags(db, args, origin, api) {
+  const itemType = itemTypeArg(args);
+  const itemIds = idListArg(args.itemIds !== undefined ? args.itemIds : args.itemId, "itemIds");
+  const tagIds = args.tagIds === undefined ? [] : idListArg(args.tagIds, "tagIds");
+  const ts = now();
+  const where = ["item_type=?", "deleted_at IS NULL"];
+  const params = [itemType];
+  where.push("item_id IN (" + itemIds.map(function () { return "?"; }).join(",") + ")");
+  for (const x of itemIds) params.push(x);
+  if (tagIds.length) {
+    where.push("tag_id IN (" + tagIds.map(function () { return "?"; }).join(",") + ")");
+    for (const x of tagIds) params.push(x);
+  }
+  const stmt = db.prepare("SELECT * FROM tag_mapping WHERE " + where.join(" AND "));
+  const rows = stmt.all.apply(stmt, params);
+  if (!rows.length) return { itemType: itemType, unlinked: 0, missing: true };
+  tx(db, function () {
+    for (const row of rows) {
+      db.prepare("UPDATE tag_mapping SET deleted_at=?, updated_at=?, rev=rev+1 WHERE id=?").run(ts, ts, String(row.id));
+      logChange(db, MAPPING_TABLE, String(row.id), "delete", null, origin, ts);
+    }
+  });
+  api.emit("tags-changed", { op: "unlink", itemType: itemType, count: rows.length });
+  return { itemType: itemType, unlinked: rows.length, missing: false, mappings: rows.map(mapRow) };
+}
+
+function tagsOfItems(db, args) {
+  const itemType = itemTypeArg(args);
+  const itemIds = args.itemId !== undefined || args.itemIds !== undefined
+    ? idListArg(args.itemIds !== undefined ? args.itemIds : args.itemId, "itemIds")
+    : [];
+  const tagId = args.tagId === undefined || args.tagId === null ? null : idOf(args.tagId);
+  const where = ["m.item_type=?", "m.deleted_at IS NULL", "t.deleted_at IS NULL"];
+  const params = [itemType];
+  if (itemIds.length) {
+    where.push("m.item_id IN (" + itemIds.map(function () { return "?"; }).join(",") + ")");
+    for (const x of itemIds) params.push(x);
+  }
+  if (tagId) {
+    where.push("m.tag_id=?");
+    params.push(tagId);
+  }
+  const rows = db.prepare(
+    "SELECT m.item_id, t.id AS tag_id, t.name FROM tag_mapping m JOIN tag t ON t.id=m.tag_id WHERE " + where.join(" AND ") + " ORDER BY t.name",
+  ).all(...params);
+  const map = {};
+  const order = [];
+  for (const row of rows) {
+    const key = String(row.item_id);
+    if (!map[key]) { map[key] = []; order.push(key); }
+    map[key].push({ id: String(row.tag_id), name: String(row.name) });
+  }
+  return {
+    itemType: itemType,
+    count: order.length,
+    items: order.map(function (key) { return { itemId: key, tags: map[key] }; }),
+  };
 }
 
 function renderList(result) {
@@ -223,6 +353,61 @@ export function registerTagActions(api) {
       return records.length ? records.map(function (t) { return t.name + "(" + t.id + ")"; }).join(", ") : "没有匹配的标签";
     },
   });
+
+  action("tags.link", {
+    description: "批量给业务对象挂标签：tagIds × itemIds 笛卡尔积写入 tag_mapping（itemType 默认 task，site 由站点插件自行写入）",
+    input: {
+      type: "object",
+      required: ["tagIds", "itemIds"],
+      properties: {
+        tagIds: { type: "array", items: { type: "string" } },
+        itemIds: { type: "array", items: { type: "string" } },
+        itemType: { type: "string", description: "默认 task" },
+      },
+    },
+    examples: [{ tagIds: ["3", "4"], itemIds: ["1001", "1002"], itemType: "task" }],
+    execute: function (args, ctx) { return linkTags(api.db, args || {}, ctx.origin, api); },
+    render: function (r) { return "已关联 " + r.linked + " 条标签映射（跳过已存在 " + r.skipped + " 条）"; },
+  });
+
+  action("tags.unlink", {
+    description: "批量解除标签关联（软删）：可给 tagIds 精确解除，不给则清空这些对象的全部标签",
+    input: {
+      type: "object",
+      required: ["itemIds"],
+      properties: {
+        tagIds: { type: "array", items: { type: "string" } },
+        itemIds: { type: "array", items: { type: "string" } },
+        itemType: { type: "string", description: "默认 task" },
+      },
+    },
+    examples: [{ tagIds: ["3"], itemIds: ["1001"], itemType: "task" }],
+    execute: function (args, ctx) { return unlinkTags(api.db, args || {}, ctx.origin, api); },
+    render: function (r) { return r.missing ? "没有匹配的标签关联" : "已解除 " + r.unlinked + " 条标签关联"; },
+  });
+
+  action("tags.itemsOf", {
+    description: "反查标签：给 itemType（+ itemIds / tagId）返回每个对象的标签列表",
+    input: {
+      type: "object",
+      properties: {
+        itemType: { type: "string", description: "默认 task" },
+        itemIds: { type: "array", items: { type: "string" } },
+        itemId: { type: "string", description: "单个对象 id" },
+        tagId: { type: "string", description: "只看某个标签" },
+      },
+    },
+    examples: [{ itemType: "task", itemIds: ["1001", "1002"] }, { itemType: "task", tagId: "3" }],
+    execute: function (args) { return tagsOfItems(api.db, args || {}); },
+    render: function (r) {
+      if (!r.items.length) return "没有匹配的标签关联";
+      return r.items.map(function (it) {
+        return it.itemId + "：" + it.tags.map(function (t) { return t.name; }).join(", ");
+      }).join("\n");
+    },
+  });
 }
+
+export { linkTags, unlinkTags, tagsOfItems };
 
 export { listTags, createTag, deleteTag };

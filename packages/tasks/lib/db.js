@@ -23,6 +23,8 @@ export const TASK_DDL = [
     "target_date TEXT NOT NULL," +
     "done_date TEXT," +
     "shutdown_date TEXT," +
+    "sort INTEGER NOT NULL DEFAULT 0," +
+    "dedupe_key TEXT," +
     "created_at INTEGER NOT NULL," +
     "updated_at INTEGER NOT NULL," +
     "deleted_at INTEGER," +
@@ -34,6 +36,23 @@ export const TASK_DDL = [
   "CREATE INDEX IF NOT EXISTS idx_task_timeline ON task(timeline_key);",
   "CREATE INDEX IF NOT EXISTS idx_task_restart ON task(restart_key);",
   "CREATE INDEX IF NOT EXISTS idx_task_open ON task(status, target_date) WHERE deleted_at IS NULL;",
+  "CREATE INDEX IF NOT EXISTS idx_task_sort ON task(sort);",
+  "CREATE INDEX IF NOT EXISTS idx_task_dedupe ON task(dedupe_key) WHERE dedupe_key IS NOT NULL;",
+];
+
+export const DEP_DDL = [
+  "CREATE TABLE IF NOT EXISTS task_dep (" +
+    "id TEXT PRIMARY KEY," +
+    "task_id TEXT NOT NULL," +
+    "depends_on_id TEXT NOT NULL," +
+    "created_at INTEGER NOT NULL," +
+    "updated_at INTEGER NOT NULL," +
+    "deleted_at INTEGER," +
+    "rev INTEGER NOT NULL DEFAULT 1" +
+    ");",
+  "CREATE INDEX IF NOT EXISTS idx_task_dep_task ON task_dep(task_id) WHERE deleted_at IS NULL;",
+  "CREATE INDEX IF NOT EXISTS idx_task_dep_on ON task_dep(depends_on_id) WHERE deleted_at IS NULL;",
+  "CREATE UNIQUE INDEX IF NOT EXISTS uk_task_dep ON task_dep(task_id, depends_on_id) WHERE deleted_at IS NULL;",
 ];
 
 export const NODE_DDL = [
@@ -57,8 +76,15 @@ export const NODE_DDL = [
 ];
 
 let lastTs = 0;
+let clockNow = null;
+
+/** 宿主注入同步时钟；未注入时退回本地单调时钟。 */
+export function bindClock(fn) {
+  clockNow = typeof fn === "function" ? fn : null;
+}
 
 export function now() {
+  if (clockNow) return clockNow();
   const t = Date.now();
   if (t <= lastTs) {
     lastTs += 1;
@@ -194,7 +220,16 @@ export function tx(db, fn) {
 
 export function logChange(db, table, rowId, op, payload, origin, ts) {
   if (String(origin || "ui") === "sync") return;
-  const p = payload === undefined ? null : typeof payload === "string" ? payload : JSON.stringify(payload);
+  let value = payload;
+  if (String(op) === "delete" && (value === undefined || value === null)) {
+    try {
+      const row = db.prepare("SELECT * FROM " + String(table) + " WHERE id=?").get(String(rowId));
+      if (row) value = row;
+    } catch (err) {
+      // 表不存在或列不匹配时仍记录墓碑时间和 id。
+    }
+  }
+  const p = value === undefined ? null : typeof value === "string" ? value : JSON.stringify(value);
   db.prepare(
     "INSERT INTO sync_change_log(table_name,row_id,op,payload,origin,updated_at) VALUES(?,?,?,?,?,?)",
   ).run(String(table), String(rowId), String(op), p, String(origin || "ui"), Number(ts || now()));
@@ -217,6 +252,8 @@ export function rowTask(row) {
     targetDate: row.target_date || null,
     doneDate: row.done_date || null,
     shutdownDate: row.shutdown_date || null,
+    sort: Number(row.sort || 0),
+    dedupeKey: row.dedupe_key === null || row.dedupe_key === undefined ? null : String(row.dedupe_key),
     path: [],
   };
 }
@@ -325,6 +362,7 @@ export function insertNode(db, row) {
 export function createSchema(db) {
   for (const sql of TASK_DDL) db.exec(sql);
   for (const sql of NODE_DDL) db.exec(sql);
+  for (const sql of DEP_DDL) db.exec(sql);
 }
 
 export function seedDefaultTree(db) {
@@ -714,6 +752,12 @@ function migrateCurrentTasks(db, report) {
   report.defaultTableId = db.prepare("SELECT id FROM task_node WHERE type='1' AND deleted_at IS NULL LIMIT 1").get().id;
 }
 
+function ensureTaskColumns(db) {
+  if (!tableExists(db, "task") || !hasColumn(db, "task", "created_at")) return;
+  if (!hasColumn(db, "task", "sort")) db.exec("ALTER TABLE task ADD COLUMN sort INTEGER NOT NULL DEFAULT 0");
+  if (!hasColumn(db, "task", "dedupe_key")) db.exec("ALTER TABLE task ADD COLUMN dedupe_key TEXT");
+}
+
 export function ensureSchema(db, log) {
   if (!tableExists(db, "meta")) {
     db.exec("CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);");
@@ -743,6 +787,7 @@ export function ensureSchema(db, log) {
       if (hasNode && columnsOf(db, "task_node").indexOf("parent_id") < 0) {
         throw new Error("task 是新表，但 task_node 仍是旧 MPTT 表，拒绝混合迁移");
       }
+      ensureTaskColumns(db);
       createSchema(db);
       seedDefaultTree(db);
       report.tasks = db.prepare("SELECT COUNT(*) AS n FROM task").get().n;
@@ -758,7 +803,17 @@ export function ensureSchema(db, log) {
     report.source = "fresh";
   }
 
+  // 旧库补列：必须在 createSchema 前完成，否则建 idx_task_sort 会报 no such column。
+  ensureTaskColumns(db);
   createSchema(db);
+  if (hasColumn(db, "task", "created_at")) {
+    try {
+      db.exec("CREATE INDEX IF NOT EXISTS idx_task_sort ON task(sort)");
+      db.exec("CREATE INDEX IF NOT EXISTS idx_task_dedupe ON task(dedupe_key) WHERE dedupe_key IS NOT NULL");
+    } catch (e) {
+      if (log) log("[tasks] 索引补建失败：" + String((e && e.message) || e));
+    }
+  }
   seedDefaultTree(db);
   metaSet(db, "task_schema_version", "2");
   metaSet(db, "task_migration_report", JSON.stringify(report));

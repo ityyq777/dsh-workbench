@@ -154,14 +154,16 @@ function renameAction(db, args, origin, api) {
   }), []) };
 }
 
-function resort(db, parentId, ts) {
+function resort(db, parentId, ts, origin) {
   const rows = db.prepare(
     "SELECT * FROM site_node WHERE parent_id=? AND deleted_at IS NULL ORDER BY sort ASC, id ASC",
   ).all(String(parentId));
   let i = 0;
   for (const row of rows) {
     if (Number(row.sort) !== i) {
+      const next = Object.assign({}, row, { sort: i, updated_at: ts, rev: Number(row.rev) + 1 });
       db.prepare("UPDATE site_node SET sort=?, updated_at=?, rev=rev+1 WHERE id=?").run(i, ts, String(row.id));
+      logChange(db, "site_node", String(row.id), "upsert", next, origin, ts);
     }
     i++;
   }
@@ -236,10 +238,15 @@ function moveAction(db, args, origin, api) {
     ordered.splice(Math.max(0, Math.min(newSort, ordered.length)), 0, { id: String(source.id) });
     let i = 0;
     for (const row of ordered) {
-      db.prepare("UPDATE site_node SET sort=?, updated_at=?, rev=rev+1 WHERE id=?").run(i, ts, String(row.id));
+      if (String(row.id) === String(source.id)) { i++; continue; }
+      if (Number(row.sort) !== i) {
+        const next = Object.assign({}, row, { sort: i, updated_at: ts, rev: Number(row.rev) + 1 });
+        db.prepare("UPDATE site_node SET sort=?, updated_at=?, rev=rev+1 WHERE id=?").run(i, ts, String(row.id));
+        logChange(db, "site_node", String(row.id), "upsert", next, origin, ts);
+      }
       i++;
     }
-    resort(db, oldParentId, ts);
+    resort(db, oldParentId, ts, origin);
   });
   api.emit("site-nodes-changed", { id: String(source.id), parentId: newParentId, op: "move" });
   return { ok: true, node: rowNode(nodeById(db, source.id, false), []) };
@@ -259,14 +266,16 @@ function deleteAction(db, args, origin, api) {
         "SELECT * FROM site_node_mapping WHERE node_id=? AND deleted_at IS NULL",
       ).all(nodeId);
       for (const m of mappings) {
+        const tomb = Object.assign({}, m, { deleted_at: ts, updated_at: ts, rev: Number(m.rev) + 1 });
         db.prepare("UPDATE site_node_mapping SET deleted_at=?, updated_at=?, rev=rev+1 WHERE id=?").run(ts, ts, String(m.id));
-        logChange(db, "site_node_mapping", String(m.id), "delete", null, origin, ts);
+        logChange(db, "site_node_mapping", String(m.id), "delete", tomb, origin, ts);
         removedMappings++;
       }
     }
     for (const row of rows) {
+      const tomb = Object.assign({}, row, { deleted_at: ts, updated_at: ts, rev: Number(row.rev) + 1 });
       db.prepare("UPDATE site_node SET deleted_at=?, updated_at=?, rev=rev+1 WHERE id=?").run(ts, ts, String(row.id));
-      logChange(db, "site_node", String(row.id), "delete", null, origin, ts);
+      logChange(db, "site_node", String(row.id), "delete", tomb, origin, ts);
     }
   });
   api.emit("site-nodes-changed", { id: id, op: "delete" });

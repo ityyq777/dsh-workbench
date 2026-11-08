@@ -49,6 +49,14 @@
           login: "登录", signup: "注册", email: "邮箱", password: "密码", logout: "退出登录",
           logged_in_as: "已登录", not_logged_in: "未登录——数据仅存本机 SQLite",
           sync_now: "立即同步", sync_pushed: "推送", sync_pulled: "拉取", device_name: "本设备",
+          sync_status: "同步状态", sync_last: "上次同步", sync_never: "尚未同步", sync_conflicts: "冲突",
+          sync_failed_tables: "失败的表", sync_clock: "时钟偏移", sync_no_conflicts: "没有待处理的冲突",
+          sync_conflict_hint: "同一行在本地和云端都被修改，选择保留哪个版本",
+          sync_keep_local: "保留本地", sync_keep_server: "采用云端", sync_dismiss: "忽略",
+          sync_resolve_failed: "冲突处理失败", sync_ok: "同步完成", sync_partial: "部分表同步失败",
+          record_label: "记录模式", record_on: "记录中", record_off: "记录",
+          record_on_title: "本会话记录模式已开启，点击关闭", record_off_title: "开启后把完成的可交付内容记到工作台（仅本会话）",
+          record_busy: "切换中", record_error: "切换失败", record_failed_short: "记录失败",
         },
         en: {
           nav: "Workbench", title: "Personal Workbench", tagline: "Offline-first · addons installed by DSH",
@@ -87,12 +95,20 @@
           login: "Login", signup: "Sign up", email: "Email", password: "Password", logout: "Log out",
           logged_in_as: "Signed in", not_logged_in: "Not signed in — data stays local",
           sync_now: "Sync now", sync_pushed: "pushed", sync_pulled: "pulled", device_name: "This device",
+          sync_status: "Sync status", sync_last: "Last sync", sync_never: "Never synced", sync_conflicts: "Conflicts",
+          sync_failed_tables: "Failed tables", sync_clock: "Clock offset", sync_no_conflicts: "No pending conflicts",
+          sync_conflict_hint: "The same row changed locally and remotely; choose which version to keep",
+          sync_keep_local: "Keep local", sync_keep_server: "Use remote", sync_dismiss: "Dismiss",
+          sync_resolve_failed: "Failed to resolve conflict", sync_ok: "Sync complete", sync_partial: "Some tables failed",
+          record_label: "Record mode", record_on: "Recording", record_off: "Record",
+          record_on_title: "Record mode is on for this session; click to turn it off", record_off_title: "Record finished deliverables to the workbench (this session only)",
+          record_busy: "Switching", record_error: "Switch failed", record_failed_short: "Failed",
         },
       };
 
       // 样式：只用宿主 --dsw-* token，深浅主题自适应（03 文档）
       var CSS = [
-        ".wb-root{--wb-line:var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent));--wb-surface:color-mix(in oklab,currentColor 4%,transparent);display:flex;flex-direction:column;height:100%;box-sizing:border-box;overflow:auto;color:inherit;font-size:13px;background:var(--dsw-alias-bg-layer-2,color-mix(in oklab,currentColor 4%,transparent));padding:24px 28px}",
+        ".wb-root{--wb-line:var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent));--wb-surface:var(--dsw-alias-bg-layer-1,color-mix(in oklab,currentColor 4%,transparent));display:flex;flex-direction:column;height:100%;box-sizing:border-box;overflow:auto;color:inherit;font-size:13px;background:var(--dsw-alias-bg-base,var(--dsw-alias-bg-layer-2,color-mix(in oklab,currentColor 4%,transparent)));padding:24px 28px}",
         ".wb-inner{display:flex;flex-direction:column;gap:16px;width:100%;max-width:1040px;margin:0 auto}",
         ".wb-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}",
         ".wb-hero h2{margin:0;font-size:18px;font-weight:650;letter-spacing:.2px}",
@@ -100,16 +116,16 @@
         ".wb-tabs{display:flex;gap:6px;border-bottom:1px solid var(--wb-line);margin-bottom:2px}",
         ".wb-tab{border:none;background:transparent;color:inherit;opacity:.6;padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:opacity .15s ease,border-color .15s ease}",
         ".wb-tab:hover{opacity:.9}",
-        ".wb-tab.on{opacity:1;border-bottom-color:var(--dsw-alias-accent,#11a89b);font-weight:600}",
+        ".wb-tab.on{opacity:1;border-bottom-color:var(--dsw-alias-brand-primary,#11a89b);font-weight:600}",
         ".wb-card{background:var(--wb-surface);border:1px solid var(--wb-line);border-radius:12px;padding:14px 16px}",
         ".wb-form{display:flex;gap:8px;align-items:center;background:var(--wb-surface);border:1px solid var(--wb-line);border-radius:12px;padding:10px;flex-wrap:wrap}",
         ".wb-input,.wb-select{background:transparent;color:inherit;border:1px solid var(--wb-line);border-radius:8px;padding:8px 11px;font-size:13px;outline:none;transition:border-color .15s ease}",
-        ".wb-input:focus,.wb-select:focus{border-color:var(--dsw-alias-accent,#11a89b)}",
-        ".wb-btn{background:var(--dsw-alias-accent,#11a89b);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:filter .15s ease}",
+        ".wb-input:focus,.wb-select:focus{border-color:var(--dsw-alias-brand-primary,#11a89b)}",
+        ".wb-btn{background:var(--dsw-alias-brand-primary,#11a89b);color:var(--dsw-alias-label-primary-inverted,#fff);border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:filter .15s ease}",
         ".wb-btn:hover{filter:brightness(1.08)}",
         ".wb-btn:disabled{opacity:.55;cursor:default;filter:none}",
         ".wb-btn.ghost{background:transparent;border:1px solid var(--wb-line);color:inherit;font-weight:400;opacity:.8}",
-        ".wb-btn.danger{background:transparent;border:1px solid #e5484d;color:#e5484d;font-weight:500}",
+        ".wb-btn.danger{background:transparent;border:1px solid var(--dsw-alias-state-error-primary,#e5484d);color:var(--dsw-alias-state-error-primary,#e5484d);font-weight:500}",
         ".wb-sec{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 0}",
         ".wb-sec h3{margin:0;font-size:13px;font-weight:650;letter-spacing:.2px}",
         ".wb-sec .wb-hint{font-size:11.5px;opacity:.5}",
@@ -121,19 +137,19 @@
         ".wb-addon-desc{font-size:12px;opacity:.66;margin-top:2px;line-height:1.5}",
         ".wb-actions{display:flex;gap:6px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}",
         ".wb-badge{font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid var(--wb-line);opacity:.7;margin-left:6px;white-space:nowrap}",
-        ".wb-err{font-size:12px;color:#e5484d;margin-top:4px;line-height:1.5;word-break:break-word}",
+        ".wb-err{font-size:12px;color:var(--dsw-alias-state-error-primary,#e5484d);margin-top:4px;line-height:1.5;word-break:break-word}",
         ".wb-msg{font-size:12.5px;opacity:.55;padding:20px 0;text-align:center;line-height:1.6}",
         ".wb-empty-cta{padding:26px 14px}",
         ".wb-stack{display:flex;flex-direction:column;gap:10px}",
         ".wb-home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:12px}",
         ".wb-home-card{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--wb-surface);border:1px solid var(--wb-line);border-radius:14px;padding:16px 16px 14px;color:inherit;font:inherit;cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease}",
-        ".wb-home-card:hover{border-color:var(--dsw-alias-accent,#11a89b);transform:translateY(-1px)}",
-        ".wb-home-card:focus-visible{outline:2px solid var(--dsw-alias-accent,#11a89b);outline-offset:2px}",
+        ".wb-home-card:hover{border-color:var(--dsw-alias-brand-primary,#11a89b);transform:translateY(-1px)}",
+        ".wb-home-card:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#11a89b);outline-offset:2px}",
         ".wb-home-top{display:flex;align-items:center;justify-content:space-between;gap:8px}",
-        ".wb-home-icon{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in oklab,var(--dsw-alias-accent,#11a89b) 14%,transparent);color:var(--dsw-alias-accent,#11a89b);font-size:16px;font-weight:650;flex:none}",
+        ".wb-home-icon{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 14%,transparent);color:var(--dsw-alias-brand-primary,#11a89b);font-size:16px;font-weight:650;flex:none}",
         ".wb-home-title{font-size:14px;font-weight:650;margin-top:4px;line-height:1.4}",
         ".wb-home-desc{font-size:12px;opacity:.62;line-height:1.55;min-height:34px}",
-        ".wb-home-foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--dsw-alias-accent,#11a89b);margin-top:2px;opacity:.9}",
+        ".wb-home-foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--dsw-alias-brand-primary,#11a89b);margin-top:2px;opacity:.9}",
         ".wb-home-arrow{font-size:14px;transition:transform .12s ease}",
         ".wb-home-card:hover .wb-home-arrow{transform:translateX(2px)}",
         ".wb-home-card.dim{opacity:.72}",
@@ -142,14 +158,14 @@
         ".wb-page-head{display:flex;flex-direction:column;gap:8px;padding-bottom:2px}",
         ".wb-page-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}",
         ".wb-back{border:1px solid var(--wb-line);background:transparent;color:inherit;border-radius:8px;padding:6px 11px;cursor:pointer;font:inherit;font-size:12px;opacity:.75;display:inline-flex;align-items:center;gap:5px}",
-        ".wb-back:hover{opacity:1;border-color:var(--dsw-alias-accent,#11a89b)}",
+        ".wb-back:hover{opacity:1;border-color:var(--dsw-alias-brand-primary,#11a89b)}",
         ".wb-page-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
         ".wb-page-title h2{margin:0;font-size:19px;font-weight:650;letter-spacing:.2px}",
         ".wb-page-desc{font-size:12px;opacity:.6;line-height:1.5}",
         ".wb-page-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--wb-line)}",
         ".wb-page-loading{display:flex;flex-direction:column;gap:8px;align-items:flex-start}",
         ".wb-grow{flex:1;min-width:0}",
-        ".wb-immersive{position:fixed;inset:0;z-index:700;height:100vh;box-sizing:border-box;padding:var(--dsh-frame-top-clearance,0px) 0 0;background:linear-gradient(var(--dsw-alias-bg-layer-1,#faf7ea),var(--dsw-alias-bg-layer-1,#faf7ea)),linear-gradient(var(--dsw-alias-bg-layer-2,#f7f3df),var(--dsw-alias-bg-layer-2,#f7f3df)),linear-gradient(var(--dsw-alias-bg-layer-3,#f0e8d8),var(--dsw-alias-bg-layer-3,#f0e8d8));overflow:hidden}",
+        ".wb-immersive{position:fixed;inset:0;z-index:700;height:100vh;box-sizing:border-box;padding:var(--dsh-frame-top-clearance,0px) 0 0;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1,#faf7ea));backdrop-filter:saturate(1.05) blur(10px);overflow:hidden}",
         ".wb-immersive-bar{display:flex;align-items:center;gap:10px;padding:9px 22px;border-bottom:1px solid var(--wb-line);flex:none;background:transparent}",
         ".wb-immersive-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;opacity:.85}",
         ".wb-immersive-title .wb-home-icon{width:24px;height:24px;border-radius:7px;font-size:12px}",
@@ -160,10 +176,10 @@
         ".wb-backup-row{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:1px solid var(--wb-line);border-radius:10px;background:var(--wb-surface)}",
         ".wb-backup-row.open{border-radius:10px 10px 0 0}",
         ".wb-backup-row-main{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0;cursor:pointer}",
-        ".wb-backup-row input{margin-top:3px;accent-color:var(--dsw-alias-accent,#11a89b)}",
+        ".wb-backup-row input{margin-top:3px;accent-color:var(--dsw-alias-brand-primary,#11a89b)}",
         ".wb-backup-gear{flex:none;width:28px;height:28px;border-radius:8px;border:1px solid transparent;background:transparent;color:inherit;opacity:.5;cursor:pointer;font-size:14px;line-height:1;display:inline-flex;align-items:center;justify-content:center;padding:0;margin-top:-3px}",
-        ".wb-backup-gear:hover,.wb-backup-gear.active{opacity:1;border-color:var(--wb-line);background:color-mix(in oklab,var(--dsw-alias-accent,#11a89b) 10%,transparent)}",
-        ".wb-backup-config{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 13px 11px;border:1px solid var(--wb-line);border-top:none;border-radius:0 0 10px 10px;margin-top:-1px;background:color-mix(in oklab,var(--dsw-alias-accent,#11a89b) 5%,var(--wb-surface))}",
+        ".wb-backup-gear:hover,.wb-backup-gear.active{opacity:1;border-color:var(--wb-line);background:color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 10%,transparent)}",
+        ".wb-backup-config{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 13px 11px;border:1px solid var(--wb-line);border-top:none;border-radius:0 0 10px 10px;margin-top:-1px;background:color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 5%,var(--wb-surface))}",
         ".wb-backup-config-label{font-size:12px;font-weight:600;opacity:.8}",
         ".wb-backup-config .wb-select{padding:6px 9px;font-size:12px;background:var(--wb-surface)}",
         ".wb-backup-main{min-width:0;display:flex;flex-direction:column;gap:2px}",
@@ -181,11 +197,26 @@
         ".wb-backup-table th{font-weight:600;opacity:.66;font-size:11.5px}",
         ".wb-backup-table td.num{white-space:nowrap;opacity:.8}",
         ".wb-backup-status{font-weight:600}",
-        ".wb-backup-status.ok{color:#18a058}",
-        ".wb-backup-status.partial{color:#d48806}",
-        ".wb-backup-status.failed{color:#e5484d}",
+        ".wb-backup-status.ok{color:var(--dsw-alias-state-success-primary,#18a058)}",
+        ".wb-backup-status.partial{color:var(--dsw-alias-state-warn-primary,#d48806)}",
+        ".wb-backup-status.failed{color:var(--dsw-alias-state-error-primary,#e5484d)}",
         ".wb-backup-status.skipped{opacity:.55}",
         ".wb-backup-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}",
+        ".wb-sync-status{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;opacity:.7;margin-top:10px;line-height:1.6}",
+        ".wb-sync-status b{font-weight:600;opacity:.9}",
+        ".wb-conflict{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--wb-line);font-size:12px}",
+        ".wb-conflict:first-of-type{border-top:0;padding-top:0}",
+        ".wb-conflict-main{min-width:0;display:flex;flex-direction:column;gap:2px}",
+        ".wb-conflict-meta{font-size:11px;opacity:.55;word-break:break-word}",
+        ".wb-conflict-actions{display:flex;gap:6px;flex:none}",
+        ".wb-record-pill{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid var(--wb-line,var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent)));border-radius:999px;background:color-mix(in oklab,currentColor 3%,transparent);color:inherit;cursor:pointer;font:inherit;font-size:12px;line-height:1;opacity:.62;white-space:nowrap;transition:opacity .15s ease,border-color .15s ease,background .15s ease}",
+        ".wb-record-pill:hover{opacity:.95;border-color:color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 35%,var(--wb-line,var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent))))}",
+        ".wb-record-pill.on{opacity:1;border-color:color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 45%,transparent);background:color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 10%,transparent)}",
+        ".wb-record-pill:disabled{opacity:.4;cursor:default}",
+        ".wb-record-pill.err{opacity:1;border-color:var(--dsw-alias-state-error-primary,#e5484d);color:var(--dsw-alias-state-error-primary,#e5484d)}",
+        ".wb-record-pill.err .wb-record-dot{background:currentColor;opacity:1}",
+        ".wb-record-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5;flex:none}",
+        ".wb-record-pill.on .wb-record-dot{background:var(--dsw-alias-brand-primary,#11a89b);opacity:1;box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 18%,transparent)}",
       ].join("\n");
 
       // ── 子插件宿主桥（必须在任何 addon client.js 之前就位）──
@@ -194,8 +225,16 @@
       var apiCache = new Map();
       var addonState = { addons: [], loaded: false, shellVersion: "" };
       var storeListeners = new Set();
+      var recordModes = {};         // sessionId -> enabled
+      var recordListeners = new Set();
       var stream = null;
       var lastAddonError = null;
+
+      function setRecordMode(sessionId, enabled) {
+        if (!sessionId) return;
+        recordModes[sessionId] = !!enabled;
+        recordListeners.forEach(function (fn) { try { fn(sessionId, !!enabled); } catch (e) { console.error(e); } });
+      }
 
       function notifyStore() {
         storeListeners.forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } });
@@ -251,6 +290,12 @@
         stream.addEventListener("domain-event", function (e) {
           try { broadcast(JSON.parse(e.data)); } catch (err) { console.warn(err); }
         });
+        stream.addEventListener("record-mode", function (e) {
+          try {
+            var payload = JSON.parse(e.data);
+            if (payload && payload.sessionId) setRecordMode(payload.sessionId, payload.enabled);
+          } catch (err) { console.warn(err); }
+        });
       }
       function useAddonStore() {
         var st = react.useState(0);
@@ -301,12 +346,37 @@
         var st2 = react.useState({ email: "", password: "", signup: false }); var form = st2[0]; var setForm = st2[1];
         var st3 = react.useState(""); var msg = st3[0]; var setMsg = st3[1];
         var st4 = react.useState(false); var syncing = st4[0]; var setSyncing = st4[1];
-        function refresh() { api.get("/account").then(function (r) { setMe(r); }); }
+        var st5 = react.useState(null); var syncStatus = st5[0]; var setSyncStatus = st5[1];
+        var st6 = react.useState([]); var conflicts = st6[0]; var setConflicts = st6[1];
+        function refreshSync() {
+          api.get("/sync/status").then(function (r) { if (r && r.ok) setSyncStatus(r); });
+          api.get("/sync/conflicts?limit=20").then(function (r) { setConflicts(r && Array.isArray(r.conflicts) ? r.conflicts : []); });
+        }
+        function refresh() {
+          api.get("/account").then(function (r) {
+            setMe(r);
+            if (r && r.logged_in) refreshSync();
+          });
+        }
         react.useEffect(function () { refresh(); }, []);
+        react.useEffect(function () {
+          if (!me || !me.logged_in) return undefined;
+          var es = new EventSource("/workbench/api/events");
+          function onSync() { refreshSync(); }
+          es.addEventListener("sync-done", onSync);
+          es.addEventListener("sync-status", onSync);
+          return function () { es.close(); };
+        }, [me && me.logged_in]);
         function submit() {
           api.post("/account/login", { email: form.email, password: form.password, signup: form.signup }).then(function (r) {
             setMsg(r.ok ? "" : (r.error || "failed"));
             refresh();
+          });
+        }
+        function resolve(id, action) {
+          api.post("/sync/conflicts/" + id + "/resolve", { action: action }).then(function (r) {
+            if (!r || !r.ok) setMsg(t("sync_resolve_failed"));
+            refreshSync();
           });
         }
         if (!me) return jsx.jsx("div", { className: "wb-card", children: jsx.jsx("span", { className: "wb-msg", children: "…" }) });
@@ -323,13 +393,52 @@
             msg ? jsx.jsx("div", { className: "wb-err", style: { marginTop: 8 }, children: msg }) : null,
           ] });
         }
-        return jsx.jsxs("div", { className: "wb-card", children: [
-          jsx.jsxs("div", { children: [t("logged_in_as"), " ", me.user ? me.user.email : "", " (", t("device_name"), ")"] }),
-          jsx.jsxs("div", { className: "wb-form", style: { marginTop: 10 }, children: [
-            jsx.jsx("button", { className: "wb-btn", disabled: syncing, onClick: function () { setSyncing(true); api.post("/sync/now").then(function (r) { setSyncing(false); setMsg(r.ok ? t("sync_pushed") + " " + r.pushed + " · " + t("sync_pulled") + " " + r.pulled : (r.error || "fail")); }); }, children: syncing ? "…" : t("sync_now") }),
-            jsx.jsx("button", { className: "wb-btn ghost", onClick: function () { api.post("/account/logout").then(refresh); }, children: t("logout") }),
+        var failed = syncStatus && Array.isArray(syncStatus.failed_tables) ? syncStatus.failed_tables : [];
+        return jsx.jsxs("div", { className: "wb-stack", children: [
+          jsx.jsxs("div", { className: "wb-card", children: [
+            jsx.jsxs("div", { children: [t("logged_in_as"), " ", me.user ? me.user.email : "", " (", t("device_name"), ")"] }),
+            jsx.jsxs("div", { className: "wb-form", style: { marginTop: 10 }, children: [
+              jsx.jsx("button", { className: "wb-btn", disabled: syncing, onClick: function () {
+                setSyncing(true);
+                api.post("/sync/now").then(function (r) {
+                  setSyncing(false);
+                  if (r && r.ok && Array.isArray(r.failed_tables) && r.failed_tables.length) {
+                    setMsg(t("sync_partial") + ": " + r.failed_tables.join(", "));
+                  } else {
+                    setMsg(r && r.ok ? t("sync_ok") + " · " + t("sync_pushed") + " " + r.pushed + " · " + t("sync_pulled") + " " + r.pulled : (r && r.error || "fail"));
+                  }
+                  refreshSync();
+                });
+              }, children: syncing ? "…" : t("sync_now") }),
+              jsx.jsx("button", { className: "wb-btn ghost", onClick: function () { api.post("/account/logout").then(refresh); }, children: t("logout") }),
+            ] }),
+            msg ? jsx.jsx("div", { className: "wb-msg", style: { marginTop: 8 }, children: msg }) : null,
+            syncStatus ? jsx.jsxs("div", { className: "wb-sync-status", children: [
+              jsx.jsxs("span", { children: [t("sync_last"), ": ", jsx.jsx("b", { children: syncStatus.last_sync_at ? new Date(syncStatus.last_sync_at).toLocaleString() : t("sync_never") })] }),
+              jsx.jsxs("span", { children: [t("sync_conflicts"), ": ", jsx.jsx("b", { children: syncStatus.conflicts || 0 })] }),
+              failed.length ? jsx.jsxs("span", { children: [t("sync_failed_tables"), ": ", jsx.jsx("b", { children: failed.join(", ") })] }) : null,
+              syncStatus.clock_offset ? jsx.jsxs("span", { children: [t("sync_clock"), ": ", jsx.jsx("b", { children: syncStatus.clock_offset + "ms" })] }) : null,
+            ] }) : null,
           ] }),
-          msg ? jsx.jsx("div", { className: "wb-msg", style: { marginTop: 8 }, children: msg }) : null,
+          jsx.jsxs("div", { className: "wb-card", children: [
+            jsx.jsxs("div", { className: "wb-sec", children: [
+              jsx.jsx("h3", { children: t("sync_conflicts") + " (" + conflicts.length + ")" }),
+              jsx.jsx("span", { className: "wb-hint", children: t("sync_conflict_hint") }),
+            ] }),
+            conflicts.length ? conflicts.map(function (c) {
+              return jsx.jsxs("div", { className: "wb-conflict", children: [
+                jsx.jsxs("div", { className: "wb-conflict-main", children: [
+                  jsx.jsx("div", { children: (c.table_name || "") + " · " + (c.row_id || "") }),
+                  jsx.jsx("div", { className: "wb-conflict-meta", children: (c.kind || "") + (c.server_updated_at ? " · " + new Date(c.server_updated_at).toLocaleString() : "") }),
+                ] }),
+                jsx.jsxs("div", { className: "wb-conflict-actions", children: [
+                  jsx.jsx("button", { className: "wb-btn ghost", onClick: function () { resolve(c.id, "keep_local"); }, children: t("sync_keep_local") }),
+                  jsx.jsx("button", { className: "wb-btn ghost", onClick: function () { resolve(c.id, "keep_server"); }, children: t("sync_keep_server") }),
+                  jsx.jsx("button", { className: "wb-btn ghost", onClick: function () { resolve(c.id, "dismiss"); }, children: t("sync_dismiss") }),
+                ] }),
+              ] }, c.id);
+            }) : jsx.jsx("div", { className: "wb-msg", children: t("sync_no_conflicts") }),
+          ] }),
         ] });
       }
 
@@ -587,19 +696,22 @@
         ] });
       }
 
+      function ensureCss() {
+        if (typeof document === "undefined") return;
+        if (document.getElementById("wb-css")) return;
+        var s = document.createElement("style");
+        s.id = "wb-css";
+        s.setAttribute("data-plugin-css", NS);
+        s.textContent = CSS;
+        document.head.appendChild(s);
+      }
+
       function WorkbenchPage(props) {
         var t = props.t;
         var store = useAddonStore();
         var rs = react.useState("home"); var route = rs[0]; var setRoute = rs[1];
         var lang = currentLang();
-        react.useEffect(function () {
-          if (document.getElementById("wb-css")) return;
-          var s = document.createElement("style");
-          s.id = "wb-css";
-          s.setAttribute("data-plugin-css", NS);
-          s.textContent = CSS;
-          document.head.appendChild(s);
-        }, []);
+        react.useEffect(function () { ensureCss(); }, []);
 
         var addons = (store.addons || []).filter(function (a) { return a && a.enabled; });
         var currentAddon = null;
@@ -728,11 +840,65 @@
         ] });
       }
 
+      var RecordToggle = function (props) {
+        var sid = props && props.sessionId;
+        var st = react.useState(false); var on = st[0]; var setOn = st[1];
+        var bst = react.useState(false); var busy = bst[0]; var setBusy = bst[1];
+        var est = react.useState(""); var err = est[0]; var setErr = est[1];
+        var t = props && props.t;
+
+        react.useEffect(function () {
+          if (!sid) return;
+          var fn = function (changed, value) { if (changed === sid) setOn(!!value); };
+          recordListeners.add(fn);
+          ensureStream();
+          fetch("/workbench/api/record?sessionId=" + encodeURIComponent(sid))
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (j && j.ok) setRecordMode(sid, !!j.enabled); })
+            .catch(function () { /* 宿主不可达时保持关闭态，不打扰输入 */ });
+          return function () { recordListeners.delete(fn); };
+        }, [sid]);
+
+        function toggle() {
+          if (!sid || busy) return;
+          setBusy(true); setErr("");
+          fetch("/workbench/api/record", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ sessionId: sid, enabled: !on }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (j) {
+              if (!j || !j.ok) throw new Error((j && j.error) || "request failed");
+              setRecordMode(sid, !!j.enabled);
+            })
+            .catch(function (e) { var msg = String((e && e.message) || e); setErr(msg); try { console.warn("[dsh-workbench] record toggle failed:", msg); } catch (_) {} })
+            .then(function () { setBusy(false); });
+        }
+
+        if (!sid) return null;
+        var label = busy ? t("record_busy") : err ? t("record_failed_short") : on ? t("record_on") : t("record_off");
+        var title = err ? t("record_error") + ": " + err : on ? t("record_on_title") : t("record_off_title");
+        return h("button", {
+          type: "button",
+          className: "wb-record-pill" + (on ? " on" : "") + (err ? " err" : ""),
+          onClick: toggle,
+          disabled: busy,
+          title: title,
+          "aria-label": t("record_label") + ": " + label,
+          "aria-pressed": on ? "true" : "false",
+        },
+          h("span", { className: "wb-record-dot" }),
+          h("span", { className: "wb-record-label", children: label })
+        );
+      };
+
       var exports_ = {
         name: NS,
         inject: ["slots", "locale", "theme"],
         apply: function (ctx) {
           try {
+            ensureCss();
             var PanellistIcon = function () {
               return h("svg", { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" },
                 h("rect", { x: 3, y: 3, width: 7, height: 7, rx: 1 }),
@@ -759,6 +925,12 @@
               return ctx.slots.register(
                 { name: "settings.plugins.tab", id: NS, order: 65, label: function () { return t("nav"); }, locale: NS, inject: function () { return { t: t }; } },
                 function () { return h(WorkbenchPage, { t: t }); }
+              );
+            });
+            ctx.slots.inject("conversation.input.left", function () {
+              return ctx.slots.register(
+                { name: "conversation.input.left", id: NS + "-record", order: 40, label: function () { return t("record_label"); } },
+                function (props) { return h(RecordToggle, { sessionId: props && props.sessionId, t: t }); }
               );
             });
           } catch (e) { console.error("[dsh-workbench] apply crashed:", e, e && e.stack); throw e; }

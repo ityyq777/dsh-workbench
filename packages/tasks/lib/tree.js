@@ -173,14 +173,16 @@ function renameAction(db, args, origin, api) {
   return { node: rowNode(Object.assign({}, node, { name: name, updated_at: ts, rev: Number(node.rev) + 1 }), []) };
 }
 
-function resort(db, parentId, ts) {
+function resort(db, parentId, ts, origin) {
   const rows = db.prepare(
     "SELECT * FROM task_node WHERE parent_id=? AND deleted_at IS NULL ORDER BY sort ASC, id ASC",
   ).all(String(parentId));
   let i = 0;
   for (const row of rows) {
     if (Number(row.sort) !== i) {
+      const next = Object.assign({}, row, { sort: i, updated_at: ts, rev: Number(row.rev) + 1 });
       db.prepare("UPDATE task_node SET sort=?, updated_at=?, rev=rev+1 WHERE id=?").run(i, ts, String(row.id));
+      logChange(db, "task_node", String(row.id), "upsert", next, origin, ts);
     }
     i++;
   }
@@ -253,10 +255,15 @@ function moveAction(db, args, origin, api) {
     ordered.splice(Math.max(0, Math.min(newSort, ordered.length)), 0, { id: String(source.id) });
     let i = 0;
     for (const row of ordered) {
-      db.prepare("UPDATE task_node SET sort=?, updated_at=?, rev=rev+1 WHERE id=?").run(i, ts, String(row.id));
+      if (String(row.id) === String(source.id)) { i++; continue; }
+      if (Number(row.sort) !== i) {
+        const next = Object.assign({}, row, { sort: i, updated_at: ts, rev: Number(row.rev) + 1 });
+        db.prepare("UPDATE task_node SET sort=?, updated_at=?, rev=rev+1 WHERE id=?").run(i, ts, String(row.id));
+        logChange(db, "task_node", String(row.id), "upsert", next, origin, ts);
+      }
       i++;
     }
-    resort(db, oldParentId, ts);
+    resort(db, oldParentId, ts, origin);
   });
   api.emit("task-nodes-changed", { id: String(source.id), parentId: String(newParent.id), op: "move" });
   return { ok: true, node: rowNode(nodeById(db, source.id, false), []) };
@@ -276,15 +283,17 @@ function deleteAction(db, args, origin, api) {
       const marks = tableIds.map(function () { return "?"; }).join(",");
       const tasks = db.prepare("SELECT * FROM task WHERE deleted_at IS NULL AND table_id IN (" + marks + ")").all(...tableIds);
       for (const t of tasks) {
+        const tomb = Object.assign({}, t, { deleted_at: ts, updated_at: ts, rev: Number(t.rev) + 1 });
         db.prepare("UPDATE task SET deleted_at=?, updated_at=?, rev=rev+1 WHERE id=?").run(ts, ts, String(t.id));
-        logChange(db, "task", String(t.id), "delete", null, origin, ts);
+        logChange(db, "task", String(t.id), "delete", tomb, origin, ts);
         api.emit("tasks-changed", { id: String(t.id), op: "delete" });
         taskCount++;
       }
     }
     for (const row of rows) {
+      const tomb = Object.assign({}, row, { deleted_at: ts, updated_at: ts, rev: Number(row.rev) + 1 });
       db.prepare("UPDATE task_node SET deleted_at=?, updated_at=?, rev=rev+1 WHERE id=?").run(ts, ts, String(row.id));
-      logChange(db, "task_node", String(row.id), "delete", null, origin, ts);
+      logChange(db, "task_node", String(row.id), "delete", tomb, origin, ts);
     }
   });
   api.emit("task-nodes-changed", { id: id, op: "delete" });

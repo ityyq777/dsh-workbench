@@ -34,7 +34,8 @@ export const TAG_TABLE_DDL = [
 ];
 
 export const TAG_INDEX_DDL = [
-  "CREATE UNIQUE INDEX IF NOT EXISTS uk_tag_name ON tag(name) WHERE deleted_at IS NULL;",
+  "DROP INDEX IF EXISTS uk_tag_name;",
+  "CREATE INDEX IF NOT EXISTS idx_tag_name ON tag(name) WHERE deleted_at IS NULL;",
   "CREATE INDEX IF NOT EXISTS idx_tag_updated_at ON tag(updated_at);",
   "CREATE INDEX IF NOT EXISTS idx_tag_created_at ON tag(created_at);",
   "CREATE INDEX IF NOT EXISTS idx_tag_mapping_tag ON tag_mapping(tag_id) WHERE deleted_at IS NULL;",
@@ -43,8 +44,15 @@ export const TAG_INDEX_DDL = [
 ];
 
 let lastTs = 0;
+let clockNow = null;
+
+/** 宿主注入同步时钟；未注入时退回本地单调时钟。 */
+export function bindClock(fn) {
+  clockNow = typeof fn === "function" ? fn : null;
+}
 
 export function now() {
+  if (clockNow) return clockNow();
   const t = Date.now();
   if (t <= lastTs) {
     lastTs += 1;
@@ -120,7 +128,16 @@ export function tx(db, fn) {
 
 export function logChange(db, table, rowId, op, payload, origin, ts) {
   if (String(origin || "ui") === "sync") return;
-  const p = payload === undefined ? null : typeof payload === "string" ? payload : JSON.stringify(payload);
+  let value = payload;
+  if (String(op) === "delete" && (value === undefined || value === null)) {
+    try {
+      const row = db.prepare("SELECT * FROM " + String(table) + " WHERE id=?").get(String(rowId));
+      if (row) value = row;
+    } catch (err) {
+      // 表不存在或列不匹配时仍记录墓碑时间和 id。
+    }
+  }
+  const p = value === undefined ? null : typeof value === "string" ? value : JSON.stringify(value);
   db.prepare(
     "INSERT INTO sync_change_log(table_name,row_id,op,payload,origin,updated_at) VALUES(?,?,?,?,?,?)",
   ).run(String(table), String(rowId), String(op), p, String(origin || "ui"), Number(ts || now()));

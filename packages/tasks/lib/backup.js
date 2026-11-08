@@ -53,6 +53,26 @@ function taskValues(row) {
     asText(row.target_date),
     asTextOrNull(row.done_date),
     asTextOrNull(row.shutdown_date),
+    asInt(row.sort, 0),
+    asTextOrNull(row.dedupe_key),
+    asInt(row.created_at, updated),
+    updated,
+    row.deleted_at === null || row.deleted_at === undefined ? null : asInt(row.deleted_at, updated),
+    Math.max(1, asInt(row.rev, 1)),
+  ];
+}
+
+function depValues(row) {
+  const id = asText(row && row.id).trim();
+  if (!id) throw new Error("task_dep.id 为空");
+  const taskId = asText(row.task_id).trim();
+  const dependsOn = asText(row.depends_on_id).trim();
+  if (!taskId || !dependsOn) throw new Error("task_dep 关联为空：" + id);
+  const updated = asInt(row.updated_at, Date.now());
+  return [
+    id,
+    taskId,
+    dependsOn,
     asInt(row.created_at, updated),
     updated,
     row.deleted_at === null || row.deleted_at === undefined ? null : asInt(row.deleted_at, updated),
@@ -83,7 +103,8 @@ export function exportTasksData(api) {
   const db = api.db;
   const tasks = tableExists(db, TASK_TABLE) ? db.prepare("SELECT * FROM task ORDER BY created_at ASC, id ASC").all() : [];
   const nodes = tableExists(db, NODE_TABLE) ? db.prepare("SELECT * FROM task_node ORDER BY depth ASC, sort ASC, id ASC").all() : [];
-  return { schemaVersion: SCHEMA_VERSION, tasks, taskNodes: nodes };
+  const taskDeps = tableExists(db, "task_dep") ? db.prepare("SELECT * FROM task_dep ORDER BY task_id ASC, depends_on_id ASC").all() : [];
+  return { schemaVersion: SCHEMA_VERSION, tasks, taskNodes: nodes, taskDeps };
 }
 
 function policyOf(options) {
@@ -108,10 +129,16 @@ export function importTasksData(api, raw, options) {
   }
 
   const taskUpsert = db.prepare(
-    "INSERT INTO task(id,title,description,status,type,priority,difficulty,table_id,timeline_key,restart_key,publish_date,target_date,done_date,shutdown_date,created_at,updated_at,deleted_at,rev) " +
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) " +
-      "ON CONFLICT(id) DO UPDATE SET title=excluded.title,description=excluded.description,status=excluded.status,type=excluded.type,priority=excluded.priority,difficulty=excluded.difficulty,table_id=excluded.table_id,timeline_key=excluded.timeline_key,restart_key=excluded.restart_key,publish_date=excluded.publish_date,target_date=excluded.target_date,done_date=excluded.done_date,shutdown_date=excluded.shutdown_date,created_at=excluded.created_at,updated_at=excluded.updated_at,deleted_at=excluded.deleted_at,rev=excluded.rev " +
+    "INSERT INTO task(id,title,description,status,type,priority,difficulty,table_id,timeline_key,restart_key,publish_date,target_date,done_date,shutdown_date,sort,dedupe_key,created_at,updated_at,deleted_at,rev) " +
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) " +
+      "ON CONFLICT(id) DO UPDATE SET title=excluded.title,description=excluded.description,status=excluded.status,type=excluded.type,priority=excluded.priority,difficulty=excluded.difficulty,table_id=excluded.table_id,timeline_key=excluded.timeline_key,restart_key=excluded.restart_key,publish_date=excluded.publish_date,target_date=excluded.target_date,done_date=excluded.done_date,shutdown_date=excluded.shutdown_date,sort=excluded.sort,dedupe_key=excluded.dedupe_key,created_at=excluded.created_at,updated_at=excluded.updated_at,deleted_at=excluded.deleted_at,rev=excluded.rev " +
       "WHERE ? = 1 OR excluded.updated_at > task.updated_at",
+  );
+  const depUpsert = db.prepare(
+    "INSERT INTO task_dep(id,task_id,depends_on_id,created_at,updated_at,deleted_at,rev) " +
+      "VALUES(?,?,?,?,?,?,?) " +
+      "ON CONFLICT(id) DO UPDATE SET task_id=excluded.task_id,depends_on_id=excluded.depends_on_id,created_at=excluded.created_at,updated_at=excluded.updated_at,deleted_at=excluded.deleted_at,rev=excluded.rev " +
+      "WHERE ? = 1 OR excluded.updated_at > task_dep.updated_at",
   );
   const nodeUpsert = db.prepare(
     "INSERT INTO task_node(id,name,type,parent_id,path,sort,depth,created_at,updated_at,deleted_at,rev) " +
@@ -126,6 +153,7 @@ export function importTasksData(api, raw, options) {
   const errors = [];
   const taskExists = db.prepare("SELECT 1 FROM task WHERE id = ?");
   const nodeExists = db.prepare("SELECT 1 FROM task_node WHERE id = ?");
+  const depExists = db.prepare("SELECT 1 FROM task_dep WHERE id = ?");
   const force = policy === "overwrite" ? 1 : 0;
 
   for (const row of data.tasks) {
@@ -138,7 +166,26 @@ export function importTasksData(api, raw, options) {
       const result = taskUpsert.run(...values, force);
       if (result.changes > 0) {
         imported += 1;
-        logChange(db, TASK_TABLE, values[0], "upsert", row, "import", values[15]);
+        logChange(db, TASK_TABLE, values[0], "upsert", row, "import", values[17]);
+      } else {
+        skipped += 1;
+      }
+    } catch (e) {
+      failed += 1;
+      if (errors.length < 5) errors.push(String((e && e.message) || e));
+    }
+  }
+  for (const row of data.taskDeps || []) {
+    try {
+      const values = depValues(row);
+      if (policy === "skip" && depExists.get(values[0])) {
+        skipped += 1;
+        continue;
+      }
+      const result = depUpsert.run(...values, force);
+      if (result.changes > 0) {
+        imported += 1;
+        logChange(db, "task_dep", values[0], "upsert", row, "import", values[4]);
       } else {
         skipped += 1;
       }
