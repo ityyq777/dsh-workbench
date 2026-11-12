@@ -1,192 +1,30 @@
 // dsh-workbench-sites 浏览器侧源码。构建：node scripts/build-addon-clients.mjs → lib/client.js
 var React = require("react");
 var h = React.createElement;
+var TagFilter = require("./ui/tagfilter.cjs");
 
 (function () {
   var host = window.__WB_HOST__;
   if (!host) {
     console.error("[wb-addon-sites] 缺少 window.__WB_HOST__，无法注册站点视图");
-    return { name: "dsh-workbench-sites", inject: [], apply: function () {} };
+    module.exports = { name: "dsh-workbench-sites", inject: [], apply: function () {} };
+    return;
   }
   var React = require("react");
   var h = React.createElement;
+  var statsView = require("./views/stats.cjs");
+  var configView = require("./views/config.cjs");
+  var dataView = require("./views/data.cjs");
 
-  // 站点插件自带 lucide-react 图标；每个图标按需引入，随 client.js 一起打包。
-  var ICONS = {
-    "x": require("lucide-react/icons/x").default,
-    "plus": require("lucide-react/icons/plus").default,
-    "edit": require("lucide-react/icons/pencil").default,
-    "trash": require("lucide-react/icons/trash-2").default,
-    "folder-plus": require("lucide-react/icons/folder-plus").default,
-    "refresh": require("lucide-react/icons/refresh-cw").default,
-    "search": require("lucide-react/icons/search").default,
-  };
-  // 统一的小尺寸图标调用方式，保持各视图里的 Icon({ name, size }) 不变。
-  function Icon(props) {
-    var C = ICONS[props.name];
-    if (!C) return null;
-    return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbs-svg" });
-  }
+  // 图标定义收在 ui/icons.cjs：标签页图标与客户端共用同一份映射。
+  var icons = require("./ui/icons.cjs"), Icon = icons.Icon, tabIcon = icons.tabIcon;
 
   var useState = React.useState;
   var useEffect = React.useEffect;
   var useRef = React.useRef;
   var useMemo = React.useMemo;
 
-  var COPY = {
-    zh: {
-      title: "站点",
-      all: "全部站点",
-      directory: "目录",
-      addDir: "新建目录",
-      addChild: "新建子目录",
-      rename: "重命名",
-      remove: "删除目录",
-      search: "搜索站点名称或描述",
-      newSite: "＋ 新建站点",
-      siteCol: "站点 / 平台",
-      tagCol: "标签",
-      createTime: "创建时间",
-      updateTime: "更新时间",
-      actions: "操作",
-      links: "链接",
-      dirs: "目录",
-      edit: "编辑",
-      del: "删除",
-      default: "默认",
-      noLink: "暂无链接",
-      noDesc: "暂无描述",
-      empty: "还没有站点",
-      emptyHint: "点击右上角“新建站点”，或在当前目录下创建第一条记录。",
-      loading: "加载中…",
-      prev: "上一页",
-      next: "下一页",
-      total: "共 {n} 个",
-      deleteTitle: "删除站点",
-      deleteText: "确定删除「{name}」吗？站点会被软删除，目录与标签关联也会清理。",
-      cancel: "取消",
-      confirm: "确定删除",
-      createTitle: "新建站点",
-      editTitle: "编辑站点",
-      step1: "基础信息",
-      step2: "关联目录",
-      step3: "关联标签",
-      siteName: "站点名称",
-      siteNamePh: "例如：MDN",
-      desc: "一句话描述",
-      descPh: "这个站点是做什么的",
-      linkList: "链接",
-      linkDesc: "描述",
-      linkUrl: "网址",
-      addLink: "＋ 添加链接",
-      setDefault: "设为默认",
-      removeLink: "移除",
-      chooseDirs: "选择目录（至少一个）",
-      chooseTags: "选择标签",
-      tagSearch: "搜索标签",
-      noTags: "没有匹配的标签",
-      noDirs: "还没有目录，请先在左侧新建目录",
-      back: "上一步",
-      nextStep: "下一步",
-      save: "保存",
-      saving: "保存中…",
-      requiredName: "请填写站点名称",
-      requiredDirs: "请至少选择一个目录",
-      tagFilter: "标签筛选",
-      allTags: "全部标签",
-      clear: "清除",
-      refresh: "刷新",
-      selected: "已选 {n} 项",
-      deleteSelected: "删除所选",
-      removeDirTitle: "删除目录",
-      removeDirText: "确定删除「{name}」及其所有子目录吗？目录下的站点不会被删除，只会解除目录关联。",
-      dirName: "目录名称",
-      create: "创建",
-      renameTitle: "重命名目录",
-      bulkConfirm: "确定删除选中的 {n} 个站点吗？",
-      opFail: "操作失败：{msg}",
-      loadFail: "加载失败：{msg}",
-      saved: "已保存",
-      deleted: "已删除",
-      moved: "已移动",
-    },
-    en: {
-      title: "Sites",
-      all: "All sites",
-      directory: "Folders",
-      addDir: "New folder",
-      addChild: "New subfolder",
-      rename: "Rename",
-      remove: "Delete folder",
-      search: "Search site name or description",
-      newSite: "+ New site",
-      siteCol: "Site",
-      tagCol: "Tags",
-      createTime: "Created",
-      updateTime: "Updated",
-      actions: "Actions",
-      links: "Links",
-      dirs: "Folders",
-      edit: "Edit",
-      del: "Delete",
-      default: "Default",
-      noLink: "No link",
-      noDesc: "No description",
-      empty: "No sites yet",
-      emptyHint: "Use “New site” in the top right to add the first one.",
-      loading: "Loading…",
-      prev: "Prev",
-      next: "Next",
-      total: "{n} sites",
-      deleteTitle: "Delete site",
-      deleteText: "Delete “{name}”? The site is soft deleted and its folder/tag links are cleaned up.",
-      cancel: "Cancel",
-      confirm: "Delete",
-      createTitle: "New site",
-      editTitle: "Edit site",
-      step1: "Basics",
-      step2: "Folders",
-      step3: "Tags",
-      siteName: "Site name",
-      siteNamePh: "e.g. MDN",
-      desc: "Description",
-      descPh: "What is this site for?",
-      linkList: "Links",
-      linkDesc: "Label",
-      linkUrl: "URL",
-      addLink: "+ Add link",
-      setDefault: "Default",
-      removeLink: "Remove",
-      chooseDirs: "Choose at least one folder",
-      chooseTags: "Choose tags",
-      tagSearch: "Search tags",
-      noTags: "No matching tags",
-      noDirs: "No folders yet. Create one on the left first.",
-      back: "Back",
-      nextStep: "Next",
-      save: "Save",
-      saving: "Saving…",
-      requiredName: "Site name is required",
-      requiredDirs: "Choose at least one folder",
-      tagFilter: "Filter by tag",
-      allTags: "All tags",
-      clear: "Clear",
-      refresh: "Refresh",
-      selected: "{n} selected",
-      deleteSelected: "Delete selected",
-      removeDirTitle: "Delete folder",
-      removeDirText: "Delete “{name}” and all subfolders? Sites are kept; only folder links are removed.",
-      dirName: "Folder name",
-      create: "Create",
-      renameTitle: "Rename folder",
-      bulkConfirm: "Delete {n} selected sites?",
-      opFail: "Operation failed: {msg}",
-      loadFail: "Load failed: {msg}",
-      saved: "Saved",
-      deleted: "Deleted",
-      moved: "Moved",
-    },
-  };
+  var COPY = require("./ui/copy.cjs");
 
   function text(lang, key, vars) {
     var dict = COPY[lang] || COPY.zh;
@@ -206,109 +44,7 @@ var h = React.createElement;
     return list.some(function (a) { return a && a.id === id && a.enabled !== false; });
   }
 
-  var cssText = [
-    ".wbs-root{--wbs-line:var(--dsw-alias-border-l2, color-mix(in srgb, var(--dsw-alias-label-primary,#1f2328) 13%, transparent));--wbs-soft:var(--dsw-alias-interactive-bg-hover, color-mix(in srgb, var(--dsw-alias-label-primary,#1f2328) 4.5%, transparent));--wbs-accent:var(--dsw-alias-brand-primary,#0a8f7d);--wbs-muted:var(--dsw-alias-label-secondary, color-mix(in srgb, var(--dsw-alias-label-primary,#1f2328) 58%, transparent));display:flex;flex-direction:column;min-height:560px;color:var(--dsw-alias-label-primary,#1f2328);font-size:13px}",
-    ".wbs-grow{flex:1;min-width:0}",
-    ".wbs-head{display:flex;align-items:center;gap:10px;margin:2px 0 14px}",
-    ".wbs-head h2{margin:0;font-size:21px;font-weight:650;letter-spacing:.01em}",
-    ".wbs-count{font-size:12px;color:var(--wbs-muted)}",
-    ".wbs-btn{appearance:none;border:1px solid var(--wbs-line);background:transparent;color:inherit;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;line-height:1.35;white-space:nowrap;font-family:inherit}",
-    ".wbs-btn:hover{background:var(--wbs-soft)}",
-    ".wbs-btn.primary{background:var(--wbs-accent);color:var(--dsw-alias-label-primary-inverted,#fff);border-color:transparent}",
-    ".wbs-btn.primary:hover{filter:brightness(1.06)}",
-    ".wbs-btn.danger{color:var(--dsw-alias-state-error-primary,#bd3b32);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary,#bd3b32) 34%,transparent)}",
-    ".wbs-btn.danger:hover{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#bd3b32) 8%,transparent)}",
-    ".wbs-btn.sm{padding:3px 7px;font-size:11px;border-radius:6px}",
-    ".wbs-btn:disabled{opacity:.5;cursor:not-allowed}",
-    ".wbs-body{display:flex;gap:16px;align-items:flex-start;flex:1;min-height:0}",
-    ".wbs-tree{width:236px;flex:none;border:1px solid var(--wbs-line);border-radius:12px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 62%,transparent);padding:8px;max-height:calc(100vh - 220px);overflow:auto}",
-    ".wbs-tree-top{display:flex;align-items:center;gap:6px;padding:3px 4px 8px;border-bottom:1px solid var(--wbs-line);margin-bottom:6px}",
-    ".wbs-tree-title{font-size:12px;font-weight:600;color:var(--wbs-muted);flex:1}",
-    ".wbs-node{display:flex;align-items:center;gap:3px;padding:4px 5px;border-radius:7px;cursor:pointer;min-height:27px;box-sizing:border-box}",
-    ".wbs-node:hover{background:var(--wbs-soft)}",
-    ".wbs-node.active{background:color-mix(in srgb,var(--wbs-accent) 13%,transparent);color:var(--wbs-accent);font-weight:600}",
-    ".wbs-caret{width:16px;flex:none;text-align:center;font-size:10px;opacity:.65}",
-    ".wbs-node-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-    ".wbs-node-actions{display:none;align-items:center;gap:1px;flex:none}",
-    ".wbs-node:hover .wbs-node-actions{display:flex}",
-    ".wbs-mini{appearance:none;border:0;background:transparent;color:var(--wbs-muted);border-radius:4px;cursor:pointer;font-size:12px;line-height:1;padding:3px 4px;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}",
-    ".wbs-mini:hover{background:var(--wbs-line);color:inherit}",
-    ".wbs-svg{display:block;flex:none}",
-    ".wbs-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}",
-    ".wbs-crumbs{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:12px;min-height:22px}",
-    ".wbs-crumb{appearance:none;border:0;background:transparent;color:var(--wbs-muted);padding:3px 4px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:12px}",
-    ".wbs-crumb:hover{background:var(--wbs-soft);color:inherit}",
-    ".wbs-crumb.cur{color:inherit;font-weight:600}",
-    ".wbs-sep{opacity:.4;font-size:10px}",
-    ".wbs-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-    ".wbs-search{display:flex;align-items:center;gap:6px;border:1px solid var(--wbs-line);border-radius:8px;padding:0 8px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 58%,transparent);min-width:210px;flex:0 1 300px}",
-    ".wbs-search input{border:0;outline:0;background:transparent;color:inherit;font:inherit;padding:7px 0;flex:1;min-width:0}",
-    ".wbs-search button{border:0;background:transparent;color:var(--wbs-muted);cursor:pointer;font-size:12px;padding:3px}",
-    ".wbs-tagfilter{position:relative}",
-    ".wbs-tagmenu{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:230px;max-height:300px;overflow:auto;background:var(--dsw-alias-bg-layer-1,#fffdf7);border:1px solid var(--wbs-line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.14);padding:8px}",
-    ".wbs-tagmenu-head{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--wbs-muted);padding:2px 4px 7px}",
-    ".wbs-tagopt{display:flex;align-items:center;gap:7px;padding:6px;border-radius:6px;cursor:pointer;font-size:12px}",
-    ".wbs-tagopt:hover{background:var(--wbs-soft)}",
-    ".wbs-tablewrap{border:1px solid var(--wbs-line);border-radius:12px;overflow:auto;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 55%,transparent)}",
-    ".wbs-table{width:100%;border-collapse:collapse;table-layout:fixed}",
-    ".wbs-table th{font-size:11px;font-weight:600;color:var(--wbs-muted);text-align:left;padding:9px 9px;border-bottom:1px solid var(--wbs-line);white-space:nowrap;background:color-mix(in srgb,var(--dsw-alias-bg-layer-2,#f4f1e4) 55%,transparent)}",
-    ".wbs-table td{padding:10px 9px;border-bottom:1px solid color-mix(in srgb,var(--wbs-line) 68%,transparent);vertical-align:top}",
-    ".wbs-table tr:last-child td{border-bottom:0}",
-    ".wbs-table tbody tr:hover td{background:color-mix(in srgb,var(--wbs-accent) 3.5%,transparent)}",
-    ".wbs-th-sort{cursor:pointer;user-select:none}",
-    ".wbs-th-sort:hover{color:inherit}",
-    ".wbs-site-name{font-weight:600;font-size:13px;word-break:break-word}",
-    ".wbs-site-desc{font-size:12px;color:var(--wbs-muted);margin-top:3px;word-break:break-word}",
-    ".wbs-site-link{display:inline-block;margin-top:4px;font-size:11.5px;color:var(--wbs-accent);text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top}",
-    ".wbs-site-link:hover{text-decoration:underline}",
-    ".wbs-muted{color:var(--wbs-muted)}",
-    ".wbs-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--wbs-line);border-radius:999px;padding:2px 7px;font-size:11px;margin:0 4px 3px 0;background:color-mix(in srgb,var(--wbs-accent) 6%,transparent);max-width:100%}",
-    ".wbs-chip button{border:0;background:transparent;color:inherit;cursor:pointer;padding:0;font-size:11px;opacity:.65}",
-    ".wbs-actions{display:flex;gap:4px;flex-wrap:wrap}",
-    ".wbs-expand td{background:color-mix(in srgb,var(--dsw-alias-bg-layer-2,#f4f1e4) 52%,transparent);padding:10px 12px}",
-    ".wbs-subtable{width:100%;border-collapse:collapse;font-size:12px}",
-    ".wbs-subtable th{font-size:10px;color:var(--wbs-muted);text-align:left;padding:3px 6px;border-bottom:1px solid var(--wbs-line)}",
-    ".wbs-subtable td{padding:5px 6px;border-bottom:1px solid color-mix(in srgb,var(--wbs-line) 45%,transparent);word-break:break-all}",
-    ".wbs-dirpath{line-height:1.7}",
-    ".wbs-empty{text-align:center;padding:52px 12px;color:var(--wbs-muted)}",
-    ".wbs-empty b{display:block;color:inherit;font-size:14px;margin-bottom:6px}",
-    ".wbs-pager{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:2px 0;font-size:12px;color:var(--wbs-muted);flex-wrap:wrap}",
-    ".wbs-pager select{border:1px solid var(--wbs-line);border-radius:6px;background:transparent;color:inherit;font:inherit;padding:4px 6px}",
-    ".wbs-loading{padding:24px;text-align:center;color:var(--wbs-muted);font-size:12px}",
-    ".wbs-error{padding:10px 12px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#bd3b32) 30%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#bd3b32) 6%,transparent);border-radius:8px;color:var(--dsw-alias-state-error-primary,#a4312a);font-size:12px}",
-    ".wbs-toast{position:fixed;left:50%;bottom:38px;transform:translateX(-50%);z-index:1200;background:var(--dsw-alias-toast-bg,#26302d);color:var(--dsw-alias-toast-label,#fff);border-radius:8px;padding:8px 14px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.22);max-width:80vw}",
-    ".wbs-toast.err{background:var(--dsw-alias-state-error-primary,#9d332b)}",
-    ".wbs-mask{position:fixed;inset:0;z-index:900;background:rgba(24,28,26,.34);display:flex;align-items:center;justify-content:center;padding:22px}",
-    ".wbs-modal{width:min(700px,96vw);max-height:88vh;overflow:auto;background:var(--dsw-alias-bg-layer-1,#fffdf7);border:1px solid var(--wbs-line);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.24);padding:18px}",
-    ".wbs-modal.small{width:min(430px,94vw)}",
-    ".wbs-modal-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:650;margin-bottom:4px}",
-    ".wbs-modal-sub{font-size:12px;color:var(--wbs-muted);margin-bottom:14px;line-height:1.6}",
-    ".wbs-steps{display:flex;gap:6px;margin:2px 0 16px;flex-wrap:wrap}",
-    ".wbs-step{font-size:11px;color:var(--wbs-muted);padding:4px 8px;border-radius:999px;border:1px solid transparent}",
-    ".wbs-step.on{color:var(--wbs-accent);border-color:color-mix(in srgb,var(--wbs-accent) 30%,transparent);background:color-mix(in srgb,var(--wbs-accent) 8%,transparent);font-weight:600}",
-    ".wbs-label{font-size:12px;font-weight:600;margin:12px 0 5px;display:block}",
-    ".wbs-input,.wbs-textarea,.wbs-select{width:100%;box-sizing:border-box;border:1px solid var(--wbs-line);border-radius:8px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 55%,transparent);color:inherit;font:inherit;font-size:13px;padding:8px 9px;outline:0}",
-    ".wbs-input:focus,.wbs-textarea:focus{border-color:var(--wbs-accent)}",
-    ".wbs-textarea{min-height:70px;resize:vertical;line-height:1.6}",
-    ".wbs-linkrow{display:grid;grid-template-columns:1fr 1.5fr auto auto;gap:6px;align-items:center;margin-bottom:6px}",
-    ".wbs-linkrow .wbs-input{font-size:12px;padding:6px 8px}",
-    ".wbs-radio{display:flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;color:var(--wbs-muted);cursor:pointer}",
-    ".wbs-dirlist{border:1px solid var(--wbs-line);border-radius:9px;max-height:300px;overflow:auto;padding:5px}",
-    ".wbs-dircheck{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:12px}",
-    ".wbs-dircheck:hover{background:var(--wbs-soft)}",
-    ".wbs-dircheck input{margin:0}",
-    ".wbs-tagsearch{display:flex;gap:6px;align-items:center}",
-    ".wbs-tagresults{border:1px solid var(--wbs-line);border-radius:9px;max-height:190px;overflow:auto;margin-top:7px;padding:4px}",
-    ".wbs-tagresult{width:100%;text-align:left;border:0;background:transparent;color:inherit;padding:6px;border-radius:6px;cursor:pointer;font:inherit;font-size:12px}",
-    ".wbs-tagresult:hover{background:var(--wbs-soft)}",
-    ".wbs-tagresult.on{background:color-mix(in srgb,var(--wbs-accent) 10%,transparent);color:var(--wbs-accent)}",
-    ".wbs-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;min-height:10px}",
-    ".wbs-formfoot{display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--wbs-line)}",
-    ".wbs-formerr{color:var(--dsw-alias-state-error-primary,#b5392f);font-size:12px;flex:1;min-width:0}",
-    ".wbs-note{font-size:11px;color:var(--wbs-muted);line-height:1.6}",
-    "@media(max-width:860px){.wbs-body{flex-direction:column}.wbs-tree{width:100%;max-height:220px}.wbs-table{min-width:760px}.wbs-root{min-height:0}}",
-    "@media(max-width:600px){.wbs-head h2{font-size:18px}.wbs-linkrow{grid-template-columns:1fr 1fr}.wbs-modal{padding:14px}}"
-  ].join("\n");
+  var cssText = require("./ui/styles.cjs");
 
   function injectCss() {
     var id = "wb-addon-sites-css";
@@ -507,7 +243,11 @@ var h = React.createElement;
     var title = mode === "edit" ? text(lang, "editTitle") : text(lang, "createTitle");
 
     return h(Modal, { onClose: saving ? null : props.onClose },
-      h("div", { className: "wbs-modal-title" }, title),
+      h("div", { className: "wbs-modal-title" },
+        h(Icon, { name: mode === "edit" ? "edit" : "plus", size: 15 }),
+        title,
+        h("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h(Icon, { name: "x", size: 15 })),
+      ),
       h("div", { className: "wbs-steps" }, steps.map(function (s, i) {
         return h("span", { key: i, className: "wbs-step" + (i === step ? " on" : "") }, (i + 1) + " · " + s);
       })),
@@ -552,10 +292,10 @@ var h = React.createElement;
               }),
               text(lang, "default"),
             ),
-            h("button", { type: "button", className: "wbs-mini", onClick: function () { removeLink(i); } }, text(lang, "removeLink")),
+            h("button", { type: "button", className: "wbs-mini", title: text(lang, "removeLink"), onClick: function () { removeLink(i); } }, h(Icon, { name: "x", size: 13 })),
           );
         }),
-        h("button", { type: "button", className: "wbs-btn sm", onClick: addLink }, text(lang, "addLink")),
+        h("button", { type: "button", className: "wbs-btn sm", onClick: addLink }, h(Icon, { name: "plus", size: 13 }), text(lang, "addLink")),
       ) : null,
 
       step === 1 ? h("div", null,
@@ -601,18 +341,21 @@ var h = React.createElement;
             type: "button",
             className: "wbs-tagresult" + (on ? " on" : ""),
             onClick: function () { toggleTag(t); },
-          }, (on ? "✓ " : "＋ ") + t.name);
+          },
+            h(Icon, { name: on ? "check" : "plus", size: 12 }),
+            h("span", null, t.name),
+          );
         }) : h("div", { className: "wbs-note", style: { padding: 6 } }, text(lang, "noTags"))),
         h("div", { className: "wbs-note", style: { marginTop: 8 } }, "标签由标签子插件提供，可多选。"),
       ) : null,
 
       h("div", { className: "wbs-formfoot" },
         h("div", { className: "wbs-formerr" }, error || ""),
-        step > 0 ? h("button", { type: "button", className: "wbs-btn", disabled: saving, onClick: function () { setStep(step - 1); } }, text(lang, "back")) : null,
+        step > 0 ? h("button", { type: "button", className: "wbs-btn", disabled: saving, onClick: function () { setStep(step - 1); } }, h(Icon, { name: "chevron-left", size: 13 }), text(lang, "back")) : null,
         h("button", { type: "button", className: "wbs-btn", disabled: saving, onClick: props.onClose }, text(lang, "cancel")),
         step < maxStep
-          ? h("button", { type: "button", className: "wbs-btn primary", onClick: next }, text(lang, "nextStep"))
-          : h("button", { type: "button", className: "wbs-btn primary", disabled: saving, onClick: save }, saving ? text(lang, "saving") : text(lang, "save")),
+          ? h("button", { type: "button", className: "wbs-btn primary", onClick: next }, text(lang, "nextStep"), h(Icon, { name: "chevron-right", size: 13 }))
+          : h("button", { type: "button", className: "wbs-btn primary", disabled: saving, onClick: save }, h(Icon, { name: "check", size: 13 }), saving ? text(lang, "saving") : text(lang, "save")),
       ),
     );
   }
@@ -648,7 +391,11 @@ var h = React.createElement;
     }
 
     return h(Modal, { small: true, onClose: saving ? null : props.onClose },
-      h("div", { className: "wbs-modal-title" }, title),
+      h("div", { className: "wbs-modal-title" },
+        h(Icon, { name: isDelete ? "trash" : dlg.mode === "rename" ? "edit" : "folder-plus", size: 15 }),
+        title,
+        h("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h(Icon, { name: "x", size: 15 })),
+      ),
       isDelete
         ? h("div", { className: "wbs-modal-sub" }, text(lang, "removeDirText", { name: dlg.name || "" }))
         : h("div", null,
@@ -666,7 +413,240 @@ var h = React.createElement;
         h("div", { className: "wbs-formerr" }, error || ""),
         h("button", { className: "wbs-btn", disabled: saving, onClick: props.onClose }, text(lang, "cancel")),
         h("button", { className: "wbs-btn primary" + (isDelete ? " danger" : ""), disabled: saving, onClick: submit },
+          h(Icon, { name: isDelete ? "trash" : dlg.mode === "rename" ? "check" : "plus", size: 13 }),
           saving ? "…" : isDelete ? text(lang, "confirm") : dlg.mode === "rename" ? text(lang, "save") : text(lang, "create")),
+      ),
+    );
+  }
+
+  function AccountModal(props) {
+    var api = props.api;
+    var lang = props.lang || "zh";
+    var site = props.site;
+    var [accounts, setAccounts] = useState([]);
+    var [vault, setVault] = useState({});
+    var [loading, setLoading] = useState(true);
+    var [error, setError] = useState("");
+    var [busy, setBusy] = useState(false);
+    var [draft, setDraft] = useState(null);
+    var [pass, setPass] = useState("");
+    var [pass2, setPass2] = useState("");
+    var [cascade, setCascade] = useState([]);
+    var [pickKey, setPickKey] = useState("");
+    var [pendingDelete, setPendingDelete] = useState("");
+    var [shown, setShown] = useState({});
+
+    function reload() {
+      setLoading(true);
+      return Promise.all([
+        callApi(api, "sites.accounts.list", { siteId: site.id }),
+        callApi(api, "sites.vault.status", {}),
+      ]).then(function (out) {
+        setAccounts(out[0].accounts || []);
+        setVault(out[1] || {});
+        setError("");
+      }).catch(function (e) {
+        setError(errText(e));
+      }).finally(function () {
+        setLoading(false);
+      });
+    }
+
+    function loadCascade() {
+      callApi(api, "sites.accounts.cascade", { excludeSiteId: site.id }).then(function (r) {
+        var list = [];
+        (r.groups || []).forEach(function (g) {
+          g.accounts.forEach(function (a) { list.push({ id: a.id, label: g.siteName + " · " + a.accountKey }); });
+        });
+        setCascade(list);
+      }).catch(function () { setCascade([]); });
+    }
+
+    useEffect(function () { reload(); loadCascade(); }, [site.id]);
+
+    function guard(fn) {
+      setBusy(true);
+      setError("");
+      return Promise.resolve().then(fn).catch(function (e) {
+        setError(errText(e));
+      }).finally(function () { setBusy(false); });
+    }
+
+    function submitVault() {
+      if (!pass || pass.length < 8) { setError(text(lang, "passTooShort")); return; }
+      if (!vault.enabled && pass !== pass2) { setError(text(lang, "passMismatch")); return; }
+      guard(function () {
+        var name = vault.enabled ? "sites.vault.unlock" : "sites.vault.setup";
+        var args = vault.enabled ? { passphrase: pass } : { passphrase: pass };
+        return callApi(api, name, args).then(function () { setPass(""); setPass2(""); return reload(); });
+      });
+    }
+
+    function lockVault() {
+      guard(function () { return callApi(api, "sites.vault.lock", {}).then(function () { setShown({}); return reload(); }); });
+    }
+
+    function saveDraft() {
+      var body = {
+        accountKey: draft.accountKey, account: draft.account, remark: draft.remark,
+      };
+      if (draft.password) body.password = draft.password;
+      if (draft.phoneNumber) body.phoneNumber = draft.phoneNumber;
+      if (draft.identityCard) body.identityCard = draft.identityCard;
+      guard(function () {
+        var req = draft.id
+          ? callApi(api, "sites.accounts.update", Object.assign({ id: draft.id }, body))
+          : callApi(api, "sites.accounts.create", Object.assign({ siteId: site.id }, body));
+        return req.then(function () { setDraft(null); props.onChanged && props.onChanged(); return reload(); });
+      });
+    }
+
+    function removeAccount(id) {
+      guard(function () {
+        return callApi(api, "sites.accounts.delete", { id: id }).then(function () {
+          setPendingDelete("");
+          props.onChanged && props.onChanged();
+          return reload();
+        });
+      });
+    }
+
+    function reveal(acc) {
+      guard(function () {
+        return callApi(api, "sites.accounts.reveal", { id: acc.id }).then(function (r) {
+          setShown(function (prev) { var next = Object.assign({}, prev); next[acc.id] = r; return next; });
+        });
+      });
+    }
+
+    function copyText(value) {
+      if (!value) return;
+      try { navigator.clipboard.writeText(value); showToast(text(lang, "copied")); } catch (e) { setError(String(e && e.message || e)); }
+    }
+
+    function linkExternal(acc) {
+      if (!pickKey) return;
+      guard(function () {
+        return callApi(api, "sites.accounts.link", { nativeAccountId: acc.id, externalAccountId: pickKey }).then(function () { setPickKey(""); return reload(); });
+      });
+    }
+
+    function unlink(acc, rel) {
+      guard(function () {
+        return callApi(api, "sites.accounts.unlink", { nativeAccountId: acc.id, externalAccountId: rel.accountId }).then(function () { return reload(); });
+      });
+    }
+
+    function renderVaultBar() {
+      if (!vault.enabled) {
+        return h("div", { className: "wbs-vaultbar" },
+          h("div", { className: "wbs-vault-hint" }, text(lang, "vaultNotSet")),
+          h("div", { className: "wbs-vault-form" },
+            h("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function (e) { setPass(e.target.value); } }),
+            h("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphraseAgain"), value: pass2, onChange: function (e) { setPass2(e.target.value); } }),
+            h("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultSetup")),
+          ),
+        );
+      }
+      if (!vault.unlocked) {
+        return h("div", { className: "wbs-vaultbar locked" },
+          h("div", { className: "wbs-vault-hint" }, text(lang, "vaultLocked")),
+          h("div", { className: "wbs-vault-form" },
+            h("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function (e) { setPass(e.target.value); } }),
+            h("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultUnlock")),
+          ),
+        );
+      }
+      return h("div", { className: "wbs-vaultbar unlocked" },
+        h("div", { className: "wbs-vault-hint" }, text(lang, "vaultUnlocked", { min: vault.idleMinutes || 15 })),
+        h("button", { className: "wbs-btn sm", disabled: busy, onClick: lockVault }, h(Icon, { name: "lock", size: 12 }), text(lang, "vaultLock")),
+      );
+    }
+
+    function renderDraft() {
+      var d = draft;
+      function field(key, label, type, ph) {
+        return h(React.Fragment, null,
+          h("label", { className: "wbs-label" }, label),
+          h("input", {
+            className: "wbs-input", type: type || "text", placeholder: ph || "", value: d[key] || "",
+            onChange: function (e) { var v = e.target.value; setDraft(function (prev) { var next = Object.assign({}, prev); next[key] = v; return next; }); },
+          }),
+        );
+      }
+      return h("div", { className: "wbs-accdraft" },
+        h("div", { className: "wbs-accdraft-title" }, d.id ? text(lang, "editAccount") : text(lang, "addAccount")),
+        field("accountKey", text(lang, "accountKey") + " *", "text", "prod-admin"),
+        field("account", text(lang, "loginName")),
+        field("password", text(lang, "password"), "password"),
+        field("phoneNumber", text(lang, "phone")),
+        field("identityCard", text(lang, "identity")),
+        field("remark", text(lang, "remark")),
+        h("div", { className: "wbs-vault-hint" }, text(lang, "sensitiveHint")),
+        h("div", { className: "wbs-formfoot" },
+          h("div", { className: "wbs-grow" }),
+          h("button", { className: "wbs-btn", disabled: busy, onClick: function () { setDraft(null); } }, text(lang, "cancel")),
+          h("button", { className: "wbs-btn primary", disabled: busy, onClick: saveDraft }, text(lang, "save")),
+        ),
+      );
+    }
+
+    return h(Modal, { onClose: props.onClose },
+      h("div", { className: "wbs-modal-title" },
+        h(Icon, { name: "key", size: 15 }),
+        text(lang, "accountsTitle", { name: site.siteName }),
+        h("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h(Icon, { name: "x", size: 15 })),
+      ),
+      h("div", { className: "wbs-modal-sub" }, text(lang, "accountsSub")),
+      renderVaultBar(),
+      error ? h("div", { className: "wbs-error" }, error) : null,
+      draft ? renderDraft() : h(React.Fragment, null,
+        loading ? h("div", { className: "wbs-loading" }, text(lang, "loading")) : null,
+        !loading && !accounts.length ? h("div", { className: "wbs-acc-empty" }, text(lang, "accountEmpty")) : null,
+        !loading ? accounts.map(function (acc) {
+          var plain = shown[acc.id] || null;
+          return h("div", { className: "wbs-accrow", key: acc.id },
+            h("div", { className: "wbs-accrow-head" },
+              h("b", null, acc.accountKey || "—"),
+              acc.account ? h("span", { className: "wbs-acc-login" }, acc.account) : null,
+              h("div", { className: "wbs-grow" }),
+              h("button", { className: "wbs-btn sm icononly", title: text(lang, "edit"), onClick: function () { setDraft({ id: acc.id, accountKey: acc.accountKey, account: acc.account, remark: acc.remark, password: "", phoneNumber: "", identityCard: "" }); } }, h(Icon, { name: "edit", size: 12 })),
+              pendingDelete === acc.id
+                ? h(React.Fragment, null,
+                  h("button", { className: "wbs-btn sm danger", disabled: busy, onClick: function () { removeAccount(acc.id); } }, text(lang, "confirm")),
+                  h("button", { className: "wbs-btn sm", onClick: function () { setPendingDelete(""); } }, text(lang, "cancel")),
+                )
+                : h("button", { className: "wbs-btn sm danger icononly", title: text(lang, "del"), onClick: function () { setPendingDelete(acc.id); } }, h(Icon, { name: "trash", size: 12 })),
+            ),
+            h("div", { className: "wbs-accrow-fields" },
+              h("div", null, h("i", null, text(lang, "password")), h("span", null, plain ? (plain.password || "—") : (acc.hasPassword ? "••••••" : "—")),
+                acc.hasPassword ? h("button", { className: "wbs-mini", title: text(lang, "reveal"), onClick: function () { if (plain) { setShown(function (prev) { var next = Object.assign({}, prev); delete next[acc.id]; return next; }); } else { reveal(acc); } } }, h(Icon, { name: plain ? "eye-off" : "eye", size: 11 })) : null,
+                acc.hasPassword ? h("button", { className: "wbs-mini", title: text(lang, "copy"), onClick: function () { if (plain) copyText(plain.password); else reveal(acc); } }, h(Icon, { name: "copy", size: 11 })) : null,
+              ),
+              h("div", null, h("i", null, text(lang, "phone")), h("span", null, plain ? (plain.phoneNumber || "—") : (acc.phoneNumber || "—"))),
+              h("div", null, h("i", null, text(lang, "identity")), h("span", null, plain ? (plain.identityCard || "—") : (acc.identityCard || "—"))),
+              acc.remark ? h("div", { className: "wbs-acc-remark" }, h("i", null, text(lang, "remark")), h("span", null, acc.remark)) : null,
+            ),
+            h("div", { className: "wbs-accrow-ext" },
+              (acc.externals || []).map(function (rel) {
+                return h("span", { className: "wbs-chip", key: rel.relationId },
+                  rel.siteName + " · " + rel.accountKey,
+                  h("button", { className: "wbs-mini", title: text(lang, "unlink"), onClick: function () { unlink(acc, rel); } }, h(Icon, { name: "x", size: 10 })),
+                );
+              }),
+              h("select", { className: "wbs-select wbs-acc-extsel", value: pickKey, onChange: function (e) { setPickKey(e.target.value); } },
+                h("option", { value: "" }, text(lang, "externalPick")),
+                cascade.map(function (o) { return h("option", { key: o.id, value: o.id }, o.label); }),
+              ),
+              h("button", { className: "wbs-btn sm", disabled: !pickKey || busy, onClick: function () { linkExternal(acc); } }, text(lang, "externalAdd")),
+            ),
+          );
+        }) : null,
+        !loading ? h("div", { className: "wbs-formfoot" },
+          h("button", { className: "wbs-btn primary", disabled: busy, onClick: function () { setDraft({ id: "", accountKey: "", account: "", password: "", phoneNumber: "", identityCard: "", remark: "" }); } }, h(Icon, { name: "plus", size: 12 }), text(lang, "addAccount")),
+          h("div", { className: "wbs-grow" }),
+          h("button", { className: "wbs-btn", onClick: props.onClose }, text(lang, "close")),
+        ) : null,
       ),
     );
   }
@@ -691,20 +671,48 @@ var h = React.createElement;
     }
 
     return h(Modal, { small: true, onClose: saving ? null : props.onClose },
-      h("div", { className: "wbs-modal-title" }, text(lang, "deleteTitle")),
+      h("div", { className: "wbs-modal-title" },
+        h(Icon, { name: "trash", size: 15 }),
+        text(lang, "deleteTitle"),
+        h("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h(Icon, { name: "x", size: 15 })),
+      ),
       h("div", { className: "wbs-modal-sub" }, text(lang, "deleteText", { name: site.siteName })),
       error ? h("div", { className: "wbs-error" }, error) : null,
       h("div", { className: "wbs-formfoot" },
         h("div", { className: "wbs-grow" }),
         h("button", { className: "wbs-btn", disabled: saving, onClick: props.onClose }, text(lang, "cancel")),
-        h("button", { className: "wbs-btn danger", disabled: saving, onClick: submit }, saving ? "…" : text(lang, "confirm")),
+        h("button", { className: "wbs-btn danger", disabled: saving, onClick: submit }, h(Icon, { name: "trash", size: 13 }), saving ? "…" : text(lang, "confirm")),
       ),
     );
   }
 
+  var CFG_FALLBACK = {
+    "list.pageSize": 16, "list.sortColumn": "update_time", "list.sortOrder": "desc",
+    "ui.confirmDelete": true, "ui.toastDuration": 2600,
+    "stats.range": "30d", "stats.top": 10, "stats.showKpi": true,
+    "stats.sections": ["links", "fresh", "nodes", "trend", "topTags", "stale", "dup", "orphan", "emptyNodes"],
+  };
+
   function SitesView(props) {
+    var lang = props.lang === "en" ? "en" : "zh";
+    var cfg = configView.useConfig(props.api, CFG_FALLBACK);
+    if (!cfg.ready) {
+      return h("div", { style: { padding: "48px", textAlign: "center", fontSize: "12.5px", opacity: .6 } }, lang === "en" ? "Loading…" : "载入中…");
+    }
+    return h(SitesViewBody, Object.assign({}, props, { cfg: cfg.values }));
+  }
+
+  function SitesViewBody(props) {
     var api = props.api;
     var lang = props.lang || "zh";
+    var cfg = props.cfg || {};
+    var cfgSize = Math.floor(Number(cfg["list.pageSize"]));
+    if (!(cfgSize > 0)) cfgSize = 16;
+    var cfgSortCol = ["update_time", "create_time", "site_name"].indexOf(cfg["list.sortColumn"]) >= 0 ? cfg["list.sortColumn"] : "update_time";
+    var cfgSortOrder = cfg["list.sortOrder"] === "asc" ? "asc" : "desc";
+    var cfgConfirm = cfg["ui.confirmDelete"] !== false;
+    var cfgToast = Math.floor(Number(cfg["ui.toastDuration"]));
+    if (!(cfgToast >= 800)) cfgToast = 2600;
     var [kids, setKids] = useState({});
     var kidsRef = useRef({});
     var [expanded, setExpanded] = useState({});
@@ -712,22 +720,22 @@ var h = React.createElement;
     var [sites, setSites] = useState([]);
     var [total, setTotal] = useState(0);
     var [page, setPage] = useState(1);
-    var [pageSize, setPageSize] = useState(16);
+    var [pageSize, setPageSize] = useState(cfgSize);
     var [textQuery, setTextQuery] = useState("");
     var [searchInput, setSearchInput] = useState("");
     var [tagFilter, setTagFilter] = useState([]);
-    var [allTags, setAllTags] = useState([]);
-    var [tagMenu, setTagMenu] = useState(false);
+    var [tagReload, setTagReload] = useState(0);
     var [tagOn, setTagOn] = useState(false);
     var tagOnRef = useRef(false);
-    var [sortCol, setSortCol] = useState("update_time");
-    var [sortOrder, setSortOrder] = useState("desc");
+    var [sortCol, setSortCol] = useState(cfgSortCol);
+    var [sortOrder, setSortOrder] = useState(cfgSortOrder);
     var [loading, setLoading] = useState(false);
     var [error, setError] = useState("");
     var [tick, setTick] = useState(0);
     var [expandedRow, setExpandedRow] = useState(null);
     var [selected, setSelected] = useState({});
     var [editing, setEditing] = useState(null);
+    var [accSite, setAccSite] = useState(null);
     var [dirDlg, setDirDlg] = useState(null);
     var [deleting, setDeleting] = useState(null);
     var [toast, setToast] = useState(null);
@@ -741,9 +749,9 @@ var h = React.createElement;
 
     useEffect(function () {
       if (!toast) return;
-      var timer = setTimeout(function () { setToast(null); }, 2600);
+      var timer = setTimeout(function () { setToast(null); }, cfgToast);
       return function () { clearTimeout(timer); };
-    }, [toast]);
+    }, [toast, cfgToast]);
 
     function refreshTree() {
       return callApi(api, "siteNodes.children", { id: 0 }).then(function (root) {
@@ -771,25 +779,13 @@ var h = React.createElement;
       });
     }
 
-    function loadAllTags() {
-      if (!tagOnRef.current) return Promise.resolve([]);
-      return callApi(api, "siteTags.search", { pageSize: 100 }).then(function (r) {
-        setAllTags(r.records || []);
-      }).catch(function () {});
-    }
-
     useEffect(function () {
       refreshTree();
       callApi(api, "sites.capabilities").then(function (r) {
         var on = !!(r && r.tags) && hostHasAddon("wb-addon-tags");
         tagOnRef.current = on;
         setTagOn(on);
-        if (!on) {
-          setTagFilter([]);
-          setTagMenu(false);
-        } else {
-          loadAllTags();
-        }
+        if (!on) setTagFilter([]);
       }).catch(function () {
         tagOnRef.current = false;
         setTagOn(false);
@@ -800,7 +796,7 @@ var h = React.createElement;
       var off = api.subscribe(function (msg) {
         if (!msg) return;
         if (msg.event === "sites-changed") setTick(function (x) { return x + 1; });
-        if (msg.event === "tags-changed") loadAllTags();
+        if (msg.event === "tags-changed") setTagReload(function (x) { return x + 1; });
         if (msg.event === "site-nodes-changed") {
           setTick(function (x) { return x + 1; });
           refreshTree();
@@ -906,7 +902,8 @@ var h = React.createElement;
           onDragOver: function (e) { e.preventDefault(); },
           onDrop: function (e) { onDropNode(e, node); },
         },
-          h("span", { className: "wbs-caret", onClick: function (e) { e.stopPropagation(); toggleNode(node); } }, open ? "▾" : "▸"),
+          h("span", { className: "wbs-caret" + (open ? " open" : ""), onClick: function (e) { e.stopPropagation(); toggleNode(node); } }, h(Icon, { name: "chevron-right", size: 13 })),
+          h("span", { className: "wbs-node-ico" }, h(Icon, { name: open ? "folder-open" : "folder", size: 13 })),
           h("span", { className: "wbs-node-name", onClick: function () { selectDir(String(node.id)); }, title: node.name }, node.name),
           h("span", { className: "wbs-node-actions" },
             h("button", { className: "wbs-mini", title: text(lang, "addChild"), onClick: function (e) { e.stopPropagation(); setDirDlg({ mode: "create", parentId: String(node.id), name: "" }); } }, h(Icon, { name: "plus", size: 13 })),
@@ -981,9 +978,17 @@ var h = React.createElement;
       });
     }
 
+    function removeSite(site) {
+      callApi(api, "sites.delete", { id: site.id }).then(function () {
+        onSiteDeleted();
+      }).catch(function (e) {
+        showToast(text(lang, "opFail", { msg: errText(e) }), "err");
+      });
+    }
+
     function deleteSelected() {
       if (!selectedIds.length) return;
-      if (!window.confirm(text(lang, "bulkConfirm", { n: selectedIds.length }))) return;
+      if (cfgConfirm && !window.confirm(text(lang, "bulkConfirm", { n: selectedIds.length }))) return;
       var chain = Promise.resolve();
       selectedIds.forEach(function (id) {
         chain = chain.then(function () { return callApi(api, "sites.delete", { id: id }); });
@@ -1004,9 +1009,10 @@ var h = React.createElement;
       setPage(1);
     }
 
-    function arrow(col) {
-      if (sortCol !== col) return "";
-      return sortOrder === "asc" ? " ↑" : " ↓";
+    function sortIcon(col) {
+      var on = sortCol === col;
+      var name = !on ? "arrow-up-down" : sortOrder === "asc" ? "arrow-up" : "arrow-down";
+      return h(Icon, { name: name, size: 12, className: "wbs-sort-ico" });
     }
 
     var pages = Math.max(1, Math.ceil(total / pageSize));
@@ -1015,15 +1021,16 @@ var h = React.createElement;
 
     return h("div", { className: "wbs-root" },
       h("div", { className: "wbs-head" },
+        h("span", { className: "wbs-badge" }, h(Icon, { name: "folder-tree", size: 15 })),
         h("h2", null, text(lang, "title")),
         h("span", { className: "wbs-count" }, text(lang, "total", { n: total })),
         h("div", { className: "wbs-grow" }),
-        h("button", { className: "wbs-btn primary", onClick: openCreate }, text(lang, "newSite")),
+        h("button", { className: "wbs-btn primary", onClick: openCreate }, h(Icon, { name: "plus", size: 14 }), text(lang, "newSite")),
       ),
       h("div", { className: "wbs-body" },
         h("aside", { className: "wbs-tree" },
           h("div", { className: "wbs-tree-top" },
-            h("span", { className: "wbs-tree-title" }, text(lang, "directory")),
+            h("span", { className: "wbs-tree-title" }, h(Icon, { name: "folder-tree", size: 13 }), text(lang, "directory")),
             h("button", { className: "wbs-mini", title: text(lang, "addDir"), onClick: function () { setDirDlg({ mode: "create", parentId: "0", name: "" }); } }, h(Icon, { name: "folder-plus", size: 13 })),
             h("button", { className: "wbs-mini", title: text(lang, "refresh"), onClick: refreshTree }, h(Icon, { name: "refresh", size: 13 })),
           ),
@@ -1031,7 +1038,7 @@ var h = React.createElement;
             className: "wbs-node" + (current.id === "0" ? " active" : ""),
             style: { paddingLeft: 4 },
           },
-            h("span", { className: "wbs-caret" }, "▾"),
+            h("span", { className: "wbs-caret plain" }, h(Icon, { name: "house", size: 13 })),
             h("span", { className: "wbs-node-name", onClick: function () { selectDir("0"); } }, text(lang, "all")),
             h("span", { className: "wbs-node-actions" },
               h("button", { className: "wbs-mini", title: text(lang, "addDir"), onClick: function (e) { e.stopPropagation(); setDirDlg({ mode: "create", parentId: "0", name: "" }); } }, h(Icon, { name: "folder-plus", size: 13 })),
@@ -1044,7 +1051,7 @@ var h = React.createElement;
             h("button", { className: "wbs-crumb" + (current.id === "0" ? " cur" : ""), onClick: function () { selectDir("0"); } }, text(lang, "all")),
             (current.path || []).map(function (p, i) {
               return h(React.Fragment, { key: String(p.id) },
-                h("span", { className: "wbs-sep" }, "›"),
+                h("span", { className: "wbs-sep" }, h(Icon, { name: "chevron-right", size: 12 })),
                 h("button", {
                   className: "wbs-crumb" + (i === current.path.length - 1 ? " cur" : ""),
                   onClick: function () { setCurrent({ id: String(p.id), path: current.path.slice(0, i + 1) }); setPage(1); },
@@ -1065,37 +1072,13 @@ var h = React.createElement;
               h("button", { title: "搜索", onClick: function () { setTextQuery(searchInput.trim()); setPage(1); } }, h(Icon, { name: "search", size: 14 })),
               searchInput ? h("button", { title: "清空", onClick: function () { setSearchInput(""); setTextQuery(""); setPage(1); } }, h(Icon, { name: "x", size: 14 })) : null,
             ),
-            tagsVisible ? h("div", { className: "wbs-tagfilter" },
-              h("button", {
-                className: "wbs-btn",
-                onClick: function () { setTagMenu(!tagMenu); },
-              }, text(lang, "tagFilter") + (tagFilter.length ? " · " + tagFilter.length : "") + " ▾"),
-              tagMenu ? h("div", { className: "wbs-tagmenu" },
-                h("div", { className: "wbs-tagmenu-head" },
-                  h("span", null, text(lang, "allTags")),
-                  h("span", { className: "wbs-grow" }),
-                  h("button", { className: "wbs-mini", onClick: function () { setTagFilter([]); setPage(1); } }, text(lang, "clear")),
-                ),
-                allTags.length ? allTags.map(function (t) {
-                  var on = tagFilter.indexOf(t.id) >= 0;
-                  return h("label", { key: t.id, className: "wbs-tagopt" },
-                    h("input", {
-                      type: "checkbox",
-                      checked: on,
-                      onChange: function () {
-                        setTagFilter(function (prev) {
-                          return on ? prev.filter(function (x) { return x !== t.id; }) : prev.concat([t.id]);
-                        });
-                        setPage(1);
-                      },
-                    }),
-                    h("span", null, t.name),
-                  );
-                }) : h("div", { className: "wbs-note", style: { padding: 6 } }, "暂无标签"),
-              ) : null,
-            ) : null,
+            h(TagFilter, {
+              api: api, text: function (k) { return text(lang, k); }, Icon: Icon, visible: tagsVisible,
+              ids: tagFilter, reloadKey: tagReload,
+              onChange: function (next) { setTagFilter(next); setPage(1); },
+            }),
             h("div", { className: "wbs-grow" }),
-            selectedIds.length ? h("button", { className: "wbs-btn danger", onClick: deleteSelected }, text(lang, "deleteSelected") + " (" + selectedIds.length + ")") : null,
+            selectedIds.length ? h("button", { className: "wbs-btn danger", onClick: deleteSelected }, h(Icon, { name: "trash", size: 13 }), text(lang, "deleteSelected") + " (" + selectedIds.length + ")") : null,
           ),
           error ? h("div", { className: "wbs-error" }, error) : null,
           h("div", { className: "wbs-tablewrap" },
@@ -1106,15 +1089,15 @@ var h = React.createElement;
                 tagsVisible ? h("col", { style: { width: 150 } }) : null,
                 h("col", { style: { width: 112 } }),
                 h("col", { style: { width: 112 } }),
-                h("col", { style: { width: 190 } }),
+                h("col", { style: { width: 214 } }),
               ),
               h("thead", null,
                 h("tr", null,
                   h("th", null, h("input", { type: "checkbox", checked: allSelected, onChange: toggleAll, "aria-label": "全选" })),
                   h("th", null, text(lang, "siteCol")),
                   tagsVisible ? h("th", null, text(lang, "tagCol")) : null,
-                  h("th", { className: "wbs-th-sort", onClick: function () { sortBy("create_time"); } }, text(lang, "createTime") + arrow("create_time")),
-                  h("th", { className: "wbs-th-sort", onClick: function () { sortBy("update_time"); } }, text(lang, "updateTime") + arrow("update_time")),
+                  h("th", { className: "wbs-th-sort" + (sortCol === "create_time" ? " on" : ""), onClick: function () { sortBy("create_time"); } }, h("span", { className: "wbs-th-label" }, text(lang, "createTime"), sortIcon("create_time"))),
+                  h("th", { className: "wbs-th-sort" + (sortCol === "update_time" ? " on" : ""), onClick: function () { sortBy("update_time"); } }, h("span", { className: "wbs-th-label" }, text(lang, "updateTime"), sortIcon("update_time"))),
                   h("th", null, text(lang, "actions")),
                 ),
               ),
@@ -1122,6 +1105,7 @@ var h = React.createElement;
                 loading ? h("tr", null, h("td", { colSpan: colCount }, h("div", { className: "wbs-loading" }, text(lang, "loading")))) : null,
                 !loading && !sites.length ? h("tr", null, h("td", { colSpan: colCount },
                   h("div", { className: "wbs-empty" },
+                    h("span", { className: "wbs-empty-ico" }, h(Icon, { name: "folder-open", size: 24 })),
                     h("b", null, text(lang, "empty")),
                     h("span", null, text(lang, "emptyHint")),
                   ),
@@ -1132,7 +1116,7 @@ var h = React.createElement;
                     h("td", null,
                       h("div", { className: "wbs-site-name" }, s.siteName),
                       s.description ? h("div", { className: "wbs-site-desc" }, s.description) : h("div", { className: "wbs-site-desc wbs-muted" }, text(lang, "noDesc")),
-                      s.defaultLink ? h("a", { className: "wbs-site-link", href: s.defaultLink, target: "_blank", rel: "noreferrer noopener" }, s.defaultLink) : h("div", { className: "wbs-site-desc wbs-muted" }, text(lang, "noLink")),
+                      s.defaultLink ? h("a", { className: "wbs-site-link", href: s.defaultLink, target: "_blank", rel: "noreferrer noopener", title: s.defaultLink }, h(Icon, { name: "link", size: 11 }), h("span", null, s.defaultLink)) : h("div", { className: "wbs-site-desc wbs-muted" }, text(lang, "noLink")),
                     ),
                     tagsVisible ? h("td", null, s.tags && s.tags.length ? s.tags.map(function (t) {
                       return h("span", { className: "wbs-chip", key: t.id }, t.name);
@@ -1141,10 +1125,11 @@ var h = React.createElement;
                     h("td", { className: "wbs-muted" }, s.updateTime || "—"),
                     h("td", null,
                       h("div", { className: "wbs-actions" },
-                        h("button", { className: "wbs-btn sm", onClick: function () { setExpandedRow(expandedRow && expandedRow.id === s.id && expandedRow.type === "links" ? null : { id: s.id, type: "links" }); } }, text(lang, "links") + " " + (s.siteLinks ? s.siteLinks.length : 0)),
-                        h("button", { className: "wbs-btn sm", onClick: function () { setExpandedRow(expandedRow && expandedRow.id === s.id && expandedRow.type === "dirs" ? null : { id: s.id, type: "dirs" }); } }, text(lang, "dirs") + " " + (s.dirs ? s.dirs.length : 0)),
-                        h("button", { className: "wbs-btn sm", onClick: function () { openEdit(s); } }, text(lang, "edit")),
-                        h("button", { className: "wbs-btn sm danger", onClick: function () { setDeleting(s); } }, text(lang, "del")),
+                        h("button", { className: "wbs-btn sm", title: text(lang, "links"), onClick: function () { setExpandedRow(expandedRow && expandedRow.id === s.id && expandedRow.type === "links" ? null : { id: s.id, type: "links" }); } }, h(Icon, { name: "link", size: 12 }), text(lang, "links") + " " + (s.siteLinks ? s.siteLinks.length : 0)),
+                        h("button", { className: "wbs-btn sm", title: text(lang, "dirs"), onClick: function () { setExpandedRow(expandedRow && expandedRow.id === s.id && expandedRow.type === "dirs" ? null : { id: s.id, type: "dirs" }); } }, h(Icon, { name: "folder", size: 12 }), text(lang, "dirs") + " " + (s.dirs ? s.dirs.length : 0)),
+                        h("button", { className: "wbs-btn sm", title: text(lang, "accounts"), onClick: function () { setAccSite(s); } }, h(Icon, { name: "key", size: 12 }), text(lang, "accounts") + " " + (s.accountCount || 0)),
+                        h("button", { className: "wbs-btn sm icononly", title: text(lang, "edit"), onClick: function () { openEdit(s); } }, h(Icon, { name: "edit", size: 13 })),
+                        h("button", { className: "wbs-btn sm danger icononly", title: text(lang, "del"), onClick: function () { if (cfgConfirm) setDeleting(s); else removeSite(s); } }, h(Icon, { name: "trash", size: 13 })),
                       ),
                     ),
                   );
@@ -1154,13 +1139,13 @@ var h = React.createElement;
                       h("thead", null, h("tr", null, h("th", null, "描述"), h("th", null, "网址"))),
                       h("tbody", null, s.siteLinks.map(function (l, i) {
                         return h("tr", { key: i },
-                          h("td", null, (l.isDefault ? "★ " : "") + (l.description || "—")),
+                          h("td", null, l.isDefault ? h("span", { className: "wbs-def", title: text(lang, "default") }, h(Icon, { name: "star", size: 11 })) : null, l.description || "—"),
                           h("td", null, l.link ? h("a", { href: l.link, target: "_blank", rel: "noreferrer noopener" }, l.link) : "—"),
                         );
                       })),
                     ) : h("div", { className: "wbs-muted" }, text(lang, "noLink")))
                     : (s.dirs && s.dirs.length ? h("div", { className: "wbs-dirpath" }, s.dirs.map(function (d) {
-                      return h("div", { key: d.id }, "📁 " + (d.path || []).map(function (p) { return p.name; }).join(" / "));
+                      return h("div", { key: d.id }, h(Icon, { name: "folder", size: 12 }), (d.path || []).map(function (p) { return p.name; }).join(" / "));
                     })) : h("div", { className: "wbs-muted" }, "未关联目录"));
                   return h(React.Fragment, { key: s.id + ":detail" },
                     row,
@@ -1171,9 +1156,10 @@ var h = React.createElement;
             ),
           ),
           h("div", { className: "wbs-pager" },
-            h("span", null, "共 " + total + " 条 · 第 " + page + " / " + pages + " 页"),
-            h("button", { className: "wbs-btn sm", disabled: page <= 1, onClick: function () { setPage(Math.max(1, page - 1)); } }, text(lang, "prev")),
-            h("button", { className: "wbs-btn sm", disabled: page >= pages, onClick: function () { setPage(Math.min(pages, page + 1)); } }, text(lang, "next")),
+            h("span", null, "共 " + total + " 条"),
+            h("button", { className: "wbs-btn sm icononly", title: text(lang, "prev"), "aria-label": text(lang, "prev"), disabled: page <= 1, onClick: function () { setPage(Math.max(1, page - 1)); } }, h(Icon, { name: "chevron-left", size: 14 })),
+            h("span", { className: "wbs-pager-pos" }, page + " / " + pages),
+            h("button", { className: "wbs-btn sm icononly", title: text(lang, "next"), "aria-label": text(lang, "next"), disabled: page >= pages, onClick: function () { setPage(Math.min(pages, page + 1)); } }, h(Icon, { name: "chevron-right", size: 14 })),
             h("select", {
               value: pageSize,
               onChange: function (e) { setPageSize(Number(e.target.value)); setPage(1); },
@@ -1199,6 +1185,13 @@ var h = React.createElement;
         onClose: function () { setDirDlg(null); },
         onDone: onDirDone,
       }) : null,
+      accSite ? h(AccountModal, {
+        api: api,
+        lang: lang,
+        site: accSite,
+        onClose: function () { setAccSite(null); },
+        onChanged: function () { setTick(function (x) { return x + 1; }); },
+      }) : null,
       deleting ? h(DeleteSiteModal, {
         api: api,
         lang: lang,
@@ -1214,9 +1207,13 @@ var h = React.createElement;
 
   host.registerAddon({
     id: "wb-addon-sites",
-    version: "1.3.2",
+    version: "1.10.0",
     views: [
-      { id: "sites", title: { zh: "站点", en: "Sites" }, component: SitesView },
+      { id: "stats", icon: tabIcon("chart"), title: { zh: "统计", en: "Stats" }, component: statsView.SitesStatsView },
+      { id: "sites", icon: tabIcon("globe"), title: { zh: "记录", en: "Records" }, component: SitesView },
+      { id: "config", icon: tabIcon("settings"), title: { zh: "配置", en: "Config" }, component: configView.ConfigView },
+      { id: "data", icon: tabIcon("database"), title: { zh: "数据", en: "Data" }, component: dataView.DataView },
+      { id: "actions", icon: tabIcon("code-2"), title: { zh: "Action", en: "Actions" }, component: require("./views/actions.cjs").ActionSchemaView },
     ],
   });
 

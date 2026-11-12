@@ -1,28 +1,41 @@
 {
   "name": "dsh-workbench-tasks",
-  "version": "2.4.2",
+  "version": "5.2.6",
   "description": "个人工作台任务插件：任务树、优先级、截止日、时间线与重启",
   "type": "module",
   "main": "lib/index.js",
   "files": [
     "lib",
+    "shared",
     "cordis.patch.yml",
+    "package.json",
     "README.md",
     "LICENSE"
   ],
   "wb": {
     "addon": {
       "id": "wb-addon-tasks",
-      "title": "任务记录",
-      "description": "任务树 + 9 个视图：紧急/工作/生活/学习/开发/已开启/已关闭/已完成/总览",
-      "version": "2.4.2",
-      "minShell": "0.5.0",
+      "title": "任务",
+      "description": "任务树 + 统计/记录/时间线/工作区/配置/数据/命令/Action 八个视图：紧急/已关闭/已开启/已完成/总览，可按标签筛选，附统计报表与表数据浏览",
+      "version": "5.2.6",
+      "minShell": "0.6.3",
       "tables": [
         "task",
-        "task_node"
+        "task_node",
+        "task_timeline",
+        "task_timeline_link",
+        "task_workspace",
+        "task_workspace_link"
       ],
       "views": [
-        "tasks"
+        "stats",
+        "tasks",
+        "timeline",
+        "workspace",
+        "config",
+        "data",
+        "commands",
+        "actions"
       ],
       "toolActions": [
         "tasks.list",
@@ -33,15 +46,35 @@
         "tasks.bulkDelete",
         "tasks.update",
         "tasks.selected",
+        "taskTimelines.create",
+        "taskTimelines.get",
+        "taskTimelines.update",
+        "taskTimelines.delete",
+        "taskTimelines.attach",
+        "taskTimelines.detach",
+        "taskTimelines.migrate",
+        "taskWorkspaces.create",
+        "taskWorkspaces.get",
+        "taskWorkspaces.update",
+        "taskWorkspaces.delete",
+        "taskWorkspaces.list",
+        "taskWorkspaces.attach",
+        "taskWorkspaces.detach",
+        "tasks.workspaces",
+        "tasks.timelines",
         "tasks.timeline",
         "tasks.restart",
         "tasks.timelineRefactor",
         "tasks.migrate",
         "tasks.sweepShutdown",
         "tasks.stats",
+        "tasks.statsReport",
+        "tasks.activityCalendar",
         "tasks.delete",
         "tasks.complete",
+        "tasks.tags",
         "taskNodes.tree",
+        "taskNodes.overview",
         "taskNodes.children",
         "taskNodes.multipleChildren",
         "taskNodes.path",
@@ -52,10 +85,12 @@
         "tasks.history",
         "tasks.changelog",
         "tasks.export",
-        "tasks.reorder",
-        "tasks.depends",
-        "tasks.link",
-        "tasks.unlink"
+        "tasks.configGet",
+        "tasks.configSet",
+        "tasks.configReset",
+        "tasks.configOptions",
+        "tasks.dataTables",
+        "tasks.dataQuery"
       ],
       "client": "lib/client.js"
     }
@@ -66,7 +101,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.5.1"
+    "dsh-workbench-host": "^0.6.5"
   },
   "dsh": {
     "bundle": {
