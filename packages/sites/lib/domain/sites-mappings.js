@@ -4,7 +4,8 @@
  * 编辑时按集合差异增删，软删过的历史行优先复活，避免每改一次就多一条墓碑。
  */
 
-import { newId, logChange, hasTagDomain, NODE_MAPPING_TABLE } from "../db/db.js";
+import { newId, logChange, hasTagDomain, tableExists, NODE_MAPPING_TABLE } from "../db/db.js";
+import { TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE, ensureTagSource, withTagSource } from "../tagging/source.js";
 
 function reviveOrInsertMapping(db, table, idKey, where, values, ts) {
   // 仅用于 site_node_mapping / tag_mapping 的软删复用，避免每次编辑都新增历史行。
@@ -49,8 +50,35 @@ export function replaceDirMappings(db, siteId, nodes, ts, origin) {
   }
 }
 
+/**
+ * 启动时幂等登记本域来源（`tag_mapping.item_type='site'`）。
+ * 标签域未装或版本过低时静默跳过；重复注册不阻断启动，写入门禁在写入时给出可读错误。
+ */
+export function ensureSiteTagSource(db, log) {
+  if (!tableExists(db, "tag_source")) return { ok: false, skipped: "no_table" };
+  try {
+    const r = ensureTagSource(db, TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE);
+    const hit = db.prepare("SELECT COUNT(*) AS n FROM tag_source WHERE source=? AND deleted_at IS NULL").get(TAG_SOURCE);
+    const count = Number((hit && hit.n) || 0);
+    if (count !== 1 && typeof log === "function") {
+      log("标签来源登记异常（" + TAG_SOURCE + "）：当前 " + count + " 条活跃注册，标签写入会被拒绝");
+    }
+    return { ok: count === 1, count: count, created: !!(r && r.created) };
+  } catch (e) {
+    if (typeof log === "function") log("标签来源登记失败：" + String((e && e.message) || e));
+    return { ok: false, error: String((e && e.message) || e) };
+  }
+}
+
+/** 全量替换某个站点的标签（写入门禁：来源必须恰好注册一次）。 */
 export function replaceTagMappings(db, siteId, tags, ts, origin, tagsAvailable) {
   if (!tagsAvailable || !hasTagDomain(db)) return;
+  return withTagSource(db, TAG_SOURCE, function () {
+    return writeTagMappings(db, siteId, tags, ts, origin);
+  });
+}
+
+function writeTagMappings(db, siteId, tags, ts, origin) {
   const current = db.prepare(
     "SELECT * FROM tag_mapping WHERE item_type='site' AND item_id=? AND deleted_at IS NULL",
   ).all(String(siteId));

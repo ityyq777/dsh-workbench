@@ -1,18 +1,21 @@
 /**
  * 站点账号（site_account）与账号外联（site_account_external）。
  *
- * 设计见 docs/specs/22-站点模块迁移二期.md：
- * - 敏感列 password / phone_number / identity_card 在写库前加密（vault.js），同步上行的是密文；
- * - agent（origin !== "ui"）永远只能看到掩码；明文只在界面进程 + 保险箱解锁时经 sites.accounts.get 返回；
+ * 设计见 docs/specs/48-站点账号接入凭据分组与迁移方案.md（直接切换版）：
+ * - 账号的密码/手机号/证件号不再进 site_account，写入即进 vault，按「站点 = 一类凭据 = 一个组」组织；
+ * - sites 只通过 vault 的 plugin 接口读写，不接触密钥与密文；
+ * - 列表只回掩码与 has 标记；界面显形由前端拿 secretIds 调 vault.secretReveal；
  * - 三条挂靠规则：删站守卫、bindable 关闭守卫、删账号双向清外联。
  */
 
-import { now, newId, idOf, tx, logChange, SITE_TABLE } from "../db/db.js";
+import { now, newId, idOf, tx, logChange } from "../db/db.js";
 import {
   ACCOUNT_TABLE,
   EXTERNAL_TABLE,
   MAX_ACCOUNT,
   MAX_REMARK,
+  MAX_PHONE,
+  MAX_IDENTITY,
   liveAccount,
   siteOf,
   textOf,
@@ -20,19 +23,27 @@ import {
   assertKeyUnique,
   outAccount,
   listAccounts,
-  sealSensitive,
+  sensitiveInputOf,
   assertLinkable,
   replaceExternals,
   insertRelation,
 } from "./accounts-model.js";
+import {
+  vaultInstalled,
+  vaultStatus,
+  requireVault,
+  flagsOfSite,
+  upsertAccountSecrets,
+  deleteAccountField,
+  deleteAccountSecrets,
+} from "../infra/vault-link.js";
 
-// 表结构与行形状仍从本模块对外暴露，db.js / sites.js 的既有引用不用改。
 export {
   ACCOUNT_TABLE,
   EXTERNAL_TABLE,
   ACCOUNT_DDL,
   EXTERNAL_DDL,
-  SENSITIVE_COLUMNS,
+  SENSITIVE_FIELDS,
   listAccounts,
   outAccount,
   externalsOf,
@@ -40,20 +51,32 @@ export {
   assertNoAccounts,
   assertBindableUnused,
 } from "./accounts-model.js";
-import {
-  decryptField,
-  isEncrypted,
-  maskSecret,
-  maskMiddle,
-  vaultEnabled,
-  vaultStatus,
-  setupVault,
-  unlockVault,
-  lockVault,
-  rekeyVault,
-} from "./vault.js";
 
-export function createAccount(db, args, origin) {
+function assertFieldLength(field, value) {
+  if (field === "phone" && value.length > MAX_PHONE) throw new Error("手机号最多 " + MAX_PHONE + " 个字符");
+  if (field === "identity" && value.length > MAX_IDENTITY) throw new Error("身份证最多 " + MAX_IDENTITY + " 个字符");
+  if (field === "password" && value.length > 256) throw new Error("密码最多 256 个字符");
+}
+
+/** 账号在 vault 里的三个字段是否已保存（缺省视为未保存）。 */
+async function accountEntry(db, row) {
+  const flags = await flagsOfSite(db, row.site_id);
+  return flags.get(String(row.id)) || { fields: new Set(), ids: {}, setId: "", invalid: false };
+}
+
+/** 站点行记住账号的凭据集合，便于列表发现「集合被删」。 */
+function rememberSet(db, accountId, setId, origin) {
+  const ts = now();
+  db.prepare("UPDATE " + ACCOUNT_TABLE + " SET vault_set_id=?, updated_at=?, rev=rev+1 WHERE id=?").run(
+    String(setId),
+    ts,
+    accountId,
+  );
+  const row = db.prepare("SELECT * FROM " + ACCOUNT_TABLE + " WHERE id=?").get(accountId);
+  logChange(db, ACCOUNT_TABLE, accountId, "upsert", row, origin, ts);
+}
+
+export async function createAccount(db, args, origin) {
   const siteId = String(idOf(args.siteId));
   const site = siteOf(db, siteId);
   if (!site) throw new Error("站点不存在：" + (siteId || "(空)"));
@@ -61,20 +84,17 @@ export function createAccount(db, args, origin) {
   assertKeyUnique(db, siteId, key, "");
   const account = textOf(args.account, MAX_ACCOUNT, "登录名");
   const remark = textOf(args.remark, MAX_REMARK, "备注");
-  const incoming = ["password", "phoneNumber", "identityCard"].some(
-    (name) => args[name] !== undefined && String(args[name]).length > 0,
-  );
-  if (incoming && !vaultEnabled(db)) throw new Error("请先设置账号保险箱口令（sites.vault.setup）再填写敏感字段");
-  const password = sealSensitive(db, args.password, "密码");
-  const phone = sealSensitive(db, args.phoneNumber, "手机号");
-  const identity = sealSensitive(db, args.identityCard, "身份证");
+  const fields = sensitiveInputOf(args).filter((item) => item.value.length > 0);
+  for (const item of fields) assertFieldLength(item.field, item.value);
+  if (fields.length) await requireVault();
+
   const ts = now();
   const id = newId();
   tx(db, function () {
     db.prepare(
       "INSERT INTO " + ACCOUNT_TABLE +
-        "(id,site_id,account_key,account,password,phone_number,identity_card,remark,created_at,updated_at,deleted_at,rev) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-    ).run(id, siteId, key, account, password, phone, identity, remark, ts, ts, null, 1);
+        "(id,site_id,account_key,account,remark,created_at,updated_at,deleted_at,rev) VALUES(?,?,?,?,?,?,?,?,?)",
+    ).run(id, siteId, key, account, remark, ts, ts, null, 1);
     logChange(db, ACCOUNT_TABLE, id, "create", {
       id: id,
       site_id: siteId,
@@ -88,10 +108,23 @@ export function createAccount(db, args, origin) {
     }, origin, ts);
     if (Array.isArray(args.externalAccountIds)) replaceExternals(db, id, args.externalAccountIds, ts, origin);
   });
+
+  if (!fields.length) return { id: id, accountKey: key };
+  try {
+    const values = {};
+    for (const item of fields) values[item.field] = item.value;
+    const writtenSet = await upsertAccountSecrets(siteId, id, values);
+    if (writtenSet.setId) rememberSet(db, id, writtenSet.setId, origin);
+  } catch (error) {
+    // 敏感字段未能全部落进保险箱：撤掉刚插入的账号，避免“半条账号”。
+    await deleteAccountSecrets(siteId, id);
+    db.prepare("DELETE FROM " + ACCOUNT_TABLE + " WHERE id=?").run(id);
+    throw error;
+  }
   return { id: id, accountKey: key };
 }
 
-export function updateAccount(db, args, origin) {
+export async function updateAccount(db, args, origin) {
   const id = String(idOf(args.id));
   const existing = liveAccount(db, id);
   if (!existing) throw new Error("账号不存在：" + (id || "(空)"));
@@ -102,32 +135,34 @@ export function updateAccount(db, args, origin) {
   if (key !== String(existing.account_key || "")) assertKeyUnique(db, existing.site_id, key, id);
   const account = args.account !== undefined ? textOf(args.account, MAX_ACCOUNT, "登录名") : String(existing.account || "");
   const remark = args.remark !== undefined ? textOf(args.remark, MAX_REMARK, "备注") : String(existing.remark || "");
-  const patch = { account_key: key, account: account, remark: remark, updated_at: now(), rev: Number(existing.rev) + 1 };
-  if (args.password !== undefined) patch.password = sealSensitive(db, args.password, "密码");
-  if (args.phoneNumber !== undefined) patch.phone_number = sealSensitive(db, args.phoneNumber, "手机号");
-  if (args.identityCard !== undefined) patch.identity_card = sealSensitive(db, args.identityCard, "身份证");
-  const ts = patch.updated_at;
+  const fields = sensitiveInputOf(args);
+  for (const item of fields) if (item.value.length > 0) assertFieldLength(item.field, item.value);
+  if (fields.length) await requireVault();
+
+  // 先写保险箱，再改本地行：保险箱失败时本地行保持原样。
+  let writtenSet = { setId: "" };
+  for (const item of fields) {
+    if (item.value.length === 0) await deleteAccountField(existing.site_id, id, item.field);
+    else {
+      const result = await upsertAccountSecrets(existing.site_id, id, { [item.field]: item.value });
+      if (result.setId) writtenSet = result;
+    }
+  }
+  if (writtenSet.setId && !existing.vault_set_id) rememberSet(db, id, writtenSet.setId, origin);
+
+  const ts = now();
   tx(db, function () {
     db.prepare(
-      "UPDATE " + ACCOUNT_TABLE +
-        " SET account_key=?, account=?, remark=?, password=?, phone_number=?, identity_card=?, updated_at=?, rev=rev+1 WHERE id=?",
-    ).run(
-      patch.account_key,
-      patch.account,
-      patch.remark,
-      patch.password !== undefined ? patch.password : String(existing.password || ""),
-      patch.phone_number !== undefined ? patch.phone_number : String(existing.phone_number || ""),
-      patch.identity_card !== undefined ? patch.identity_card : String(existing.identity_card || ""),
-      ts,
-      id,
-    );
-    logChange(db, ACCOUNT_TABLE, id, "upsert", Object.assign({}, existing, patch), origin, ts);
+      "UPDATE " + ACCOUNT_TABLE + " SET account_key=?, account=?, remark=?, updated_at=?, rev=rev+1 WHERE id=?",
+    ).run(key, account, remark, ts, id);
+    const row = db.prepare("SELECT * FROM " + ACCOUNT_TABLE + " WHERE id=?").get(id);
+    logChange(db, ACCOUNT_TABLE, id, "upsert", row, origin, ts);
     if (Array.isArray(args.externalAccountIds)) replaceExternals(db, id, args.externalAccountIds, ts, origin);
   });
   return { ok: true, id: id };
 }
 
-export function deleteAccount(db, args, origin) {
+export async function deleteAccount(db, args, origin) {
   const id = String(idOf(args.id));
   const existing = liveAccount(db, id);
   if (!existing) return { ok: true, deleted: false, missing: true };
@@ -147,6 +182,8 @@ export function deleteAccount(db, args, origin) {
     db.prepare("UPDATE " + ACCOUNT_TABLE + " SET deleted_at=?, updated_at=?, rev=rev+1 WHERE id=?").run(ts, ts, id);
     logChange(db, ACCOUNT_TABLE, id, "delete", null, origin, ts);
   });
+  // 凭据清理尽力而为：保险箱未装/锁定不应阻塞删账号。
+  if (vaultInstalled()) await deleteAccountSecrets(existing.site_id, id);
   return { ok: true, deleted: true, clearedRelations: cleared };
 }
 
@@ -184,7 +221,7 @@ export function cascadeGroups(db, args) {
   const rows = db
     .prepare(
       "SELECT a.id, a.account_key, a.site_id, s.site_name FROM " + ACCOUNT_TABLE + " a" +
-        " JOIN " + SITE_TABLE + " s ON s.id=a.site_id" +
+        " JOIN site s ON s.id=a.site_id" +
         " WHERE a.deleted_at IS NULL AND s.deleted_at IS NULL AND s.bindable=1 AND TRIM(a.account_key)<>''" +
         " ORDER BY s.site_name ASC, a.account_key ASC",
     )
@@ -204,27 +241,22 @@ export function cascadeGroups(db, args) {
   return { total: groups.length, groups: groups };
 }
 
-export function getAccount(db, id, origin) {
+export async function getAccount(db, id, origin) {
   const row = liveAccount(db, id);
   if (!row) throw new Error("账号不存在：" + (id || "(空)"));
-  const reveal = String(origin || "") === "ui" && vaultStatus(db).unlocked;
-  if (!reveal) {
-    const base = outAccount(db, row, { reveal: false });
-    return { account: base, masked: true, reason: "明文仅界面可查看；请在界面解锁保险箱后查看" };
-  }
-  return { account: outAccount(db, row, { reveal: true }), masked: false };
-}
-
-/** 明文仅界面可用：用于「显形/复制」，不解锁则抛错。 */
-export function revealAccount(db, id, origin) {
-  if (String(origin || "") !== "ui") throw new Error("明文仅界面可查看");
-  const row = liveAccount(db, id);
-  if (!row) throw new Error("账号不存在：" + (id || "(空)"));
+  const entry = await accountEntry(db, row);
+  const base = outAccount(db, row, entry);
+  const isUi = String(origin || "") === "ui";
+  const status = await vaultStatus();
   return {
-    id: String(row.id),
-    password: decryptField(db, row.password),
-    phoneNumber: decryptField(db, row.phone_number),
-    identityCard: decryptField(db, row.identity_card),
+    account: base,
+    masked: true,
+    reveal: "vault",
+    secretIds: isUi ? entry.ids : undefined,
+    vault: status,
+    reason: isUi
+      ? "明文经凭据保险箱显形；锁定状态下请先解锁"
+      : "明文仅界面可查看；agent 只能拿到掩码与是否已保存",
   };
 }
 
@@ -237,8 +269,8 @@ function renderAccounts(r) {
     const bits = [a.accountKey];
     if (a.account) bits.push("登录名=" + a.account);
     if (a.hasPassword) bits.push("密码=已保存");
-    if (a.hasPhone) bits.push("手机=" + (a.phoneNumber || "已保存"));
-    if (a.hasIdentity) bits.push("证件=" + (a.identityCard || "已保存"));
+    if (a.hasPhone) bits.push("手机=已保存");
+    if (a.hasIdentity) bits.push("证件=已保存");
     if (a.externals.length) bits.push("外联=" + a.externals.map((x) => x.siteName + " · " + x.accountKey).join("，"));
     lines.push("- " + bits.join(" · "));
   }
@@ -253,19 +285,24 @@ export function registerAccountActions(api) {
   const action = api.action;
 
   action("sites.accounts.list", {
-    description: "列出某站点的账号（密码与证件/手机号均为掩码；明文只在界面解锁后经 sites.accounts.get 返回）",
+    description: "列出某站点的账号；密码/手机号/证件号只返回是否已保存，明文经凭据保险箱在界面显形。",
     input: {
       type: "object",
       properties: { siteId: { type: ["string", "number"], description: "站点 id，必填" } },
       required: ["siteId"],
     },
-    execute: function (args) { return listAccounts(db, args.siteId, {}); },
+    execute: async function (args) {
+      const flags = await flagsOfSite(db, args.siteId);
+      const result = listAccounts(db, args.siteId, flags);
+      result.vault = await vaultStatus();
+      return result;
+    },
     render: renderAccounts,
   });
 
   action("sites.accounts.get", {
     description:
-      "取单个账号。敏感字段（password/phoneNumber/identityCard）仅在界面调用且账号保险箱已解锁时返回明文；agent 调用只返回掩码与 masked:true。",
+      "取单个账号。敏感字段永远以 has 标记返回；界面调用额外返回 secretIds（字段→凭据 id），显形请调 vault.secretReveal。",
     input: {
       type: "object",
       properties: { id: { type: ["string", "number"], description: "账号 id，必填" } },
@@ -276,33 +313,23 @@ export function registerAccountActions(api) {
       if (!r || !r.account) return "账号不存在";
       const a = r.account;
       const head = a.accountKey + (a.account ? "（" + a.account + "）" : "");
-      return r.masked ? head + " · 敏感字段已掩码（仅界面可见）" : head + " · 密码=" + (a.password ? "已保存（明文已返回）" : "未填写");
+      const saved = [a.hasPassword ? "密码" : "", a.hasPhone ? "手机" : "", a.hasIdentity ? "证件" : ""].filter(Boolean);
+      return head + (saved.length ? " · 已保存：" + saved.join("、") : " · 未保存敏感字段");
     },
-  });
-
-  action("sites.accounts.reveal", {
-    description: "【仅界面】返回账号敏感字段明文，用于显形与复制；agent 调用一律拒绝。调用前需解锁保险箱。",
-    input: {
-      type: "object",
-      properties: { id: { type: ["string", "number"], description: "账号 id，必填" } },
-      required: ["id"],
-    },
-    execute: function (args, ctx) { return revealAccount(db, args.id, ctx && ctx.origin); },
-    render: function () { return "已返回明文（仅界面）"; },
   });
 
   action("sites.accounts.create", {
     description:
-      "为站点新增账号。accountKey 必填且同站点内唯一；password/phoneNumber/identityCard 写库前加密，需要先设置并解锁账号保险箱；externalAccountIds 为外联账号 id 列表（可空）。",
+      "为站点新增账号。accountKey 必填且同站点内唯一；password/phoneNumber/identityCard 会写入凭据保险箱，需先安装并解锁保险箱、且本站点已关联凭据组。",
     input: {
       type: "object",
       properties: {
         siteId: { type: ["string", "number"] },
         accountKey: { type: "string", description: "站点内唯一标识，必填，≤60 字" },
         account: { type: "string", description: "登录名，可空" },
-        password: { type: "string", description: "敏感：加密存储，需保险箱解锁" },
-        phoneNumber: { type: "string", description: "敏感：加密存储，需保险箱解锁" },
-        identityCard: { type: "string", description: "敏感：加密存储，需保险箱解锁" },
+        password: { type: "string", description: "敏感：写入凭据保险箱" },
+        phoneNumber: { type: "string", description: "敏感：写入凭据保险箱" },
+        identityCard: { type: "string", description: "敏感：写入凭据保险箱" },
         remark: { type: "string", description: "备注，可空，≤2000 字" },
         externalAccountIds: { type: "array", items: { type: ["string", "number"] }, description: "外联账号 id 列表" },
       },
@@ -314,7 +341,7 @@ export function registerAccountActions(api) {
 
   action("sites.accounts.update", {
     description:
-      "更新账号字段。accountKey 变更需保持同站点唯一；siteId 不可更改；password/phoneNumber/identityCard 传空串表示清空、传值表示重设（需保险箱解锁）；externalAccountIds 给定时整体替换外联集合。",
+      "更新账号字段。accountKey 变更需保持同站点唯一；siteId 不可更改；password/phoneNumber/identityCard 传空串表示清空、传值表示重设（写入凭据保险箱，需解锁）；externalAccountIds 给定时整体替换外联集合。",
     input: {
       type: "object",
       properties: {
@@ -334,7 +361,7 @@ export function registerAccountActions(api) {
   });
 
   action("sites.accounts.delete", {
-    description: "删除账号（软删），并双向清除其外联关系（同一事务）。",
+    description: "删除账号（软删），清除其外联关系，并尽力清理保险箱里对应的凭据。",
     input: {
       type: "object",
       properties: { id: { type: ["string", "number"] } },
@@ -387,64 +414,4 @@ export function registerAccountActions(api) {
       return lines.join("\n");
     },
   });
-
-  action("sites.vault.status", {
-    description: "账号保险箱状态：是否已设置口令、是否已解锁、空闲锁定时长。不返回任何密钥材料。",
-    input: { type: "object", properties: {} },
-    execute: function () { return vaultStatus(db); },
-    render: function (r) {
-      if (!r.enabled) return "账号保险箱：未设置口令（填写密码/手机号/身份证前需先设置）";
-      return "账号保险箱：" + (r.unlocked ? "已解锁（剩余 " + Math.round(r.remainingMs / 1000) + " 秒）" : "已锁定");
-    },
-  });
-
-  action("sites.vault.setup", {
-    description: "首次设置账号保险箱口令（≥8 位）。口令经 scrypt 派生密钥，密钥不落库、不同步；口令丢失则敏感字段永久不可读。",
-    input: {
-      type: "object",
-      properties: { passphrase: { type: "string", description: "口令，≥8 位" } },
-      required: ["passphrase"],
-    },
-    execute: async function (args) { return setupVault(db, args.passphrase); },
-    render: function () { return "账号保险箱已设置并解锁"; },
-  });
-
-  action("sites.vault.unlock", {
-    description: "用口令解锁账号保险箱（密钥只存在内存，空闲自动锁定）。",
-    input: {
-      type: "object",
-      properties: { passphrase: { type: "string" } },
-      required: ["passphrase"],
-    },
-    execute: async function (args) { return unlockVault(db, args.passphrase); },
-    render: function () { return "账号保险箱已解锁"; },
-  });
-
-  action("sites.vault.lock", {
-    description: "立即锁定账号保险箱（清空内存密钥）。",
-    input: { type: "object", properties: {} },
-    execute: function () { lockVault(); return vaultStatus(db); },
-    render: function () { return "账号保险箱已锁定"; },
-  });
-
-  action("sites.vault.rekey", {
-    description: "更换账号保险箱口令：校验原口令后，用新密钥重新加密全部敏感列（单事务）。",
-    input: {
-      type: "object",
-      properties: {
-        oldPassphrase: { type: "string" },
-        newPassphrase: { type: "string", description: "新口令，≥8 位" },
-      },
-      required: ["oldPassphrase", "newPassphrase"],
-    },
-    execute: async function (args, ctx) {
-      return rekeyVault(db, args.oldPassphrase, args.newPassphrase);
-    },
-    render: function () { return "口令已更换，敏感字段已用新密钥重新加密"; },
-  });
 }
-
-/** 供数据页判断某列是否需要掩码。 */
-
-/** 掩码工具复用（数据页/渲染）。 */
-export { maskSecret, maskMiddle, isEncrypted };

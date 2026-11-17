@@ -46,11 +46,129 @@ var require_limits = __commonJS({
   }
 });
 
+// packages/addons/lib/filter-checklist.cjs
+var require_filter_checklist = __commonJS({
+  "packages/addons/lib/filter-checklist.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h = React.createElement;
+    var NEAR = 24;
+    function nearBottom(el, threshold) {
+      if (!el) return false;
+      var gap = Number(threshold);
+      if (!isFinite(gap) || gap < 0) gap = NEAR;
+      return el.scrollTop + el.clientHeight >= el.scrollHeight - gap;
+    }
+    function FilterChecklist(props) {
+      var items = props.items || [];
+      var selected = props.selected || [];
+      var disabled = props.disabled === true;
+      var loading = props.loading === true;
+      var hasMore = props.hasMore === true;
+      var query = props.query || "";
+      var total = typeof props.total === "number" ? props.total : items.length;
+      var title = props.title || "\u5168\u90E8";
+      var selectedText = props.selectedText || "\u5DF2\u9009";
+      var clearText = props.clearText || "\u6E05\u7A7A";
+      var searchPlaceholder = props.searchPlaceholder || "\u641C\u7D22";
+      var emptyText = props.emptyText || "\u6682\u65E0\u6570\u636E";
+      var noMatchText = props.noMatchText || "\u6CA1\u6709\u5339\u914D\u9879";
+      var loadingText = props.loadingText || "\u52A0\u8F7D\u4E2D\u2026";
+      var noMoreText = typeof props.noMoreText === "string" ? props.noMoreText : "\u6CA1\u6709\u66F4\u591A";
+      var onToggle = props.onToggle || function() {
+      };
+      var onQuery = props.onQuery || function() {
+      };
+      var onLoadMore = props.onLoadMore;
+      var onClear = props.onClear || function() {
+      };
+      function toggle(id) {
+        if (disabled) return;
+        onToggle(id);
+      }
+      function scroll(e) {
+        if (disabled || loading || !hasMore || !onLoadMore) return;
+        if (nearBottom(e.currentTarget)) onLoadMore();
+      }
+      var head = h(
+        "div",
+        { className: "wbck-head" },
+        h("span", { className: "wbck-grow" }, title + (total ? " \xB7 " + total : "")),
+        selected.length ? h("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
+        selected.length || query ? h("button", {
+          type: "button",
+          className: "wbck-clear",
+          title: clearText,
+          disabled,
+          onClick: function() {
+            if (disabled) return;
+            onClear();
+          }
+        }, clearText) : null
+      );
+      var body;
+      if (!items.length) {
+        body = h("div", { className: "wbck-note", role: "status" }, loading ? loadingText : query ? noMatchText : emptyText);
+      } else {
+        body = items.map(function(x) {
+          var on = selected.indexOf(String(x.id)) >= 0;
+          return h(
+            "label",
+            { key: x.id, className: "wbck-opt" + (on ? " is-on" : "") },
+            h("input", {
+              type: "checkbox",
+              checked: on,
+              disabled,
+              onChange: function() {
+                toggle(x.id);
+              }
+            }),
+            h("span", { className: "wbck-nm", title: x.name }, x.name),
+            x.meta ? h("span", { className: "wbck-meta" }, x.meta) : null
+          );
+        });
+        var more = loading ? loadingText : hasMore ? "" : noMoreText;
+        if (more) body = body.concat([h("div", { key: "__more", className: "wbck-more", role: "status" }, more)]);
+      }
+      return h(
+        "div",
+        { className: "wbck", "data-role": "checklist" },
+        h(
+          "div",
+          { className: "wbck-search" },
+          h("input", {
+            type: "search",
+            autoFocus: props.autoFocus !== false,
+            className: "wbck-input",
+            placeholder: searchPlaceholder,
+            "aria-label": searchPlaceholder,
+            value: query,
+            disabled,
+            onChange: function(e) {
+              onQuery(e.target.value);
+            }
+          })
+        ),
+        props.beforeHead || null,
+        head,
+        h("div", {
+          className: "wbck-list",
+          onScroll: scroll,
+          "aria-busy": loading ? "true" : "false"
+        }, body)
+      );
+    }
+    module2.exports = FilterChecklist;
+    module2.exports.nearBottom = nearBottom;
+  }
+});
+
 // packages/addons/tasks/client/ui/tagfilter.cjs
 var require_tagfilter = __commonJS({
   "packages/addons/tasks/client/ui/tagfilter.cjs"(exports2, module2) {
     var React = require("react");
     var h = React.createElement;
+    var FilterChecklist = require_filter_checklist();
     module2.exports = function TagFilter(props) {
       var api = props.api;
       var t = props.t;
@@ -100,6 +218,16 @@ var require_tagfilter = __commonJS({
         };
       }, [open, query, load, props.reloadKey]);
       React.useEffect(function() {
+        if (!open) return void 0;
+        function onKey(e) {
+          if (e.key === "Escape") setOpen(false);
+        }
+        document.addEventListener("keydown", onKey);
+        return function() {
+          document.removeEventListener("keydown", onKey);
+        };
+      }, [open]);
+      React.useEffect(function() {
         api.call("tasks.tagOptions", { pageSize: 1 }).then(function(r) {
           if (r && r.ok) setAvailable(!!(r.result && r.result.available));
         }).catch(function() {
@@ -127,74 +255,47 @@ var require_tagfilter = __commonJS({
         open ? h(
           "div",
           { className: "wbt-tagmenu", role: "menu" },
-          h(
-            "div",
-            { className: "wbt-tagsearch" },
-            h("input", {
-              className: "wbt-input",
-              autoFocus: true,
-              placeholder: t.tagSearchPlaceholder,
-              value: query,
-              onChange: function(e) {
-                setQuery(e.target.value);
-              },
-              onKeyDown: function(e) {
-                if (e.key === "Escape") {
-                  e.stopPropagation();
-                  setOpen(false);
-                }
-              }
-            })
-          ),
-          ids.length ? h(
-            "div",
-            { className: "wbt-tagsel" },
-            h("div", { className: "wbt-tagmenu-head" }, h("span", null, t.tagSelected + " " + ids.length), h("span", { className: "wbt-grow" })),
-            h("div", { className: "wbt-tagsel-list" }, ids.map(function(id) {
-              return h(
-                "button",
-                { key: id, className: "wbt-tagselitem", title: t.tagRemove, onClick: function() {
-                  toggle(id);
-                } },
-                h("span", { className: "wbt-tagnm" }, names[String(id)] || "#" + id),
-                h("span", { className: "wbt-tagx" }, "\xD7")
-              );
-            }))
-          ) : null,
-          h(
-            "div",
-            { className: "wbt-tagmenu-head" },
-            h("span", null, t.allTags + (opts.total ? " \xB7 " + opts.total : "")),
-            h("span", { className: "wbt-grow" }),
-            h("button", { className: "wbt-mini", onClick: function() {
+          h(FilterChecklist, {
+            beforeHead: ids.length ? h(
+              "div",
+              { className: "wbt-tagsel" },
+              h("div", { className: "wbt-tagmenu-head" }, h("span", null, t.tagSelected + " " + ids.length), h("span", { className: "wbt-grow" })),
+              h("div", { className: "wbt-tagsel-list" }, ids.map(function(id) {
+                return h(
+                  "button",
+                  { key: id, className: "wbt-tagselitem", title: t.tagRemove, onClick: function() {
+                    toggle(id);
+                  } },
+                  h("span", { className: "wbt-tagnm" }, names[String(id)] || "#" + id),
+                  h("span", { className: "wbt-tagx" }, "\xD7")
+                );
+              }))
+            ) : null,
+            items: opts.tags.map(function(x) {
+              return { id: x.id, name: x.name, meta: x.total };
+            }),
+            selected: ids,
+            onToggle: toggle,
+            query,
+            onQuery: setQuery,
+            title: t.allTags,
+            total: opts.total,
+            clearText: t.clear,
+            onClear: function() {
               onChange([]);
               setQuery("");
-            } }, t.clear)
-          ),
-          h(
-            "div",
-            {
-              className: "wbt-taglist",
-              onScroll: function(e) {
-                var el = e.currentTarget;
-                if (!opts.hasMore || loading) return;
-                if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) load(query, (opts.pageNumber || 1) + 1, true);
-              }
             },
-            opts.tags.length ? opts.tags.map(function(x) {
-              var on = ids.indexOf(String(x.id)) >= 0;
-              return h(
-                "label",
-                { key: x.id, className: "wbt-tagopt" },
-                h("input", { type: "checkbox", checked: on, onChange: function() {
-                  toggle(x.id);
-                } }),
-                h("span", { className: "wbt-tagnm" }, x.name),
-                h("span", { className: "wbt-tagcnt" }, x.total)
-              );
-            }) : h("div", { className: "wbt-note" }, loading ? t.loadingMore : query ? t.tagNoMatch : t.noTags),
-            opts.tags.length ? h("div", { className: "wbt-tagmore" }, loading ? t.loadingMore : opts.hasMore ? "" : t.noMore) : null
-          )
+            searchPlaceholder: t.tagSearchPlaceholder,
+            loading,
+            hasMore: opts.hasMore,
+            onLoadMore: function() {
+              load(query, (opts.pageNumber || 1) + 1, true);
+            },
+            emptyText: t.noTags,
+            noMatchText: t.tagNoMatch,
+            loadingText: t.loadingMore,
+            noMoreText: t.noMore
+          })
         ) : null
       );
     };
@@ -379,6 +480,12 @@ var require_charts = __commonJS({
         ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer}",
         ".@-ghost:hover{border-color:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-brand-primary,#4f6ef7)}",
         ".@-muted{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        // 难度分布的口径切换：轻量 tablist，视觉上与页首时间范围分段保持一致。
+        ".@-dims{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px}",
+        ".@-dims button{appearance:none;border:1px solid transparent;background:transparent;color:inherit;font:inherit;font-size:11.5px;padding:3px 8px;border-radius:6px;cursor:pointer;opacity:.7;white-space:nowrap}",
+        ".@-dims button:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5);opacity:1}",
+        ".@-dims button[aria-selected=true]{border-color:var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-skeleton,#f2f3f5);font-weight:600;opacity:1}",
+        ".@-dims button:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
         ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
         ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
         ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
@@ -658,7 +765,8 @@ var require_charts = __commonJS({
               );
             }),
             labelIdx.map(function(i2) {
-              return h("text", { key: "x" + i2, x: x(i2), y: height - 6, textAnchor: "middle", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i2].bucket).slice(5));
+              var anchor = i2 === data.length - 1 ? "end" : "middle";
+              return h("text", { key: "x" + i2, x: x(i2), y: height - 6, textAnchor: anchor, fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i2].bucket).slice(5));
             })
           ),
           h("div", { className: prefix + "-tlegend" }, series.map(function(s, i2) {
@@ -1426,15 +1534,42 @@ var require_config = __commonJS({
   }
 });
 
+// packages/addons/tasks/client/stats/task-link.cjs
+var require_task_link = __commonJS({
+  "packages/addons/tasks/client/stats/task-link.cjs"(exports2, module2) {
+    var React = require("react");
+    var h = React.createElement;
+    module2.exports = function taskTitle(lang, onNavigate) {
+      var en = lang === "en";
+      return function(row) {
+        var title = row.title == null ? "" : String(row.title);
+        var id = row.id == null ? "" : String(row.id);
+        if (!id || typeof onNavigate !== "function") return title;
+        return h("button", {
+          type: "button",
+          className: "wbt-table-link",
+          "data-task-id": id,
+          "aria-label": (en ? "Search by task ID: " : "\u6309\u4EFB\u52A1 ID \u68C0\u7D22\uFF1A") + id,
+          title: en ? "Search by task ID: " + id : "\u6309\u4EFB\u52A1 ID \u68C0\u7D22\uFF1A" + id,
+          onClick: function() {
+            onNavigate("tasks", { taskId: id });
+          }
+        }, title);
+      };
+    };
+  }
+});
+
 // packages/addons/tasks/client/item/recent-columns.cjs
 var require_recent_columns = __commonJS({
   "packages/addons/tasks/client/item/recent-columns.cjs"(exports2, module2) {
     var React = require("react");
     var h = React.createElement;
+    var taskTitle = require_task_link();
     module2.exports = function recentColumns(t, lang, onNavigate) {
       var en = lang === "en";
       return [
-        { key: "title", label: t.colTitle },
+        { key: "title", label: t.colTitle, render: taskTitle(lang, onNavigate) },
         { key: "difficulty", label: en ? "Difficulty" : "\u96BE\u5EA6", render: function(row) {
           var n = Number(row.difficulty);
           if (!(n > 0)) return "\u2014";
@@ -1501,11 +1636,12 @@ var require_ranking_name = __commonJS({
 // packages/addons/tasks/client/stats/heatmap-model.cjs
 var require_heatmap_model = __commonJS({
   "packages/addons/tasks/client/stats/heatmap-model.cjs"(exports2, module2) {
-    var TYPES = ["done", "publish", "shutdown", "claimed"];
+    var FILTER_TYPES = ["done", "publish", "shutdown", "claimed"];
+    var TYPES = FILTER_TYPES.concat(["target"]);
     var LEVELS = [{ min: 1, max: 1, label: "1" }, { min: 2, max: 3, label: "2\u20133" }, { min: 4, max: 6, label: "4\u20136" }, { min: 7, max: null, label: "7+" }];
     var COPY = {
-      zh: { title: "\u5E74\u5EA6\u6D3B\u52A8", previous: "\u4E0A\u4E00\u5E74", next: "\u4E0B\u4E00\u5E74", done: "\u5B8C\u6210", publish: "\u53D1\u5E03", shutdown: "\u5173\u95ED", claimed: "\u63A5\u53D6", empty: { done: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5B8C\u6210\u8BB0\u5F55", publish: "\u672C\u5E74\u5EA6\u6CA1\u6709\u53D1\u5E03\u8BB0\u5F55", shutdown: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5173\u95ED\u8BB0\u5F55", claimed: "\u672C\u5E74\u5EA6\u6CA1\u6709\u63A5\u53D6\u8BB0\u5F55" }, loading: "\u6B63\u5728\u52A0\u8F7D\u5E74\u5EA6\u6D3B\u52A8", error: "\u5E74\u5EA6\u6D3B\u52A8\u52A0\u8F7D\u5931\u8D25", retry: "\u91CD\u8BD5", future: "\u672A\u6765\u65E5\u671F", none: "\u65E0\u6D3B\u52A8", clear: "\u6E05\u9664\u6D3B\u52A8\u7B5B\u9009", filter: "\u6D3B\u52A8\u7B5B\u9009", total: "\u6D3B\u52A8\u603B\u6570", dailyCount: "\u6BCF\u65E5\u6B21\u6570", weekdays: ["\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D", "\u65E5"], claimedNote: "\u5DF2\u63A5\u53D6/\u5DF2\u5B8C\u6210\u4EFB\u52A1\uFF1B\u5386\u53F2\u4EFB\u52A1\u672A\u8BB0\u5F55\u63A5\u53D6\u65F6\u95F4\uFF0C\u6309\u53D1\u5E03\u65E5\u671F\u8BA1" },
-      en: { title: "Annual task activity", previous: "Previous year", next: "Next year", done: "Done", publish: "Published", shutdown: "Closed", claimed: "Claimed", empty: { done: "No completed tasks this year", publish: "No published tasks this year", shutdown: "No closed tasks this year", claimed: "No claimed tasks this year" }, loading: "Loading annual activity", error: "Could not load annual activity", retry: "Retry", future: "Future date", none: "No activity", clear: "Clear activity filter", filter: "Activity filter", total: "Total events", dailyCount: "Daily count", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], claimedNote: "claimed or completed tasks; historical tasks without a claim time use the publish date" }
+      zh: { title: "\u5E74\u5EA6\u6D3B\u52A8", previous: "\u4E0A\u4E00\u5E74", next: "\u4E0B\u4E00\u5E74", done: "\u5B8C\u6210", publish: "\u53D1\u5E03", shutdown: "\u5173\u95ED", claimed: "\u63A5\u53D6", target: "\u76EE\u6807", empty: { done: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5B8C\u6210\u8BB0\u5F55", publish: "\u672C\u5E74\u5EA6\u6CA1\u6709\u53D1\u5E03\u8BB0\u5F55", shutdown: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5173\u95ED\u8BB0\u5F55", claimed: "\u672C\u5E74\u5EA6\u6CA1\u6709\u63A5\u53D6\u8BB0\u5F55", target: "\u672C\u5E74\u5EA6\u6CA1\u6709\u76EE\u6807\u8BA1\u5212" }, loading: "\u6B63\u5728\u52A0\u8F7D\u5E74\u5EA6\u6D3B\u52A8", error: "\u5E74\u5EA6\u6D3B\u52A8\u52A0\u8F7D\u5931\u8D25", retry: "\u91CD\u8BD5", future: "\u672A\u6765\u65E5\u671F", none: "\u65E0\u6D3B\u52A8", clear: "\u6E05\u9664\u6D3B\u52A8\u7B5B\u9009", filter: "\u6D3B\u52A8\u7B5B\u9009", total: "\u6D3B\u52A8\u603B\u6570", dailyCount: "\u6BCF\u65E5\u6B21\u6570", weekdays: ["\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D", "\u65E5"], claimedNote: "\u5DF2\u63A5\u53D6/\u5DF2\u5B8C\u6210\u4EFB\u52A1\uFF1B\u5386\u53F2\u4EFB\u52A1\u672A\u8BB0\u5F55\u63A5\u53D6\u65F6\u95F4\uFF0C\u6309\u53D1\u5E03\u65E5\u671F\u8BA1", targetNote: "\u6309\u76EE\u6807\u8BA1\u5212\u65E5\u671F\u7EDF\u8BA1\uFF0C\u5C5E\u4E8E\u8BA1\u5212\u53E3\u5F84\uFF0C\u4E0D\u8BA1\u5165\u6D3B\u52A8\u603B\u6570", targetTotal: "\u76EE\u6807\u603B\u6570" },
+      en: { title: "Annual task activity", previous: "Previous year", next: "Next year", done: "Done", publish: "Published", shutdown: "Closed", claimed: "Claimed", target: "Target", empty: { done: "No completed tasks this year", publish: "No published tasks this year", shutdown: "No closed tasks this year", claimed: "No claimed tasks this year", target: "No target dates this year" }, loading: "Loading annual activity", error: "Could not load annual activity", retry: "Retry", future: "Future date", none: "No activity", clear: "Clear activity filter", filter: "Activity filter", total: "Total events", dailyCount: "Daily count", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], claimedNote: "claimed or completed tasks; historical tasks without a claim time use the publish date", targetNote: "counted by target plan date; planning scope, not included in total events", targetTotal: "Planned" }
     };
     function localDay(d) {
       return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -1540,16 +1676,91 @@ var require_heatmap_model = __commonJS({
     }
     function activityParams(params) {
       if (!params || !/^\d{4}-\d{2}-\d{2}$/.test(params.activityDate || "")) return null;
-      return { activityDate: params.activityDate, activityType: TYPES.indexOf(params.activityType) >= 0 ? params.activityType : "done" };
+      return { activityDate: params.activityDate, activityType: FILTER_TYPES.indexOf(params.activityType) >= 0 ? params.activityType : "done" };
     }
-    module2.exports = { TYPES, LEVELS, COPY, legendLabel, localDay, calendar, level, count, background, label, activityParams };
+    module2.exports = { TYPES, FILTER_TYPES, LEVELS, COPY, legendLabel, localDay, calendar, level, count, background, label, activityParams };
   }
 });
 
 // packages/addons/tasks/client/stats/heatmap-styles.cjs
 var require_heatmap_styles = __commonJS({
   "packages/addons/tasks/client/stats/heatmap-styles.cjs"(exports2, module2) {
-    module2.exports = ".wbt-heatmap{--hm-empty:#e9ecef;--hm-done-1:#d3f0d7;--hm-done-2:#91d69c;--hm-done-3:#51b566;--hm-done-4:#2f9e44;--hm-publish-1:#d5e7f8;--hm-publish-2:#96bee6;--hm-publish-3:#568fc7;--hm-publish-4:#2b6cb0;--hm-shutdown-1:#fbdada;--hm-shutdown-2:#f1a0a0;--hm-shutdown-3:#df6262;--hm-shutdown-4:#c92a2a;--hm-claimed-1:#ffedd5;--hm-claimed-2:#fdba74;--hm-claimed-3:#f89a3c;--hm-claimed-4:#d9600d;min-width:0;max-width:100%;border:1px solid color-mix(in srgb,currentColor 15%,transparent);border-radius:12px;padding:16px;margin-bottom:16px;color:inherit;font-size:12px;box-sizing:border-box}.wbt-hm-head,.wbt-hm-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.wbt-hm-head{justify-content:space-between;margin-bottom:16px}.wbt-hm-head h3{margin:0;font-size:14px}.wbt-hm-years{display:flex;align-items:center;gap:12px;font-variant-numeric:tabular-nums}.wbt-heatmap button{font:inherit;color:inherit}.wbt-hm-control{border:1px solid color-mix(in srgb,currentColor 20%,transparent);background:transparent;border-radius:5px;cursor:pointer;padding:4px 8px}.wbt-hm-control[role=tab]{border:0;outline:none;box-shadow:none}.wbt-hm-control[role=tab]:hover{background:color-mix(in srgb,currentColor 6%,transparent)}.wbt-hm-control[aria-selected=true]{font-weight:700;background:color-mix(in srgb,currentColor 10%,transparent)}.wbt-hm-control[role=tab]:focus-visible{outline:2px solid #568fc7;outline-offset:2px}.wbt-hm-scroll{overflow-x:auto;padding:3px;max-width:100%}.wbt-hm-layout{display:flex;gap:8px;min-width:max-content}.wbt-hm-weekdays{display:grid;grid-template-rows:repeat(7,12px);gap:3px;padding-top:22px;font-size:10px;line-height:12px;opacity:.65}.wbt-hm-body{flex:1;min-width:0}.wbt-hm-months{display:grid;grid-template-columns:repeat(var(--hm-weeks),12px);column-gap:3px;height:22px;font-size:10px}.wbt-hm-months span{white-space:nowrap}.wbt-hm-grid{display:grid;grid-template-columns:repeat(var(--hm-weeks),12px);grid-template-rows:repeat(7,12px);gap:3px}.wbt-hm-day{border:0;border-radius:2px;width:12px;height:12px;padding:0;cursor:pointer}.wbt-hm-day[aria-disabled=true]{cursor:default}.wbt-hm-day{outline:none}.wbt-hm-day:focus-visible{outline:2px solid #568fc7;outline-offset:1px}.wbt-hm-day:hover{filter:brightness(.92)}.wbt-hm-future{opacity:.4}.wbt-hm-legend{margin-top:14px}.wbt-hm-swatch{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-2px;margin-right:5px}.wbt-hm-types{display:flex;align-items:center;gap:10px}.wbt-hm-intensity{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-inline-start:1px solid color-mix(in srgb,currentColor 20%,transparent);padding-inline-start:12px;font-size:11px}.wbt-hm-intensity-label{color:color-mix(in srgb,currentColor 70%,transparent)}.wbt-hm-intensity-item{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.wbt-hm-intensity-item .wbt-hm-swatch{flex:none;margin:0}.wbt-hm-summary{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.wbt-hm-state{padding:28px 8px;text-align:center}.wbt-hm-skeleton{height:102px;border-radius:3px;background:repeating-linear-gradient(90deg,var(--hm-empty) 0 12px,transparent 12px 15px);opacity:.55}.dark .wbt-heatmap,[data-theme=dark] .wbt-heatmap,:root[style*='color-scheme:dark'] .wbt-heatmap,:root[style*='color-scheme: dark'] .wbt-heatmap,[data-color-scheme=dark] .wbt-heatmap{--hm-empty:#303740;--hm-done-1:#21452b;--hm-done-2:#2f7440;--hm-done-3:#46a75c;--hm-done-4:#72d38a;--hm-publish-1:#223e5c;--hm-publish-2:#326496;--hm-publish-3:#508ecb;--hm-publish-4:#85baf0;--hm-shutdown-1:#58292b;--hm-shutdown-2:#914146;--hm-shutdown-3:#c95c63;--hm-shutdown-4:#f58e93;--hm-claimed-1:#4a2f14;--hm-claimed-2:#7a4a16;--hm-claimed-3:#b06d1c;--hm-claimed-4:#e6952f;}@media(prefers-color-scheme:dark){:root:not([data-theme=light]):not([data-color-scheme=light]):not([style*='color-scheme:light']):not([style*='color-scheme: light']) .wbt-heatmap{--hm-empty:#303740;--hm-done-1:#21452b;--hm-done-2:#2f7440;--hm-done-3:#46a75c;--hm-done-4:#72d38a;--hm-publish-1:#223e5c;--hm-publish-2:#326496;--hm-publish-3:#508ecb;--hm-publish-4:#85baf0;--hm-shutdown-1:#58292b;--hm-shutdown-2:#914146;--hm-shutdown-3:#c95c63;--hm-shutdown-4:#f58e93;--hm-claimed-1:#4a2f14;--hm-claimed-2:#7a4a16;--hm-claimed-3:#b06d1c;--hm-claimed-4:#e6952f;}}@media(min-width:1200px){.wbt-hm-layout{min-width:0}.wbt-hm-months,.wbt-hm-grid{grid-template-columns:repeat(var(--hm-weeks),minmax(12px,1fr))}.wbt-hm-day{width:12px}}@media(prefers-reduced-motion:reduce){.wbt-heatmap *{animation:none!important;transition:none!important}}";
+    module2.exports = [
+      ".wbt-heatmap{",
+      "--hm-gap:3px;",
+      "--hm-hue-done:var(--wb-ok,#18a058);",
+      "--hm-hue-publish:var(--wbt-accent,var(--wb-accent,#11a89b));",
+      "--hm-hue-shutdown:var(--wb-danger,#e5484d);",
+      "--hm-hue-claimed:var(--wb-warn,#d48806);",
+      // 目标是计划口径，用中性灰蓝，弱于四类彩色事件；灰阶在浅底上对比度低，
+      // 四档取 26/42/58/74%（比四类事件更高），保证与空白格、与相邻档都能分辨。
+      "--hm-hue-target:var(--wb-muted,#8b8f96);",
+      "--hm-surface:var(--wbt-surface,color-mix(in oklab,currentColor 4%,transparent));",
+      "--hm-empty:color-mix(in oklab,var(--wbt-line,color-mix(in oklab,currentColor 18%,transparent)) 55%,var(--hm-surface));",
+      "--hm-done-1:color-mix(in oklab,var(--hm-hue-done) 14%,var(--hm-surface));",
+      "--hm-done-2:color-mix(in oklab,var(--hm-hue-done) 26%,var(--hm-surface));",
+      "--hm-done-3:color-mix(in oklab,var(--hm-hue-done) 38%,var(--hm-surface));",
+      "--hm-done-4:color-mix(in oklab,var(--hm-hue-done) 52%,var(--hm-surface));",
+      "--hm-publish-1:color-mix(in oklab,var(--hm-hue-publish) 14%,var(--hm-surface));",
+      "--hm-publish-2:color-mix(in oklab,var(--hm-hue-publish) 26%,var(--hm-surface));",
+      "--hm-publish-3:color-mix(in oklab,var(--hm-hue-publish) 38%,var(--hm-surface));",
+      "--hm-publish-4:color-mix(in oklab,var(--hm-hue-publish) 52%,var(--hm-surface));",
+      "--hm-shutdown-1:color-mix(in oklab,var(--hm-hue-shutdown) 14%,var(--hm-surface));",
+      "--hm-shutdown-2:color-mix(in oklab,var(--hm-hue-shutdown) 26%,var(--hm-surface));",
+      "--hm-shutdown-3:color-mix(in oklab,var(--hm-hue-shutdown) 38%,var(--hm-surface));",
+      "--hm-shutdown-4:color-mix(in oklab,var(--hm-hue-shutdown) 52%,var(--hm-surface));",
+      "--hm-claimed-1:color-mix(in oklab,var(--hm-hue-claimed) 14%,var(--hm-surface));",
+      "--hm-claimed-2:color-mix(in oklab,var(--hm-hue-claimed) 26%,var(--hm-surface));",
+      "--hm-claimed-3:color-mix(in oklab,var(--hm-hue-claimed) 38%,var(--hm-surface));",
+      "--hm-claimed-4:color-mix(in oklab,var(--hm-hue-claimed) 52%,var(--hm-surface));",
+      "--hm-target-1:color-mix(in oklab,var(--hm-hue-target) 26%,var(--hm-surface));",
+      "--hm-target-2:color-mix(in oklab,var(--hm-hue-target) 42%,var(--hm-surface));",
+      "--hm-target-3:color-mix(in oklab,var(--hm-hue-target) 58%,var(--hm-surface));",
+      "--hm-target-4:color-mix(in oklab,var(--hm-hue-target) 74%,var(--hm-surface));",
+      // 四档都保留正文色：最深档只混到 52%，深色主题里前景文字对比度仍 ≥4.7，浅色主题 ≥7。
+      "--hm-fg-1:currentColor;--hm-fg-2:currentColor;--hm-fg-3:currentColor;--hm-fg-4:currentColor;",
+      "min-width:0;max-width:100%;border:1px solid var(--wbt-line,color-mix(in oklab,currentColor 15%,transparent));border-radius:12px;padding:16px;margin-bottom:16px;color:inherit;font-size:12px;box-sizing:border-box}",
+      ".wbt-hm-head,.wbt-hm-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}",
+      ".wbt-hm-head{justify-content:space-between;margin-bottom:16px}",
+      ".wbt-hm-head h3{margin:0;font-size:14px}",
+      ".wbt-hm-years{display:flex;align-items:center;gap:12px;font-variant-numeric:tabular-nums}",
+      ".wbt-heatmap button{font:inherit;color:inherit}",
+      ".wbt-hm-control{border:1px solid color-mix(in oklab,currentColor 20%,transparent);background:transparent;border-radius:5px;cursor:pointer;padding:4px 8px}",
+      ".wbt-hm-control[role=tab]{border:0;outline:none;box-shadow:none}",
+      ".wbt-hm-control[role=tab]:hover{background:color-mix(in oklab,currentColor 6%,transparent)}",
+      ".wbt-hm-control[aria-selected=true]{font-weight:700;background:color-mix(in oklab,currentColor 10%,transparent)}",
+      ".wbt-hm-control[role=tab]:focus-visible{outline:2px solid var(--hm-hue-publish);outline-offset:2px}",
+      // 铺满：格子宽度按容器等分，格子之间固定 --hm-gap，既不右侧留白也不把方块拉扁。
+      ".wbt-hm-scroll{overflow-x:auto;padding:3px 0;max-width:100%;container-type:inline-size}",
+      ".wbt-hm-layout{display:flex;gap:8px;align-items:stretch;min-width:0}",
+      ".wbt-hm-weekdays{display:grid;grid-template-rows:repeat(7,1fr);gap:var(--hm-gap);padding-top:22px;font-size:10px;line-height:1;opacity:.65;align-items:center;justify-items:center}",
+      ".wbt-hm-body{flex:1 1 auto;min-width:min-content}",
+      ".wbt-hm-months{display:grid;grid-template-columns:repeat(var(--hm-weeks),minmax(14px,1fr));column-gap:var(--hm-gap);height:22px;font-size:10px;line-height:1}",
+      ".wbt-hm-months span{white-space:nowrap}",
+      ".wbt-hm-grid{display:grid;grid-template-columns:repeat(var(--hm-weeks),minmax(14px,1fr));gap:var(--hm-gap)}",
+      ".wbt-heatmap .wbt-hm-day{border:0;border-radius:3px;width:100%;height:auto;aspect-ratio:1;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;font-size:10px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}",
+      '.wbt-hm-day[data-level="1"]{color:var(--hm-fg-1)}',
+      '.wbt-hm-day[data-level="2"]{color:var(--hm-fg-2)}',
+      '.wbt-hm-day[data-level="3"]{color:var(--hm-fg-3)}',
+      '.wbt-hm-day[data-level="4"]{color:var(--hm-fg-4)}',
+      ".wbt-heatmap .wbt-hm-num{font-size:clamp(7px,1cqw,11px);font-weight:600;line-height:1;font-variant-numeric:tabular-nums;pointer-events:none}",
+      ".wbt-hm-day[aria-disabled=true]{cursor:default}",
+      ".wbt-hm-day{outline:none}",
+      ".wbt-hm-day:focus-visible{outline:2px solid var(--hm-hue-publish);outline-offset:1px}",
+      ".wbt-hm-day:hover{filter:brightness(.94)}",
+      ".wbt-heatmap .wbt-hm-future{opacity:.4}",
+      ".wbt-hm-legend{margin-top:14px}",
+      ".wbt-hm-swatch{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-2px;margin-right:5px}",
+      ".wbt-hm-types{display:flex;align-items:center;gap:10px}",
+      ".wbt-hm-intensity{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-inline-start:1px solid color-mix(in oklab,currentColor 20%,transparent);padding-inline-start:12px;font-size:11px}",
+      ".wbt-hm-intensity-label{color:color-mix(in oklab,currentColor 70%,transparent)}",
+      ".wbt-hm-intensity-item{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}",
+      ".wbt-hm-intensity-item .wbt-hm-swatch{flex:none;margin:0}",
+      ".wbt-hm-summary{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
+      ".wbt-hm-state{padding:28px 8px;text-align:center}",
+      ".wbt-hm-skeleton{height:152px;border-radius:3px;background:repeating-linear-gradient(90deg,var(--hm-empty) 0 14px,transparent 14px 17px);opacity:.55}",
+      "@media(prefers-reduced-motion:reduce){.wbt-heatmap *{animation:none!important;transition:none!important}}"
+    ].join("");
   }
 });
 
@@ -1646,16 +1857,20 @@ var require_heatmap = __commonJS({
               return h("span", { key: d.date, style: { gridColumn: d.column } }, new Date(Date.UTC(year, d.month, 1)).toLocaleString(lang === "en" ? "en-US" : "zh-CN", { month: "short", timeZone: "UTC" }));
             })),
             h("div", { className: "wbt-hm-grid" }, geometry.days.map(function(d) {
-              var day = byDate[d.date] || {}, future = d.date > today, enabled = !future && model.count(day, type) > 0;
-              var title = model.label(d.date, day, t, type) + (future ? " \xB7 " + t.future : !model.count(day, type) ? " \xB7 " + t.none : "");
+              var day = byDate[d.date] || {}, future = d.date > today, n = future ? 0 : model.count(day, type), enabled = !future && n > 0;
+              var clickable = enabled && type !== "target";
+              var text = !future && n > 0 ? n >= 100 ? "99+" : String(n) : "";
+              var title = model.label(d.date, day, t, type) + (future ? " \xB7 " + t.future : !n ? " \xB7 " + t.none : "");
               return h("button", {
                 key: d.date,
                 type: "button",
                 className: "wbt-hm-day" + (future ? " wbt-hm-future" : ""),
                 "data-date": d.date,
+                "data-level": future ? 0 : n ? model.level(n) : 0,
+                "data-type": type,
                 title,
                 "aria-label": title,
-                "aria-disabled": !enabled,
+                "aria-disabled": !clickable,
                 style: { gridColumn: d.column, gridRow: d.row, background: future ? "var(--hm-empty)" : model.background(day, type) },
                 onMouseEnter: function() {
                   setTip(title);
@@ -1670,9 +1885,9 @@ var require_heatmap = __commonJS({
                   setTip("");
                 },
                 onClick: function() {
-                  if (enabled && props.onNavigate) props.onNavigate("tasks", { activityDate: d.date, activityType: type });
+                  if (clickable && props.onNavigate) props.onNavigate("tasks", { activityDate: d.date, activityType: type });
                 }
-              });
+              }, text ? h("span", { className: "wbt-hm-num", "aria-hidden": true }, text) : null);
             }))
           )
         ))
@@ -1702,8 +1917,9 @@ var require_heatmap = __commonJS({
               setTip("");
             } }, h("span", { className: "wbt-hm-swatch", style: { background: "var(--hm-" + k + "-4)" }, "aria-hidden": true }), t[k]);
           })),
-          ready && h("span", { className: "wbt-hm-summary", "aria-live": "polite" }, tip || t.total + " \xB7 " + total),
+          ready && h("span", { className: "wbt-hm-summary", "aria-live": "polite" }, tip || (type === "target" ? t.targetTotal : t.total) + " \xB7 " + total),
           type === "claimed" && h("span", { className: "wbt-hm-intensity-label" }, t.claimedNote),
+          type === "target" && h("span", { className: "wbt-hm-intensity-label" }, t.targetNote),
           h(
             "div",
             { className: "wbt-hm-intensity", role: "img", "aria-label": model.legendLabel(lang) },
@@ -2046,7 +2262,7 @@ var require_timeline_section = __commonJS({
 // packages/addons/tasks/client/stats/list-state.cjs
 var require_list_state = __commonJS({
   "packages/addons/tasks/client/stats/list-state.cjs"(exports2, module2) {
-    var LISTS = ["overdue", "recentPublish", "recentDone", "recentShutdown"];
+    var LISTS = ["overdue", "recentPublish", "recentDone", "recentShutdown", "recentClaimed"];
     var COPY = {
       zh: "\u7EDF\u8BA1\u63A5\u53E3\u672A\u8FD4\u56DE\u300C{key}\u300D\u6E05\u5355\uFF0C\u524D\u540E\u7AEF\u7248\u672C\u53EF\u80FD\u4E0D\u4E00\u81F4\uFF1B\u8BF7\u91CD\u542F\u63D2\u4EF6\u670D\u52A1\u540E\u91CD\u8BD5",
       en: 'Stats API did not return the "{key}" list; frontend and backend versions may differ. Restart the plugin service and retry.'
@@ -2075,6 +2291,7 @@ var require_stats = __commonJS({
     var charts = require_charts();
     var configView = require_config();
     var recentColumns = require_recent_columns();
+    var taskTitle = require_task_link();
     var rankingName = require_ranking_name();
     var Heatmap = require_heatmap();
     var Today = require_today();
@@ -2113,6 +2330,12 @@ var require_stats = __commonJS({
         ofActive: "\u5360\u5DF2\u5F00\u542F",
         trend: "\u65B0\u589E / \u5B8C\u6210 / \u5230\u671F\u8D8B\u52BF",
         trendNote: "\u6309\u81EA\u7136\u65E5 / \u5468 / \u6708\u5206\u6876",
+        eventTrend: "\u4E8B\u4EF6\u8D8B\u52BF",
+        eventTrendNote: "\u4E0E\u5E74\u5EA6\u6D3B\u52A8\u540C\u53E3\u5F84\uFF1B\u6309\u65E5 / \u5468 / \u6708\u5206\u6876\uFF0C\u76EE\u6807\u6309\u8BA1\u5212\u5B8C\u6210\u65E5\u671F\u7EDF\u8BA1",
+        publish: "\u53D1\u5E03",
+        target: "\u76EE\u6807",
+        evShutdown: "\u5173\u95ED",
+        evClaimed: "\u63A5\u53D6",
         created: "\u65B0\u589E",
         done: "\u5B8C\u6210",
         due: "\u5230\u671F",
@@ -2125,6 +2348,13 @@ var require_stats = __commonJS({
         difficultyNote: "\u5F53\u524D\u5B58\u91CF\uFF1B\u5305\u542B\u672A\u8BBE\u7F6E",
         difficultyMissing: "\u672A\u586B\u96BE\u5EA6 {n} \u6761",
         difficultyMissingLink: "\u67E5\u770B\u5E76\u8865\u9F50\u96BE\u5EA6",
+        difficultyDimension: "\u96BE\u5EA6\u5206\u5E03\u53E3\u5F84",
+        dimAll: "\u5168\u90E8",
+        dimDone: "\u5B8C\u6210",
+        dimPublish: "\u53D1\u5E03",
+        dimClaimed: "\u63A5\u53D6",
+        dimShutdown: "\u5173\u95ED",
+        difficultyNoteRange: "\u5E74\u5EA6\u6D3B\u52A8\u53E3\u5F84 {from} ~ {to}\uFF1B\u5305\u542B\u672A\u8BBE\u7F6E",
         aging: "\u903E\u671F\u8D26\u9F84",
         agingNote: "\u5F53\u524D\u903E\u671F\u4EFB\u52A1",
         overdueList: "\u903E\u671F\u6E05\u5355",
@@ -2148,6 +2378,12 @@ var require_stats = __commonJS({
         colTarget: "\u8BA1\u5212\u5B8C\u6210",
         colAge: "\u903E\u671F\u5929\u6570",
         colTable: "\u4EFB\u52A1\u8868",
+        recentTasks: "\u6700\u8FD1\u4EFB\u52A1",
+        recentTasksNote: "\u5207\u6362\u7EF4\u5EA6\u67E5\u770B\u6700\u8FD1\u53D1\u5E03 / \u5B8C\u6210 / \u5173\u95ED / \u63A5\u53D6\u7684\u4EFB\u52A1",
+        recentTabPublish: "\u6700\u8FD1\u53D1\u5E03",
+        recentTabDone: "\u6700\u8FD1\u5B8C\u6210",
+        recentTabShutdown: "\u6700\u8FD1\u5173\u95ED",
+        recentTabClaimed: "\u6700\u8FD1\u63A5\u53D6",
         recentPublish: "\u6700\u8FD1\u53D1\u5E03",
         recentPublishNote: "\u6309\u53D1\u5E03\u65E5\u671F\u5012\u5E8F",
         noRecentPublish: "\u8FD8\u6CA1\u6709\u53D1\u5E03\u7684\u4EFB\u52A1",
@@ -2158,6 +2394,7 @@ var require_stats = __commonJS({
         colDate: "\u65E5\u671F",
         noRecentDone: "\u8FD8\u6CA1\u6709\u5DF2\u5B8C\u6210\u7684\u4EFB\u52A1",
         noRecentShutdown: "\u8FD8\u6CA1\u6709\u5DF2\u5173\u95ED\u7684\u4EFB\u52A1",
+        noRecentClaimed: "\u8FD8\u6CA1\u6709\u5DF2\u63A5\u53D6\u7684\u4EFB\u52A1\uFF08\u63A5\u53D6\u65F6\u95F4\u53EA\u8BB0\u5F55 5.2.15 \u4E4B\u540E\u7684\u64CD\u4F5C\uFF09",
         noOverdue: "\u6CA1\u6709\u903E\u671F\u4EFB\u52A1",
         noData: "\u8FD8\u6CA1\u6709\u4EFB\u52A1\u3002\u5728\u300C\u8BB0\u5F55\u300D\u91CC\u521B\u5EFA\u540E\uFF0C\u8FD9\u91CC\u4F1A\u81EA\u52A8\u6C47\u603B",
         open: "\u5DF2\u5F00\u542F",
@@ -2197,6 +2434,12 @@ var require_stats = __commonJS({
         ofActive: "of active",
         trend: "Created / done / due trend",
         trendNote: "Bucketed by day / week / month",
+        eventTrend: "Event trend",
+        eventTrendNote: "Same scope as annual activity; bucketed by day / week / month, target by planned date",
+        publish: "Published",
+        target: "Target",
+        evShutdown: "Closed",
+        evClaimed: "Claimed",
         created: "Created",
         done: "Done",
         due: "Due",
@@ -2209,6 +2452,13 @@ var require_stats = __commonJS({
         difficultyNote: "Current; includes unset",
         difficultyMissing: "{n} tasks without difficulty",
         difficultyMissingLink: "Review missing difficulty",
+        difficultyDimension: "Difficulty scope",
+        dimAll: "All",
+        dimDone: "Done",
+        dimPublish: "Published",
+        dimClaimed: "Claimed",
+        dimShutdown: "Closed",
+        difficultyNoteRange: "Annual activity scope {from} ~ {to}; includes unset",
         aging: "Overdue aging",
         agingNote: "Current overdue",
         overdueList: "Overdue list",
@@ -2232,6 +2482,12 @@ var require_stats = __commonJS({
         colTarget: "Target",
         colAge: "Days late",
         colTable: "Table",
+        recentTasks: "Recent tasks",
+        recentTasksNote: "Switch the dimension: recently published / completed / closed / claimed",
+        recentTabPublish: "Published",
+        recentTabDone: "Completed",
+        recentTabShutdown: "Closed",
+        recentTabClaimed: "Claimed",
         recentPublish: "Recently published",
         recentPublishNote: "Newest publication first",
         noRecentPublish: "No published tasks yet",
@@ -2242,6 +2498,7 @@ var require_stats = __commonJS({
         colDate: "Date",
         noRecentDone: "No completed tasks yet",
         noRecentShutdown: "No closed tasks yet",
+        noRecentClaimed: "No claimed tasks yet (claim time is only recorded after 5.2.15)",
         noOverdue: "No overdue tasks",
         noData: "No tasks yet. Create one in Tasks and the summary appears here.",
         open: "Active",
@@ -2267,7 +2524,7 @@ var require_stats = __commonJS({
         onNavigate("tasks", { priorityMin: n, priorityMax: n });
       };
     }
-    function difficultyPicker(onNavigate) {
+    function difficultyPicker(onNavigate, dimension, range) {
       if (typeof onNavigate !== "function") return null;
       return function(bin) {
         var key = bin && bin.key;
@@ -2277,10 +2534,19 @@ var require_stats = __commonJS({
         }
         var n = Number(key);
         if (!(n >= 0.5 && n <= 5)) return;
-        onNavigate("tasks", { difficultyMin: n, difficultyMax: n });
+        if (!dimension || dimension === "all") {
+          onNavigate("tasks", { difficultyMin: n, difficultyMax: n });
+          return;
+        }
+        var params = { filterRoot: true, difficultyMin: n, difficultyMax: n };
+        if (range && range.from && range.to) {
+          params[dimension + "From"] = range.from;
+          params[dimension + "To"] = range.to;
+        }
+        onNavigate("tasks", params);
       };
     }
-    var CFG_FALLBACK = { "stats.range": "30d", "stats.top": 10, "stats.showKpi": true, "stats.recentPublishLimit": 10, "stats.recentDoneLimit": 10, "stats.recentShutdownLimit": 10 };
+    var CFG_FALLBACK = { "stats.range": "30d", "stats.top": 10, "stats.showKpi": true, "stats.recentPublishLimit": 10, "stats.recentDoneLimit": 10, "stats.recentShutdownLimit": 10, "stats.recentClaimedLimit": 10 };
     function TasksStatsView(props) {
       var lang = props.lang === "en" ? "en" : "zh";
       var cfg = configView.useConfig(props.api, CFG_FALLBACK);
@@ -2307,6 +2573,10 @@ var require_stats = __commonJS({
       }, []);
       var rangePair = React.useState(cfgRange);
       var range = rangePair[0], setRange = rangePair[1];
+      var dimPair = React.useState("all");
+      var dimension = dimPair[0], setDimension = dimPair[1];
+      var recentPair = React.useState("publish");
+      var recentType = recentPair[0], setRecentType = recentPair[1];
       var dataPair = React.useState(null);
       var data = dataPair[0], setData = dataPair[1];
       var errPair = React.useState("");
@@ -2340,10 +2610,12 @@ var require_stats = __commonJS({
         var id = ++req.current;
         if (!silent) setLoading(true);
         var args = {
+          dimension,
           top: cfgTop,
           recentPublishLimit: cfgLimit("stats.recentPublishLimit"),
           recentDoneLimit: cfgLimit("stats.recentDoneLimit"),
-          recentShutdownLimit: cfgLimit("stats.recentShutdownLimit")
+          recentShutdownLimit: cfgLimit("stats.recentShutdownLimit"),
+          recentClaimedLimit: cfgLimit("stats.recentClaimedLimit")
         };
         if (customOk) {
           args.from = customFrom;
@@ -2363,7 +2635,7 @@ var require_stats = __commonJS({
         }).then(function() {
           if (id === req.current) setLoading(false);
         });
-      }, [api, range, customOk, customFrom, customTo, cfgTop, cfg]);
+      }, [api, range, dimension, customOk, customFrom, customTo, cfgTop, cfg]);
       React.useEffect(function() {
         if (props.active !== false) load(true);
       }, [load, props.active]);
@@ -2425,6 +2697,21 @@ var require_stats = __commonJS({
         } else {
           children.push(h(
             ch.Card,
+            { key: "eventTrend", span: 12, title: t.eventTrend, note: t.eventTrendNote },
+            h(ch.Trend, {
+              data: data.eventTrend || [],
+              lang,
+              series: [
+                { key: "publish", label: t.publish, color: ch.colors[0] },
+                { key: "target", label: t.target, color: ch.colors[5] },
+                { key: "done", label: t.done, color: ch.colors[1] },
+                { key: "shutdown", label: t.evShutdown, color: ch.colors[3] },
+                { key: "claimed", label: t.evClaimed, color: ch.colors[2] }
+              ]
+            })
+          ));
+          children.push(h(
+            ch.Card,
             { key: "trend", span: 8, title: t.trend, note: t.trendNote },
             h(ch.Trend, {
               data: data.trend || [],
@@ -2465,12 +2752,31 @@ var require_stats = __commonJS({
           var missingBin = (b.difficulty || []).find(function(bin) {
             return bin.key === "unset";
           });
+          var dims = [["all", t.dimAll], ["done", t.dimDone], ["publish", t.dimPublish], ["claimed", t.dimClaimed], ["shutdown", t.dimShutdown]];
+          var rangeBox = data.range || {};
+          var diffNote = dimension === "all" ? t.difficultyNote : t.difficultyNoteRange.replace("{from}", String(rangeBox.from || "")).replace("{to}", String(rangeBox.to || ""));
           children.push(h(
             ch.Card,
-            { key: "difficulty", span: 6, title: t.difficulty, note: t.difficultyNote },
+            { key: "difficulty", span: 6, title: t.difficulty, note: diffNote },
+            h(
+              "div",
+              { className: "wbt-dims", role: "tablist", "aria-label": t.difficultyDimension },
+              dims.map(function(item) {
+                return h("button", {
+                  key: item[0],
+                  type: "button",
+                  role: "tab",
+                  className: "wbt-dims-tab",
+                  "aria-selected": dimension === item[0],
+                  onClick: function() {
+                    setDimension(item[0]);
+                  }
+                }, item[1]);
+              })
+            ),
             h(ch.Histogram, { data: (b.difficulty || []).map(function(bin) {
               return bin.key === "unset" ? Object.assign({}, bin, { label: lang === "en" ? "Unset" : "\u672A\u8BBE\u7F6E" }) : bin;
-            }), lang, color: ch.colors[4], onSelect: difficultyPicker(props.onNavigate), selectHint: lang === "en" ? "click to list" : "\u70B9\u51FB\u67E5\u770B\u4EFB\u52A1" }),
+            }), lang, color: ch.colors[4], onSelect: difficultyPicker(props.onNavigate, dimension, dims.length ? data.range || null : null), selectHint: lang === "en" ? "click to list" : "\u70B9\u51FB\u67E5\u770B\u4EFB\u52A1" }),
             h(
               "p",
               null,
@@ -2493,7 +2799,7 @@ var require_stats = __commonJS({
               lang,
               empty: t.noOverdue,
               columns: [
-                { key: "title", label: t.colTitle },
+                { key: "title", label: t.colTitle, render: taskTitle(lang, props.onNavigate) },
                 { key: "targetDate", label: t.colTarget },
                 { key: "daysOverdue", label: t.colAge, num: true },
                 { key: "tableTitle", label: t.colTable }
@@ -2559,20 +2865,36 @@ var require_stats = __commonJS({
           ));
           children.push(h(TimelineSection, { key: "timeline", api, lang, active: props.active, ch }));
           var recentCols = recentColumns(t, lang, props.onNavigate);
+          var recentTabs = [
+            ["publish", t.recentTabPublish, "recentPublish", t.noRecentPublish],
+            ["done", t.recentTabDone, "recentDone", t.noRecentDone],
+            ["shutdown", t.recentTabShutdown, "recentShutdown", t.noRecentShutdown],
+            ["claimed", t.recentTabClaimed, "recentClaimed", t.noRecentClaimed]
+          ];
+          var recentTab = recentTabs[0];
+          recentTabs.forEach(function(item) {
+            if (item[0] === recentType) recentTab = item;
+          });
           children.push(h(
             ch.Card,
-            { key: "recentPublish", span: 4, title: t.recentPublish, note: t.recentPublishNote },
-            h(ch.DataTable, listProps(data, "recentPublish", lang, { lang, empty: t.noRecentPublish, columns: recentCols }))
-          ));
-          children.push(h(
-            ch.Card,
-            { key: "recentDone", span: 4, title: t.recentDone, note: t.recentDoneNote },
-            h(ch.DataTable, listProps(data, "recentDone", lang, { lang, empty: t.noRecentDone, columns: recentCols }))
-          ));
-          children.push(h(
-            ch.Card,
-            { key: "recentShutdown", span: 4, title: t.recentShutdown, note: t.recentShutdownNote },
-            h(ch.DataTable, listProps(data, "recentShutdown", lang, { lang, empty: t.noRecentShutdown, columns: recentCols }))
+            { key: "recent", span: 12, title: t.recentTasks, note: t.recentTasksNote },
+            h(
+              "div",
+              { className: "wbt-dims", role: "tablist", "aria-label": t.recentTasks },
+              recentTabs.map(function(item) {
+                return h("button", {
+                  key: item[0],
+                  type: "button",
+                  role: "tab",
+                  className: "wbt-dims-tab",
+                  "aria-selected": recentType === item[0],
+                  onClick: function() {
+                    setRecentType(item[0]);
+                  }
+                }, item[1]);
+              })
+            ),
+            h(ch.DataTable, listProps(data, recentTab[2], lang, { lang, empty: recentTab[3], columns: recentCols }))
           ));
         }
         children.push(h(ch.Warnings, { key: "warn", items: data.warnings || [] }));
@@ -3027,7 +3349,9 @@ var require_data_view = __commonJS({
         }
         function loadTables() {
           setLoadingTables(true);
-          Promise.resolve(api.call(DOMAIN + ".dataTables")).then(function(r) {
+          Promise.resolve((options.tablesLoader || function(a) {
+            return a.call(DOMAIN + ".dataTables");
+          })(api)).then(function(r) {
             if (r && r.ok === false) throw new Error(r && r.error || t.loadFail);
             var body = unwrap(r);
             if (!body || !Array.isArray(body.tables)) throw new Error(t.loadFail);
@@ -3092,7 +3416,9 @@ var require_data_view = __commonJS({
           if (sort) args.sort = sort;
           if (search) args.search = search;
           if (Object.keys(filters).length) args.filters = filters;
-          Promise.resolve(api.call(DOMAIN + ".dataQuery", args)).then(function(r) {
+          Promise.resolve((options.query || function(a, q) {
+            return a.call(DOMAIN + ".dataQuery", q);
+          })(api, args)).then(function(r) {
             if (req !== reqRef.current) return;
             if (r && r.ok === false) throw new Error(r && r.error || t.queryFail);
             var body = unwrap(r);
@@ -3474,7 +3800,7 @@ var require_data_view = __commonJS({
                 }
               }
             }),
-            h("span", null, fmt(t.queryTime, { n: data ? data.queryMs : 0 }))
+            data && data.queryMs !== void 0 ? h("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
           );
         }
         if (!tables && loadingTables && options.Skeleton) return h(options.Skeleton, { lang, label: t.loading });
@@ -3510,7 +3836,7 @@ var require_data_view = __commonJS({
                   "span",
                   { className: P + "-stabname" },
                   h("span", null, tableLabel(tb)),
-                  h("span", { className: P + "-sidecount" }, String(tb.count))
+                  h("span", { className: P + "-sidecount" }, tb.count === void 0 || tb.count === null ? "" : String(tb.count))
                 ),
                 h("span", { className: P + "-sidetable" }, tb.name)
               );
@@ -3537,7 +3863,7 @@ var require_data_view = __commonJS({
                   h(
                     "div",
                     { className: P + "-sub" },
-                    current ? fmt(t.rowCount, { n: current.count }) : "",
+                    current && data && data.total !== void 0 ? fmt(t.rowCount, { n: data.total }) : "",
                     current && current.deletedCount ? " \xB7 " + fmt(t.deletedCount, { n: current.deletedCount }) : "",
                     " \xB7 " + t.subtitle
                   )
@@ -4097,7 +4423,7 @@ var require_action_schema_view = __commonJS({
               "div",
               { className: P + "-cardhead" },
               h("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              h("span", { className: P + "-badge" }, action.domain),
+              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
               h("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
               rows.some(function(row) {
                 return row.required;
@@ -4287,13 +4613,11 @@ var require_copy = __commonJS({
         plainText: "\u7EAF\u6587\u672C",
         bodyModeLocal: "\u5DF2\u5728\u5F53\u524D\u6D4F\u89C8\u5668\u5207\u6362\uFF0C\u914D\u7F6E\u4FDD\u5B58\u5931\u8D25\uFF1A",
         title: "\u4EFB\u52A1",
-        search: "\u641C\u7D22\u6807\u9898 / \u63CF\u8FF0 / \u611F\u53D7",
+        search: "\u641C\u7D22\u6807\u9898 / \u63CF\u8FF0 / \u611F\u53D7 / \u4EFB\u52A1 ID",
         newTask: "\u65B0\u5EFA\u4EFB\u52A1",
         tree: "\u4EFB\u52A1\u6811",
         select: "\u9009\u62E9",
         cancelSelect: "\u9000\u51FA\u9009\u62E9",
-        list: "\u5217\u8868",
-        card: "\u5361\u7247",
         all: "\u5168\u90E8",
         empty: "\u8FD9\u4E2A\u89C6\u56FE\u8FD8\u6CA1\u6709\u4EFB\u52A1",
         loading: "\u52A0\u8F7D\u4E2D\u2026",
@@ -4302,6 +4626,7 @@ var require_copy = __commonJS({
         cancel: "\u53D6\u6D88",
         create: "\u521B\u5EFA",
         close: "\u5173\u95ED",
+        taskId: "\u4EFB\u52A1 ID",
         addGroup: "\u65B0\u5EFA\u7EC4",
         addTable: "\u65B0\u5EFA\u8868",
         rename: "\u91CD\u547D\u540D",
@@ -4451,13 +4776,11 @@ var require_copy = __commonJS({
         plainText: "Plain text",
         bodyModeLocal: "Changed in this browser; could not save config:",
         title: "Tasks",
-        search: "Search title / description / feeling",
+        search: "Search title / description / feeling / task ID",
         newTask: "New task",
         tree: "Task tree",
         select: "Select",
         cancelSelect: "Exit select",
-        list: "List",
-        card: "Cards",
         all: "All",
         empty: "No tasks in this view",
         loading: "Loading\u2026",
@@ -4466,6 +4789,7 @@ var require_copy = __commonJS({
         cancel: "Cancel",
         create: "Create",
         close: "Close",
+        taskId: "Task ID",
         addGroup: "New group",
         addTable: "New table",
         rename: "Rename",
@@ -6696,6 +7020,13 @@ var require_description = __commonJS({
     var React = require("react");
     var h = React.createElement;
     var Body = require_markdown().createBody(React);
+    var bodies = typeof WeakMap === "function" ? /* @__PURE__ */ new WeakMap() : null;
+    function bodyFor(Highlight) {
+      if (!Highlight) return Body;
+      if (!bodies) return require_markdown().createBody(React, Highlight);
+      if (!bodies.has(Highlight)) bodies.set(Highlight, require_markdown().createBody(React, Highlight));
+      return bodies.get(Highlight);
+    }
     var BodyMode = require_body_toggle()(React);
     var copy = require_body_copy();
     var Code = (init_code_2(), __toCommonJS(code_2_exports)).default;
@@ -6714,6 +7045,7 @@ var require_description = __commonJS({
       var mode = React.useState(props.bodyMode === "text" ? "text" : "markdown");
       var labelId = require_body_id()(React) + "-desc", t = copy[props.lang === "en" ? "en" : "zh"];
       var text = props.text == null ? "" : String(props.text);
+      var DescBody = bodyFor(props.Highlight);
       var expanded = React.useState(false), overflow = React.useState(false), ref = React.useRef(null);
       React.useEffect(function() {
         expanded[1](false);
@@ -6747,7 +7079,7 @@ var require_description = __commonJS({
           h(
             "div",
             { ref, className: "wb-desc-text" + (expanded[0] ? "" : " wb-desc-clamped") },
-            h(Body, { text, mode: mode[0] })
+            h(DescBody, { text, mode: mode[0], keyword: props.keyword })
           ),
           overflow[0] || expanded[0] ? h("button", {
             type: "button",
@@ -6761,6 +7093,37 @@ var require_description = __commonJS({
       );
     }
     module2.exports = { css, Description };
+  }
+});
+
+// packages/addons/lib/filter-checklist-styles.cjs
+var require_filter_checklist_styles = __commonJS({
+  "packages/addons/lib/filter-checklist-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = [
+      ".wbck{display:flex;flex-direction:column;min-width:0}",
+      ".wbck-search{padding:0 0 6px}",
+      ".wbck-input{width:100%;box-sizing:border-box;font:inherit;font-size:12.5px;padding:6px 9px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:inherit}",
+      ".wbck-input:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+      ".wbck-input:disabled{opacity:.6;cursor:not-allowed}",
+      ".wbck-head{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--wb-muted);padding:2px 4px 7px}",
+      ".wbck-grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbck-sel{flex:none;color:var(--wb-accent)}",
+      ".wbck-clear{appearance:none;flex:none;border:0;background:transparent;color:inherit;border-radius:4px;margin:0;padding:3px 5px;font:inherit;font-size:11.5px;line-height:1;cursor:pointer;opacity:.75}",
+      ".wbck-clear:hover:enabled{opacity:1;background:color-mix(in srgb, currentColor 8%, transparent)}",
+      ".wbck-clear:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+      ".wbck-clear:disabled{opacity:.4;cursor:not-allowed}",
+      ".wbck-list{max-height:220px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--wb-border);border-radius:10px;padding:2px}",
+      ".wbck-opt{display:flex;align-items:center;gap:7px;padding:6px;border-radius:6px;font-size:12.5px;cursor:pointer}",
+      ".wbck-opt:hover{background:color-mix(in srgb, currentColor 7%, transparent)}",
+      ".wbck-opt.is-on{background:color-mix(in srgb, var(--wb-accent) 10%, transparent)}",
+      ".wbck-opt input{margin:0;flex:none;accent-color:var(--wb-accent)}",
+      ".wbck-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbck-meta{margin-left:auto;flex:none;font-size:11.5px;color:var(--wb-muted)}",
+      ".wbck-note{font-size:12px;color:var(--wb-muted);padding:8px 6px}",
+      ".wbck-more{font-size:11px;color:var(--wb-muted);text-align:center;padding:6px 0 2px;opacity:.8}",
+      "@media (max-width:760px){.wbck-list{max-height:200px}}"
+    ];
   }
 });
 
@@ -6821,6 +7184,8 @@ var require_styles = __commonJS({
       ".wbt-item.closed{opacity:.62}",
       ".wbt-item.closed .wbt-title{text-decoration:line-through}",
       ".wbt-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}",
+      ".wbt-item-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.4;letter-spacing:.2px;opacity:.55;color:inherit;user-select:text;-webkit-user-select:text;overflow-wrap:anywhere;word-break:break-all;border-top:1px dashed color-mix(in oklab,var(--wbt-line) 80%,transparent);margin-top:2px;padding-top:5px;cursor:text}",
+      ".wbt-item-id:hover{opacity:.8}",
       ".wbt-chead{display:flex;align-items:flex-start;gap:10px;min-width:0}",
       ".wbt-line1{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap;flex:1 1 auto}",
       ".wbt-title{font-weight:620;font-size:14px;line-height:1.38;letter-spacing:.1px;word-break:break-word;overflow-wrap:anywhere;max-width:100%}",
@@ -6852,15 +7217,29 @@ var require_styles = __commonJS({
       ".wbt-wschip button:hover{opacity:1}",
       ".wbt-wschip-ro{opacity:.85;background:transparent}",
       ".wbt-wsfilter{width:100%}",
+      ".wbt-wslist{display:flex;flex-direction:column;gap:1px;max-height:200px;overflow:auto;border:1px solid var(--wbt-line);border-radius:8px;padding:4px;background:var(--wbt-bg);box-sizing:border-box;min-width:0}",
+      ".wbt-wsopt{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:1px solid transparent;background:transparent;color:inherit;font:inherit;padding:5px 8px;border-radius:6px;cursor:pointer;min-width:0;box-sizing:border-box}",
+      ".wbt-wsopt:hover{background:color-mix(in oklab,var(--wbt-accent) 7%,transparent)}",
+      ".wbt-wsopt.on{background:color-mix(in oklab,var(--wbt-accent) 11%,transparent);border-color:color-mix(in oklab,var(--wbt-accent) 40%,transparent)}",
+      ".wbt-wsopt:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:-2px}",
+      ".wbt-wsopt-title{display:flex;align-items:center;gap:6px;min-width:0;font-size:12.5px;font-weight:560;line-height:1.35}",
+      ".wbt-wsopt-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbt-wsopt-check{flex:none;font-size:11px;font-weight:700;color:var(--wbt-accent)}",
+      ".wbt-wsopt-meta{display:flex;align-items:center;gap:6px;min-width:0;font-size:11px;opacity:.55;line-height:1.3}",
+      ".wbt-wsopt-count{flex:none;font-variant-numeric:tabular-nums}",
+      ".wbt-wsopt-meta code{flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;background:color-mix(in oklab,currentColor 8%,transparent);border-radius:4px;padding:0 4px}",
+      ".wbt-wsrow{display:flex;align-items:center;gap:6px;min-width:0}",
+      ".wbt-wsrow .wbt-input{flex:1 1 auto;min-width:0}",
+      ".wbt-wsrow .wbt-btn{flex:none}",
+      ".wbt-wscreate{display:flex;flex-direction:column;gap:5px;min-width:0}",
+      ".wbt-wscreate .wbt-input{width:100%;box-sizing:border-box}",
+      ".wbt-hint{font-size:11.5px;opacity:.62;line-height:1.5;overflow-wrap:anywhere}",
       ".wbt-muted-link{opacity:.7;text-decoration-style:dashed}",
       ".wbt-wsmenu .wbt-tagopt{padding:5px 6px}",
       ".wbt-wsmenu .wbt-wsnone{border-top:1px dashed var(--wbt-line);margin-top:4px;padding-top:7px}",
       ".wbt-ws-group .wbt-check{min-width:0;overflow-wrap:anywhere}",
       ".wbt-ws-select{display:flex;flex-direction:column;gap:6px;min-width:0}",
       ".wbt-ws-select .wbt-picker-list{max-height:180px}",
-      ".wbt-ops-block{width:100%;min-width:0;justify-content:flex-start;flex-wrap:wrap;padding-top:2px;margin-top:2px}",
-      ".wbt-card .wbt-chead{row-gap:0}",
-      ".wbt-card .wbt-metazone .wbt-meta{row-gap:2px}",
       ".wbt-tagfilter{position:relative;display:flex;align-items:center;gap:5px;min-width:0}",
       ".wbt-tagfilter .wbt-btn.on{border-color:var(--wbt-accent);color:var(--wbt-accent);background:color-mix(in oklab,var(--wbt-accent) 12%,transparent)}",
       ".wbt-tagsearch{padding:0 0 6px}",
@@ -6872,7 +7251,6 @@ var require_styles = __commonJS({
       ".wbt-tagx{opacity:.7;font-size:12px;line-height:1}",
       ".wbt-taglist{max-height:236px;overflow:auto;overscroll-behavior:contain}",
       ".wbt-tagmore{font-size:11px;opacity:.5;text-align:center;padding:6px 0 2px}",
-      ".wbt-card .wbt-metazone{row-gap:3px}",
       ".wbt-tagmenu{position:absolute;z-index:60;top:calc(100% + 6px);right:0;width:236px;max-height:320px;overflow:auto;padding:8px;border-radius:10px;border:1px solid var(--wbt-line);box-shadow:0 14px 34px rgba(26,20,12,.2);background-color:var(--wbt-bg);background-image:linear-gradient(var(--wbt-bg),var(--wbt-bg)),linear-gradient(var(--wbt-bg),var(--wbt-bg));-webkit-backdrop-filter:blur(24px) saturate(1.4);backdrop-filter:blur(24px) saturate(1.4)}",
       ".wbt-tagmenu-head{display:flex;align-items:center;gap:6px;font-size:11px;opacity:.6;padding:2px 4px 7px}",
       ".wbt-tagopt{display:flex;align-items:center;gap:7px;padding:6px;border-radius:6px;cursor:pointer;font-size:12.5px}",
@@ -6898,9 +7276,6 @@ var require_styles = __commonJS({
       ".wbt-ops .wbt-act-done:hover{background:color-mix(in oklab,var(--dsw-alias-state-success-primary,#2f9e44) 16%,transparent)}",
       ".wbt-ops .wbt-act-close{color:var(--dsw-alias-state-error-primary,#b4434a)}",
       ".wbt-ops .wbt-act-close:hover{background:color-mix(in oklab,var(--dsw-alias-state-error-primary,#e5484d) 10%,transparent)}",
-      ".wbt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:9px;min-width:0;max-width:100%}",
-      ".wbt-card .wbt-main,.wbt-card .wbt-chead,.wbt-card .wbt-line1{width:100%;min-width:0;max-width:100%}",
-      ".wbt-card{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-height:150px;width:100%;min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden}",
       ".wbt-empty{border:1px dashed var(--wbt-line);border-radius:11px;padding:34px 12px;text-align:center;opacity:.5;font-size:12.5px}",
       ".wbt-err{font-size:12.5px;color:var(--dsw-alias-state-error-primary,#e5484d);line-height:1.5}",
       ".wbt-pager{display:flex;gap:8px;align-items:center;justify-content:flex-end;font-size:12px;opacity:.8;flex-wrap:wrap}",
@@ -7005,9 +7380,8 @@ var require_styles = __commonJS({
       ".wbt-countdown.overdue{color:var(--dsw-alias-label-primary-inverted,#fff);background:var(--dsw-alias-state-error-primary,#e5484d);border-color:transparent}",
       "@media (max-width:760px){.wbt-body{flex-direction:column;gap:8px}.wbt-nav{flex-direction:row;width:100%;flex:0 0 auto;overflow-x:auto;border-right:none;border-bottom:1px solid var(--wbt-line);padding:0 0 6px}.wbt-tab{width:auto;white-space:nowrap;padding:6px 9px}.wbt-tab.on{box-shadow:inset 0 -2px 0 var(--wbt-accent)}.wbt-nav-sep{width:1px;height:18px;flex:none;margin:auto 4px}.wbt-tree-slot{flex:0 0 auto;width:auto;margin-right:0}.wbt-pathrow .wbt-search{flex:1 1 160px;max-width:none}}",
       "@media (max-width:760px){.wbt-filter-panel{width:100%;flex:0 0 auto;padding:8px;max-height:40%}.wbt-filter-toggle{display:inline-flex}.wbt-filter-panel:not(.expanded) .wbt-filter-content{display:none}.wbt-filter-panel.expanded .wbt-filter-content{padding-top:10px}.wbt-content{width:100%;box-sizing:border-box}}",
-      "@media (max-width:420px){.wbt-grid{grid-template-columns:1fr}}",
       "@media (max-width:640px){.wbt-form{grid-template-columns:1fr}.wbt-drawer{width:94vw}.wbt-search{width:100%}.wbt-item{padding:9px}.wbt-ops{width:100%;justify-content:flex-end}}"
-    ].join("\n");
+    ].concat(require_filter_checklist_styles()).join("\n");
   }
 });
 
@@ -7146,7 +7520,7 @@ var require_task_item = __commonJS({
           h("span", { className: "wbt-badge " + st.cls, children: stName }),
           titleNode
         );
-        var opsNode = h("div", { className: cx("wbt-ops", props.card && "wbt-ops-block"), key: "ops" }, ops);
+        var opsNode = h("div", { className: "wbt-ops", key: "ops" }, ops);
         var tagBlock = tagNodes.length ? h("div", { className: "wbt-tags", key: "tags" }, tagNodes) : null;
         var wsList = Array.isArray(task.workspaces) ? task.workspaces : [];
         var wsBlock = wsList.length ? h("div", { className: "wbt-wschips", key: "workspaces" }, wsList.map(function(w) {
@@ -7155,20 +7529,28 @@ var require_task_item = __commonJS({
         var metaBlock = meta.length ? h("div", { className: "wbt-foot", key: "meta" }, h("div", { className: "wbt-meta" }, meta)) : null;
         var pathBlock = task.path && task.path.length ? h("div", { className: "wbt-taskpath", key: "path" }, h(PathCrumbs, { path: task.path, t, onPick: props.onPathPick })) : null;
         var metaZone = tagBlock || wsBlock || metaBlock || pathBlock ? h("div", { className: "wbt-metazone", key: "metazone" }, tagBlock, wsBlock, metaBlock, pathBlock) : null;
+        var idNode = String(task.id || "") ? h("div", {
+          className: "wbt-item-id",
+          key: "taskid",
+          title: String(task.id),
+          onClick: function(e) {
+            e.stopPropagation();
+          }
+        }, t.taskId + " \xB7 " + String(task.id)) : null;
         return h(
           "div",
-          { className: cx("wbt-item", props.card && "wbt-card", String(task.status) === "1" && "closed") },
+          { className: cx("wbt-item", String(task.status) === "1" && "closed") },
           props.selectionMode ? h("input", { type: "checkbox", className: "wbt-check", checked: !!props.checked, onChange: function() {
             props.onCheck(task.id);
           } }) : null,
           h(
             "div",
             { className: "wbt-main" },
-            h("div", { className: "wbt-chead" }, line1, props.card ? null : opsNode),
+            h("div", { className: "wbt-chead" }, line1, opsNode),
             metaZone,
-            props.card ? opsNode : null,
             descNode,
-            reviewNode
+            reviewNode,
+            idNode
           )
         );
       }
@@ -7521,7 +7903,7 @@ var require_workspace_select = __commonJS({
           h(
             "div",
             { className: "wbt-wsrow" },
-            h("input", { className: "wbt-input", value: query, placeholder: t("search"), onChange: function(e) {
+            h("input", { className: "wbt-input", value: query, placeholder: t("search"), "aria-label": t("search"), onChange: function(e) {
               setQuery(e.target.value);
             } }),
             h("button", { type: "button", className: "wbt-btn ghost", onClick: function() {
@@ -7541,8 +7923,18 @@ var require_workspace_select = __commonJS({
                 { type: "button", role: "option", key: id, "aria-selected": on, className: "wbt-wsopt" + (on ? " on" : ""), title: w.dir || "", onClick: function() {
                   toggle(id);
                 } },
-                h("span", { className: "wbt-wsopt-title" }, w.title || id),
-                h("span", { className: "wbt-wsopt-meta" }, (w.taskCount || 0) + " \xB7 " + (w.dir || "\u2014"))
+                h(
+                  "span",
+                  { className: "wbt-wsopt-title" },
+                  h("span", { className: "wbt-wsopt-name" }, w.title || id),
+                  on ? h("span", { className: "wbt-wsopt-check", "aria-hidden": true }, "\u2713") : null
+                ),
+                h(
+                  "span",
+                  { className: "wbt-wsopt-meta" },
+                  h("span", { className: "wbt-wsopt-count" }, String(w.taskCount || 0)),
+                  w.dir ? h("code", { title: w.dir }, w.dir) : h("span", null, "\u2014")
+                )
               );
             })
           ),
@@ -9087,6 +9479,11 @@ var require_task_filter_model = __commonJS({
       if (!result && max) return null;
       return result ? result.value : next;
     }
+    function taskNavigation(params) {
+      if (!params || typeof params.taskId !== "string") return null;
+      var id = params.taskId.trim();
+      return /^[A-Za-z0-9_-]{1,64}$/.test(id) ? id : null;
+    }
     function navigation(params) {
       if (!params) return null;
       var value;
@@ -9167,6 +9564,7 @@ var require_task_filter_model = __commonJS({
       presetValue,
       activePreset,
       navigation,
+      taskNavigation,
       save,
       load
     };
@@ -9462,6 +9860,7 @@ var require_tasks_view = __commonJS({
         var api = props.api;
         var cfg = props.cfg || {};
         var activityNavigation = filters.navigation(props.viewParams);
+        var taskNavigation = filters.taskNavigation(props.viewParams);
         var tableNavigation = !activityNavigation && props.viewParams && props.viewParams.tableId;
         var groupNavigation = !activityNavigation && !tableNavigation && props.viewParams && props.viewParams.groupId;
         var nodeNavigation = tableNavigation || groupNavigation;
@@ -9476,16 +9875,16 @@ var require_tasks_view = __commonJS({
         var expS = React.useState(/* @__PURE__ */ new Set());
         var expanded = expS[0], setExpanded = expS[1];
         var expInitRef = React.useRef(false);
-        var targetS = React.useState(tableNavigation ? { tableId: String(tableNavigation), groupId: props.viewParams.groupId } : { groupId: groupNavigation ? String(groupNavigation) : "1", tableId: null });
+        var targetS = React.useState(taskNavigation ? { groupId: "1", tableId: null } : tableNavigation ? { tableId: String(tableNavigation), groupId: props.viewParams.groupId } : { groupId: groupNavigation ? String(groupNavigation) : "1", tableId: null });
         var target = targetS[0], setTarget = targetS[1];
         var pathS = React.useState([]);
         var currentPath = pathS[0], setCurrentPath = pathS[1];
-        var storedFilters = filters.load(props.viewParams);
-        var initialMissing = storedFilters ? storedFilters.missing : !activityNavigation && !nodeNavigation && !!(props.viewParams && props.viewParams.difficultyMissing === true);
+        var storedFilters = taskNavigation ? null : filters.load(props.viewParams);
+        var initialMissing = taskNavigation ? false : storedFilters ? storedFilters.missing : !activityNavigation && !nodeNavigation && !!(props.viewParams && props.viewParams.difficultyMissing === true);
         var missingS = React.useState(initialMissing);
         var difficultyMissing = missingS[0], setDifficultyMissing = missingS[1];
         var defaultPreset = filters.presetValue(cfg["ui.defaultPreset"]);
-        var filterState = React.useState(storedFilters && storedFilters.value || activityNavigation || defaultPreset || filters.empty());
+        var filterState = React.useState(taskNavigation ? filters.empty() : storedFilters && storedFilters.value || activityNavigation || defaultPreset || filters.empty());
         var filterValue = filterState[0], setFilterValue = filterState[1];
         React.useEffect(function() {
           filters.save(filterValue, difficultyMissing, props.viewParams);
@@ -9493,13 +9892,11 @@ var require_tasks_view = __commonJS({
         var panelState = React.useState(false), panelOpen = panelState[0], setPanelOpen = panelState[1];
         var hintState = React.useState(""), filterHint = hintState[0], setFilterHint = hintState[1];
         var panelId = React.useId();
-        var viewS = React.useState(!nodeNavigation && cfg["ui.listView"] === "card" ? "card" : "list");
-        var view = viewS[0], setView = viewS[1];
-        var searchS = React.useState("");
+        var searchS = React.useState(taskNavigation || "");
         var searchDraft = searchS[0], setSearchDraft = searchS[1];
         var tqS = React.useState("");
         var treeQuery = tqS[0], setTreeQuery = tqS[1];
-        var titleS = React.useState("");
+        var titleS = React.useState(taskNavigation || "");
         var titleKey = titleS[0], setTitleKey = titleS[1];
         var tagReloadS = React.useState(0);
         var tagReload = tagReloadS[0], setTagReload = tagReloadS[1];
@@ -9553,7 +9950,20 @@ var require_tasks_view = __commonJS({
         React.useEffect(function() {
           if (initialNavigation.current) {
             initialNavigation.current = false;
-            if (storedFilters) return;
+            if (storedFilters || taskNavigation) return;
+          }
+          if (taskNavigation) {
+            setSearchDraft(taskNavigation);
+            setTitleKey(taskNavigation);
+            setFilterValue(filters.empty());
+            setTarget({ groupId: "1", tableId: null });
+            setDifficultyMissing(false);
+            setFilterHint("");
+            setFilterTagIds([]);
+            setPageNumber(1);
+            setSelectedIds(/* @__PURE__ */ new Set());
+            setSelectionMode(false);
+            return;
           }
           if (!activityNavigation && !nodeNavigation) return;
           setFilterValue(activityNavigation || defaultPreset || filters.empty());
@@ -9988,13 +10398,12 @@ var require_tasks_view = __commonJS({
             }
           }), t.difficultyMissing)
         });
-        var listBody = loading ? h("div", { className: "wbt-empty" }, t.loading) : error ? h("div", { className: "wbt-err" }, t.error + error) : data.records.length === 0 ? h("div", { className: "wbt-empty" }, t.empty) : h("div", { className: view === "card" ? "wbt-grid" : "wbt-list" }, data.records.map(function(task) {
+        var listBody = loading ? h("div", { className: "wbt-empty" }, t.loading) : error ? h("div", { className: "wbt-err" }, t.error + error) : data.records.length === 0 ? h("div", { className: "wbt-empty" }, t.empty) : h("div", { className: "wbt-list" }, data.records.map(function(task) {
           return h(TaskItem, {
             key: task.id,
             task,
             t,
             lang: props.lang,
-            card: view === "card",
             keyword: titleKey.trim(),
             bodyMode: cfg["ui.bodyMode"],
             selectionMode,
@@ -10054,10 +10463,7 @@ var require_tasks_view = __commonJS({
             } }, h(Icon2, { name: "select", size: 13 }), selectionMode ? t.cancelSelect : t.select),
             h("button", { className: "wbt-btn primary", onClick: function() {
               setCreateState({ source: "0", originTask: null, defaultTableId: target.tableId });
-            } }, h(Icon2, { name: "plus", size: 14 }), t.newTask),
-            h("button", { className: "wbt-btn ghost", onClick: function() {
-              setView(view === "list" ? "card" : "list");
-            } }, h(Icon2, { name: view === "list" ? "grid" : "list", size: 13 }), view === "list" ? t.card : t.list)
+            } }, h(Icon2, { name: "plus", size: 14 }), t.newTask)
           ),
           curDesc ? h("div", { className: "wbt-tabledesc", title: curDesc }, curDesc.length > 220 ? curDesc.slice(0, 220) + "\u2026" : curDesc) : null,
           h(
@@ -10821,6 +11227,32 @@ var require_timeline_view = __commonJS({
   }
 });
 
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list-checks.mjs
+var list_checks_exports = {};
+__export(list_checks_exports, {
+  __iconData: () => __iconData35,
+  default: () => ListChecks
+});
+var __iconData35, ListChecks;
+var init_list_checks = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list-checks.mjs"() {
+    init_createLucideIcon();
+    __iconData35 = {
+      name: "list-checks",
+      size: 24,
+      node: [
+        ["path", { d: "M13 5h8", key: "a7qcls" }],
+        ["path", { d: "M13 12h8", key: "h98zly" }],
+        ["path", { d: "M13 19h8", key: "c3s6r1" }],
+        ["path", { d: "m3 17 2 2 4-4", key: "1jhpwq" }],
+        ["path", { d: "m3 7 2 2 4-4", key: "1obspn" }]
+      ]
+    };
+    __iconData35.node;
+    ListChecks = createLucideIcon(__iconData35);
+  }
+});
+
 // packages/addons/tasks/client/client.src.cjs
 (function() {
   "use strict";
@@ -11272,7 +11704,6 @@ var require_timeline_view = __commonJS({
   var EditModal = require_edit_modal()(React, statusInfo, stars);
   var BatchModal = require_batch_modal()(React, cx, Icon2);
   var CFG_FALLBACK = {
-    "ui.listView": "list",
     "ui.expandDepth": 2,
     "ui.confirmDelete": true,
     "ui.defaultPreset": "",
@@ -11287,13 +11718,15 @@ var require_timeline_view = __commonJS({
     "stats.recentPublishLimit": 10,
     "stats.recentDoneLimit": 10,
     "stats.recentShutdownLimit": 10,
-    "stats.sections": ["trend", "status", "priority", "difficulty", "aging", "overdue", "tables", "groups", "workspaces", "recentPublish", "recentDone", "recentShutdown"]
+    "stats.recentClaimedLimit": 10,
+    "stats.sections": ["eventTrend", "trend", "status", "priority", "difficulty", "aging", "overdue", "tables", "groups", "workspaces", "recent"]
   };
   var TasksView = require_tasks_view()({ React, configView, CFG_FALLBACK, COPY, injectCss, allTables, findFirstTable, treeWalk, treeFlat, cx, Icon: Icon2, TaskItem, PathCrumbs, TagFilter, WorkspaceFilter, TreeNode, CreateModal, TimelineModal, NodeModal, EditModal, DoneModal, BatchModal });
   var TimelineView = require_timeline_view()({ React, COPY, injectCss, statusInfo, EditModal });
   host.registerAddon({
     id: "wb-addon-tasks",
-    version: "5.2.6",
+    version: "5.2.19",
+    icon: (init_list_checks(), __toCommonJS(list_checks_exports)).default,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.TasksStatsView, keepAlive: true },
       { id: "tasks", icon: tabIcon("list"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: TasksView },

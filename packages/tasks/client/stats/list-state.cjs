@@ -1,6 +1,6 @@
 // 统计清单的状态判定：后端没返回该键 → 能力降级提示；键存在但为空 → 真正的空态。
 // 旧后端没有 capabilities.lists 时退回按键存在性判断，避免把版本不一致伪装成「没有数据」。
-var LISTS = ["overdue", "recentPublish", "recentDone", "recentShutdown"];
+var LISTS = ["overdue", "recentPublish", "recentDone", "recentShutdown", "recentClaimed"];
 
 var COPY = {
   zh: "统计接口未返回「{key}」清单，前后端版本可能不一致；请重启插件服务后重试",

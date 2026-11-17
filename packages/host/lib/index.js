@@ -16,13 +16,14 @@ import { SyncClock, } from "./sync/sync.js";
 import { AuditLog } from "./infra/audit.js";
 import { createActions } from "./actions/actions.js";
 import { installNetwork } from "./infra/network.js";
+import { createSearch } from "./infra/search.js";
 export const name = "dsh-workbench";
 export const inject = ["webServer", "tools", "connection"];
 /** 本地库与云端配置路径（05 文档约定目录）。 */
 const WB_HOME = process.env.WB_HOME ?? join(homedir(), ".dsh", "workbench");
 const CLOUD_DEFAULT = process.env.WB_CLOUD_URL ?? "http://127.0.0.1:8791";
 /** 宿主 API 版本：业务插件用它做兼容判断。 */
-export const SHELL_VERSION = "0.6.5";
+export const SHELL_VERSION = "0.7.0";
 const DOMAIN_ID_RE = /^[a-z][a-z0-9_-]{2,63}$/;
 const ACTION_RE = /^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/i;
 function loadCreds() {
@@ -97,6 +98,7 @@ export function apply(ctx) {
     const subscribers = new Set();
     const domains = new Map();
     const clock = new SyncClock();
+    const eventListeners = new Map();
     const emit = (event, data) => {
         for (const s of subscribers) {
             try {
@@ -106,8 +108,36 @@ export function apply(ctx) {
                 /* 单个订阅者断开不影响其他订阅者 */
             }
         }
+        for (const key of [event, "*"]) {
+            const set = eventListeners.get(key);
+            if (!set)
+                continue;
+            for (const listener of set) {
+                try {
+                    listener(data);
+                }
+                catch {
+                    /* 单个插件监听器出错不影响其它监听器 */
+                }
+            }
+        }
     };
     const log = (...args) => console.warn("[dsh-workbench]", ...args);
+    // ── 跨域搜索：插件注册 provider，宿主只聚合，不读业务表 ──
+    const searchProviders = new Map();
+    function registerSearchProvider(provider) {
+        const id = String(provider?.domainId || "");
+        if (!id || typeof provider.search !== "function") {
+            log("registerSearchProvider 参数不合法", provider);
+            return () => { };
+        }
+        searchProviders.set(id, provider);
+        return () => {
+            if (searchProviders.get(id) === provider)
+                searchProviders.delete(id);
+        };
+    }
+    const search = createSearch(searchProviders, (...args) => log(...args));
     // 审计日志：本机行为账本；表初始化与过期清理失败都不应影响宿主启动。
     const audit = new AuditLog(state.db, () => clock.now());
     try {
@@ -137,6 +167,16 @@ export function apply(ctx) {
             },
         };
     }
+    const { invoke, actionNames, installTool, schemaSnapshot } = createActions({
+        domains,
+        SHELL_VERSION,
+        publicInfo,
+        audit,
+        clock,
+        emit,
+        db: state.db,
+        search,
+    });
     function registerAction(rec, action, def) {
         if (!ACTION_RE.test(action)) {
             throw new Error("非法 action 名（应形如 tasks.list）：" + action);
@@ -152,7 +192,7 @@ export function apply(ctx) {
             log("业务域已注册，忽略重复注册", def.id);
             return () => { };
         }
-        const rec = { def, actions: new Map(), error: null, dispose: null };
+        const rec = { def, actions: new Map(), hooks: new Map(), error: null, dispose: null };
         domains.set(def.id, rec);
         const setupApi = {
             addon: { id: def.id, version: def.version, dir: "" },
@@ -162,6 +202,26 @@ export function apply(ctx) {
             hasAddon: (id) => domains.has(id),
             action: (name, actionDef) => registerAction(rec, name, actionDef),
             tool: (name, actionDef) => registerAction(rec, name, actionDef),
+            call: (action, args) => invoke(action, args ?? {}, "plugin"),
+            on: (event, listener) => {
+                const key = String(event || "*");
+                let set = eventListeners.get(key);
+                if (!set) {
+                    set = new Set();
+                    eventListeners.set(key, set);
+                }
+                set.add(listener);
+                return () => {
+                    set.delete(listener);
+                };
+            },
+            registerHook: (name, handler) => {
+                if (!/^[a-z][a-z0-9_-]{1,40}$/.test(String(name || ""))) {
+                    throw new Error("非法 hook 名（小写字母开头，允许数字/_/-）：" + name);
+                }
+                rec.hooks.set(String(name), handler);
+            },
+            registerSearchProvider,
             emit: (event, data) => emit("domain-event", { domainId: def.id, event, data: data ?? null }),
             now: () => clock.now(),
             markSyncDirty: (table) => {
@@ -214,14 +274,27 @@ export function apply(ctx) {
     function backupDomains() {
         return [...domains.values()].map((rec) => ({ def: rec.def, enabled: rec.error === null, error: rec.error }));
     }
-    const { invoke, actionNames, installTool, schemaSnapshot } = createActions({ domains, SHELL_VERSION, publicInfo, audit, clock, emit, db: state.db });
     const host = {
         db: state.db,
         shellVersion: SHELL_VERSION,
         registerDomain,
         hasDomain: (id) => domains.has(id),
         listDomains,
-        invoke,
+        call: (action, args) => invoke(action, args ?? {}, "plugin"),
+        invoke: (action, args, _origin) => invoke(action, args ?? {}, "plugin"),
+        on: (event, listener) => {
+            const key = String(event || "*");
+            let set = eventListeners.get(key);
+            if (!set) {
+                set = new Set();
+                eventListeners.set(key, set);
+            }
+            set.add(listener);
+            return () => {
+                set.delete(listener);
+            };
+        },
+        registerSearchProvider,
         actionNames,
         emit,
         log,

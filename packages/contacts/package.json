@@ -1,0 +1,101 @@
+{
+  "name": "dsh-workbench-contacts",
+  "version": "0.1.1",
+  "description": "个人工作台联系人插件：本地联系人、分组、多值字段与 vCard 导入导出",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "wb": {
+    "addon": {
+      "id": "wb-addon-contacts",
+      "title": "联系人",
+      "version": "0.1.1",
+      "minShell": "0.6.7",
+      "tables": [
+        "contact",
+        "contact_group",
+        "contact_field",
+        "contact_group_member"
+      ],
+      "views": [
+        "contacts",
+        "groups",
+        "importExport",
+        "config",
+        "data",
+        "actions"
+      ],
+      "toolActions": [
+        "contacts.status",
+        "contacts.list",
+        "contacts.get",
+        "contacts.create",
+        "contacts.update",
+        "contacts.delete",
+        "contacts.search",
+        "contacts.groupList",
+        "contacts.groupCreate",
+        "contacts.groupDelete",
+        "contacts.importVcf",
+        "contacts.exportVcf",
+        "contacts.dataTables",
+        "contacts.dataQuery",
+        "contacts.actionSchema"
+      ],
+      "client": "lib/client.js"
+    }
+  },
+  "dependencies": {
+    "dsh-workbench-host": "^0.7.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "dsh-workbench-host"
+      ],
+      "platform": "web"
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0"
+    }
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "author": "ityyq777",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "contacts",
+    "vcard",
+    "addressbook"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ityyq777/dsh-workbench.git",
+    "directory": "packages/contacts"
+  },
+  "homepage": "https://github.com/ityyq777/dsh-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/ityyq777/dsh-workbench/issues"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

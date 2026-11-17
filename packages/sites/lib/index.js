@@ -1,9 +1,11 @@
 /**
  * 站点业务插件（DSH 原生插件）。
  * 业务全部本地；云端只备份数据。标签能力通过 host.hasDomain 探测。
+ * 1.12.1：站点标签筛选列表体改用共享 filter-checklist。
  */
 
 import { bindClock, ensureSchema } from "./db/db.js";
+import { ensureSiteTagSource } from "./domain/sites-mappings.js";
 import { exportSitesData, importSitesData } from "./infra/backup.js";
 import { siteSync } from "./infra/sync.js";
 import { registerSiteTreeActions } from "./tree/tree.js";
@@ -12,6 +14,7 @@ import { registerSiteActions } from "./domain/sites.js";
 import { registerAccountActions } from "./domain/accounts.js";
 import { registerConfigActions } from "./infra/config.js";
 import { registerDataActions } from "./infra/data.js";
+import { bindVault } from "./infra/vault-link.js";
 
 export const inject = ["workbench"];
 
@@ -58,8 +61,11 @@ function registerActionSchemaAction(api, defs, domain) {
 
 export function setup(api) {
   domainApi = api;
+  if (typeof api.call === "function") bindVault(api.call);
   if (typeof api.now === "function") bindClock(api.now);
   ensureSchema(api.db, api.log);
+  // 标签来源登记：标签域（tags ≥ 1.7.1）要求 item_type 先注册才能写 tag_mapping。
+  ensureSiteTagSource(api.db, api.log);
   const actionDefs = trackActions(api);
   registerSiteTreeActions(api);
   registerOverviewAction(api);
@@ -68,6 +74,18 @@ export function setup(api) {
   registerConfigActions(api);
   registerDataActions(api);
   registerActionSchemaAction(api, actionDefs, "wb-addon-sites");
+  if (typeof api.registerSearchProvider === "function") {
+    api.registerSearchProvider({
+      domainId: "wb-addon-sites",
+      search(q, { limit }) {
+        const like = "%" + String(q).replace(/[\\%_]/g, "\\$&") + "%";
+        const rows = api.db
+          .prepare("SELECT id,site_name,description,site_link,updated_at FROM site WHERE deleted_at IS NULL AND (site_name LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\' OR site_link LIKE ? ESCAPE '\\') ORDER BY updated_at DESC LIMIT ?")
+          .all(like, like, like, Math.max(1, Math.min(50, Number(limit) || 20)));
+        return rows.map((r) => ({ id: r.id, title: r.site_name, snippet: String(r.description || "").slice(0, 160), url: r.site_link || undefined, view: "sites", at: r.updated_at }));
+      },
+    });
+  }
   api.log("sites domain ready");
 }
 
@@ -80,7 +98,7 @@ export function apply(ctx) {
         id: "wb-addon-sites",
         title: "站点",
         description: "站点收藏：目录树、链接与标签（标签需安装标签插件）；含统计/记录/配置/数据四个视图",
-        version: "1.10.0",
+        version: "1.12.1",
         tables: ["site", "site_node", "site_node_mapping", "tag_mapping", "site_account", "site_account_external"],
         sync: siteSync,
         views: [

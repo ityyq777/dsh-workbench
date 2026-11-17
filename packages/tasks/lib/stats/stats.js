@@ -3,6 +3,8 @@
 
 import { configValues } from "../infra/config.js";
 import { todayActivity } from "./stats-today.js";
+import { EVENTS, EVENT_TYPES, PLAN, eventRange, planRange } from "./events.js";
+import { difficultyBinsFor, normalizeDimension } from "./difficulty-bins.js";
 
 const STATUS_LABELS = {
   "0": "已开启",
@@ -166,9 +168,42 @@ function fillTrend(trend, range, field, rows) {
   }
 }
 
+// 事件趋势：五条曲线（四类事件 + 计划目标）与年度活动日历完全同口径，
+// 只是按页首区间的日/周/月桶再聚合一次。旧 trend 的 created/done/due 语义不同，
+// 因此另起 eventTrend 字段，避免把老卡片的三条线搅浑。
+const EVENT_TREND_SERIES = EVENT_TYPES.concat([PLAN.key]);
+
+function zeroEventTrend(range) {
+  return bucketKeys(range).keys.map(function (key) {
+    const row = { bucket: key };
+    for (const name of EVENT_TREND_SERIES) row[name] = 0;
+    return row;
+  });
+}
+
+function fillEventTrend(trend, range, type, rows) {
+  const index = bucketKeys(range).index;
+  for (const row of rows) {
+    const key = bucketOf(String(row.d || ""), range);
+    if (!(key in index)) continue;
+    trend[index[key]][type] += Number(row.n || 0);
+  }
+}
+
+/** 单系列按日计数：事件用 EVENTS 口径，target 用 PLAN 计划口径（同一份日期定义）。 */
+function countSeriesByDay(db, type, from, to) {
+  const spec = type === PLAN.key ? planRange(from, to) : eventRange(type, from, to);
+  const date = type === PLAN.key ? PLAN.date : EVENTS[type].date;
+  return db.prepare(
+    "SELECT " + date + " AS d, COUNT(*) AS n FROM task t WHERE " + spec.sql + " GROUP BY 1",
+  ).all(...spec.params);
+}
+
+// 难度分布的五维切换：all 保持「当前存量」语义，其余四维与年度活动日历同口径、按页首区间重算。
 export function statsReport(db, args, api) {
   const input = args || {};
   const range = resolveRange(db, input);
+  const dimension = normalizeDimension(input.dimension);
   const top = Math.max(1, Math.min(20, Number(input.top) || 10));
   const today = dayStr(startOfDay(new Date()));
   const tomorrow = dayStr(addDays(startOfDay(new Date()), 1));
@@ -212,6 +247,11 @@ export function statsReport(db, args, api) {
     "SELECT target_date AS d, COUNT(*) AS n FROM task WHERE deleted_at IS NULL AND target_date IS NOT NULL AND target_date<>'' " +
       "AND target_date BETWEEN ? AND ? GROUP BY target_date",
   ).all(range.from, range.to));
+  const eventTrend = zeroEventTrend(range);
+  for (const type of EVENT_TREND_SERIES) {
+    fillEventTrend(eventTrend, range, type, countSeriesByDay(db, type, range.from, range.to));
+  }
+
   const newInRange = trend.reduce(function (n, row) { return n + row.created; }, 0);
   const doneInRange = trend.reduce(function (n, row) { return n + row.done; }, 0);
 
@@ -261,28 +301,7 @@ export function statsReport(db, args, api) {
     priorityBins[p].count += n;
   }
 
-  const difficultyRows = db.prepare(
-    "SELECT difficulty, COUNT(*) AS n FROM task WHERE deleted_at IS NULL GROUP BY difficulty",
-  ).all();
-  // 难度是 0.5 步进的单值（0.5–5），同样一值一桶；0/空值单独归到「未设置」。
-  const difficultyBins = [];
-  for (let i = 1; i <= 10; i += 1) {
-    const v = i / 2;
-    difficultyBins.push({ key: String(v), label: String(v), count: 0 });
-  }
-  let difficultyUnset = 0;
-  for (const row of difficultyRows) {
-    const n = Number(row.n || 0);
-    const d = Number(row.difficulty);
-    if (row.difficulty === null || row.difficulty === undefined || !(d > 0)) {
-      difficultyUnset += n;
-      continue;
-    }
-    const idx = Math.min(10, Math.max(1, Math.round(d * 2)));
-    difficultyBins[idx - 1].count += n;
-  }
-  // 未填写必须可见，便于从统计巡检并补齐难度。
-  difficultyBins.push({ key: "unset", label: "未设置", count: difficultyUnset });
+  const difficultyBins = difficultyBinsFor(db, dimension, range);
 
   const overdueRows = db.prepare(
     "SELECT id,title,target_date,table_id FROM task WHERE deleted_at IS NULL AND status IN ('0','4') " +
@@ -307,6 +326,7 @@ export function statsReport(db, args, api) {
   const recentPublishLimit = limitOf(input.recentPublishLimit);
   const recentDoneLimit = limitOf(input.recentDoneLimit);
   const recentShutdownLimit = limitOf(input.recentShutdownLimit);
+  const recentClaimedLimit = limitOf(input.recentClaimedLimit);
   const recentTable = function (tableId) {
     const table = nodeMap[String(tableId)];
     return {
@@ -357,6 +377,28 @@ export function statsReport(db, args, api) {
       id: String(row.id),
       title: String(row.title || ""),
       date: String(row.shutdown_date || ""),
+      daysAgo: day ? Math.max(0, diffDays(day, todayStart)) : null,
+      difficulty: Number(row.difficulty) || 0,
+      ...recentTable(row.table_id),
+    };
+  });
+
+  // 最近接取：只列真实接取时间（claimed_at 非空）且已接取过（2/4）的任务，按接取时间倒序；
+  // 历史任务普遍缺 claimed_at，不按发布日近似，避免伪造接取记录。
+  const recentClaimedRows = db.prepare(
+    "SELECT id,title,claimed_at,table_id,difficulty FROM task WHERE deleted_at IS NULL " +
+      "AND status IN ('2','4') AND claimed_at IS NOT NULL AND claimed_at <> '' AND claimed_at > 0 " +
+      "ORDER BY claimed_at DESC, updated_at DESC, id DESC LIMIT ?",
+  ).all(recentClaimedLimit);
+  const recentClaimed = recentClaimedRows.map(function (row) {
+    // claimed_at 是毫秒时间戳，清单里的 date 统一转成本地日期，与完成/关闭清单同格式。
+    const ms = Number(row.claimed_at);
+    const at = Number.isFinite(ms) && ms > 0 ? new Date(ms) : null;
+    const day = at ? startOfDay(at) : null;
+    return {
+      id: String(row.id),
+      title: String(row.title || ""),
+      date: day ? dayStr(day) : "",
       daysAgo: day ? Math.max(0, diffDays(day, todayStart)) : null,
       difficulty: Number(row.difficulty) || 0,
       ...recentTable(row.table_id),
@@ -517,8 +559,13 @@ export function statsReport(db, args, api) {
       }),
       priority: priorityBins,
       difficulty: difficultyBins,
+      // 客户端据此回显当前页签；维度只作用于难度分布，其余区块仍是存量口径。
+      difficultyDimension: dimension,
     },
     trend: trend,
+    // 事件趋势与年度活动日历同口径：四类事件 + 目标计划数，按日/周/月桶聚合。
+    eventTrend: eventTrend,
+    eventTrendTypes: EVENT_TREND_SERIES,
     aging: agingBins,
     rankings: {
       tables: rank(Object.keys(tableAgg).map(function (k) { return tableAgg[k]; })),
@@ -526,9 +573,9 @@ export function statsReport(db, args, api) {
       workspaces: rank(Object.keys(workspaceAgg).map(function (k) { return workspaceAgg[k]; })),
       noWorkspace: withCompletion(noWorkspaceAgg),
     },
-    lists: { overdue: overdueList, recentPublish: recentPublish, recentDone: recentDone, recentShutdown: recentShutdown },
+    lists: { overdue: overdueList, recentPublish: recentPublish, recentDone: recentDone, recentShutdown: recentShutdown, recentClaimed: recentClaimed },
     // 能力标记：前端据此区分「后端未返回某清单」与「清单确实为空」，旧后端缺该字段时按键存在性判断。
-    capabilities: { lists: ["overdue", "recentPublish", "recentDone", "recentShutdown"] },
+    capabilities: { lists: ["overdue", "recentPublish", "recentDone", "recentShutdown", "recentClaimed"] },
     warnings: warnings,
   };
 }

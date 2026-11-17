@@ -1,9 +1,10 @@
 // Shared recent-completed/closed table cells retain native table and button semantics.
 var React = require("react"), h = React.createElement;
+var taskTitle = require("../stats/task-link.cjs");
 module.exports = function recentColumns(t, lang, onNavigate) {
   var en = lang === "en";
   return [
-    { key: "title", label: t.colTitle },
+    { key: "title", label: t.colTitle, render: taskTitle(lang, onNavigate) },
     { key: "difficulty", label: en ? "Difficulty" : "难度", render: function (row) {
       var n = Number(row.difficulty);
       if (!(n > 0)) return "—";

@@ -411,7 +411,7 @@ export function registerTaskActions(api) {
   });
 
   action("tasks.statsReport", {
-    description: "任务统计报表：总量/状态/标签/优先级/难度、趋势、逾期账龄、近期发布/完成/关闭清单（lists.recentPublish 不限状态，按发布日期倒序；lists.recentDone / lists.recentShutdown 分别按完成/关闭日期倒序；lists.overdue 为逾期清单）、任务表 / 任务组 / 工作区排行（rankings.workspaces 为存量口径，同一任务按存活关联在每个工作区各计一次，各行合计会大于 totals.total；rankings.noWorkspace 是未关联任何存活工作区的任务数，属正常状态，与 tasks.list 的 noWorkspace 同口径）；另返回 today 对象：" + TODAY_STATS_DESCRIPTION,
+    description: "任务统计报表：总量/状态/标签/优先级/难度、趋势、逾期账龄、近期发布/完成/关闭清单（lists.recentPublish 不限状态，按发布日期倒序；lists.recentDone / lists.recentShutdown 分别按完成/关闭日期倒序；lists.recentClaimed 为最近接取清单，只含 status 2/4 且 claimed_at 非空的任务、按接取时间倒序，日期为接取时间的本地日期，历史任务不回填；lists.overdue 为逾期清单）、任务表 / 任务组 / 工作区排行（rankings.workspaces 为存量口径，同一任务按存活关联在每个工作区各计一次，各行合计会大于 totals.total；rankings.noWorkspace 是未关联任何存活工作区的任务数，属正常状态，与 tasks.list 的 noWorkspace 同口径）；breakdowns.difficulty 受 dimension 控制（all=当前存量；done/publish/claimed/shutdown 与 tasks.activityCalendar 同口径、按区间统计，回显在 breakdowns.difficultyDimension）；eventTrend 为「事件趋势」：与 tasks.activityCalendar 完全同口径的五条序列（publish/done/shutdown/claimed 四类事件 + target 计划数），按页首区间的日/周/月桶聚合为 [{bucket,publish,done,shutdown,claimed,target}]，桶数与 trend 一致，eventTrendTypes 给出序列顺序；target 是计划口径（target_date，只排除已删除任务），不计入 trend 的 created/done/due，也不改 totals.total；另返回 today 对象：" + TODAY_STATS_DESCRIPTION,
     input: {
       type: "object",
       properties: {
@@ -419,12 +419,14 @@ export function registerTaskActions(api) {
         from: { type: "string", description: "YYYY-MM-DD，与 to 同时提供" },
         to: { type: "string", description: "YYYY-MM-DD，默认今天" },
         top: { type: "number", description: "排行/明细条数，1–20，默认 10" },
+        dimension: { type: "string", enum: ["all", "done", "publish", "claimed", "shutdown"], description: "难度分布口径，默认 all（当前存量）；done/publish/claimed/shutdown 与年度活动日历同口径，按 range 或 from/to 区间重算；未设置难度桶保留" },
         recentPublishLimit: { type: "number", description: "「最近发布」清单条数，1–50，默认 10；包含所有状态，缺少发布日期的旧任务排末尾" },
         recentDoneLimit: { type: "number", description: "「最近完成」清单条数，1–50，默认 10" },
         recentShutdownLimit: { type: "number", description: "「最近关闭」清单条数，1–50，默认 10" },
+        recentClaimedLimit: { type: "number", description: "「最近接取」清单条数，1–50，默认 10" },
       },
     },
-    examples: [{ range: "30d", top: 10 }, { from: "2026-10-01", to: "2026-10-31" }],
+    examples: [{ range: "30d", top: 10 }, { from: "2026-10-01", to: "2026-10-31" }, { range: "30d", dimension: "done" }],
     execute: function (args) { return statsReport(db, args || {}, api); },
     render: renderStats,
   });

@@ -1,0 +1,6 @@
+# 自动化插件：业务插件行必须同时插入宿主行，保证 DSH 能解析依赖。
+- insert:
+    - id: workbench
+      name: dsh-workbench
+    - id: workbench-automation
+      name: dsh-workbench-automation

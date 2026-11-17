@@ -1,0 +1,100 @@
+{
+  "name": "dsh-workbench-calendar",
+  "version": "0.1.1",
+  "description": "个人工作台日历插件：本地日历、事件、参与人与提醒",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "wb": {
+    "addon": {
+      "id": "wb-addon-calendar",
+      "title": "日历",
+      "version": "0.1.1",
+      "minShell": "0.6.7",
+      "tables": [
+        "calendar",
+        "calendar_event",
+        "calendar_attendee",
+        "calendar_reminder"
+      ],
+      "views": [
+        "events",
+        "calendars",
+        "config",
+        "data",
+        "actions"
+      ],
+      "toolActions": [
+        "calendar.status",
+        "calendar.stats",
+        "calendar.calendarList",
+        "calendar.calendarCreate",
+        "calendar.calendarUpdate",
+        "calendar.calendarDelete",
+        "calendar.eventsBetween",
+        "calendar.eventGet",
+        "calendar.eventCreate",
+        "calendar.eventUpdate",
+        "calendar.eventDelete",
+        "calendar.eventRemind",
+        "calendar.dataTables",
+        "calendar.dataQuery",
+        "calendar.actionSchema"
+      ],
+      "client": "lib/client.js"
+    }
+  },
+  "dependencies": {
+    "dsh-workbench-host": "^0.7.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "dsh-workbench-host"
+      ],
+      "platform": "web"
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0"
+    }
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "author": "ityyq777",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "calendar",
+    "events",
+    "reminder"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ityyq777/dsh-workbench.git",
+    "directory": "packages/calendar"
+  },
+  "homepage": "https://github.com/ityyq777/dsh-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/ityyq777/dsh-workbench/issues"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

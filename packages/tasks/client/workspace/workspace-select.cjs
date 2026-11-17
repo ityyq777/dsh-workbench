@@ -67,7 +67,7 @@ module.exports = function createWorkspaceSelect(React) {
             h("button", { type: "button", className: "wbt-icon", "aria-label": t("remove") + " " + (w.title || id), onClick: function () { toggle(id); } }, "×"));
         }) : h("span", { className: "wbt-hint" }, t("empty"))),
       h("div", { className: "wbt-wsrow" },
-        h("input", { className: "wbt-input", value: query, placeholder: t("search"), onChange: function (e) { setQuery(e.target.value); } }),
+        h("input", { className: "wbt-input", value: query, placeholder: t("search"), "aria-label": t("search"), onChange: function (e) { setQuery(e.target.value); } }),
         h("button", { type: "button", className: "wbt-btn ghost", onClick: function () { setCreating(!creating); } }, t("createHint"))),
       ws.loading ? h("div", { className: "wbt-hint" }, t("loading")) : null,
       ws.error ? h("div", { className: "wbt-err" }, t("fail")) : null,
@@ -76,8 +76,12 @@ module.exports = function createWorkspaceSelect(React) {
         candidates.map(function (w) {
           var id = String(w.id), on = selected.indexOf(id) >= 0;
           return h("button", { type: "button", role: "option", key: id, "aria-selected": on, className: "wbt-wsopt" + (on ? " on" : ""), title: w.dir || "", onClick: function () { toggle(id); } },
-            h("span", { className: "wbt-wsopt-title" }, w.title || id),
-            h("span", { className: "wbt-wsopt-meta" }, (w.taskCount || 0) + " · " + (w.dir || "—")));
+            h("span", { className: "wbt-wsopt-title" },
+              h("span", { className: "wbt-wsopt-name" }, w.title || id),
+              on ? h("span", { className: "wbt-wsopt-check", "aria-hidden": true }, "\u2713") : null),
+            h("span", { className: "wbt-wsopt-meta" },
+              h("span", { className: "wbt-wsopt-count" }, String(w.taskCount || 0)),
+              w.dir ? h("code", { title: w.dir }, w.dir) : h("span", null, "\u2014")));
         })),
       creating ? h("div", { className: "wbt-wscreate" },
         h("input", { className: "wbt-input", value: draft.title, placeholder: t("title") + " *", onChange: function (e) { setDraft(Object.assign({}, draft, { title: e.target.value })); } }),

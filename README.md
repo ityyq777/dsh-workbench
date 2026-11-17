@@ -1,6 +1,6 @@
 # 个人工作台 · DSH 插件
 
-个人工作台是 DeepSeek Harness（DSH）的本地优先工作台，由五个可独立安装的插件组成：
+个人工作台是 DeepSeek Harness（DSH）的本地优先工作台，由六个可独立安装的插件组成：
 
 | 包 | 作用 |
 | --- | --- |
@@ -9,8 +9,9 @@
 | `dsh-workbench-tags` | 标签管理，供站点等业务归类 |
 | `dsh-workbench-sites` | 站点收藏：目录树、多链接、标签与筛选 |
 | `dsh-workbench-storage` | 储物：名称、品牌、单位、库存文本与标签的本地台账 |
+| `dsh-workbench-message` | 消息中心：给 agent 与其他插件的统一发送入口，收件箱、未读数与可配置提示音 |
 
-任务、标签、站点、储物都会把 `dsh-workbench-host` 声明为依赖：安装任意业务插件时，
+任务、标签、站点、储物、消息都会把 `dsh-workbench-host` 声明为依赖：安装任意业务插件时，
 DSH 会一并准备宿主。数据保存在 `~/.dsh/workbench/workbench.db`，卸载插件只删代码，
 不删数据。
 
@@ -55,18 +56,26 @@ pnpm cloud:build
 
 ## 安装
 
-从插件市场或 DSH 设置 → 插件安装；命令行：
+从插件市场或 DSH 设置 → 插件安装；命令行（五个业务包任选其一即可，宿主会被自动带入）：
 
 ```sh
-dsh plugin --profile web add dsh-workbench-host
-dsh plugin --profile web add dsh-workbench-tasks
-dsh plugin --profile web add dsh-workbench-tags
-dsh plugin --profile web add dsh-workbench-sites
-# storage 首次发布前可用本地源码包安装（先 pnpm build）
-dsh plugin --profile web add file:$PWD/packages/addons/storage
+dsh plugin --profile web add dsh-workbench-tasks@5.2.6
+dsh plugin --profile web add dsh-workbench-tags@1.7.0
+dsh plugin --profile web add dsh-workbench-sites@1.10.0
+dsh plugin --profile web add dsh-workbench-storage@1.5.2
+dsh plugin --profile web add dsh-workbench-message@0.1.0
 ```
 
-只装需要的业务插件即可。安装/升级/卸载后按 DSH 提示重启或刷新。
+- 装任意一个业务包都会自动安装宿主 `dsh-workbench-host`（业务包依赖它），不需要先单独装宿主；
+- 也可以在同一个 profile 里装多个业务包，它们共享同一份宿主与同一套数据；
+- 宿主版本下限见各包 `wb.addon.minShell`（当前最低 0.6.3）；想用未发布的本地构建，
+  先 `pnpm build && node scripts/dist-shell.mjs`，再
+  `dsh plugin --profile web add "file:$PWD/packages/addons/tasks"`。
+
+这些包是**工作台宿主上的功能插件**，不能脱离宿主单独运行；单包安装链路的完整验证过程、
+版本下限与已知边界见
+[发布与插件市场](docs/specs/14-发布与插件市场.md#71-单包独立安装2026-11-12-实测)。
+安装/升级/卸载后按 DSH 提示重启或刷新。
 
 也可以从发布镜像查看各包 README：
 

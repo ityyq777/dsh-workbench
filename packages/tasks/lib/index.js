@@ -3,12 +3,16 @@
  *
  * 所有业务逻辑都在本地 SQLite 完成；云端只负责备份。
  * 宿主由 dsh-workbench 提供，通过 ctx.workbench.registerDomain 注册。
+ * 5.2.17：标签筛选列表体改用共享 filter-checklist（搜索 + 滚动分页 + 三态文案）。
+ * 5.2.18：年度活动热力图新增「目标」计划维度（target_date），单独口径、不计入活动总数。
+ * 5.2.19：统计页新增「事件趋势」折线卡，发布/目标/完成/关闭/接取五条曲线，与年度活动同口径。
  */
 
 import { registerActivityCalendarAction } from "./stats/activity-calendar.js";
 import { registerTimelineStatsAction } from "./stats/timeline-stats.js";
 import { DIFFICULTY_GUIDANCE } from "./task/model/task-difficulty.js";
 import { bindClock, ensureSchema } from "./db/db.js";
+import { ensureTaskTagSource } from "./tagging/tagging.js";
 import { exportTasksData, importTasksData } from "./infra/backup.js";
 import { taskSync } from "./infra/sync.js";
 import { registerTaskActions } from "./tasks.js";
@@ -84,6 +88,8 @@ export function setup(api) {
   domainApi = api;
   if (typeof api.now === "function") bindClock(api.now);
   ensureSchema(api.db, api.log);
+  // 标签来源登记：标签域（tags ≥ 1.7.1）要求 item_type 先注册才能写 tag_mapping。
+  ensureTaskTagSource(api.db, api.log);
   const actionDefs = trackActions(api);
   registerTaskActions(api);
   registerActivityCalendarAction(api);
@@ -94,6 +100,18 @@ export function setup(api) {
   registerDataActions(api);
   registerCommandsAction(api);
   registerActionSchemaAction(api, actionDefs, "wb-addon-tasks");
+  if (typeof api.registerSearchProvider === "function") {
+    api.registerSearchProvider({
+      domainId: "wb-addon-tasks",
+      search(q, { limit }) {
+        const like = "%" + String(q).replace(/[\\%_]/g, "\\$&") + "%";
+        const rows = api.db
+          .prepare("SELECT id,title,description,updated_at FROM task WHERE deleted_at IS NULL AND (title LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\') ORDER BY updated_at DESC LIMIT ?")
+          .all(like, like, Math.max(1, Math.min(50, Number(limit) || 20)));
+        return rows.map((r) => ({ id: r.id, title: r.title, snippet: String(r.description || "").slice(0, 160), view: "tasks", at: r.updated_at }));
+      },
+    });
+  }
   api.log("tasks domain ready", api.addon.version);
 }
 
@@ -106,7 +124,7 @@ export function apply(ctx) {
         id: "wb-addon-tasks",
         title: "任务",
         description: "任务树 + 统计/记录/时间线/配置/数据五个视图：紧急/已关闭/已开启/已完成/总览，可按标签筛选（需安装标签插件），附统计报表与只读数据浏览",
-        version: "5.2.6",
+        version: "5.2.19",
         tables: ["task", "task_node", "task_timeline", "task_timeline_link", "task_workspace", "task_workspace_link"],
         sync: taskSync,
         views: [
@@ -161,8 +179,8 @@ export function apply(ctx) {
             { name: "lastActivityDate", type: "YYYY-MM-DD", description: "时间线有效成员发布/完成/关闭日及创建/修改本地日最大值；不含计划targetDate，排除已重启和已删除成员；openCount仅status0，doneCount仅status2。" },
             { name: "statuses / urgent", type: "integer[] / boolean", description: "list/非ids export：statuses 为 0/1/2/3/4 整数数组，与 urgent 取 OR，再与其他筛选 AND。紧急为开启且(priority>=6或targetDate<=今天+2)。不传 statuses/urgent 时不过滤状态，返回全部状态（含已重启）；空数组且 urgent=false 同样为全部；缺少另一参数时默认 []/false。旧参数 tab、filterRestarted 已移除，传入会报错。" },
             { name: "publishFrom / publishTo / doneFrom / doneTo / shutdownFrom / shutdownTo / claimedFrom / claimedTo", type: "YYYY-MM-DD", description: "list/非ids export 四组闭区间，两端独立可选，空串不筛，真实日期校验；日期前10位与其他条件AND。完成范围要求状态2，关闭范围要求状态1，接取范围要求状态 IN (2,4) 且按 COALESCE(claimed_at 本地日, 发布日) 比较（历史任务按发布日近似）；完成与关闭范围同时非空则交集为空。反序交换后filter回显并返回publish_range_swapped/done_range_swapped/shutdown_range_swapped/claimed_range_swapped notice。" },
-            { name: "year", type: "integer 1900..9999", description: "tasks.activityCalendar 必填年份：独立年度稀疏日历，publish/done/shutdown 三类事件计数及 totals/max（含 total）" },
-            { name: "activityDate / activityType", type: "YYYY-MM-DD / publish|done|shutdown", description: "list/非ids export 活动日筛选；type 缺省 done，有 type 必须有日期。单类事件，与既有条件 AND；与日历同口径，完整日点击请传 statuses=[]" },
+            { name: "year", type: "integer 1900..9999", description: "tasks.activityCalendar 必填年份：独立年度稀疏日历，publish/done/shutdown/claimed 四类事件计数与 target 计划数（target_date）并列；totals.total 只累加四类事件、不含 target" },
+            { name: "activityDate / activityType", type: "YYYY-MM-DD / publish|done|shutdown|claimed", description: "list/非ids export 活动日筛选；type 缺省 done，有 type 必须有日期。单类事件，与既有条件 AND；与日历同口径，完整日点击请传 statuses=[]；target 是计划口径，不是事件，不接受作为 activityType" },
             { name: "status", type: "0|1|2|3", description: "0=已开启 ACTIVE、1=已关闭 SHUTDOWN、2=已完成 DONE、3=已重启 RESTARTED（创建时不允许 3）；也接受 open/done。别按“0=未开始”理解：0 是在办" },
             { name: "priority", type: "1..10（关闭/完成为 0）", description: "数值越大越紧急，不是越小越急；已开启任务必须 P1..P10（显式传 0 会报错，缺省 P1）；已关闭/已完成/已重启一律 P0，传值被忽略；>=6 满足紧急谓词；参数优先级 min/max 同样是数值越大越急" },
             { name: "difficulty", type: "0..5", description: DIFFICULTY_GUIDANCE },

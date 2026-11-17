@@ -10,6 +10,7 @@
  */
 
 import { idOf, newId, logChange, tableExists, metaGet, metaSet, tx } from "../db/db.js";
+import { TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE, ensureTagSource, withTagSource } from "./source.js";
 
 export const TAG_ITEM_TYPE = "task";
 
@@ -122,7 +123,7 @@ export function ensureTagsByNames(db, names, ts, origin) {
 }
 
 /** 用 tagIds 全量替换某任务的标签；软删复用旧 mapping，避免每次写都新增历史行。 */
-export function replaceTaskTags(db, taskId, tagIds, ts, origin) {
+function writeTaskTags(db, taskId, tagIds, ts, origin) {
   const current = db.prepare(
     "SELECT * FROM tag_mapping WHERE item_type=? AND item_id=? AND deleted_at IS NULL",
   ).all(TAG_ITEM_TYPE, String(taskId));
@@ -195,7 +196,7 @@ export function attachTags(db, api, records) {
 }
 
 /** 给一个任务补一个标签（按名，缺标签就建）；已有映射则跳过。导入旧备份时用。 */
-export function addTaskTagByName(db, taskId, name, ts, origin) {
+function writeTaskTagByName(db, taskId, name, ts, origin) {
   const ids = ensureTagsByNames(db, [name], ts, origin);
   const tagId = ids[0];
   const exists = db.prepare(
@@ -211,6 +212,43 @@ export function addTaskTagByName(db, taskId, name, ts, origin) {
     created_at: ts, updated_at: ts, deleted_at: null, rev: 1,
   }, origin, ts);
   return true;
+}
+
+
+/**
+ * 启动时幂等登记本域来源（`tag_mapping.item_type='task'`）。
+ * 标签域未装或版本过低时静默跳过；重复注册不阻断启动，写入门禁会在写入时给出可读错误。
+ */
+export function ensureTaskTagSource(db, log) {
+  if (!tableExists(db, "tag_source")) return { ok: false, skipped: "no_table" };
+  try {
+    const r = ensureTagSource(db, TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE);
+    const ready = tableExists(db, "tag_source")
+      ? db.prepare("SELECT COUNT(*) AS n FROM tag_source WHERE source=? AND deleted_at IS NULL").get(TAG_SOURCE)
+      : null;
+    const count = Number((ready && ready.n) || 0);
+    if (count !== 1 && typeof log === "function") {
+      log("标签来源登记异常（" + TAG_SOURCE + "）：当前 " + count + " 条活跃注册，标签写入会被拒绝");
+    }
+    return { ok: count === 1, count: count, created: !!(r && r.created) };
+  } catch (e) {
+    if (typeof log === "function") log("标签来源登记失败：" + String((e && e.message) || e));
+    return { ok: false, error: String((e && e.message) || e) };
+  }
+}
+
+/** 用 tagIds 全量替换某任务的标签（写入门禁：来源必须恰好注册一次）。 */
+export function replaceTaskTags(db, taskId, tagIds, ts, origin) {
+  return withTagSource(db, TAG_SOURCE, function () {
+    return writeTaskTags(db, taskId, tagIds, ts, origin);
+  });
+}
+
+/** 给一个任务补一个标签（按名，缺标签就建）；已有映射则跳过。导入旧备份时用。 */
+export function addTaskTagByName(db, taskId, name, ts, origin) {
+  return withTagSource(db, TAG_SOURCE, function () {
+    return writeTaskTagByName(db, taskId, name, ts, origin);
+  });
 }
 
 export const STATUS_FIELDS = [

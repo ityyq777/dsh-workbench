@@ -597,6 +597,13 @@ var require_description = __commonJS({
     var React = require("react");
     var h2 = React.createElement;
     var Body = require_markdown().createBody(React);
+    var bodies = typeof WeakMap === "function" ? /* @__PURE__ */ new WeakMap() : null;
+    function bodyFor(Highlight) {
+      if (!Highlight) return Body;
+      if (!bodies) return require_markdown().createBody(React, Highlight);
+      if (!bodies.has(Highlight)) bodies.set(Highlight, require_markdown().createBody(React, Highlight));
+      return bodies.get(Highlight);
+    }
     var BodyMode = require_body_toggle()(React);
     var copy = require_body_copy();
     var Code = (init_code_2(), __toCommonJS(code_2_exports)).default;
@@ -615,6 +622,7 @@ var require_description = __commonJS({
       var mode = React.useState(props.bodyMode === "text" ? "text" : "markdown");
       var labelId = require_body_id()(React) + "-desc", t = copy[props.lang === "en" ? "en" : "zh"];
       var text = props.text == null ? "" : String(props.text);
+      var DescBody = bodyFor(props.Highlight);
       var expanded = React.useState(false), overflow = React.useState(false), ref = React.useRef(null);
       React.useEffect(function() {
         expanded[1](false);
@@ -648,7 +656,7 @@ var require_description = __commonJS({
           h2(
             "div",
             { ref, className: "wb-desc-text" + (expanded[0] ? "" : " wb-desc-clamped") },
-            h2(Body, { text, mode: mode[0] })
+            h2(DescBody, { text, mode: mode[0], keyword: props.keyword })
           ),
           overflow[0] || expanded[0] ? h2("button", {
             type: "button",
@@ -675,12 +683,43 @@ var require_visual_tokens = __commonJS({
   }
 });
 
+// packages/addons/lib/filter-checklist-styles.cjs
+var require_filter_checklist_styles = __commonJS({
+  "packages/addons/lib/filter-checklist-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = [
+      ".wbck{display:flex;flex-direction:column;min-width:0}",
+      ".wbck-search{padding:0 0 6px}",
+      ".wbck-input{width:100%;box-sizing:border-box;font:inherit;font-size:12.5px;padding:6px 9px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:inherit}",
+      ".wbck-input:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+      ".wbck-input:disabled{opacity:.6;cursor:not-allowed}",
+      ".wbck-head{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--wb-muted);padding:2px 4px 7px}",
+      ".wbck-grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbck-sel{flex:none;color:var(--wb-accent)}",
+      ".wbck-clear{appearance:none;flex:none;border:0;background:transparent;color:inherit;border-radius:4px;margin:0;padding:3px 5px;font:inherit;font-size:11.5px;line-height:1;cursor:pointer;opacity:.75}",
+      ".wbck-clear:hover:enabled{opacity:1;background:color-mix(in srgb, currentColor 8%, transparent)}",
+      ".wbck-clear:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+      ".wbck-clear:disabled{opacity:.4;cursor:not-allowed}",
+      ".wbck-list{max-height:220px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--wb-border);border-radius:10px;padding:2px}",
+      ".wbck-opt{display:flex;align-items:center;gap:7px;padding:6px;border-radius:6px;font-size:12.5px;cursor:pointer}",
+      ".wbck-opt:hover{background:color-mix(in srgb, currentColor 7%, transparent)}",
+      ".wbck-opt.is-on{background:color-mix(in srgb, var(--wb-accent) 10%, transparent)}",
+      ".wbck-opt input{margin:0;flex:none;accent-color:var(--wb-accent)}",
+      ".wbck-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbck-meta{margin-left:auto;flex:none;font-size:11.5px;color:var(--wb-muted)}",
+      ".wbck-note{font-size:12px;color:var(--wb-muted);padding:8px 6px}",
+      ".wbck-more{font-size:11px;color:var(--wb-muted);text-align:center;padding:6px 0 2px;opacity:.8}",
+      "@media (max-width:760px){.wbck-list{max-height:200px}}"
+    ];
+  }
+});
+
 // packages/addons/storage/client/ui/styles.cjs
 var require_styles = __commonJS({
   "packages/addons/storage/client/ui/styles.cjs"(exports2, module2) {
     module2.exports = require_description().css + require_visual_tokens() + `
-.wbi-root{--line:var(--wb-line,var(--dsw-alias-border-l2,#d9dfe6));--surface:var(--wb-surface,var(--dsw-alias-bg-layer-1,#fff));--muted:var(--dsw-alias-label-secondary,#64748b);--accent:var(--dsw-alias-brand-primary,#2563eb);font-size:13px;color:inherit;min-width:0;container-type:inline-size;container-name:storage}
-.wbi-root *{box-sizing:border-box}.wbi-root h2{font-size:18px;margin:0}.wbi-root h3{font-size:15px;margin:0}.wbi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.wbi-grow{flex:1;min-width:0}.wbi-muted{color:var(--muted);font-size:12px}.wbi-root input,.wbi-root textarea,.wbi-root select{background:var(--surface);color:inherit;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;max-width:100%}.wbi-root textarea{resize:vertical;min-height:80px}.wbi-root :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wbi-root{--wbi-hit-bg:color-mix(in oklab,var(--wb-hit-bg-base,var(--dsw-alias-brand-primary,#2563eb)) 18%,transparent);--wbi-hit-fg:inherit;--line:var(--wb-line,var(--dsw-alias-border-l2,#d9dfe6));--surface:var(--wb-surface,var(--dsw-alias-bg-layer-1,#fff));--muted:var(--dsw-alias-label-secondary,#64748b);--accent:var(--dsw-alias-brand-primary,#2563eb);font-size:13px;color:inherit;min-width:0;container-type:inline-size;container-name:storage}
+.wbi-root *{box-sizing:border-box}.wbi-root h2{font-size:18px;margin:0}.wbi-root h3{font-size:15px;margin:0}.wbi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.wbi-grow{flex:1;min-width:0}.wbi-muted{color:var(--muted);font-size:12px}mark.wbi-hit{background:var(--wbi-hit-bg);color:var(--wbi-hit-fg);border-radius:3px;padding:0 2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}.wbi-root input,.wbi-root textarea,.wbi-root select{background:var(--surface);color:inherit;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;max-width:100%}.wbi-root textarea{resize:vertical;min-height:80px}.wbi-root :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wbi-btn,.wbi-image,.wbi-root .wb-desc-toggle{border:none;background:var(--wb-btn-bg);color:inherit;min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm);border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit}
 .wbi-btn:enabled:hover,.wbi-image:enabled:hover,.wbi-root .wb-desc-toggle:enabled:hover{background:var(--wb-btn-hover-bg)}
 .wbi-btn:enabled:active,.wbi-image:enabled:active,.wbi-root .wb-desc-toggle:enabled:active{background:var(--wb-btn-active-bg)}
@@ -705,8 +744,9 @@ var require_styles = __commonJS({
 .wbi-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.wbi-skeleton{margin:18px 0}.wbi-sk{height:16px;border-radius:var(--wb-radius-sm);background:color-mix(in oklab,currentColor 9%,transparent);animation:wbi-pulse 1.4s ease-in-out infinite}.wbi-sk:nth-child(2){height:48px}.wbi-sk:last-child{width:60%}@keyframes wbi-pulse{50%{opacity:.45}}
 .wbi-cfg-group{border-radius:var(--wb-radius-card)!important}.wbi-cfg{gap:var(--wb-space-md)!important}.wbi-cfg-head h2{display:flex;gap:var(--wb-space-sm);align-items:center}
 @container storage (max-width:480px){.wbi-toolbar{gap:8px}.wbi-toolbar input[type=search]{flex-basis:100%;min-width:0}.wbi-toolbar select{flex:1;min-width:0}.wbi-root>.wbi-row>.wbi-icon-text .wbi-btn-label,.wbi-toolbar>.wbi-icon-text .wbi-btn-label,.wbi-cfg-head>.wbi-icon-text .wbi-btn-label{display:none}.wbi-root>.wbi-row>.wbi-icon-text,.wbi-toolbar>.wbi-icon-text,.wbi-cfg-head>.wbi-icon-text{width:32px;height:32px;padding:0}}
+.wbi-tagfilter{position:relative;display:flex;align-items:center;gap:5px;min-width:0}.wbi-tagfilter .wbi-btn.wbi-tagon{border:1px solid var(--accent);color:var(--accent);background:color-mix(in oklab,var(--accent) 12%,transparent)}.wbi-tagmenu{position:absolute;z-index:60;top:calc(100% + 6px);left:0;width:260px;max-width:min(260px,calc(100vw - 40px));max-height:320px;overflow:auto;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);box-shadow:0 10px 34px #0004}.wbi-tagmenu-head{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:2px 4px 7px}.wbi-tagsearch{padding:0 0 6px}.wbi-tagsearch input{width:100%;box-sizing:border-box;font-size:12.5px;padding:6px 9px}.wbi-tagsel{border-bottom:1px dashed var(--line);margin-bottom:6px;padding-bottom:5px}.wbi-tagsel-list{display:flex;flex-wrap:wrap;gap:4px;padding:0 2px 2px}.wbi-tagselitem{display:inline-flex;align-items:center;gap:4px;max-width:100%;border:1px solid color-mix(in oklab,var(--accent) 40%,transparent);background:color-mix(in oklab,var(--accent) 10%,transparent);color:var(--accent);border-radius:999px;padding:2px 7px;font-size:11.5px;cursor:pointer;font-family:inherit}.wbi-tagselitem .wbi-tagnm{max-width:150px}.wbi-tagnm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.wbi-tagx{opacity:.7;font-size:12px;line-height:1}.wbi-taglist{max-height:236px;overflow:auto;overscroll-behavior:contain}.wbi-tagopt{display:flex;align-items:center;gap:7px;padding:6px;border-radius:6px;cursor:pointer;font-size:12.5px}.wbi-tagopt:hover{background:color-mix(in oklab,currentColor 7%,transparent)}.wbi-tagopt input{margin:0;accent-color:var(--accent)}.wbi-tagmore{font-size:11px;opacity:.5;text-align:center;padding:6px 0 2px}.wbi-note{color:var(--muted);font-size:12px;padding:6px 4px}.wbi-mini{appearance:none;border:0;background:transparent;color:inherit;border-radius:4px;cursor:pointer;font-size:11.5px;line-height:1;padding:3px 5px;font-family:inherit;opacity:.7}.wbi-mini:hover{opacity:1}@container storage (max-width:480px){.wbi-toolbar{position:relative}.wbi-tagfilter{position:static}.wbi-tagmenu{left:8px;right:8px;width:auto;max-width:none;top:calc(100% + 6px)}}
 @media(prefers-reduced-motion:reduce){.wbi-root *,.wbi-root *::after{transition:none!important;animation:none!important}.wbi-card:hover{transform:none}}
-`;
+` + require_filter_checklist_styles().join("\n");
   }
 });
 
@@ -1675,25 +1715,92 @@ var require_editor = __commonJS({
         };
       });
       var form = state[0], setForm = state[1];
-      var err = React.useState(null), busy = React.useState(false), query = React.useState(""), options = React.useState(item.tags || []);
+      var err = React.useState(null), busy = React.useState(false), query = React.useState(""), options = React.useState([]), page = React.useState(0), total = React.useState(0), hasMore = React.useState(false), loading = React.useState(false), names = React.useState(function() {
+        var map = {};
+        (item.tags || []).forEach(function(t) {
+          map[String(t.id)] = t.name;
+        });
+        return map;
+      });
       var selected = React.useState(item.tags || []);
+      var seq = React.useRef(0);
+      var load = React.useCallback(
+        function(text, pageNumber, append) {
+          var mine = ++seq.current;
+          loading[1](true);
+          return ui.call(props.api, "storageTags.search", { text: text || "", pageNumber, pageSize: 20 }).then(function(r) {
+            if (mine !== seq.current) return;
+            loading[1](false);
+            var records = r && r.records || [];
+            total[1](r && r.total || 0);
+            page[1](r && r.current || pageNumber);
+            hasMore[1]((r && r.current || pageNumber) < (r && r.pages || 0));
+            options[1](function(prev) {
+              var list = append ? prev.slice() : [];
+              var seen = {};
+              list.forEach(function(x) {
+                seen[String(x.id)] = true;
+              });
+              records.forEach(function(x) {
+                if (!seen[String(x.id)]) list.push(x);
+              });
+              return list;
+            });
+            names[1](function(prev) {
+              var next = Object.assign({}, prev);
+              records.forEach(function(x) {
+                next[String(x.id)] = x.name;
+              });
+              return next;
+            });
+          }).catch(function(e) {
+            if (mine !== seq.current) return;
+            loading[1](false);
+            err[1](e);
+          });
+        },
+        [props.api]
+      );
       React.useEffect(
         function() {
-          if (!props.tagsEnabled) return;
-          var active = true;
-          var timer = setTimeout(function() {
-            ui.call(props.api, "storageTags.search", { text: query[0], pageSize: 50 }).then(function(r) {
-              if (active) options[1](r.records || []);
-            }).catch(function(e) {
-              if (active) err[1](e);
-            });
-          }, 200);
+          if (!props.tagsEnabled) return void 0;
+          var timer = setTimeout(
+            function() {
+              load(query[0], 1, false);
+            },
+            query[0] ? 200 : 0
+          );
           return function() {
-            active = false;
             clearTimeout(timer);
           };
         },
-        [query[0], props.tagsEnabled, props.api]
+        [query[0], props.tagsEnabled, load]
+      );
+      React.useEffect(
+        function() {
+          if (!props.tagsEnabled) return void 0;
+          var missing = form.tagIds.filter(function(id) {
+            return !names[0][String(id)];
+          });
+          if (!missing.length) return void 0;
+          var active = true;
+          ui.call(props.api, "storageTags.byIds", { ids: missing }).then(function(r) {
+            if (!active) return;
+            var next = {};
+            (r && r.records || []).forEach(function(x) {
+              next[String(x.id)] = x.name;
+            });
+            if (!Object.keys(next).length) return;
+            names[1](function(prev) {
+              return Object.assign({}, prev, next);
+            });
+          }).catch(function() {
+          });
+          return function() {
+            active = false;
+          };
+        },
+        [props.api, props.tagsEnabled, form.tagIds.join(",")]
       );
       function update(k, v) {
         setForm(function(f) {
@@ -1755,6 +1862,12 @@ var require_editor = __commonJS({
       selected[0].concat(options[0]).forEach(function(t) {
         candidates.set(t.id, t);
       });
+      function onListScroll(e) {
+        var el = e.currentTarget;
+        if (!hasMore[0] || loading[0]) return;
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) load(query[0], (page[0] || 1) + 1, true);
+      }
+      var tagsNote = loading[0] ? tr(lang, "\u52A0\u8F7D\u4E2D\u2026", "Loading\u2026") : !candidates.size ? query[0] ? tr(lang, "\u6CA1\u6709\u5339\u914D\u7684\u6807\u7B7E", "No matching tags") : tr(lang, "\u6682\u65E0\u6807\u7B7E\uFF0C\u53EF\u5728\u6807\u7B7E\u63D2\u4EF6\u4E2D\u521B\u5EFA", "No tags. Create them in the Tags plugin.") : hasMore[0] ? "" : tr(lang, "\u6CA1\u6709\u66F4\u591A", "No more");
       return h2(
         ui.Modal,
         {
@@ -1794,7 +1907,7 @@ var require_editor = __commonJS({
                 }),
                 h2(
                   "div",
-                  { className: "wbi-tagoptions" },
+                  { className: "wbi-tagoptions", onScroll: onListScroll },
                   Array.from(candidates.values()).map(function(t) {
                     return h2(
                       "label",
@@ -1820,15 +1933,11 @@ var require_editor = __commonJS({
                           });
                         }
                       }),
-                      t.name
+                      names[0][String(t.id)] || t.name
                     );
                   })
                 ),
-                !candidates.size ? h2(
-                  "span",
-                  { className: "wbi-muted" },
-                  tr(lang, "\u6682\u65E0\u6807\u7B7E\uFF0C\u53EF\u5728\u6807\u7B7E\u63D2\u4EF6\u4E2D\u521B\u5EFA", "No tags. Create them in the Tags plugin.")
-                ) : null
+                h2("div", { className: "wbi-tagmore" }, tagsNote)
               ) : h2(
                 "span",
                 { className: "wbi-muted" },
@@ -1853,6 +1962,60 @@ var require_editor = __commonJS({
   }
 });
 
+// packages/addons/lib/highlight.cjs
+var require_highlight = __commonJS({
+  "packages/addons/lib/highlight.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function(React) {
+      var h2 = React.createElement;
+      function sourceOf(keyword) {
+        var pattern = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return pattern.replace(/[a-zA-Z]/g, function(letter) {
+          return "[" + letter.toLowerCase() + letter.toUpperCase() + "]";
+        });
+      }
+      return function createHighlight(prefix) {
+        var className = String(prefix || "wb") + "-hit";
+        function hit(rawText, rawKeyword) {
+          var text = rawText == null ? "" : String(rawText);
+          var keyword = rawKeyword == null ? "" : String(rawKeyword);
+          if (!keyword) return text;
+          var matcher, match, end = 0, parts = [];
+          try {
+            matcher = new RegExp(sourceOf(keyword), "g");
+          } catch (error) {
+            return text;
+          }
+          while (match = matcher.exec(text)) {
+            if (match.index > end) parts.push(text.slice(end, match.index));
+            parts.push(h2("mark", { className, key: match.index }, match[0]));
+            end = match.index + match[0].length;
+            if (!match[0]) matcher.lastIndex += 1;
+          }
+          if (!parts.length) return text;
+          if (end < text.length) parts.push(text.slice(end));
+          return parts;
+        }
+        function Highlight(props) {
+          return hit(props.text, props.keyword);
+        }
+        Highlight.hit = hit;
+        return Highlight;
+      };
+    };
+  }
+});
+
+// packages/addons/storage/client/ui/highlight.cjs
+var require_highlight2 = __commonJS({
+  "packages/addons/storage/client/ui/highlight.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function(React) {
+      return require_highlight()(React)("wbi");
+    };
+  }
+});
+
 // packages/addons/storage/client/item/card.cjs
 var require_card = __commonJS({
   "packages/addons/storage/client/item/card.cjs"(exports2, module2) {
@@ -1861,8 +2024,10 @@ var require_card = __commonJS({
     var h2 = ui.h;
     var tr = ui.tr;
     var Description = require_description().Description;
+    var Highlight = require_highlight2()(React);
     function StorageCard(props) {
       var item = props.item, lang = props.lang, gallery = React.useState(false);
+      var keyword = String(props.keyword || "");
       var images = (item.imgList || []).filter(ui.safeImage), tags = item.tags || [];
       var shown = gallery[0] ? images : images.slice(0, 1);
       var hasStock = item.stock != null && item.stock !== "";
@@ -1898,7 +2063,7 @@ var require_card = __commonJS({
         h2(
           "div",
           { className: "wbi-cardhead" },
-          h2("h3", null, item.name),
+          h2("h3", null, h2(Highlight, { text: item.name, keyword })),
           h2(
             "span",
             { className: "wbi-stock" },
@@ -1925,9 +2090,10 @@ var require_card = __commonJS({
           meta.length ? h2(
             "div",
             { className: "wbi-muted" },
-            item.brand ? h2("span", { className: "wbi-inline" }, h2(ui.Icon, { name: "brand", size: 11 }), meta[0]) : null,
+            item.brand ? h2("span", { className: "wbi-inline" }, h2(ui.Icon, { name: "brand", size: 11 }), tr(lang, "\u54C1\u724C\uFF1A", "Brand: "), h2(Highlight, { text: item.brand, keyword })) : null,
+            // 单位不参与文字搜索，按原样展示，避免「亮了却搜不到」的错觉。
             item.unit ? h2("span", { className: "wbi-inline" }, h2(ui.Icon, { name: "unit", size: 11 }), tr(lang, "\u5355\u4F4D\uFF1A", "Unit: ") + item.unit) : null,
-            item.location ? h2("span", { className: "wbi-inline" }, h2(ui.Icon, { name: "location", size: 11 }), tr(lang, "\u4F4D\u7F6E\uFF1A", "Location: ") + item.location) : null
+            item.location ? h2("span", { className: "wbi-inline" }, h2(ui.Icon, { name: "location", size: 11 }), tr(lang, "\u4F4D\u7F6E\uFF1A", "Location: "), h2(Highlight, { text: item.location, keyword })) : null
           ) : null,
           item.createTime || item.updateTime ? h2(
             "div",
@@ -1936,7 +2102,7 @@ var require_card = __commonJS({
             item.updateTime ? h2("span", null, tr(lang, "\u66F4\u65B0 ", "Updated ") + props.date(item.updateTime)) : null
           ) : null
         ) : null,
-        h2(Description, { text: item.remark, lang, bodyMode: props.bodyMode }),
+        h2(Description, { text: item.remark, lang, bodyMode: props.bodyMode, Highlight, keyword }),
         images.length ? h2("div", { className: "wbi-images" }, shown.map(function(url, i) {
           return h2(
             "button",
@@ -1988,6 +2154,310 @@ var require_card = __commonJS({
       );
     }
     module2.exports = { StorageCard };
+  }
+});
+
+// packages/addons/lib/filter-checklist.cjs
+var require_filter_checklist = __commonJS({
+  "packages/addons/lib/filter-checklist.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h2 = React.createElement;
+    var NEAR = 24;
+    function nearBottom(el, threshold) {
+      if (!el) return false;
+      var gap = Number(threshold);
+      if (!isFinite(gap) || gap < 0) gap = NEAR;
+      return el.scrollTop + el.clientHeight >= el.scrollHeight - gap;
+    }
+    function FilterChecklist(props) {
+      var items = props.items || [];
+      var selected = props.selected || [];
+      var disabled = props.disabled === true;
+      var loading = props.loading === true;
+      var hasMore = props.hasMore === true;
+      var query = props.query || "";
+      var total = typeof props.total === "number" ? props.total : items.length;
+      var title = props.title || "\u5168\u90E8";
+      var selectedText = props.selectedText || "\u5DF2\u9009";
+      var clearText = props.clearText || "\u6E05\u7A7A";
+      var searchPlaceholder = props.searchPlaceholder || "\u641C\u7D22";
+      var emptyText = props.emptyText || "\u6682\u65E0\u6570\u636E";
+      var noMatchText = props.noMatchText || "\u6CA1\u6709\u5339\u914D\u9879";
+      var loadingText = props.loadingText || "\u52A0\u8F7D\u4E2D\u2026";
+      var noMoreText = typeof props.noMoreText === "string" ? props.noMoreText : "\u6CA1\u6709\u66F4\u591A";
+      var onToggle = props.onToggle || function() {
+      };
+      var onQuery = props.onQuery || function() {
+      };
+      var onLoadMore = props.onLoadMore;
+      var onClear = props.onClear || function() {
+      };
+      function toggle(id) {
+        if (disabled) return;
+        onToggle(id);
+      }
+      function scroll(e) {
+        if (disabled || loading || !hasMore || !onLoadMore) return;
+        if (nearBottom(e.currentTarget)) onLoadMore();
+      }
+      var head = h2(
+        "div",
+        { className: "wbck-head" },
+        h2("span", { className: "wbck-grow" }, title + (total ? " \xB7 " + total : "")),
+        selected.length ? h2("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
+        selected.length || query ? h2("button", {
+          type: "button",
+          className: "wbck-clear",
+          title: clearText,
+          disabled,
+          onClick: function() {
+            if (disabled) return;
+            onClear();
+          }
+        }, clearText) : null
+      );
+      var body;
+      if (!items.length) {
+        body = h2("div", { className: "wbck-note", role: "status" }, loading ? loadingText : query ? noMatchText : emptyText);
+      } else {
+        body = items.map(function(x) {
+          var on = selected.indexOf(String(x.id)) >= 0;
+          return h2(
+            "label",
+            { key: x.id, className: "wbck-opt" + (on ? " is-on" : "") },
+            h2("input", {
+              type: "checkbox",
+              checked: on,
+              disabled,
+              onChange: function() {
+                toggle(x.id);
+              }
+            }),
+            h2("span", { className: "wbck-nm", title: x.name }, x.name),
+            x.meta ? h2("span", { className: "wbck-meta" }, x.meta) : null
+          );
+        });
+        var more = loading ? loadingText : hasMore ? "" : noMoreText;
+        if (more) body = body.concat([h2("div", { key: "__more", className: "wbck-more", role: "status" }, more)]);
+      }
+      return h2(
+        "div",
+        { className: "wbck", "data-role": "checklist" },
+        h2(
+          "div",
+          { className: "wbck-search" },
+          h2("input", {
+            type: "search",
+            autoFocus: props.autoFocus !== false,
+            className: "wbck-input",
+            placeholder: searchPlaceholder,
+            "aria-label": searchPlaceholder,
+            value: query,
+            disabled,
+            onChange: function(e) {
+              onQuery(e.target.value);
+            }
+          })
+        ),
+        props.beforeHead || null,
+        head,
+        h2("div", {
+          className: "wbck-list",
+          onScroll: scroll,
+          "aria-busy": loading ? "true" : "false"
+        }, body)
+      );
+    }
+    module2.exports = FilterChecklist;
+    module2.exports.nearBottom = nearBottom;
+  }
+});
+
+// packages/addons/storage/client/ui/tagfilter.cjs
+var require_tagfilter = __commonJS({
+  "packages/addons/storage/client/ui/tagfilter.cjs"(exports2, module2) {
+    var React = require("react");
+    var ui = require_ui();
+    var FilterChecklist = require_filter_checklist();
+    var h2 = React.createElement;
+    var tr = ui.tr;
+    module2.exports = function TagFilter(props) {
+      var api = props.api, lang = props.lang, enabled = props.enabled !== false, ids = props.ids || [], onChange = props.onChange;
+      var openS = React.useState(false), open = openS[0], setOpen = openS[1];
+      var queryS = React.useState(""), query = queryS[0], setQuery = queryS[1];
+      var optsS = React.useState({ tags: [], total: 0, pageNumber: 0, hasMore: false }), opts = optsS[0], setOpts = optsS[1];
+      var loadingS = React.useState(false), loading = loadingS[0], setLoading = loadingS[1];
+      var namesS = React.useState({}), names = namesS[0], setNames = namesS[1];
+      var seq = React.useRef(0);
+      var load = React.useCallback(
+        function(text, pageNumber, append) {
+          var mine = ++seq.current;
+          setLoading(true);
+          return api.call("storageTags.search", { text: text || "", pageNumber, pageSize: 20 }).then(function(r) {
+            if (mine !== seq.current) return;
+            setLoading(false);
+            if (!r || !r.ok) return;
+            var out = r.result || {}, records = out.records || [], current = out.current || pageNumber, pages = out.pages || 0;
+            setOpts(function(prev) {
+              var list = append ? (prev.tags || []).slice() : [];
+              var seen = {};
+              list.forEach(function(x) {
+                seen[String(x.id)] = true;
+              });
+              records.forEach(function(x) {
+                if (!seen[String(x.id)]) list.push(x);
+              });
+              return { tags: list, total: out.total || 0, pageNumber: current, hasMore: current < pages };
+            });
+            setNames(function(prev) {
+              var next = Object.assign({}, prev);
+              records.forEach(function(x) {
+                next[String(x.id)] = x.name;
+              });
+              return next;
+            });
+          }).catch(function() {
+            if (mine === seq.current) setLoading(false);
+          });
+        },
+        [api]
+      );
+      React.useEffect(
+        function() {
+          if (!open) return void 0;
+          var timer = setTimeout(
+            function() {
+              load(query, 1, false);
+            },
+            query ? 200 : 0
+          );
+          return function() {
+            clearTimeout(timer);
+          };
+        },
+        [open, query, load, props.reloadKey]
+      );
+      React.useEffect(
+        function() {
+          if (!open || !ids.length) return;
+          var wanted = ids.filter(function(id) {
+            return !names[String(id)];
+          });
+          if (!wanted.length) return;
+          api.call("storageTags.byIds", { ids: wanted }).then(function(r) {
+            if (!r || !r.ok) return;
+            var next = {};
+            (r.result && r.result.records || []).forEach(function(x) {
+              next[String(x.id)] = x.name;
+            });
+            if (!Object.keys(next).length) return;
+            setNames(function(prev) {
+              return Object.assign({}, prev, next);
+            });
+          }).catch(function() {
+          });
+        },
+        [open, ids.join(",")]
+      );
+      React.useEffect(
+        function() {
+          if (!open) return void 0;
+          function onKey(e) {
+            if (e.key === "Escape") setOpen(false);
+          }
+          document.addEventListener("keydown", onKey);
+          return function() {
+            document.removeEventListener("keydown", onKey);
+          };
+        },
+        [open]
+      );
+      function toggle(id) {
+        var key = String(id), next = ids.slice(), i = next.indexOf(key);
+        if (i >= 0) next.splice(i, 1);
+        else next.push(key);
+        onChange(next);
+      }
+      if (!enabled) return null;
+      return h2(
+        "div",
+        { className: "wbi-tagfilter" },
+        h2(
+          "button",
+          {
+            type: "button",
+            className: "wbi-btn" + (ids.length ? " wbi-tagon" : ""),
+            "aria-expanded": open ? "true" : "false",
+            onClick: function(e) {
+              e.stopPropagation();
+              setOpen(!open);
+            }
+          },
+          h2(ui.Icon, { name: "tag", size: 13 }),
+          tr(lang, "\u6807\u7B7E\u7B5B\u9009", "Tag filter") + (ids.length ? " \xB7 " + ids.length : ""),
+          "\u25BE"
+        ),
+        open ? h2(
+          "div",
+          { className: "wbi-tagmenu", role: "menu", onClick: function(e) {
+            e.stopPropagation();
+          } },
+          h2(FilterChecklist, {
+            beforeHead: ids.length ? h2(
+              "div",
+              { className: "wbi-tagsel" },
+              h2("div", { className: "wbi-tagmenu-head" }, h2("span", null, tr(lang, "\u5DF2\u9009", "Selected") + " " + ids.length)),
+              h2(
+                "div",
+                { className: "wbi-tagsel-list" },
+                ids.map(function(id) {
+                  return h2(
+                    "button",
+                    {
+                      key: id,
+                      type: "button",
+                      className: "wbi-tagselitem",
+                      title: tr(lang, "\u79FB\u9664", "Remove"),
+                      onClick: function() {
+                        toggle(id);
+                      }
+                    },
+                    h2("span", { className: "wbi-tagnm" }, names[String(id)] || "#" + id),
+                    h2("span", { className: "wbi-tagx" }, "\xD7")
+                  );
+                })
+              )
+            ) : null,
+            items: opts.tags.map(function(x) {
+              return { id: x.id, name: x.name };
+            }),
+            selected: ids,
+            onToggle: toggle,
+            query,
+            onQuery: setQuery,
+            title: tr(lang, "\u5168\u90E8\u6807\u7B7E", "All tags"),
+            total: opts.total,
+            selectedText: tr(lang, "\u5DF2\u9009", "Selected"),
+            clearText: tr(lang, "\u6E05\u7A7A", "Clear"),
+            onClear: function() {
+              onChange([]);
+              setQuery("");
+            },
+            searchPlaceholder: tr(lang, "\u641C\u7D22\u6807\u7B7E\u540D\u79F0", "Search tag names"),
+            loading,
+            hasMore: opts.hasMore,
+            onLoadMore: function() {
+              load(query, (opts.pageNumber || 1) + 1, true);
+            },
+            emptyText: tr(lang, "\u6682\u65E0\u6807\u7B7E", "No tags yet"),
+            noMatchText: tr(lang, "\u6CA1\u6709\u5339\u914D\u7684\u6807\u7B7E", "No matching tags"),
+            loadingText: tr(lang, "\u52A0\u8F7D\u4E2D\u2026", "Loading\u2026"),
+            noMoreText: tr(lang, "\u6CA1\u6709\u66F4\u591A", "No more")
+          })
+        ) : null
+      );
+    };
   }
 });
 
@@ -2101,11 +2571,12 @@ var require_records = __commonJS({
     var h2 = ui.h;
     var tr = ui.tr;
     var StorageCard = require_card().StorageCard;
+    var TagFilter = require_tagfilter();
     var selection = require_selection();
     function Records(props) {
       var api = props.api, lang = props.lang;
-      var items = React.useState(null), error = React.useState(null), loading = React.useState(true), query = React.useState(""), text = React.useState(""), page = React.useState(1), size = React.useState(12), sort = React.useState("update_time"), order = React.useState("desc"), tick = React.useState(0), editing = React.useState(null), deleting = React.useState(null), preview = React.useState(null), busy = React.useState(false), caps = React.useState(false), ready = React.useState(false), confirmDelete = React.useState(true), tag = React.useState(null), bulk = React.useState(null), bulkError = React.useState(null), notice = React.useState(""), pending = React.useRef(false), bodyMode = React.useState("markdown");
-      var scope = JSON.stringify([query[0], text[0], page[0], size[0], sort[0], order[0], tag[0] && tag[0].id, tick[0]]);
+      var items = React.useState(null), error = React.useState(null), loading = React.useState(true), query = React.useState(""), text = React.useState(""), page = React.useState(1), size = React.useState(12), sort = React.useState("update_time"), order = React.useState("desc"), tick = React.useState(0), editing = React.useState(null), deleting = React.useState(null), preview = React.useState(null), busy = React.useState(false), caps = React.useState(false), ready = React.useState(false), confirmDelete = React.useState(true), tagIds = React.useState([]), bulk = React.useState(null), bulkError = React.useState(null), notice = React.useState(""), pending = React.useRef(false), bodyMode = React.useState("markdown");
+      var scope = JSON.stringify([query[0], text[0], page[0], size[0], sort[0], order[0], tagIds[0].join(","), tick[0]]);
       var rows = items[0] && items[0].scope === scope ? items[0].records : [];
       var selected = selection.useSelection(scope, rows, busy[0] || !!bulk[0]);
       function deleteSelected() {
@@ -2167,7 +2638,7 @@ var require_records = __commonJS({
           loading[1](true);
           error[1](null);
           var args = { text: text[0], pageNumber: page[0], pageSize: size[0], sortColumn: sort[0], sortOrder: order[0] };
-          if (tag[0]) args.tagIds = [tag[0].id];
+          if (tagIds[0].length) args.tagIds = tagIds[0];
           ui.call(api, "storage.list", args).then(function(r) {
             if (!active) return;
             if (page[0] > Math.max(1, r.pages || 1)) {
@@ -2276,23 +2747,19 @@ var require_records = __commonJS({
             },
             order[0] === "desc" ? tr(lang, "\u964D\u5E8F \u2193", "Descending \u2193") : tr(lang, "\u5347\u5E8F \u2191", "Ascending \u2191")
           ),
-          h2(ui.Button, { icon: "refresh", onClick: refresh, disabled: loading[0] }, tr(lang, "\u5237\u65B0", "Refresh"))
+          h2(ui.Button, { icon: "refresh", onClick: refresh, disabled: loading[0] }, tr(lang, "\u5237\u65B0", "Refresh")),
+          h2(TagFilter, {
+            api,
+            lang,
+            enabled: caps[0],
+            ids: tagIds[0],
+            reloadKey: tick[0],
+            onChange: function(next) {
+              tagIds[1](next);
+              page[1](1);
+            }
+          })
         ),
-        tag[0] ? h2(
-          "div",
-          { className: "wbi-row" },
-          h2("span", { className: "wbi-chip" }, tag[0].name),
-          h2(
-            ui.Button,
-            {
-              onClick: function() {
-                tag[1](null);
-                page[1](1);
-              }
-            },
-            tr(lang, "\u6E05\u9664\u6807\u7B7E\u7B5B\u9009", "Clear tag filter")
-          )
-        ) : null,
         selected.mode ? h2("p", { className: "wbi-muted" }, tr(
           lang,
           "\u4EC5\u9009\u62E9\u5F53\u524D\u9875\uFF1B\u641C\u7D22\u3001\u7B5B\u9009\u3001\u6392\u5E8F\u3001\u7FFB\u9875\u6216\u5237\u65B0\u4F1A\u6E05\u7A7A\u9009\u62E9\u3002Shift+\u70B9\u51FB\u8FDE\u9009\uFF0CEsc\u9000\u51FA\u3002",
@@ -2305,7 +2772,7 @@ var require_records = __commonJS({
           "div",
           { className: "wbi-empty" },
           h2(ui.Icon, { name: "empty", size: 48 }),
-          text[0] || tag[0] ? tr(lang, "\u6CA1\u6709\u5339\u914D\u7684\u7269\u54C1\uFF0C\u8BD5\u8BD5\u5176\u4ED6\u641C\u7D22\u6761\u4EF6", "No matching items. Try another filter.") : tr(lang, "\u8FD8\u6CA1\u6709\u7269\u54C1\uFF0C\u70B9\u51FB\u201C\u65B0\u589E\u7269\u54C1\u201D\u5F00\u59CB\u8BB0\u5F55", "No items yet. Add your first item.")
+          text[0] || tagIds[0].length ? tr(lang, "\u6CA1\u6709\u5339\u914D\u7684\u7269\u54C1\uFF0C\u8BD5\u8BD5\u5176\u4ED6\u641C\u7D22\u6761\u4EF6", "No matching items. Try another filter.") : tr(lang, "\u8FD8\u6CA1\u6709\u7269\u54C1\uFF0C\u70B9\u51FB\u201C\u65B0\u589E\u7269\u54C1\u201D\u5F00\u59CB\u8BB0\u5F55", "No items yet. Add your first item.")
         ) : null,
         h2(
           "div",
@@ -2319,11 +2786,12 @@ var require_records = __commonJS({
               caps: caps[0],
               busy: busy[0] || !!bulk[0],
               date,
+              keyword: String(text[0] || "").trim(),
               selectionMode: selected.mode,
               checked: selected.ids.includes(item.id),
               onCheck: selected.toggle,
               onTag: function(t) {
-                tag[1](t);
+                tagIds[1]([String(t.id)]);
                 page[1](1);
               },
               onPreview: preview[1],
@@ -3448,7 +3916,9 @@ var require_data_view = __commonJS({
         }
         function loadTables() {
           setLoadingTables(true);
-          Promise.resolve(api.call(DOMAIN + ".dataTables")).then(function(r) {
+          Promise.resolve((options.tablesLoader || function(a) {
+            return a.call(DOMAIN + ".dataTables");
+          })(api)).then(function(r) {
             if (r && r.ok === false) throw new Error(r && r.error || t.loadFail);
             var body = unwrap(r);
             if (!body || !Array.isArray(body.tables)) throw new Error(t.loadFail);
@@ -3513,7 +3983,9 @@ var require_data_view = __commonJS({
           if (sort) args.sort = sort;
           if (search) args.search = search;
           if (Object.keys(filters).length) args.filters = filters;
-          Promise.resolve(api.call(DOMAIN + ".dataQuery", args)).then(function(r) {
+          Promise.resolve((options.query || function(a, q) {
+            return a.call(DOMAIN + ".dataQuery", q);
+          })(api, args)).then(function(r) {
             if (req !== reqRef.current) return;
             if (r && r.ok === false) throw new Error(r && r.error || t.queryFail);
             var body = unwrap(r);
@@ -3895,7 +4367,7 @@ var require_data_view = __commonJS({
                 }
               }
             }),
-            h2("span", null, fmt(t.queryTime, { n: data ? data.queryMs : 0 }))
+            data && data.queryMs !== void 0 ? h2("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
           );
         }
         if (!tables && loadingTables && options.Skeleton) return h2(options.Skeleton, { lang, label: t.loading });
@@ -3931,7 +4403,7 @@ var require_data_view = __commonJS({
                   "span",
                   { className: P + "-stabname" },
                   h2("span", null, tableLabel(tb)),
-                  h2("span", { className: P + "-sidecount" }, String(tb.count))
+                  h2("span", { className: P + "-sidecount" }, tb.count === void 0 || tb.count === null ? "" : String(tb.count))
                 ),
                 h2("span", { className: P + "-sidetable" }, tb.name)
               );
@@ -3958,7 +4430,7 @@ var require_data_view = __commonJS({
                   h2(
                     "div",
                     { className: P + "-sub" },
-                    current ? fmt(t.rowCount, { n: current.count }) : "",
+                    current && data && data.total !== void 0 ? fmt(t.rowCount, { n: data.total }) : "",
                     current && current.deletedCount ? " \xB7 " + fmt(t.deletedCount, { n: current.deletedCount }) : "",
                     " \xB7 " + t.subtitle
                   )
@@ -4161,50 +4633,6 @@ var require_data = __commonJS({
       useConfig: require_config().useConfig,
       columns: require_data_columns()
     });
-  }
-});
-
-// packages/addons/lib/highlight.cjs
-var require_highlight = __commonJS({
-  "packages/addons/lib/highlight.cjs"(exports2, module2) {
-    "use strict";
-    module2.exports = function(React) {
-      var h2 = React.createElement;
-      function sourceOf(keyword) {
-        var pattern = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        return pattern.replace(/[a-zA-Z]/g, function(letter) {
-          return "[" + letter.toLowerCase() + letter.toUpperCase() + "]";
-        });
-      }
-      return function createHighlight(prefix) {
-        var className = String(prefix || "wb") + "-hit";
-        function hit(rawText, rawKeyword) {
-          var text = rawText == null ? "" : String(rawText);
-          var keyword = rawKeyword == null ? "" : String(rawKeyword);
-          if (!keyword) return text;
-          var matcher, match, end = 0, parts = [];
-          try {
-            matcher = new RegExp(sourceOf(keyword), "g");
-          } catch (error) {
-            return text;
-          }
-          while (match = matcher.exec(text)) {
-            if (match.index > end) parts.push(text.slice(end, match.index));
-            parts.push(h2("mark", { className, key: match.index }, match[0]));
-            end = match.index + match[0].length;
-            if (!match[0]) matcher.lastIndex += 1;
-          }
-          if (!parts.length) return text;
-          if (end < text.length) parts.push(text.slice(end));
-          return parts;
-        }
-        function Highlight(props) {
-          return hit(props.text, props.keyword);
-        }
-        Highlight.hit = hit;
-        return Highlight;
-      };
-    };
   }
 });
 
@@ -4591,7 +5019,7 @@ var require_action_schema_view = __commonJS({
               "div",
               { className: P + "-cardhead" },
               h2("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              h2("span", { className: P + "-badge" }, action.domain),
+              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
               h2("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
               rows.some(function(row) {
                 return row.required;
@@ -4758,7 +5186,8 @@ if (host) {
   h = require("react").createElement, Icon2 = require_icons().Icon;
   host.registerAddon({
     id: "wb-addon-storage",
-    version: "1.5.1",
+    version: "1.5.5",
+    icon: (init_package(), __toCommonJS(package_exports)).default,
     views: [
       { id: "stats", icon: tabIcon2("chart"), title: { zh: "\u7EDF\u8BA1", en: "Statistics" }, component: require_stats().Stats },
       { id: "storage", icon: tabIcon2("list"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: require_records().Records },

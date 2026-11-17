@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-sites",
-  "version": "1.10.0",
+  "version": "1.12.1",
   "type": "module",
   "description": "个人工作台站点插件：目录树、链接与标签",
   "main": "lib/index.js",
@@ -9,7 +9,7 @@
       "id": "wb-addon-sites",
       "title": "站点",
       "description": "站点 + 统计/记录/配置/数据四个视图：目录树、链接与标签，附表数据浏览",
-      "version": "1.10.0",
+      "version": "1.12.1",
       "minShell": "0.5.0",
       "tables": [
         "site",
@@ -60,7 +60,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.6.5"
+    "dsh-workbench-host": "^0.7.0"
   },
   "dsh": {
     "bundle": {

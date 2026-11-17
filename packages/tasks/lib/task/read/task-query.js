@@ -83,8 +83,8 @@ export function listTasks(db, args, api) {
   const titleKey = args.titleKey === undefined || args.titleKey === null ? "" : String(args.titleKey).trim();
   if (titleKey) {
     const key = titleKey.replace(/[\\%_]/g, "\\$&");
-    where.push("(t.title LIKE ? ESCAPE '\\' OR t.description LIKE ? ESCAPE '\\' OR t.review LIKE ? ESCAPE '\\')");
-    params.push("%" + key + "%", "%" + key + "%", "%" + key + "%");
+    where.push("(t.title LIKE ? ESCAPE '\\' OR t.description LIKE ? ESCAPE '\\' OR t.review LIKE ? ESCAPE '\\' OR t.id LIKE ? ESCAPE '\\')");
+    params.push("%" + key + "%", "%" + key + "%", "%" + key + "%", "%" + key + "%");
   }
 
   const tableId = idOf(args.tableId);

@@ -82,18 +82,39 @@ function validateManifest(value) {
         modules,
     };
 }
-/** 导出选中的业务模块；任一模块失败则整体失败，避免产出缺数据的备份。 */
+/**
+ * 导出选中的业务模块；任一模块失败则整体失败，避免产出缺数据的备份。
+ *
+ * moduleIds 为空（含 `all`）＝全量导出：跳过没有 exportData 的域，并在 manifest.skipped 注明；
+ * 显式列表＝调用方指定：未知模块或不可导出模块都拒绝，不静默丢数据。
+ */
 export async function createBackup(opts) {
-    const wanted = opts.moduleIds && opts.moduleIds.length ? new Set(opts.moduleIds) : null;
-    const selected = opts.domains.filter((d) => d.enabled && (!wanted || wanted.has(d.def.id)));
-    if (!selected.length)
-        throw new BackupError("没有可导出的模块");
+    const asked = (opts.moduleIds ?? []).filter((id) => id && id !== "all");
+    const wanted = asked.length ? new Set(asked) : null;
+    const known = new Map(opts.domains.map((d) => [d.def.id, d]));
     if (wanted) {
-        const known = new Set(opts.domains.map((d) => d.def.id));
         for (const id of wanted)
             if (!known.has(id))
                 throw new BackupError("模块未安装：" + id);
+        for (const id of wanted) {
+            const rec = known.get(id);
+            if (!rec.def.exportData)
+                throw new BackupError("模块未实现数据导出：" + rec.def.title, "not_exportable");
+        }
     }
+    const selected = opts.domains.filter((d) => d.enabled && (!wanted || wanted.has(d.def.id)));
+    if (!selected.length) {
+        throw new BackupError(wanted ? "选中的模块都未启用，无法导出：" + asked.join(", ") : "没有可导出的模块");
+    }
+    const skipped = wanted
+        ? []
+        : opts.domains
+            .filter((d) => d.enabled && typeof d.def.exportData !== "function")
+            .map((d) => ({ id: d.def.id, title: d.def.title, reason: "no-export" }));
+    // 全量导出只遍历能导出的域；显式列表在上面的校验里已保证都能导出。
+    const exportable = wanted ? selected : selected.filter((d) => typeof d.def.exportData === "function");
+    if (!exportable.length)
+        throw new BackupError("没有可导出的模块");
     const exportedAt = new Date().toISOString();
     const shellVersion = opts.shellVersion;
     const manifestBase = {
@@ -104,10 +125,8 @@ export async function createBackup(opts) {
     };
     const modules = [];
     const files = [];
-    for (const rec of selected) {
+    for (const rec of exportable) {
         const def = rec.def;
-        if (!def.exportData)
-            throw new BackupError("模块未实现数据导出：" + def.title, "export");
         let data;
         try {
             data = await def.exportData({ shellVersion, formatVersion: BACKUP_FORMAT_VERSION, exportedAt });
@@ -130,7 +149,7 @@ export async function createBackup(opts) {
             sha256: sha256(buf),
         });
     }
-    const manifest = { ...manifestBase, modules };
+    const manifest = skipped.length ? { ...manifestBase, modules, skipped } : { ...manifestBase, modules };
     files.unshift({ name: "manifest.json", data: Buffer.from(JSON.stringify(manifest, null, 2), "utf8") });
     const now = new Date();
     return { filename: "dsh-workbench-backup-" + stamp(now) + ".zip", buffer: zipCreate(files), manifest };

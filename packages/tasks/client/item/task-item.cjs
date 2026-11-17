@@ -81,8 +81,7 @@ module.exports = function (deps) {
     var reviewNode = bodySection(t.review, task.review, reviewMode, true);
 
 
-    // 信息层级：标题 → 标签/时间/路径（元信息区）→ [卡片] 操作按钮 → 描述 → 复核。
-    // 列表态操作按钮仍在标题行右侧；两种形态共用同一套节点，避免两套布局再次跑偏。
+    // 信息层级：标题 → 标签/时间/路径（元信息区）→ 描述 → 复核；操作按钮固定在标题行右侧。
     var line1 = h("div", { className: "wbt-line1" },
       openLike
         ? h("span", { className: "wbt-prio " + pClass(task.priority), children: "P" + task.priority })
@@ -90,7 +89,7 @@ module.exports = function (deps) {
       h("span", { className: "wbt-badge " + st.cls, children: stName }),
       titleNode
     );
-    var opsNode = h("div", { className: cx("wbt-ops", props.card && "wbt-ops-block"), key: "ops" }, ops);
+    var opsNode = h("div", { className: "wbt-ops", key: "ops" }, ops);
     var tagBlock = tagNodes.length ? h("div", { className: "wbt-tags", key: "tags" }, tagNodes) : null;
     // 工作区 chip：目录只是保存的绝对路径，无目录时只显示标题，完整路径放 title。
     var wsList = Array.isArray(task.workspaces) ? task.workspaces : [];
@@ -105,14 +104,24 @@ module.exports = function (deps) {
       ? h("div", { className: "wbt-metazone", key: "metazone" }, tagBlock, wsBlock, metaBlock, pathBlock)
       : null;
 
-    return h("div", { className: cx("wbt-item", props.card && "wbt-card", String(task.status) === "1" && "closed") },
+    // 卡片最下方一行任务 ID：可拖选复制；点击不冒泡，避免触发编辑或切换勾选。
+    var idNode = String(task.id || "")
+      ? h("div", {
+          className: "wbt-item-id",
+          key: "taskid",
+          title: String(task.id),
+          onClick: function (e) { e.stopPropagation(); },
+        }, t.taskId + " · " + String(task.id))
+      : null;
+
+    return h("div", { className: cx("wbt-item", String(task.status) === "1" && "closed") },
       props.selectionMode ? h("input", { type: "checkbox", className: "wbt-check", checked: !!props.checked, onChange: function () { props.onCheck(task.id); } }) : null,
       h("div", { className: "wbt-main" },
-        h("div", { className: "wbt-chead" }, line1, props.card ? null : opsNode),
+        h("div", { className: "wbt-chead" }, line1, opsNode),
         metaZone,
-        props.card ? opsNode : null,
         descNode,
-        reviewNode
+        reviewNode,
+        idNode
       )
     );
   }

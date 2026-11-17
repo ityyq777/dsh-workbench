@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-11-17T01:59:08.504Z",
+  "packages": [
+    "host",
+    "tasks",
+    "tags",
+    "sites",
+    "storage",
+    "message",
+    "vault",
+    "connector",
+    "automation",
+    "contacts",
+    "calendar",
+    "mail"
+  ],
+  "host": {
+    "name": "dsh-workbench-host",
+    "version": "0.7.0"
+  },
+  "addons": {
+    "tasks": {
+      "name": "dsh-workbench-tasks",
+      "version": "5.2.19"
+    },
+    "tags": {
+      "name": "dsh-workbench-tags",
+      "version": "1.7.1"
+    },
+    "sites": {
+      "name": "dsh-workbench-sites",
+      "version": "1.12.1"
+    },
+    "storage": {
+      "name": "dsh-workbench-storage",
+      "version": "1.5.5"
+    },
+    "message": {
+      "name": "dsh-workbench-message",
+      "version": "0.1.0"
+    },
+    "vault": {
+      "name": "dsh-workbench-vault",
+      "version": "0.3.5"
+    },
+    "connector": {
+      "name": "dsh-workbench-connector",
+      "version": "0.1.2"
+    },
+    "automation": {
+      "name": "dsh-workbench-automation",
+      "version": "0.2.1"
+    },
+    "contacts": {
+      "name": "dsh-workbench-contacts",
+      "version": "0.1.1"
+    },
+    "calendar": {
+      "name": "dsh-workbench-calendar",
+      "version": "0.1.1"
+    },
+    "mail": {
+      "name": "dsh-workbench-mail",
+      "version": "0.1.1"
+    }
+  }
+}

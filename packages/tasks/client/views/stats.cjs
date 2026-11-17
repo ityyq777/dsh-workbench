@@ -4,6 +4,7 @@ var h = React.createElement;
 var charts = require("../stats/charts.cjs");
 var configView = require("./config.cjs");
 var recentColumns = require("../item/recent-columns.cjs");
+var taskTitle = require("../stats/task-link.cjs");
 var rankingName = require("../item/ranking-name.cjs");
 var Heatmap = require("../stats/heatmap.cjs");
 var Today = require("../stats/today.cjs");
@@ -21,11 +22,15 @@ var COPY = {
     dueToday: "今日到期", dueNext7: "未来 7 天到期", newInRange: "范围内新增", avgCycle: "平均完成周期",
     days: "天", current: "当前", inRange: "范围内", ofTotal: "占总量", ofActive: "占已开启",
     trend: "新增 / 完成 / 到期趋势", trendNote: "按自然日 / 周 / 月分桶",
+    eventTrend: "事件趋势", eventTrendNote: "与年度活动同口径；按日 / 周 / 月分桶，目标按计划完成日期统计",
+    publish: "发布", target: "目标", evShutdown: "关闭", evClaimed: "接取",
     created: "新增", done: "完成", due: "到期",
     status: "状态构成", statusNote: "当前存量",
     priority: "优先级分布", priorityNote: "当前存量；不含已关闭/已完成；点柱形查看任务",
     pickHint: "点击柱形查看对应任务",
     difficulty: "难度分布", difficultyNote: "当前存量；包含未设置", difficultyMissing: "未填难度 {n} 条", difficultyMissingLink: "查看并补齐难度",
+    difficultyDimension: "难度分布口径", dimAll: "全部", dimDone: "完成", dimPublish: "发布", dimClaimed: "接取", dimShutdown: "关闭",
+    difficultyNoteRange: "年度活动口径 {from} ~ {to}；包含未设置",
     aging: "逾期账龄", agingNote: "当前逾期任务",
     overdueList: "逾期清单", overdueNote: "按账龄降序",
     tables: "任务表排行", tablesNote: "按已开启 + 逾期权重",
@@ -34,9 +39,12 @@ var COPY = {
     noWorkspaceRow: "未关联工作区", noWorkspaceNote: "正常状态：这些任务没有归属任何工作区", noWorkspacesEmpty: "还没有工作区，也没有未关联工作区的任务",
     colName: "名称", colTotal: "总数", colOpen: "已开启", colOverdue: "逾期", colDone: "已完成", colRate: "完成率",
     colTitle: "任务", colTarget: "计划完成", colAge: "逾期天数", colTable: "任务表",
+    recentTasks: "最近任务", recentTasksNote: "切换维度查看最近发布 / 完成 / 关闭 / 接取的任务",
+    recentTabPublish: "最近发布", recentTabDone: "最近完成", recentTabShutdown: "最近关闭", recentTabClaimed: "最近接取",
     recentPublish: "最近发布", recentPublishNote: "按发布日期倒序", noRecentPublish: "还没有发布的任务",
     recentDone: "最近完成", recentDoneNote: "按完成日期倒序", recentShutdown: "最近关闭", recentShutdownNote: "按关闭日期倒序",
     colDate: "日期", noRecentDone: "还没有已完成的任务", noRecentShutdown: "还没有已关闭的任务",
+    noRecentClaimed: "还没有已接取的任务（接取时间只记录 5.2.15 之后的操作）",
     noOverdue: "没有逾期任务", noData: "还没有任务。在「记录」里创建后，这里会自动汇总",
     open: "已开启", claimed: "已接取", shutdown: "已关闭", restarted: "已重启",
   },
@@ -50,11 +58,15 @@ var COPY = {
     dueToday: "Due today", dueNext7: "Due next 7d", newInRange: "New in range", avgCycle: "Avg cycle",
     days: "d", current: "Current", inRange: "In range", ofTotal: "of total", ofActive: "of active",
     trend: "Created / done / due trend", trendNote: "Bucketed by day / week / month",
+    eventTrend: "Event trend", eventTrendNote: "Same scope as annual activity; bucketed by day / week / month, target by planned date",
+    publish: "Published", target: "Target", evShutdown: "Closed", evClaimed: "Claimed",
     created: "Created", done: "Done", due: "Due",
     status: "Status", statusNote: "Current",
     priority: "Priority", priorityNote: "Current; excludes closed/completed; click a bar to list tasks",
     pickHint: "Click a bar to list matching tasks",
     difficulty: "Difficulty", difficultyNote: "Current; includes unset", difficultyMissing: "{n} tasks without difficulty", difficultyMissingLink: "Review missing difficulty",
+    difficultyDimension: "Difficulty scope", dimAll: "All", dimDone: "Done", dimPublish: "Published", dimClaimed: "Claimed", dimShutdown: "Closed",
+    difficultyNoteRange: "Annual activity scope {from} ~ {to}; includes unset",
     aging: "Overdue aging", agingNote: "Current overdue",
     overdueList: "Overdue list", overdueNote: "Oldest first",
     tables: "Task tables", tablesNote: "Weighted by active + overdue",
@@ -63,9 +75,12 @@ var COPY = {
     noWorkspaceRow: "No workspace", noWorkspaceNote: "Normal state: these tasks belong to no workspace", noWorkspacesEmpty: "No workspaces and no tasks without one yet",
     colName: "Name", colTotal: "Total", colOpen: "Active", colOverdue: "Overdue", colDone: "Done", colRate: "Completion",
     colTitle: "Task", colTarget: "Target", colAge: "Days late", colTable: "Table",
+    recentTasks: "Recent tasks", recentTasksNote: "Switch the dimension: recently published / completed / closed / claimed",
+    recentTabPublish: "Published", recentTabDone: "Completed", recentTabShutdown: "Closed", recentTabClaimed: "Claimed",
     recentPublish: "Recently published", recentPublishNote: "Newest publication first", noRecentPublish: "No published tasks yet",
     recentDone: "Recently completed", recentDoneNote: "Newest completion first", recentShutdown: "Recently closed", recentShutdownNote: "Newest closure first",
     colDate: "Date", noRecentDone: "No completed tasks yet", noRecentShutdown: "No closed tasks yet",
+    noRecentClaimed: "No claimed tasks yet (claim time is only recorded after 5.2.15)",
     noOverdue: "No overdue tasks", noData: "No tasks yet. Create one in Tasks and the summary appears here.",
     open: "Active", shutdown: "Closed", restarted: "Restarted",
   },
@@ -95,18 +110,28 @@ function priorityPicker(onNavigate) {
   };
 }
 
-function difficultyPicker(onNavigate) {
+// 维度页签下的柱形跳转要带上同一事件区间，否则跳过去看到的数字会对不上。
+function difficultyPicker(onNavigate, dimension, range) {
   if (typeof onNavigate !== "function") return null;
   return function (bin) {
     var key = bin && bin.key;
     if (key === "unset") { onNavigate("tasks", { difficultyMissing: true }); return; }
     var n = Number(key);
     if (!(n >= 0.5 && n <= 5)) return;
-    onNavigate("tasks", { difficultyMin: n, difficultyMax: n });
+    if (!dimension || dimension === "all") {
+      onNavigate("tasks", { difficultyMin: n, difficultyMax: n });
+      return;
+    }
+    var params = { filterRoot: true, difficultyMin: n, difficultyMax: n };
+    if (range && range.from && range.to) {
+      params[dimension + "From"] = range.from;
+      params[dimension + "To"] = range.to;
+    }
+    onNavigate("tasks", params);
   };
 }
 
-var CFG_FALLBACK = { "stats.range": "30d", "stats.top": 10, "stats.showKpi": true, "stats.recentPublishLimit": 10, "stats.recentDoneLimit": 10, "stats.recentShutdownLimit": 10 };
+var CFG_FALLBACK = { "stats.range": "30d", "stats.top": 10, "stats.showKpi": true, "stats.recentPublishLimit": 10, "stats.recentDoneLimit": 10, "stats.recentShutdownLimit": 10, "stats.recentClaimedLimit": 10 };
 
 function TasksStatsView(props) {
   var lang = props.lang === "en" ? "en" : "zh";
@@ -131,6 +156,12 @@ function TasksStatsBody(props) {
   var ch = React.useMemo(function () { return charts.makeCharts("wbt"); }, []);
   var rangePair = React.useState(cfgRange);
   var range = rangePair[0], setRange = rangePair[1];
+  // 难度分布口径：默认「全部」= 现有存量口径，删掉数据依赖，切换只重取一次 statsReport。
+  var dimPair = React.useState("all");
+  var dimension = dimPair[0], setDimension = dimPair[1];
+  // 「最近任务」卡的维度切换：只换行数据与空态，不写配置、不持久化。
+  var recentPair = React.useState("publish");
+  var recentType = recentPair[0], setRecentType = recentPair[1];
   var dataPair = React.useState(null);
   var data = dataPair[0], setData = dataPair[1];
   var errPair = React.useState("");
@@ -165,10 +196,12 @@ function TasksStatsBody(props) {
     var id = ++req.current;
     if (!silent) setLoading(true);
     var args = {
+      dimension: dimension,
       top: cfgTop,
       recentPublishLimit: cfgLimit("stats.recentPublishLimit"),
       recentDoneLimit: cfgLimit("stats.recentDoneLimit"),
       recentShutdownLimit: cfgLimit("stats.recentShutdownLimit"),
+      recentClaimedLimit: cfgLimit("stats.recentClaimedLimit"),
     };
     if (customOk) { args.from = customFrom; args.to = customTo; } else { args.range = range; }
     return Promise.resolve(api.call("tasks.statsReport", args))
@@ -182,7 +215,7 @@ function TasksStatsBody(props) {
         setErr(String((e && e.message) || e || "load failed"));
       })
       .then(function () { if (id === req.current) setLoading(false); });
-  }, [api, range, customOk, customFrom, customTo, cfgTop, cfg]);
+  }, [api, range, dimension, customOk, customFrom, customTo, cfgTop, cfg]);
 
   React.useEffect(function () { if (props.active !== false) load(true); }, [load, props.active]);
 
@@ -241,6 +274,19 @@ function TasksStatsBody(props) {
     if (totals.total === 0) {
       children.push(h(ch.Card, { key: "empty", span: 12 }, h(ch.Empty, { text: t.noData })));
     } else {
+      // 事件趋势与年度活动日历同口径（发布/目标/完成/关闭/接取），颜色对齐热力图 hue，
+      // 保证两张图同色同义；旧趋势卡的 created/due 是存量语义，两张卡并存不合并。
+      children.push(h(ch.Card, { key: "eventTrend", span: 12, title: t.eventTrend, note: t.eventTrendNote },
+        h(ch.Trend, {
+          data: data.eventTrend || [], lang: lang,
+          series: [
+            { key: "publish", label: t.publish, color: ch.colors[0] },
+            { key: "target", label: t.target, color: ch.colors[5] },
+            { key: "done", label: t.done, color: ch.colors[1] },
+            { key: "shutdown", label: t.evShutdown, color: ch.colors[3] },
+            { key: "claimed", label: t.evClaimed, color: ch.colors[2] },
+          ],
+        })));
       children.push(h(ch.Card, { key: "trend", span: 8, title: t.trend, note: t.trendNote },
         h(ch.Trend, {
           data: data.trend || [], lang: lang,
@@ -264,8 +310,20 @@ function TasksStatsBody(props) {
       children.push(h(ch.Card, { key: "priority", span: 6, title: t.priority, note: t.priorityNote },
         h(ch.Histogram, { data: visibleBins(b.priority), lang: lang, color: ch.colors[0], onSelect: priorityPicker(props.onNavigate), selectHint: lang === "en" ? "click to list" : "点击查看任务" })));
       var missingBin = (b.difficulty || []).find(function (bin) { return bin.key === "unset"; });
-      children.push(h(ch.Card, { key: "difficulty", span: 6, title: t.difficulty, note: t.difficultyNote },
-        h(ch.Histogram, { data: (b.difficulty || []).map(function (bin) { return bin.key === "unset" ? Object.assign({}, bin, { label: lang === "en" ? "Unset" : "未设置" }) : bin; }), lang: lang, color: ch.colors[4], onSelect: difficultyPicker(props.onNavigate), selectHint: lang === "en" ? "click to list" : "点击查看任务" }),
+      var dims = [["all", t.dimAll], ["done", t.dimDone], ["publish", t.dimPublish], ["claimed", t.dimClaimed], ["shutdown", t.dimShutdown]];
+      var rangeBox = data.range || {};
+      var diffNote = dimension === "all" ? t.difficultyNote
+        : t.difficultyNoteRange.replace("{from}", String(rangeBox.from || "")).replace("{to}", String(rangeBox.to || ""));
+      children.push(h(ch.Card, { key: "difficulty", span: 6, title: t.difficulty, note: diffNote },
+        h("div", { className: "wbt-dims", role: "tablist", "aria-label": t.difficultyDimension },
+          dims.map(function (item) {
+            return h("button", {
+              key: item[0], type: "button", role: "tab", className: "wbt-dims-tab",
+              "aria-selected": dimension === item[0],
+              onClick: function () { setDimension(item[0]); },
+            }, item[1]);
+          })),
+        h(ch.Histogram, { data: (b.difficulty || []).map(function (bin) { return bin.key === "unset" ? Object.assign({}, bin, { label: lang === "en" ? "Unset" : "未设置" }) : bin; }), lang: lang, color: ch.colors[4], onSelect: difficultyPicker(props.onNavigate, dimension, dims.length ? (data.range || null) : null), selectHint: lang === "en" ? "click to list" : "点击查看任务" }),
         h("p", null, t.difficultyMissing.replace("{n}", String(missingBin ? missingBin.count : 0)), " ",
           typeof props.onNavigate === "function" ? h("button", { type: "button", className: "wbt-btn ghost", onClick: function () { props.onNavigate("tasks", { difficultyMissing: true }); } }, t.difficultyMissingLink) : null)));
 
@@ -275,7 +333,7 @@ function TasksStatsBody(props) {
         h(ch.DataTable, listProps(data, "overdue", lang, {
           lang: lang, empty: t.noOverdue,
           columns: [
-            { key: "title", label: t.colTitle },
+            { key: "title", label: t.colTitle, render: taskTitle(lang, props.onNavigate) },
             { key: "targetDate", label: t.colTarget },
             { key: "daysOverdue", label: t.colAge, num: true },
             { key: "tableTitle", label: t.colTable },
@@ -325,12 +383,25 @@ function TasksStatsBody(props) {
       children.push(h(TimelineSection, { key: "timeline", api: api, lang: lang, active: props.active, ch: ch }));
 
       var recentCols = recentColumns(t, lang, props.onNavigate);
-      children.push(h(ch.Card, { key: "recentPublish", span: 4, title: t.recentPublish, note: t.recentPublishNote },
-        h(ch.DataTable, listProps(data, "recentPublish", lang, { lang: lang, empty: t.noRecentPublish, columns: recentCols }))));
-      children.push(h(ch.Card, { key: "recentDone", span: 4, title: t.recentDone, note: t.recentDoneNote },
-        h(ch.DataTable, listProps(data, "recentDone", lang, { lang: lang, empty: t.noRecentDone, columns: recentCols }))));
-      children.push(h(ch.Card, { key: "recentShutdown", span: 4, title: t.recentShutdown, note: t.recentShutdownNote },
-        h(ch.DataTable, listProps(data, "recentShutdown", lang, { lang: lang, empty: t.noRecentShutdown, columns: recentCols }))));
+      // 四个维度共用一张卡：tab 只切换清单键与空态文案，口径各自沿用原三张卡。
+      var recentTabs = [
+        ["publish", t.recentTabPublish, "recentPublish", t.noRecentPublish],
+        ["done", t.recentTabDone, "recentDone", t.noRecentDone],
+        ["shutdown", t.recentTabShutdown, "recentShutdown", t.noRecentShutdown],
+        ["claimed", t.recentTabClaimed, "recentClaimed", t.noRecentClaimed],
+      ];
+      var recentTab = recentTabs[0];
+      recentTabs.forEach(function (item) { if (item[0] === recentType) recentTab = item; });
+      children.push(h(ch.Card, { key: "recent", span: 12, title: t.recentTasks, note: t.recentTasksNote },
+        h("div", { className: "wbt-dims", role: "tablist", "aria-label": t.recentTasks },
+          recentTabs.map(function (item) {
+            return h("button", {
+              key: item[0], type: "button", role: "tab", className: "wbt-dims-tab",
+              "aria-selected": recentType === item[0],
+              onClick: function () { setRecentType(item[0]); },
+            }, item[1]);
+          })),
+        h(ch.DataTable, listProps(data, recentTab[2], lang, { lang: lang, empty: recentTab[3], columns: recentCols }))));
     }
     children.push(h(ch.Warnings, { key: "warn", items: data.warnings || [] }));
   }

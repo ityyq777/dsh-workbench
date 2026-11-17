@@ -1,0 +1,94 @@
+{
+  "name": "dsh-workbench-message",
+  "version": "0.1.0",
+  "description": "个人工作台消息插件：统一消息发送入口、收件箱、未读统计与提示音",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "wb": {
+    "addon": {
+      "id": "wb-addon-message",
+      "title": "消息",
+      "description": "统一消息入口 + 统计/收件箱/配置/数据四个视图：子插件与 agent 都能发消息，带未读计数与提示音",
+      "version": "0.1.0",
+      "minShell": "0.6.5",
+      "tables": [
+        "message"
+      ],
+      "views": [
+        "stats",
+        "inbox",
+        "config",
+        "data",
+        "actions"
+      ],
+      "toolActions": [
+        "message.send",
+        "message.list",
+        "message.unreadCount",
+        "message.markRead",
+        "message.stats",
+        "message.configGet",
+        "message.configSet",
+        "message.configReset",
+        "message.dataTables",
+        "message.dataQuery"
+      ],
+      "client": "lib/client.js"
+    }
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "dsh-workbench-host": "^0.7.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "dsh-workbench-host"
+      ]
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0"
+    }
+  },
+  "license": "MIT",
+  "author": "ityyq777",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "message",
+    "notification",
+    "inbox",
+    "sound"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ityyq777/dsh-workbench.git",
+    "directory": "packages/message"
+  },
+  "homepage": "https://github.com/ityyq777/dsh-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/ityyq777/dsh-workbench/issues"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

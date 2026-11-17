@@ -4,6 +4,7 @@ var React = require("react"),
 var h = ui.h,
   tr = ui.tr;
 var StorageCard = require("../item/card.cjs").StorageCard;
+var TagFilter = require("../ui/tagfilter.cjs");
 var selection = require("../ui/selection.cjs");
 function Records(props) {
   var api = props.api,
@@ -25,10 +26,10 @@ function Records(props) {
     caps = React.useState(false),
     ready = React.useState(false),
     confirmDelete = React.useState(true),
-    tag = React.useState(null),
+    tagIds = React.useState([]),
     bulk = React.useState(null), bulkError = React.useState(null), notice = React.useState(""),
     pending = React.useRef(false), bodyMode = React.useState("markdown");
-  var scope = JSON.stringify([query[0], text[0], page[0], size[0], sort[0], order[0], tag[0] && tag[0].id, tick[0]]);
+  var scope = JSON.stringify([query[0], text[0], page[0], size[0], sort[0], order[0], tagIds[0].join(","), tick[0]]);
   var rows = items[0] && items[0].scope === scope ? items[0].records : [];
   var selected = selection.useSelection(scope, rows, busy[0] || !!bulk[0]);
   function deleteSelected() {
@@ -86,7 +87,7 @@ function Records(props) {
       loading[1](true);
       error[1](null);
       var args = { text: text[0], pageNumber: page[0], pageSize: size[0], sortColumn: sort[0], sortOrder: order[0] };
-      if (tag[0]) args.tagIds = [tag[0].id];
+      if (tagIds[0].length) args.tagIds = tagIds[0];
       ui.call(api, "storage.list", args)
         .then(function (r) {
           if (!active) return;
@@ -198,24 +199,14 @@ function Records(props) {
         order[0] === "desc" ? tr(lang, "降序 ↓", "Descending ↓") : tr(lang, "升序 ↑", "Ascending ↑"),
       ),
       h(ui.Button, { icon: "refresh", onClick: refresh, disabled: loading[0] }, tr(lang, "刷新", "Refresh")),
+      h(TagFilter, {
+        api: api, lang: lang, enabled: caps[0], ids: tagIds[0], reloadKey: tick[0],
+        onChange: function (next) {
+          tagIds[1](next);
+          page[1](1);
+        },
+      }),
     ),
-    tag[0]
-      ? h(
-          "div",
-          { className: "wbi-row" },
-          h("span", { className: "wbi-chip" }, tag[0].name),
-          h(
-            ui.Button,
-            {
-              onClick: function () {
-                tag[1](null);
-                page[1](1);
-              },
-            },
-            tr(lang, "清除标签筛选", "Clear tag filter"),
-          ),
-        )
-      : null,
     selected.mode ? h("p", { className: "wbi-muted" }, tr(lang,
       "仅选择当前页；搜索、筛选、排序、翻页或刷新会清空选择。Shift+点击连选，Esc退出。",
       "Current page only. Search, filters, sorting, paging or refresh clear selection. Shift-click selects a range; Esc exits.")) : null,
@@ -227,7 +218,7 @@ function Records(props) {
           "div",
           { className: "wbi-empty" },
           h(ui.Icon, { name: "empty", size: 48 }),
-          text[0] || tag[0]
+          text[0] || tagIds[0].length
             ? tr(lang, "没有匹配的物品，试试其他搜索条件", "No matching items. Try another filter.")
             : tr(lang, "还没有物品，点击“新增物品”开始记录", "No items yet. Add your first item."),
         )
@@ -239,8 +230,12 @@ function Records(props) {
         ? rows.map(function (item) {
             return h(StorageCard, {
               key: item.id, item: item, lang: lang, bodyMode: bodyMode[0], caps: caps[0], busy: busy[0] || !!bulk[0], date: date,
+              keyword: String(text[0] || "").trim(),
               selectionMode: selected.mode, checked: selected.ids.includes(item.id), onCheck: selected.toggle,
-              onTag: function (t) { tag[1](t); page[1](1); },
+              onTag: function (t) {
+                tagIds[1]([String(t.id)]);
+                page[1](1);
+              },
               onPreview: preview[1], onEdit: editing[1],
               onDelete: function (v) { if (confirmDelete[0]) deleting[1](v); else remove(v); }
             });

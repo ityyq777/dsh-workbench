@@ -132,6 +132,12 @@ function readBounds(params, key, target) {
   if (!result && max) return null;
   return result ? result.value : next;
 }
+// 统计页任务标题跳转：只带 taskId，校验后交给记录页预填搜索框。
+function taskNavigation(params) {
+  if (!params || typeof params.taskId !== "string") return null;
+  var id = params.taskId.trim();
+  return /^[A-Za-z0-9_-]{1,64}$/.test(id) ? id : null;
+}
 function navigation(params) {
   if (!params) return null;
   var value;
@@ -187,5 +193,5 @@ module.exports = {
   range:range, limit:limit, limits:limits, clearDifficulty:clearDifficulty, args:args,
   toggleWorkspace:toggleWorkspace, toggleNoWorkspace:toggleNoWorkspace,
   presets:PRESETS.map(function (spec) { return spec.id; }), presetValue:presetValue, activePreset:activePreset,
-  navigation:navigation, save:save, load:load,
+  navigation:navigation, taskNavigation:taskNavigation, save:save, load:load,
 };

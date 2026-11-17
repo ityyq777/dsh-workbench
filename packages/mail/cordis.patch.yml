@@ -1,0 +1,5 @@
+- insert:
+    - id: workbench
+      name: dsh-workbench
+    - id: workbench-mail
+      name: dsh-workbench-mail

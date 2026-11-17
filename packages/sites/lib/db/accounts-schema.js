@@ -1,15 +1,14 @@
+/** 敏感字段（password/phone_number/identity_card）已迁出到凭据保险箱，不再建列。 */
 export const ACCOUNT_DDL = [
   "CREATE TABLE IF NOT EXISTS site_account (" +
     "id TEXT PRIMARY KEY," +
     "site_id TEXT NOT NULL," +
     "account_key TEXT NOT NULL DEFAULT ''," +
     "account TEXT NOT NULL DEFAULT ''," +
-    "password TEXT NOT NULL DEFAULT ''," +
-    "phone_number TEXT NOT NULL DEFAULT ''," +
-    "identity_card TEXT NOT NULL DEFAULT ''," +
     "remark TEXT NOT NULL DEFAULT ''," +
     "created_at INTEGER NOT NULL," +
     "updated_at INTEGER NOT NULL," +
+    "vault_set_id TEXT," +
     "deleted_at INTEGER," +
     "rev INTEGER NOT NULL DEFAULT 1" +
     ");",
@@ -24,6 +23,7 @@ export const EXTERNAL_DDL = [
     "external_account_id TEXT NOT NULL," +
     "created_at INTEGER NOT NULL," +
     "updated_at INTEGER NOT NULL," +
+    "vault_set_id TEXT," +
     "deleted_at INTEGER," +
     "rev INTEGER NOT NULL DEFAULT 1" +
     ");",

@@ -1,4 +1,5 @@
-import { idsOf, tagsOn, now, newId, logChange, pageInfo, sizeOf } from "../db/db.js";
+import { idsOf, tagsOn, now, newId, logChange, pageInfo, sizeOf, tableExists } from "../db/db.js";
+import { TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE, ensureTagSource, withTagSource } from "../tagging/source.js";
 export function validateTags(api, value) {
   const ids = idsOf(value);
   if (!tagsOn(api)) {
@@ -10,10 +11,37 @@ export function validateTags(api, value) {
       throw new Error("标签不存在：" + id);
   return ids;
 }
+/**
+ * 启动时幂等登记本域来源（`tag_mapping.item_type='storage'`）。
+ * 标签域未装或版本过低时静默跳过；重复注册不阻断启动，写入门禁在写入时给出可读错误。
+ */
+export function ensureStorageTagSource(db, log) {
+  if (!tableExists(db, "tag_source")) return { ok: false, skipped: "no_table" };
+  try {
+    const r = ensureTagSource(db, TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE);
+    const hit = db.prepare("SELECT COUNT(*) AS n FROM tag_source WHERE source=? AND deleted_at IS NULL").get(TAG_SOURCE);
+    const count = Number((hit && hit.n) || 0);
+    if (count !== 1 && typeof log === "function") {
+      log("标签来源登记异常（" + TAG_SOURCE + "）：当前 " + count + " 条活跃注册，标签写入会被拒绝");
+    }
+    return { ok: count === 1, count: count, created: !!(r && r.created) };
+  } catch (e) {
+    if (typeof log === "function") log("标签来源登记失败：" + String((e && e.message) || e));
+    return { ok: false, error: String((e && e.message) || e) };
+  }
+}
+
+/** 全量替换某条储物记录的标签（写入门禁：来源必须恰好注册一次）。 */
 export function replaceTags(api, itemId, ids, origin, ts = now()) {
   if (ids === null) return 0;
-  const db = api.db;
   if (!tagsOn(api)) return 0;
+  return withTagSource(api.db, TAG_SOURCE, function () {
+    return writeTags(api, itemId, ids, origin, ts);
+  });
+}
+
+function writeTags(api, itemId, ids, origin, ts) {
+  const db = api.db;
   const current = db.prepare("SELECT * FROM tag_mapping WHERE item_type='storage' AND item_id=?").all(itemId);
   let removed = 0;
   for (const row of current)

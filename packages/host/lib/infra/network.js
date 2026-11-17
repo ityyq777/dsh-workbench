@@ -135,6 +135,74 @@ export function installNetwork({ ctx, state, saveCreds, clock, domains, emit, su
             syncBusy = false;
         }
     }
+    // ── HTTP：/workbench/hooks/*（外部入口，不经过 DSH connection 门）──
+    // 鉴权由业务插件负责（token/HMAC/IP）；宿主只保证默认只监听本机回环。
+    ctx.effect?.(() => ctx.webServer?.register({
+        kind: "prefix",
+        path: "/workbench/hooks",
+        handler: async (req, res) => {
+            const send = (code, obj, headers = {}) => {
+                res.writeHead(code, { "content-type": "application/json", ...headers });
+                res.end(JSON.stringify(obj));
+            };
+            try {
+                const url = new URL(req.url ?? "", "http://local");
+                const p = url.pathname.replace(/^\/workbench\/hooks/, "");
+                const m = req.method ?? "GET";
+                if (m !== "POST" && m !== "GET")
+                    return send(405, { ok: false, error: "method not allowed" });
+                const hookM = /^\/([^/]+)\/([^/]+)$/.exec(p);
+                if (!hookM)
+                    return send(404, { ok: false, error: "no hook route " + p });
+                const domainId = decodeURIComponent(hookM[1]);
+                const hookName = decodeURIComponent(hookM[2]);
+                // 允许 /hooks/connector/inbound 这样的短域名；内部 id 仍是 wb-addon-connector。
+                const rec = domains.get(domainId) ?? domains.get("wb-addon-" + domainId);
+                const handler = rec?.hooks?.get(hookName);
+                if (!handler)
+                    return send(404, { ok: false, error: "no hook " + domainId + "/" + hookName });
+                const remote = String(req.socket?.remoteAddress ?? "");
+                const loopback = remote === "127.0.0.1" || remote === "::1" || remote === "::ffff:127.0.0.1";
+                if (!loopback)
+                    return send(403, { ok: false, error: "hook is local-only (use a reverse proxy)" });
+                const chunks = [];
+                let total = 0;
+                for await (const c of req) {
+                    const buf = c;
+                    total += buf.length;
+                    if (total > 1024 * 1024)
+                        return send(413, { ok: false, error: "body too large" });
+                    chunks.push(buf);
+                }
+                const body = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+                const out = await handler({
+                    method: m,
+                    path: p,
+                    query: Object.fromEntries(url.searchParams),
+                    headers: req.headers,
+                    remoteAddress: remote,
+                    body,
+                });
+                const status = Number(out?.status ?? 200);
+                const headers = out?.headers ?? {};
+                const payload = out?.body ?? { ok: true };
+                if (Buffer.isBuffer(payload) || payload instanceof Uint8Array) {
+                    res.writeHead(status, { "content-type": "application/octet-stream", ...headers });
+                    res.end(Buffer.from(payload));
+                    return;
+                }
+                if (typeof payload === "string") {
+                    res.writeHead(status, { "content-type": "text/plain; charset=utf-8", ...headers });
+                    res.end(payload);
+                    return;
+                }
+                send(status, payload, headers);
+            }
+            catch (e) {
+                return send(500, { ok: false, error: String((e && e.message) || e) });
+            }
+        },
+    }, "workbench-hooks"), "workbench-hooks");
     // ── HTTP：/workbench/api/*（同域 cookie 之外的连接门由 host connection.requestRejection 兜底）──
     ctx.effect?.(() => ctx.webServer?.register({
         kind: "prefix",
@@ -245,9 +313,9 @@ export function installNetwork({ ctx, state, saveCreds, clock, domains, emit, su
                     }
                 }
                 if (p === "/backup/export" && m === "GET") {
+                    const raw = url.searchParams.get("modules");
+                    const ids = raw && raw !== "all" ? raw.split(",").map((x) => x.trim()).filter(Boolean) : null;
                     try {
-                        const raw = url.searchParams.get("modules");
-                        const ids = raw && raw !== "all" ? raw.split(",").map((x) => x.trim()).filter(Boolean) : null;
                         const backup = await createBackup({ domains: backupDomains(), shellVersion: SHELL_VERSION, moduleIds: ids });
                         res.writeHead(200, {
                             "content-type": "application/zip",
@@ -259,7 +327,12 @@ export function installNetwork({ ctx, state, saveCreds, clock, domains, emit, su
                         return;
                     }
                     catch (e) {
-                        return send(500, { ok: false, error: String((e && e.message) || e) });
+                        const err = e;
+                        const code = err && err.name === "BackupError" && err.code ? String(err.code) : "export";
+                        // 调用方可纠正的问题给 4xx（带 machine-readable code），导出执行期异常才算 500。
+                        const status = code === "incompatible" ? 422 : code === "export" ? 500 : 400;
+                        log("备份导出失败", code, ids && ids.length ? ids.join(",") : "all");
+                        return send(status, { ok: false, code, error: String((e && e.message) || e) });
                     }
                 }
                 if (p === "/backup/import" && m === "POST") {

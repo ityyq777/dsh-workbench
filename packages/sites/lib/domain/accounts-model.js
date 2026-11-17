@@ -1,11 +1,11 @@
 /**
- * 站点账号的模型层：表结构、行读取、敏感字段封存与外联关系维护。
+ * 站点账号的模型层：表结构、行读取、掩码与外联关系维护。
  *
- * 纯数据形状与查询，不放 action 注册；CRUD 在 accounts.js 里复用这些助手。
+ * 纯数据形状与查询，不放 action 注册；敏感字段已整体交给凭据保险箱（见 accounts.js / vault-link.js），
+ * 本模块只认「哪些字段存在」的标记，不接触密文，也不接触明文。
  */
 
 import { newId, logChange, SITE_TABLE } from "../db/db.js";
-import { encryptField, decryptField, maskMiddle, requireKey, vaultStatus } from "./vault.js";
 
 export const ACCOUNT_TABLE = "site_account";
 export const EXTERNAL_TABLE = "site_account_external";
@@ -17,6 +17,8 @@ export const MAX_PHONE = 40;
 export const MAX_IDENTITY = 40;
 
 export { ACCOUNT_DDL, EXTERNAL_DDL } from "../db/accounts-schema.js";
+
+export const SENSITIVE_FIELDS = ["password", "phone", "identity"];
 
 /* ------------------------------------------------------------------ 读取 */
 
@@ -78,42 +80,38 @@ export function assertNoAccounts(db, siteId) {
 
 /** bindable 关闭守卫：本站账号被其他站点外联引用时拒绝关闭。 */
 export function assertBindableUnused(db, siteId) {
-  const refs = externalRefsOfSite(db, siteId);
-  if (refs.length) {
-    throw new Error("该站点的账号正被外联账号引用（" + refs.length + " 处），请先解除外联关系");
-  }
+  const rows = externalRefsOfSite(db, siteId);
+  if (rows.length > 0) throw new Error("无法关闭外联：本站点有 " + rows.length + " 个账号正被其他站点引用");
 }
 
-export function externalsOf(db, accountId, opts) {
-  const rows = db
+export function externalsOf(db, accountId) {
+  return db
     .prepare(
-      "SELECT e.id, e.external_account_id, a.account_key, a.site_id, s.site_name" +
-        " FROM " + EXTERNAL_TABLE + " e" +
-        " JOIN " + ACCOUNT_TABLE + " a ON a.id=e.external_account_id" +
-        " JOIN " + SITE_TABLE + " s ON s.id=a.site_id" +
-        " WHERE e.native_account_id=? AND e.deleted_at IS NULL AND a.deleted_at IS NULL",
+      "SELECT e.*, a.account_key AS account_key, a.site_id AS site_id, s.site_name AS site_name FROM " +
+        EXTERNAL_TABLE + " e JOIN " + ACCOUNT_TABLE + " a ON a.id=e.external_account_id" +
+        " JOIN site s ON s.id=a.site_id" +
+        " WHERE e.native_account_id=? AND e.deleted_at IS NULL AND a.deleted_at IS NULL ORDER BY e.created_at ASC",
     )
-    .all(String(accountId));
-  return rows.map((r) => ({
-    relationId: String(r.id),
-    accountId: String(r.external_account_id),
-    accountKey: String(r.account_key || ""),
-    siteId: String(r.site_id),
-    siteName: String(r.site_name || ""),
-  }));
+    .all(String(accountId))
+    .map((r) => ({
+      id: String(r.id),
+      externalAccountId: String(r.external_account_id),
+      accountKey: String(r.account_key || ""),
+      siteId: String(r.site_id),
+      siteName: String(r.site_name || ""),
+    }));
 }
 
-export function outAccount(db, row, opts) {
-  const reveal = Boolean(opts && opts.reveal);
-  const hasPassword = Boolean(row.password);
-  const hasPhone = Boolean(row.phone_number);
-  const hasIdentity = Boolean(row.identity_card);
-  // 掩码必须基于明文才能有意义；锁定时不解密，只说明「已保存」。
-  const unlocked = vaultStatus(db).unlocked;
-  const phone = hasPhone && unlocked ? decryptField(db, row.phone_number) : "";
-  const identity = hasIdentity && unlocked ? decryptField(db, row.identity_card) : "";
-  const lockedTip = "已保存";
-  const base = {
+/**
+ * 行 → 对外账号形状。
+ * entry = { fields:Set, ids:{} }，来自 vault-link.flagsOfSite；没有 entry 视为三个字段都未保存。
+ */
+export function outAccount(db, row, entry) {
+  const fields = (entry && entry.fields) || new Set();
+  const hasPassword = fields.has("password");
+  const hasPhone = fields.has("phone");
+  const hasIdentity = fields.has("identity");
+  return {
     id: String(row.id),
     siteId: String(row.site_id),
     accountKey: String(row.account_key || ""),
@@ -121,22 +119,18 @@ export function outAccount(db, row, opts) {
     hasPassword: hasPassword,
     hasPhone: hasPhone,
     hasIdentity: hasIdentity,
-    phoneNumber: hasPhone ? (unlocked ? maskMiddle(phone) : lockedTip) : "",
-    identityCard: hasIdentity ? (unlocked ? maskMiddle(identity) : lockedTip) : "",
+    vaultSetId: String((entry && entry.setId) || row.vault_set_id || ""),
+    vaultInvalid: Boolean(entry && entry.invalid),
+    phoneNumber: hasPhone ? "已保存" : "",
+    identityCard: hasIdentity ? "已保存" : "",
     remark: String(row.remark || ""),
     externals: externalsOf(db, row.id),
     createdAt: Number(row.created_at) || 0,
     updatedAt: Number(row.updated_at) || 0,
   };
-  if (!reveal) return base;
-  return Object.assign(base, {
-    password: decryptField(db, row.password),
-    phoneNumber: decryptField(db, row.phone_number),
-    identityCard: decryptField(db, row.identity_card),
-  });
 }
 
-export function listAccounts(db, siteId, opts) {
+export function listAccounts(db, siteId, flags) {
   const site = siteOf(db, siteId);
   if (!site) throw new Error("站点不存在：" + (siteId || "(空)"));
   const rows = db
@@ -146,21 +140,11 @@ export function listAccounts(db, siteId, opts) {
     siteId: String(site.id),
     siteName: String(site.site_name || ""),
     total: rows.length,
-    accounts: rows.map((row) => outAccount(db, row, opts)),
-    vault: vaultStatus(db),
+    accounts: rows.map((row) => outAccount(db, row, flags && flags.get(String(row.id)))),
   };
 }
 
 /* ------------------------------------------------------------------ 写入 */
-
-/** 敏感字段写入：空串表示清空；非空必须保险箱解锁。 */
-export function sealSensitive(db, value, label) {
-  const s = value == null ? "" : String(value);
-  if (!s) return "";
-  if (s.length > Math.max(MAX_PHONE, MAX_IDENTITY)) throw new Error(label + "过长");
-  requireKey(db);
-  return encryptField(db, s);
-}
 
 export function insertRelation(db, nativeId, externalId, ts, origin) {
   const existing = db
@@ -223,5 +207,11 @@ export function replaceExternals(db, nativeId, ids, ts, origin) {
   }
 }
 
-/** 写库前必须加密的列。 */
-export const SENSITIVE_COLUMNS = new Set(["password", "phone_number", "identity_card"]);
+/** 账号敏感字段在 vault 里的字段名（与 site.<siteId>.<accountId>.<field> 对应）。 */
+export function sensitiveInputOf(args) {
+  const out = [];
+  if (args.password !== undefined) out.push({ field: "password", value: String(args.password == null ? "" : args.password) });
+  if (args.phoneNumber !== undefined) out.push({ field: "phone", value: String(args.phoneNumber == null ? "" : args.phoneNumber) });
+  if (args.identityCard !== undefined) out.push({ field: "identity", value: String(args.identityCard == null ? "" : args.identityCard) });
+  return out;
+}

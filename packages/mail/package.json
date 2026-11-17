@@ -1,0 +1,104 @@
+{
+  "name": "dsh-workbench-mail",
+  "version": "0.1.1",
+  "description": "个人工作台邮件插件：IMAP 收信头、SMTP 发信、保险箱托管密码",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "wb": {
+    "addon": {
+      "id": "wb-addon-mail",
+      "title": "邮件",
+      "version": "0.1.1",
+      "minShell": "0.6.7",
+      "tables": [
+        "mail_account",
+        "mail_mailbox",
+        "mail_message",
+        "mail_attachment"
+      ],
+      "views": [
+        "messages",
+        "compose",
+        "accounts",
+        "data",
+        "actions"
+      ],
+      "toolActions": [
+        "mail.status",
+        "mail.accountList",
+        "mail.accountCreate",
+        "mail.accountUpdate",
+        "mail.accountDelete",
+        "mail.accountTest",
+        "mail.mailboxList",
+        "mail.mailboxSync",
+        "mail.messageList",
+        "mail.messageGet",
+        "mail.messageSend",
+        "mail.messageMarkRead",
+        "mail.messageMove",
+        "mail.messageDelete",
+        "mail.sync",
+        "mail.dataTables",
+        "mail.dataQuery",
+        "mail.actionSchema"
+      ],
+      "client": "lib/client.js"
+    }
+  },
+  "dependencies": {
+    "dsh-workbench-host": "^0.7.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "dsh-workbench-host"
+      ],
+      "platform": "web"
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0"
+    }
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "author": "ityyq777",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "mail",
+    "imap",
+    "smtp",
+    "email"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ityyq777/dsh-workbench.git",
+    "directory": "packages/mail"
+  },
+  "homepage": "https://github.com/ityyq777/dsh-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/ityyq777/dsh-workbench/issues"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

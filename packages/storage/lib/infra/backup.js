@@ -1,4 +1,5 @@
 import { fieldsOf, tableExists, tx, logChange } from "../db/db.js";
+import { TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE, ensureTagSource, tagSourceReady, tagSourceError } from "../tagging/source.js";
 export const SCHEMA_VERSION = 1;
 export function exportStorageData(api) {
   const db = api.db;
@@ -102,6 +103,11 @@ export function importStorageData(api, raw, options = {}) {
     const hasMappings = tableExists(db, "tag_mapping");
     if (mappings.length && (!hasMappings || !tableExists(db, "tag")))
       throw new Error("恢复标签映射需要先安装标签插件并恢复标签备份");
+    // 来源注册：标签域 ≥ 1.7.1 的写入门禁要求 item_type 先注册，否则整批映射都会被拒。
+    if (mappings.length && tableExists(db, "tag_source")) {
+      ensureTagSource(db, TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE);
+      if (!tagSourceReady(db, TAG_SOURCE).ok) throw tagSourceError(db, TAG_SOURCE);
+    }
     tx(db, () => {
       function apply(table, row) {
         const old = db.prepare("SELECT * FROM " + table + " WHERE id=?").get(row.id);

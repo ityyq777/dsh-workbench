@@ -44,13 +44,17 @@ function Heatmap(props) {
       h("div",{className:"wbt-hm-body"},
         h("div",{className:"wbt-hm-months","aria-hidden":true},geometry.days.filter(function(d){return d.first;}).map(function(d){return h("span",{key:d.date,style:{gridColumn:d.column}},new Date(Date.UTC(year,d.month,1)).toLocaleString(lang==="en"?"en-US":"zh-CN",{month:"short",timeZone:"UTC"}));})),
         h("div",{className:"wbt-hm-grid"},geometry.days.map(function(d){
-          var day=byDate[d.date]||{}, future=d.date>today, enabled=!future && model.count(day,type)>0;
-          var title=model.label(d.date,day,t,type)+(future?" · "+t.future:!model.count(day,type)?" · "+t.none:"");
-          return h("button",{key:d.date,type:"button",className:"wbt-hm-day"+(future?" wbt-hm-future":""),"data-date":d.date,title:title,"aria-label":title,"aria-disabled":!enabled,
+          var day=byDate[d.date]||{}, future=d.date>today, n=future?0:model.count(day,type), enabled=!future && n>0;
+          // 目标格只展示不跳转（活动筛选只认四类事件，点了会跳空列表）。
+          var clickable=enabled && type!=="target";
+          // 有活动才渲染数字；0 与未来日期留空，99+ 兜住三位数避免溢出 20px 方块。
+          var text=!future && n>0 ? (n>=100?"99+":String(n)) : "";
+          var title=model.label(d.date,day,t,type)+(future?" · "+t.future:!n?" · "+t.none:"");
+          return h("button",{key:d.date,type:"button",className:"wbt-hm-day"+(future?" wbt-hm-future":""),"data-date":d.date,"data-level":future?0:(n?model.level(n):0),"data-type":type,title:title,"aria-label":title,"aria-disabled":!clickable,
             style:{gridColumn:d.column,gridRow:d.row,background:future?"var(--hm-empty)":model.background(day,type)},
             onMouseEnter:function(){setTip(title);},onMouseLeave:function(){setTip("");},onFocus:function(){setTip(title);},onBlur:function(){setTip("");},
-            onClick:function(){if(enabled && props.onNavigate)props.onNavigate("tasks",{activityDate:d.date,activityType:type});}
-          });
+            onClick:function(){if(clickable && props.onNavigate)props.onNavigate("tasks",{activityDate:d.date,activityType:type});}
+          },text?h("span",{className:"wbt-hm-num","aria-hidden":true},text):null);
         }))
       )
     ))
@@ -61,8 +65,9 @@ function Heatmap(props) {
       h("strong",{"aria-live":"polite"},year),h("button",{type:"button",className:"wbt-hm-control","aria-label":t.next,disabled:year>=9999,onClick:function(){setYear(year+1);}},"›"))),
     content,h("div",{className:"wbt-hm-legend"},
       h("div",{className:"wbt-hm-types",role:"tablist","aria-label":t.title},model.TYPES.map(function(k){return h("button",{key:k,type:"button",className:"wbt-hm-control",role:"tab","aria-selected":type===k,onClick:function(){setType(k);setTip("");}},h("span",{className:"wbt-hm-swatch",style:{background:"var(--hm-"+k+"-4)"},"aria-hidden":true}),t[k]);})),
-      ready && h("span",{className:"wbt-hm-summary","aria-live":"polite"},tip||t.total+" · "+total),
+      ready && h("span",{className:"wbt-hm-summary","aria-live":"polite"},tip||(type==="target"?t.targetTotal:t.total)+" · "+total),
       type==="claimed" && h("span",{className:"wbt-hm-intensity-label"},t.claimedNote),
+      type==="target" && h("span",{className:"wbt-hm-intensity-label"},t.targetNote),
       h("div",{className:"wbt-hm-intensity",role:"img","aria-label":model.legendLabel(lang)},
         h("span",{className:"wbt-hm-intensity-label","aria-hidden":true},t.dailyCount),
         model.LEVELS.map(function(entry,index){return h("span",{key:entry.label,className:"wbt-hm-intensity-item","aria-hidden":true},

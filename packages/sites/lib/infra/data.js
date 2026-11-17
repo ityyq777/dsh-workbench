@@ -9,7 +9,6 @@
  */
 
 import { DOMAIN } from "./config.js";
-import { maskSecret, maskMiddle } from "../domain/vault.js";
 
 export const SCHEMA_VERSION = 1;
 
@@ -40,25 +39,13 @@ const COLUMN_LABELS = {
   rev: { zh: "版本号", en: "Rev" },
   account_key: { zh: "标识", en: "Key" },
   account: { zh: "登录名", en: "Account" },
-  password: { zh: "密码（掩码）", en: "Password (masked)" },
-  phone_number: { zh: "手机号（掩码）", en: "Phone (masked)" },
-  identity_card: { zh: "身份证（掩码）", en: "ID card (masked)" },
   remark: { zh: "备注", en: "Remark" },
   native_account_id: { zh: "引用方账号", en: "Native account" },
   external_account_id: { zh: "被引用账号", en: "External account" },
 };
 
-/** 数据页永不展示敏感列明文：密码整体掩码，手机/证件中间打码。 */
-const MASKED_COLUMNS = {
-  password: function (v) { return v ? maskSecret() : ""; },
-  phone_number: function (v) { return maskMiddle(v); },
-  identity_card: function (v) { return maskMiddle(v); },
-};
-
+/** 数据页：敏感字段已移入保险箱，site_account 不再有这三列。 */
 function maskRow(row) {
-  for (const name of Object.keys(MASKED_COLUMNS)) {
-    if (Object.prototype.hasOwnProperty.call(row, name)) row[name] = MASKED_COLUMNS[name](row[name]);
-  }
   return row;
 }
 

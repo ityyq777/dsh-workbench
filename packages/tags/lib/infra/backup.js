@@ -6,6 +6,7 @@
  */
 
 import { MAPPING_TABLE, TAG_TABLE, logChange, tableExists } from "../db/db.js";
+import { ensureSourceRegistered } from "../domain/sources.js";
 
 const SCHEMA_VERSION = 1;
 
@@ -197,6 +198,8 @@ export function importTagsData(api, raw, options) {
         skipped += 1;
         continue;
       }
+      // 旧备份可能带着从未注册过的 item_type：先补一条 legacy 注册，避免写入门禁整批拒绝。
+      ensureSourceRegistered(db, row.item_type);
       const values = mappingValues(row);
       if (policy === "skip" && mappingExists.get(values[0])) {
         skipped += 1;

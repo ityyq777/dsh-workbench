@@ -1,7 +1,10 @@
 var React = require("react"), ui = require("../ui/ui.cjs"), h = ui.h, tr = ui.tr;
 var Description = require("../../../lib/description.cjs").Description;
+// 搜索命中字段（名称/品牌/位置/备注）才高亮，单位与标签不在 storage.list 的命中集里。
+var Highlight = require("../ui/highlight.cjs")(React);
 function StorageCard(props) {
   var item = props.item, lang = props.lang, gallery = React.useState(false);
+  var keyword = String(props.keyword || "");
   var images = (item.imgList || []).filter(ui.safeImage), tags = item.tags || [];
   var shown = gallery[0] ? images : images.slice(0, 1);
   var hasStock = item.stock != null && item.stock !== "";
@@ -20,7 +23,7 @@ function StorageCard(props) {
       disabled: props.busy, "aria-label": tr(lang, "选择 ", "Select ") + item.name,
       onClick: function (e) { e.stopPropagation(); props.onCheck(item.id, e.shiftKey); },
       onChange: function () {} }) : null,
-    h("div", { className: "wbi-cardhead" }, h("h3", null, item.name),
+    h("div", { className: "wbi-cardhead" }, h("h3", null, h(Highlight, { text: item.name, keyword: keyword })),
       h("span", { className: "wbi-stock" }, h(ui.Icon, { name: "stock", size: 16 }),
         h("span", null, hasStock ? item.stock : "—"),
         hasStock && item.unit ? h("small", { className: "wbi-muted" }, item.unit) : null)),
@@ -30,13 +33,14 @@ function StorageCard(props) {
         onClick: function () { props.onTag(t); } }, t.name);
     })) : null,
     meta.length || item.createTime || item.updateTime ? h("div", { className: "wbi-metazone" },
-      meta.length ? h("div", { className: "wbi-muted" }, item.brand ? h("span", { className: "wbi-inline" }, h(ui.Icon, { name: "brand", size: 11 }), meta[0]) : null,
+      meta.length ? h("div", { className: "wbi-muted" }, item.brand ? h("span", { className: "wbi-inline" }, h(ui.Icon, { name: "brand", size: 11 }), tr(lang, "品牌：", "Brand: "), h(Highlight, { text: item.brand, keyword: keyword })) : null,
+        // 单位不参与文字搜索，按原样展示，避免「亮了却搜不到」的错觉。
         item.unit ? h("span", { className: "wbi-inline" }, h(ui.Icon, { name: "unit", size: 11 }), tr(lang, "单位：", "Unit: ") + item.unit) : null,
-        item.location ? h("span", { className: "wbi-inline" }, h(ui.Icon, { name: "location", size: 11 }), tr(lang, "位置：", "Location: ") + item.location) : null) : null,
+        item.location ? h("span", { className: "wbi-inline" }, h(ui.Icon, { name: "location", size: 11 }), tr(lang, "位置：", "Location: "), h(Highlight, { text: item.location, keyword: keyword })) : null) : null,
       item.createTime || item.updateTime ? h("div", { className: "wbi-meta" },
         item.createTime ? h("span", null, tr(lang, "创建 ", "Created ") + props.date(item.createTime)) : null,
         item.updateTime ? h("span", null, tr(lang, "更新 ", "Updated ") + props.date(item.updateTime)) : null) : null) : null,
-    h(Description, { text: item.remark, lang: lang, bodyMode: props.bodyMode }),
+    h(Description, { text: item.remark, lang: lang, bodyMode: props.bodyMode, Highlight: Highlight, keyword: keyword }),
     images.length ? h("div", { className: "wbi-images" }, shown.map(function (url, i) {
       return h("button", { key: i, type: "button", className: "wbi-image",
         "aria-label": tr(lang, "预览图片 ", "Preview image ") + (i + 1),

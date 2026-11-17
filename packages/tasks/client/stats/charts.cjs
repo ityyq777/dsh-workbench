@@ -35,6 +35,12 @@ function css(prefix) {
     ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer}",
     ".@-ghost:hover{border-color:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-brand-primary,#4f6ef7)}",
     ".@-muted{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+    // 难度分布的口径切换：轻量 tablist，视觉上与页首时间范围分段保持一致。
+    ".@-dims{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px}",
+    ".@-dims button{appearance:none;border:1px solid transparent;background:transparent;color:inherit;font:inherit;font-size:11.5px;padding:3px 8px;border-radius:6px;cursor:pointer;opacity:.7;white-space:nowrap}",
+    ".@-dims button:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5);opacity:1}",
+    ".@-dims button[aria-selected=true]{border-color:var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-skeleton,#f2f3f5);font-weight:600;opacity:1}",
+    ".@-dims button:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
     ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
     ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
     ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
@@ -265,7 +271,9 @@ function makeCharts(prefix) {
           );
         }),
         labelIdx.map(function (i) {
-          return h("text", { key: "x" + i, x: x(i), y: height - 6, textAnchor: "middle", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i].bucket).slice(5));
+          // 末点标签靠右对齐，否则「11-10」会被 viewBox 右边界裁成「11-1C」。
+          var anchor = i === data.length - 1 ? "end" : "middle";
+          return h("text", { key: "x" + i, x: x(i), y: height - 6, textAnchor: anchor, fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i].bucket).slice(5));
         }),
       ),
       h("div", { className: prefix + "-tlegend" }, series.map(function (s, i) {

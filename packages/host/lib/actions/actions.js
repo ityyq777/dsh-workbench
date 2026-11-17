@@ -1,7 +1,7 @@
 import { actionErrorText, schemaChoices } from "./action-output.js";
 import { createTaskTargets } from "./task-targets.js";
 import { createCapabilities } from "./capabilities.js";
-export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock, emit, db }) {
+export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock, emit, db, search }) {
     /** 宿主内置的元 action 归属域（不参与备份，也不是业务插件）。 */
     const META_DOMAIN = "wb-shell";
     /**
@@ -471,5 +471,29 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
         });
         return { shellVersion: meta.shellVersion, domains: meta.domains, actions };
     }
+    META_ACTIONS.set("search.query", {
+        description: "跨域搜索：并行调用已注册的搜索提供者（任务/标签/站点/连接器等），统一排序返回。单域超时 500ms 或失败不影响其他域，partial=true 并给出 failed。空查询返回空结果。",
+        input: {
+            type: "object",
+            properties: {
+                q: { type: "string", description: "查询词，1–100 字" },
+                domains: { type: "array", items: { type: "string" }, description: "限定业务域 id；省略搜索全部已注册 provider" },
+                limit: { type: "number", description: "返回上限，默认 20，最大 50" },
+            },
+            required: ["q"],
+        },
+        examples: [{ q: "工作台", limit: 10 }],
+        execute: (args) => search.query(args),
+        render: (result) => {
+            if (!result.items.length)
+                return "没有命中" + (result.partial ? "（部分域失败：" + result.failed.join("、") + "）" : "");
+            return result.items.map((x) => "[" + x.domainId + "] " + x.title + (x.snippet ? " — " + String(x.snippet).slice(0, 120) : "")).join("\n");
+        },
+    });
+    META_ACTIONS.set("search.providers", {
+        description: "列出已注册的跨域搜索提供者，供 UI 做域筛选。",
+        input: { type: "object", properties: {}, additionalProperties: false },
+        execute: () => ({ domains: search.list() }),
+    });
     return { invoke, actionNames, installTool, schemaSnapshot };
 }

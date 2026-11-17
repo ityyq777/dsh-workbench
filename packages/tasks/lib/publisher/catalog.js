@@ -40,12 +40,12 @@ export const TASK_COMMANDS = [
       { text: "/wb-task-publisher 修复配置页重置按钮不生效（附复现步骤）" },
     ],
     sentText: {
-      zh: "已把发布引导送入下一轮：先调研现状，再润色、判归属与时间线、选标签、查重，缺任务表/时间线/工作区会自行补齐，最后发布并在回执说明标签与自建内容。",
+      zh: "已把发布引导送入下一轮：先调研现状，再润色、判归属与时间线、自由联想标签、查重，缺任务表/时间线/工作区会自行补齐，最后发布并在回执说明标签与自建内容。",
       en: "Publisher guidance sent to the next turn: research, polish, ownership, timeline, tags, dedupe — missing tables, timelines or workspaces are created without asking — then publish, listing tags and anything it created.",
     },
     notes: {
-      zh: "命令会把你的原话与发布 SOP 送入下一轮模型：先调研现状，再润色、判归属与时间线、按维度选标签、查重，缺任务表 / 时间线 / 工作区时会自行补齐、不再追着你确认，并在回执里列出最终标签（标注沿用或新建）与「本次自建」内容。可以在需求后附截图或文档。",
-      en: "The command sends your words plus the publishing SOP into the next model turn: research the current state, polish, decide ownership and timeline, pick tags by dimension, check for duplicates, missing tables, timelines or workspaces are created without asking and listed in the receipt along with the final tags. Screenshots or docs can be attached.",
+      zh: "命令会把你的原话与发布 SOP 送入下一轮模型：先调研现状，再润色、判归属与时间线、自由联想标签（未知名字自动创建）、查重，缺任务表 / 时间线 / 工作区时会自行补齐、不再追着你确认，并在回执里列出全部标签（新建的单独标出）与「本次自建」内容。可以在需求后附截图或文档。",
+      en: "The command sends your words plus the publishing SOP into the next model turn: research the current state, polish, decide ownership and timeline, invent tags freely (unknown names are created automatically), check for duplicates, missing tables, timelines or workspaces are created without asking and listed in the receipt along with the final tags. Screenshots or docs can be attached.",
     },
     buildBrief: (options) => buildPublisherBrief(options),
   },

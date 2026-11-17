@@ -12,7 +12,7 @@ export const TASK_FILTER_SCHEMA = {
   publishTo: { type: ["string", "null"], description: "发布日终止（含），严格真实 YYYY-MM-DD（0001..9999 年）；可独立传，空串/null 等同未传。与 publishFrom 构成闭区间，反序自动交换；filter/notices 契约同 publishFrom。" },
   activityDate: { type: "string", pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", description: "活动日（合法 YYYY-MM-DD，1900..9999 年），与 tasks.activityCalendar 同口径；选定单一事件类型，与现有筛选 AND。全状态请传 statuses=[]。非 ids 导出与列表共用。" },
   activityType: { type: "string", enum: ["publish", "done", "shutdown", "claimed"], description: "需同时传 activityDate，缺省 done；publish=publish_date，done=status2 且 done_date，shutdown=status1 且 shutdown_date，claimed=status IN (2,4) 且按 COALESCE(claimed_at 本地日期, publish_date) 计。" },
-  titleKey: { type: "string", description: "关键词字面包含匹配，同时搜索标题、描述、感受（OR）；%/_/反斜杠按普通字符，ASCII 大小写不敏感" },
+  titleKey: { type: "string", description: "关键词字面包含匹配，同时搜索标题、描述、感受、任务 ID（OR）；任务 ID 支持完整值、前 8 位或中段片段；整体 ASCII 大小写不敏感，%/_/反斜杠按普通字符、不当作通配符" },
   tableId: { type: ["string", "number", "null"], description: "只看某个任务表" },
   groupId: { type: ["string", "number", "null"], description: "只看某个任务组下的所有任务表" },
   tableKey: { type: "string", description: "按任务表关键词过滤：同时匹配表名与表描述" },

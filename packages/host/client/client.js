@@ -74,6 +74,10 @@ var require_locale = __commonJS({
         open: "\u6253\u5F00",
         manage: "\u5DE5\u4F5C\u53F0\u7BA1\u7406",
         home_hint: "\u70B9\u5F00\u5361\u7247\u8FDB\u5165\u4E1A\u52A1\u63D2\u4EF6\uFF1B\u5B89\u88C5\u4E0E\u5378\u8F7D\u5728 DSH \u63D2\u4EF6\u7BA1\u7406\u91CC",
+        search_placeholder: "\u641C\u7D22\u4EFB\u52A1\u3001\u6807\u7B7E\u3001\u7AD9\u70B9\u3001\u8FDE\u63A5\u5668\u5185\u5BB9\u2026\uFF08\u2318K\uFF09",
+        searching: "\u641C\u7D22\u4E2D\u2026",
+        search_none: "\u6CA1\u6709\u547D\u4E2D",
+        search_partial: "\u90E8\u5206\u57DF\u641C\u7D22\u5931\u8D25",
         account_desc: "\u767B\u5F55\u4E91\u7AEF\u8D26\u53F7\uFF0C\u5907\u4EFD\u4E0E\u540C\u6B65\u6570\u636E",
         tab_audit: "\u5BA1\u8BA1\u65E5\u5FD7",
         audit_desc: "\u672C\u673A\u884C\u4E3A\u8D26\u672C\uFF1A\u8C01\u5728\u4F55\u65F6\u8C03\u7528\u4E86\u54EA\u4E2A action\u3001\u6210\u529F\u4E0E\u5426\uFF1B\u5BC6\u7801\u4E0E token \u7B49\u53C2\u6570\u5DF2\u8131\u654F",
@@ -242,6 +246,10 @@ var require_locale = __commonJS({
         open: "Open",
         manage: "Manage",
         home_hint: "Open a card to enter a domain; install or remove plugins in DSH",
+        search_placeholder: "Search tasks, tags, sites, connector items\u2026 (\u2318K)",
+        searching: "Searching\u2026",
+        search_none: "No matches",
+        search_partial: "Some domains failed",
         account_desc: "Sign in to back up and sync your data",
         tab_audit: "Audit log",
         audit_desc: "A local ledger of who called which action and how it went; passwords and tokens are redacted",
@@ -433,13 +441,19 @@ var require_styles = __commonJS({
       ".wb-page-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--wb-line)}",
       ".wb-page-loading{display:flex;flex-direction:column;gap:8px;align-items:flex-start}",
       ".wb-grow{flex:1;min-width:0}",
-      ".wb-immersive{position:fixed;inset:0;z-index:700;height:100vh;box-sizing:border-box;padding:var(--dsh-frame-top-clearance,0px) 0 0;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1,#faf7ea));backdrop-filter:saturate(1.05) blur(10px);overflow:hidden}",
-      ".wb-immersive-bar{display:flex;align-items:center;gap:10px;padding:9px 22px;border-bottom:1px solid var(--wb-line);flex:none;background:transparent}",
+      // 全屏页铺满整个窗口（inset:0），但根节点必须声明 -webkit-app-region:no-drag：
+      // macOS 的宿主 chrome 把顶部条带标成 drag 区，Electron 按图层几何计算拖拽区，
+      // 覆盖在 drag 区上的元素若不声明 no-drag，点击会被当成拖窗口，
+      // 「返回首页」按钮就永远收不到 click。工具栏空白段再恢复 drag（按钮另有 no-drag 规则）。
+      ".wb-immersive{position:fixed;inset:0;z-index:700;height:100vh;box-sizing:border-box;padding:0;background:var(--dsw-alias-bg-layer-2,var(--dsw-alias-bg-layer-1,#faf7ea));backdrop-filter:saturate(1.05) blur(10px);overflow:hidden;-webkit-app-region:no-drag}",
+      ".wb-immersive-bar{position:relative;display:flex;align-items:center;gap:10px;padding:calc(9px + var(--dsh-frame-top-clearance,0px)) 22px 9px;border-bottom:1px solid var(--wb-line);flex:none;background:transparent;-webkit-app-region:no-drag}",
+      ".wb-immersive-bar .wb-immersive-title{cursor:default;user-select:none}",
+      ".wb-immersive-bar button,.wb-immersive-bar a,.wb-immersive-bar input,.wb-immersive-bar select,.wb-immersive-bar textarea,.wb-immersive-bar [role=button]{-webkit-app-region:no-drag}",
       ".wb-immersive-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;opacity:.85}",
       ".wb-immersive-title .wb-home-icon{width:24px;height:24px;border-radius:7px;font-size:12px}",
       ".wb-immersive-main{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 24px 24px}",
       ".wb-immersive-main>.wb-inner{max-width:none}",
-      "@media (max-width:760px){.wb-root{padding:16px}.wb-home-grid{grid-template-columns:1fr}.wb-page-title h2{font-size:17px}.wb-immersive{padding:var(--dsh-frame-top-clearance,0px) 0 0}.wb-immersive-bar{padding:8px 14px}.wb-immersive-main{padding:14px 16px 20px}.wb-immersive-title span:not(.wb-home-icon):not(.wb-badge){display:none}}",
+      "@media (max-width:760px){.wb-root{padding:16px}.wb-home-grid{grid-template-columns:1fr}.wb-page-title h2{font-size:17px}.wb-immersive-bar{padding:calc(8px + var(--dsh-frame-top-clearance,0px)) 14px 8px}.wb-immersive-main{padding:14px 16px 20px}.wb-immersive-title span:not(.wb-home-icon):not(.wb-badge){display:none}}",
       ".wb-backup{display:flex;flex-direction:column;gap:14px}",
       ".wb-backup-item{display:flex;flex-direction:column}",
       ".wb-backup-row{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:1px solid var(--wb-line);border-radius:10px;background:var(--wb-surface)}",
@@ -502,7 +516,160 @@ var require_styles = __commonJS({
       ".wb-record-pill.err{opacity:1;border-color:var(--dsw-alias-state-error-primary,#e5484d);color:var(--dsw-alias-state-error-primary,#e5484d)}",
       ".wb-record-pill.err .wb-record-dot{background:currentColor;opacity:1}",
       ".wb-record-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5;flex:none}",
-      ".wb-record-pill.on .wb-record-dot{background:var(--dsw-alias-brand-primary,#11a89b);opacity:1;box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 18%,transparent)}"
+      ".wb-record-pill.on .wb-record-dot{background:var(--dsw-alias-brand-primary,#11a89b);opacity:1;box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,#11a89b) 18%,transparent)}",
+      ".wb-search-wrap{position:relative;display:flex;flex-direction:column;gap:6px}",
+      ".wb-search-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--wb-line);border-radius:10px;background:var(--wb-surface)}",
+      ".wb-search-bar:focus-within{border-color:var(--dsw-alias-brand-primary,#11a89b)}",
+      ".wb-search-icon{opacity:.55;font-size:15px;line-height:1}",
+      ".wb-search-input{flex:1;min-width:0;border:0;background:transparent;color:inherit;font:inherit;font-size:13px;outline:none}",
+      ".wb-search-kbd{font-size:11px;opacity:.5;border:1px solid var(--wb-line);border-radius:5px;padding:1px 5px}",
+      ".wb-search-panel{position:absolute;top:100%;left:0;right:0;z-index:40;margin-top:6px;max-height:340px;overflow:auto;border:1px solid var(--wb-line);border-radius:10px;background:var(--dsw-alias-bg-layer-1,var(--wb-surface));box-shadow:0 12px 32px rgba(0,0,0,.18);padding:6px}",
+      ".wb-search-hit{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;border:0;border-radius:7px;background:transparent;color:inherit;font:inherit;font-size:12px;padding:7px 8px;cursor:pointer}",
+      ".wb-search-hit:hover{background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wb-search-domain{flex:none;min-width:52px;font-size:11px;opacity:.6;padding-top:2px}",
+      ".wb-search-hit-main{display:flex;flex-direction:column;gap:2px;min-width:0}",
+      ".wb-search-hit-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wb-search-hit-snippet{opacity:.65;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
+      ".wb-search-empty{padding:12px;font-size:12px;opacity:.65;text-align:center}",
+      // ── 统一 UI 设计系统：所有业务插件共享的 token 与基础件 ──
+      // 插件各自写过 --wb-border/--wb-accent 等变量但没有宿主兜底，导致大量 #2563eb、#fff 硬编码在深色模式下失效。
+      ".wb-root{--wb-border:var(--wb-line);--wb-card:var(--dsw-alias-bg-layer-1,var(--dsw-alias-bg-layer-2,#fff));--wb-surface:var(--dsw-alias-bg-layer-1,var(--dsw-alias-bg-layer-2,#fff));--wb-accent:var(--dsw-alias-brand-primary,#11a89b);--wb-muted:var(--dsw-alias-label-secondary,color-mix(in oklab,currentColor 58%,transparent));--wb-ok:var(--dsw-alias-state-success-primary,#18a058);--wb-warn:var(--dsw-alias-state-warn-primary,var(--dsw-alias-state-warning-primary,#d48806));--wb-danger:var(--dsw-alias-state-error-primary,#e5484d);--wb-radius-card:14px;--wb-space-md:14px}",
+      ".wb-root *{scrollbar-width:thin;scrollbar-color:color-mix(in oklab,currentColor 22%,transparent) transparent}",
+      ".wb-root ::-webkit-scrollbar{width:10px;height:10px}.wb-root ::-webkit-scrollbar-thumb{background:color-mix(in oklab,currentColor 18%,transparent);border-radius:999px;border:2px solid transparent;background-clip:padding-box}",
+      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page){width:100%;max-width:none;margin:0;padding:0;gap:16px;box-sizing:border-box}",
+      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page) h2{font-size:20px;line-height:1.3;font-weight:680;letter-spacing:-.02em;margin:0}",
+      ".wb-root :is(.wbc-sub,.wba-sub,.wbct-sub,.wbca-sub,.wbm-sub,.wbv-muted,.wbct-muted,.wbc-muted,.wba-muted,.wbca-muted,.wbm-muted){font-size:12.5px;line-height:1.55;color:var(--wb-muted)}",
+      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page) > :is(.wbc-head,.wba-head,.wbct-head,.wbca-head,.wbm-head){padding-bottom:12px;border-bottom:1px solid var(--wb-border);align-items:flex-start}",
+      ".wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card,.wbct-panel){background:var(--wb-card);border:1px solid var(--wb-border);border-radius:var(--wb-radius-card);padding:16px;box-shadow:0 1px 2px color-mix(in oklab,#000 4%,transparent);transition:border-color .15s ease,box-shadow .15s ease}",
+      ".wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card):hover{border-color:color-mix(in oklab,var(--wb-accent) 32%,var(--wb-border));box-shadow:0 2px 14px color-mix(in oklab,#000 6%,transparent)}",
+      ".wb-root :is(.wbc-grid,.wbv-grid,.wba-grid,.wbct-grid,.wbca-grid,.wbm-grid){gap:12px}",
+      ".wb-root :is(.wbc-kpi,.wbv-kpi,.wba-kpi,.wbct-kpi,.wbca-kpi,.wbm-kpi){font-size:26px;line-height:1.15;font-weight:680;letter-spacing:-.03em;font-variant-numeric:tabular-nums}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn){min-height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--wb-border);background:var(--wb-card);color:inherit;font:inherit;font-size:12.5px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,border-color .12s ease,color .12s ease,transform .12s ease}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent) 8%,var(--wb-card));border-color:color-mix(in oklab,var(--wb-accent) 45%,var(--wb-border))}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):active:not(:disabled){transform:translateY(1px)}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):disabled{opacity:.45;cursor:not-allowed}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):is(.primary,.on){background:var(--wb-accent);border-color:var(--wb-accent);color:var(--dsw-alias-label-primary-inverted,#fff);font-weight:600}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn).primary:hover:not(:disabled){filter:brightness(1.06)}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):is(.danger){color:var(--wb-danger);border-color:color-mix(in oklab,var(--wb-danger) 40%,transparent);background:transparent}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn).danger:hover:not(:disabled){background:color-mix(in oklab,var(--wb-danger) 8%,var(--wb-card));border-color:var(--wb-danger)}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):focus-visible,.wb-root :is(.wbc-input,.wbv input,.wbc-field input,.wbc-field select,.wbc-field textarea,.wba-field input,.wba-field select,.wba-field textarea,.wbct-input,.wbct-field input,.wbca-input,.wbca-field input,.wbm-input,.wbm-field input,.wbm-field select,.wbm-field textarea):focus-visible{outline:2px solid color-mix(in oklab,var(--wb-accent) 55%,transparent);outline-offset:2px}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field){gap:6px;font-size:12px}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) > :is(.wbc-label,.wbv-label,.wba-label,.wbct-label,.wbca-label,.wbm-label){font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--wb-muted);opacity:1}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) :is(input,select,textarea),.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input){min-height:34px;padding:7px 10px;border:1px solid var(--wb-border);border-radius:8px;background:color-mix(in oklab,var(--wb-card) 92%,transparent);color:inherit;font:inherit;font-size:12.5px;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) :is(input,select,textarea):hover,.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input):hover{border-color:color-mix(in oklab,currentColor 26%,var(--wb-border))}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) :is(input,select,textarea):focus,.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input):focus{border-color:var(--wb-accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--wb-accent) 14%,transparent);outline:none}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table){width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--wb-muted);padding:9px 10px;border-bottom:1px solid var(--wb-border);white-space:nowrap;background:color-mix(in oklab,currentColor 3%,transparent)}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) td{padding:10px;border-bottom:1px solid color-mix(in oklab,var(--wb-border) 70%,transparent);vertical-align:top}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) tbody tr{transition:background .12s ease}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) tbody tr:hover{background:color-mix(in oklab,var(--wb-accent) 4%,transparent)}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill){display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;border:1px solid var(--wb-border);background:color-mix(in oklab,currentColor 5%,transparent);color:inherit;font-size:11px;font-weight:500;line-height:1.5;white-space:nowrap}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill).ok{color:var(--wb-ok);border-color:color-mix(in oklab,var(--wb-ok) 35%,transparent);background:color-mix(in oklab,var(--wb-ok) 10%,transparent)}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill).warn{color:var(--wb-warn);border-color:color-mix(in oklab,var(--wb-warn) 35%,transparent);background:color-mix(in oklab,var(--wb-warn) 10%,transparent)}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill):is(.error,.bad){color:var(--wb-danger);border-color:color-mix(in oklab,var(--wb-danger) 35%,transparent);background:color-mix(in oklab,var(--wb-danger) 10%,transparent)}",
+      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice){padding:10px 12px;border:1px solid color-mix(in oklab,var(--wb-accent) 24%,var(--wb-border));border-left:3px solid var(--wb-accent);border-radius:8px;background:color-mix(in oklab,var(--wb-accent) 6%,var(--wb-card));color:inherit;font-size:12.5px;line-height:1.55}",
+      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice).error{border-color:color-mix(in oklab,var(--wb-danger) 30%,var(--wb-border));border-left-color:var(--wb-danger);background:color-mix(in oklab,var(--wb-danger) 7%,var(--wb-card))}",
+      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice).ok{border-color:color-mix(in oklab,var(--wb-ok) 30%,var(--wb-border));border-left-color:var(--wb-ok);background:color-mix(in oklab,var(--wb-ok) 7%,var(--wb-card))}",
+      ".wb-root :is(.wbc-empty,.wbv-empty,.wba-empty,.wbct-empty,.wbca-empty,.wbm-empty){padding:42px 20px;border:1px dashed var(--wb-border);border-radius:var(--wb-radius-card);background:color-mix(in oklab,currentColor 2%,transparent);color:var(--wb-muted);font-size:12.5px;line-height:1.6}",
+      ".wb-root :is(.wbc-json,.wbv-code,.wba-json,.wbct-json,.wbca-json,.wbm-json){margin:0;padding:12px;border:1px solid var(--wb-border);border-radius:10px;background:color-mix(in oklab,currentColor 4%,transparent);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.6;max-height:260px;overflow:auto}",
+      ".wb-root :is(.wbc-table-wrap,.wba-table-wrap,.wbct-table-wrap,.wbca-table-wrap,.wbm-table-wrap){overflow:auto;border:1px solid var(--wb-border);border-radius:var(--wb-radius-card);background:var(--wb-card)}",
+      ".wb-root :is(.wbc-table-wrap,.wba-table-wrap,.wbct-table-wrap,.wbca-table-wrap,.wbm-table-wrap) :is(.wbc-table,.wba-table,.wbct-table,.wbca-table,.wbm-table){border:0}",
+      ".wb-root .wba-pills{display:flex;flex-wrap:wrap;gap:6px}",
+      ".wb-root .wba-list{display:flex;flex-direction:column;gap:8px}",
+      ".wb-root .wba-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wb-root .wba-kv{display:grid;grid-template-columns:minmax(96px,auto) minmax(0,1fr);gap:6px 12px;font-size:12px}",
+      ".wb-root .wba-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}",
+      ".wb-root .wba-card-num{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}",
+      ".wb-root .wbct-list{display:flex;flex-direction:column;gap:8px}",
+      ".wb-root .wb-home-icon svg{display:block}",
+      ".wb-root :is(.wba-panel,.wbca-panel,.wbm-panel,.wbc-panel){margin-top:4px;padding:18px;border:1px solid color-mix(in oklab,var(--wb-accent) 28%,var(--wb-border));border-radius:var(--wb-radius-card);background:var(--wb-card);box-shadow:0 10px 36px color-mix(in oklab,#000 8%,transparent)}",
+      ".wb-root :is(.wba-panel,.wbca-panel,.wbm-panel,.wbc-panel) > h3{font-size:15px;font-weight:650;margin:0 0 12px}",
+      ".wb-root :is(.wba-code,.wbca-code,.wbm-code,.wbc-code){font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.65;resize:vertical;min-height:90px}",
+      ".wb-root :is(.wba-input,.wbca-input,.wbm-input,.wbc-input){min-height:34px}",
+      ".wb-root .wbct-panel{margin-top:2px;border-color:color-mix(in oklab,var(--wb-accent) 30%,var(--wb-border))}",
+      ".wb-root .wbct-pills{display:flex;flex-wrap:wrap;gap:8px 16px;padding:4px 0}",
+      ".wb-root .wbct-check{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}",
+      ".wb-root .wbct-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;resize:vertical}",
+      ".wb-root .wbm-list-row{transition:background .12s ease}.wb-root .wbm-list-row:hover{background:color-mix(in oklab,var(--wb-accent) 5%,transparent)}",
+      ".wb-root .wbm-body{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:13px;line-height:1.75;margin:10px 0 0;max-height:60vh;overflow:auto}",
+      ".wb-root .wbv-notice{color:inherit}.wb-root .wbv-pill{background:color-mix(in oklab,currentColor 5%,transparent);color:inherit}",
+      ".wb-root .wbv-pill.ok{background:color-mix(in oklab,var(--wb-ok) 10%,transparent);color:var(--wb-ok)}",
+      ".wb-root .wbv-pill.warn{background:color-mix(in oklab,var(--wb-warn) 10%,transparent);color:var(--wb-warn)}",
+      ".wb-root .wbv-pill.bad{background:color-mix(in oklab,var(--wb-danger) 10%,transparent);color:var(--wb-danger)}",
+      ".wb-root .wbc-wrap>.wbc-head,.wb-root .wba-wrap>.wba-head,.wb-root .wbct-wrap>.wbct-head,.wb-root .wbca-wrap>.wbca-head,.wb-root .wbm-page>.wbm-head{margin-bottom:0}",
+      ".wb-root :is(.wbc-row,.wba-row,.wbct-row,.wbca-row,.wbm-row){gap:8px}",
+      // 首页与导航视觉
+      ".wb-root .wb-inner{gap:18px;max-width:1120px}",
+      ".wb-root .wb-hero{padding:6px 2px 2px;align-items:center}",
+      ".wb-root .wb-hero h2{font-size:24px;font-weight:700;letter-spacing:-.02em}",
+      ".wb-root .wb-tag{font-size:12.5px;opacity:.58;margin-top:6px}",
+      ".wb-root .wb-home-grid{grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}",
+      ".wb-root .wb-home-card{position:relative;min-height:142px;padding:18px;border-radius:16px;background:var(--wb-card);box-shadow:0 1px 2px color-mix(in oklab,#000 3%,transparent);transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}",
+      ".wb-root .wb-home-card:hover{transform:translateY(-2px);border-color:color-mix(in oklab,var(--wb-accent) 50%,var(--wb-border));box-shadow:0 10px 28px color-mix(in oklab,#000 10%,transparent)}",
+      ".wb-root .wb-home-card .wb-home-icon{background:color-mix(in oklab,var(--wb-accent) 7%,var(--wb-card));border-color:color-mix(in oklab,var(--wb-accent) 12%,var(--wb-border))}",
+      ".wb-root .wb-home-icon{width:38px;height:38px;border-radius:11px;background:color-mix(in oklab,var(--wb-accent) 13%,transparent);color:var(--wb-accent);font-size:16px;font-weight:700;box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--wb-accent) 16%,transparent)}",
+      ".wb-root .wb-home-title{font-size:15px;font-weight:660;margin-top:8px}",
+      ".wb-root .wb-home-desc{font-size:12px;line-height:1.55;opacity:.62;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:56px}",
+      ".wb-root .wb-home-card .wb-badge{background:color-mix(in oklab,currentColor 5%,transparent);border:1px solid color-mix(in oklab,currentColor 8%,transparent);opacity:.72;font-variant-numeric:tabular-nums}",
+      ".wb-root .wb-home-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px;font-size:11.5px;color:var(--wb-muted);border-top:1px solid color-mix(in oklab,var(--wb-border) 65%,transparent)}",
+      ".wb-root .wb-home-foot b{font-weight:600;color:var(--wb-accent)}",
+      ".wb-root .wb-immersive-bar{background:color-mix(in oklab,var(--wb-card) 86%,transparent);backdrop-filter:saturate(1.15) blur(14px);box-shadow:0 1px 0 var(--wb-line)}",
+      ".wb-root .wb-page-tabs{gap:2px;padding:2px 0}",
+      ".wb-root .wb-tab{border-radius:8px 8px 0 0;padding:9px 13px;font-weight:500}",
+      ".wb-root .wb-tab.on{background:color-mix(in oklab,var(--wb-accent) 7%,transparent)}",
+      // 邮件三栏：账户栏 / 列表 / 阅读
+      ".wb-root .wbm-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px;align-items:start;min-height:420px}",
+      ".wb-root .wbm-layout.has-detail{grid-template-columns:210px minmax(260px,.9fr) minmax(0,1.1fr)}",
+      ".wb-root .wbm-rail{display:flex;flex-direction:column;gap:10px;min-width:0}",
+      ".wb-root .wbm-rail-card{display:flex;flex-direction:column;gap:10px;padding:14px}",
+      ".wb-root .wbm-rail-title{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--wb-muted)}",
+      ".wb-root .wbm-rail-stats{display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--wb-muted)}",
+      ".wb-root .wbm-rail-stats b{font-size:15px;color:inherit;font-variant-numeric:tabular-nums;margin-right:2px}",
+      ".wb-root .wbm-rail-tip{font-size:11.5px;line-height:1.55;color:var(--wb-muted);opacity:.8;padding:0 4px}",
+      ".wb-root .wbm-pane{border:1px solid var(--wb-border);border-radius:var(--wb-radius-card);background:var(--wb-card);min-width:0;overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 250px)}",
+      ".wb-root .wbm-pane-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;border-bottom:1px solid var(--wb-border);font-size:12px;background:color-mix(in oklab,currentColor 2%,transparent)}",
+      ".wb-root .wbm-list{display:flex;flex-direction:column;overflow:auto;min-height:0}",
+      ".wb-root .wbm-list-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;text-align:left;border:0;border-bottom:1px solid color-mix(in oklab,var(--wb-border) 65%,transparent);background:transparent;color:inherit;font:inherit;padding:11px 14px;cursor:pointer;transition:background .12s ease}",
+      ".wb-root .wbm-list-row:last-child{border-bottom:0}",
+      ".wb-root .wbm-list-row:hover{background:color-mix(in oklab,var(--wb-accent) 5%,transparent)}",
+      ".wb-root .wbm-list-row.on{background:color-mix(in oklab,var(--wb-accent) 9%,transparent);box-shadow:inset 3px 0 0 var(--wb-accent)}",
+      ".wb-root .wbm-list-row .wbm-dot{width:7px;height:7px;border-radius:50%;margin-top:6px;background:color-mix(in oklab,currentColor 22%,transparent)}",
+      ".wb-root .wbm-list-row.unread .wbm-dot{background:var(--wb-accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--wb-accent) 15%,transparent)}",
+      ".wb-root .wbm-list-row.unread .wbm-subject{font-weight:700}",
+      ".wb-root .wbm-subject{display:block;font-size:12.5px;font-weight:560;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wb-root .wbm-snippet{display:block;font-size:11.5px;line-height:1.5;color:var(--wb-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}",
+      ".wb-root .wbm-list-row .wbm-time{font-size:11px;white-space:nowrap;color:var(--wb-muted);padding-top:2px}",
+      ".wb-root .wbm-detailpane{overflow:auto}",
+      ".wb-root .wbm-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--wb-border);background:color-mix(in oklab,currentColor 2%,transparent)}",
+      ".wb-root .wbm-detail-title{display:flex;flex-direction:column;gap:4px;min-width:0}",
+      ".wb-root .wbm-detail-title strong{font-size:15px;line-height:1.4;overflow-wrap:anywhere}",
+      ".wb-root .wbm-detail-meta{display:flex;gap:16px;flex-wrap:wrap;padding:10px 16px;font-size:11.5px;color:var(--wb-muted);border-bottom:1px solid color-mix(in oklab,var(--wb-border) 65%,transparent)}",
+      ".wb-root .wbm-detailpane .wbm-body{padding:0 16px 18px;margin:0}",
+      "@media (max-width:980px){.wb-root .wbm-layout,.wb-root .wbm-layout.has-detail{grid-template-columns:180px minmax(0,1fr)}.wb-root .wbm-layout.has-detail .wbm-detailpane{grid-column:1/-1;max-height:none}}",
+      "@media (max-width:760px){.wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page){padding:16px 14px 28px;gap:14px}.wb-root .wb-hero h2{font-size:20px}.wb-root .wb-home-card{min-height:0;padding:16px}.wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card,.wbct-panel){padding:14px;border-radius:12px}.wb-root .wbm-layout,.wb-root .wbm-layout.has-detail{grid-template-columns:1fr}.wb-root .wbm-pane{max-height:none}.wb-root .wbm-rail{order:2}}",
+      // 全宽模块页：去掉两侧留白，并把视图标签并入唯一的一层顶栏。
+      ".wb-root .wb-inner{max-width:none}",
+      ".wb-root .wb-immersive-main{padding:16px 22px 24px}",
+      ".wb-root .wb-immersive-main>.wb-inner{max-width:none;width:100%;padding:0}",
+      ".wb-root .wb-immersive-bar{padding:calc(8px + var(--dsh-frame-top-clearance,0px)) 18px 8px;background:var(--wb-card);box-shadow:none;border-bottom:1px solid var(--wb-line);-webkit-app-region:no-drag}",
+      ".wb-root .wb-immersive-bar .wb-page-tabs{border-bottom:0;margin:0 0 0 auto;padding:0;flex-wrap:nowrap;overflow-x:auto;max-width:min(72vw,980px);scrollbar-width:none}",
+      ".wb-root .wb-immersive-bar .wb-page-tabs::-webkit-scrollbar{display:none}",
+      ".wb-root .wb-immersive-bar .wb-tab{padding:6px 10px;white-space:nowrap}",
+      "@media (max-width:760px){.wb-root .wb-immersive-bar{flex-wrap:nowrap;padding:calc(6px + var(--dsh-frame-top-clearance,0px)) 12px 6px}.wb-root .wb-immersive-bar .wb-page-tabs{max-width:none}.wb-root .wb-immersive-title{display:none}}",
+      "html[data-platform=darwin] .wb-root .wb-immersive-bar{padding-top:8px;padding-left:max(88px,calc(12px + var(--dsh-frame-leading-clearance,0px)))}",
+      // 顶栏分左右两区：左区标题+版本，右区标签，两区贴边。
+      ".wb-root .wb-immersive-bar{justify-content:space-between;gap:16px}",
+      ".wb-root .wb-immersive-left{display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 auto}",
+      ".wb-root .wb-immersive-bar .wb-grow{display:none}",
+      ".wb-root .wb-immersive-bar .wb-immersive-left .wb-back{margin-right:0}",
+      ".wb-root .wb-immersive-icon{display:none}",
+      "html[data-platform=darwin] .wb-root .wb-immersive-bar{position:relative}",
+      "html[data-platform=darwin] .wb-root .wb-immersive-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--wb-card);border:1px solid var(--wb-border);color:var(--wb-accent);z-index:1}",
+      "html[data-platform=darwin] .wb-root .wb-immersive-icon svg{width:17px;height:17px}",
+      ".wb-root .wb-immersive-bar .wb-immersive-title{flex:0 0 auto;min-width:0}",
+      ".wb-root .wb-immersive-bar .wb-immersive-title>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wb-root .wb-immersive-bar .wb-page-tabs{margin:0;flex:0 1 auto;min-width:0;max-width:none;justify-content:flex-start;gap:4px}",
+      ".wb-root .wb-immersive-bar .wb-tab{flex:0 0 auto;min-width:0;justify-content:center;text-align:center;padding:6px 10px}"
     ].join("\n");
     module2.exports = CSS2;
   }
@@ -660,11 +827,11 @@ var require_system_tabs = __commonJS({
         var t = props.t;
         var lang = props.lang;
         var addons = props.addons || [];
-        var exportable = addons.filter(function(a) {
-          return a && a.backup && a.backup.export;
+        var exportable = addons.filter(function(a2) {
+          return a2 && a2.backup && a2.backup.export;
         });
-        var idsKey = exportable.map(function(a) {
-          return a.id;
+        var idsKey = exportable.map(function(a2) {
+          return a2.id;
         }).join(",");
         var st = react2.useState({});
         var selected = st[0];
@@ -692,21 +859,21 @@ var require_system_tabs = __commonJS({
           setSelected(function(prev) {
             var next = {};
             var changed = false;
-            exportable.forEach(function(a) {
-              if (prev[a.id]) next[a.id] = true;
-              else next[a.id] = true;
-              if (!prev[a.id]) changed = true;
+            exportable.forEach(function(a2) {
+              if (prev[a2.id]) next[a2.id] = true;
+              else next[a2.id] = true;
+              if (!prev[a2.id]) changed = true;
             });
             Object.keys(prev).forEach(function(id) {
-              if (!exportable.some(function(a) {
-                return a.id === id;
+              if (!exportable.some(function(a2) {
+                return a2.id === id;
               })) changed = true;
             });
             return changed ? next : prev;
           });
         }, [idsKey]);
-        var allSelected = exportable.length > 0 && exportable.every(function(a) {
-          return selected[a.id];
+        var allSelected = exportable.length > 0 && exportable.every(function(a2) {
+          return selected[a2.id];
         });
         function toggle(id) {
           var next = Object.assign({}, selected);
@@ -715,8 +882,8 @@ var require_system_tabs = __commonJS({
         }
         function selectAll(flag) {
           var next = {};
-          exportable.forEach(function(a) {
-            next[a.id] = flag;
+          exportable.forEach(function(a2) {
+            next[a2.id] = flag;
           });
           setSelected(next);
         }
@@ -750,11 +917,11 @@ var require_system_tabs = __commonJS({
         }
         function doExport() {
           if (busy) return;
-          var chosen = exportable.filter(function(a) {
-            return selected[a.id];
+          var chosen = exportable.filter(function(a2) {
+            return selected[a2.id];
           });
-          var ids = chosen.map(function(a) {
-            return a.id;
+          var ids = chosen.map(function(a2) {
+            return a2.id;
           });
           if (!ids.length) {
             setMsg(t("backup_select_required"));
@@ -778,22 +945,22 @@ var require_system_tabs = __commonJS({
             var name = m ? m[1] : "dsh-workbench-backup.zip";
             return r.blob().then(function(blob) {
               var href = URL.createObjectURL(blob);
-              var a = document.createElement("a");
-              a.href = href;
-              a.download = name;
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
+              var a2 = document.createElement("a");
+              a2.href = href;
+              a2.download = name;
+              document.body.appendChild(a2);
+              a2.click();
+              a2.remove();
               setTimeout(function() {
                 URL.revokeObjectURL(href);
               }, 1500);
               setMsg(t("backup_download_started"));
               var rows = [];
-              chosen.forEach(function(a2) {
-                var tables = a2.tables || [];
-                if (!tables.length) rows.push({ id: a2.id + ":*", table: "\u2014", module: a2.title || a2.id, version: a2.version });
+              chosen.forEach(function(a3) {
+                var tables = a3.tables || [];
+                if (!tables.length) rows.push({ id: a3.id + ":*", table: "\u2014", module: a3.title || a3.id, version: a3.version });
                 tables.forEach(function(table) {
-                  rows.push({ id: a2.id + ":" + table, table, module: a2.title || a2.id, version: a2.version });
+                  rows.push({ id: a3.id + ":" + table, table, module: a3.title || a3.id, version: a3.version });
                 });
               });
               setExported(rows);
@@ -812,8 +979,8 @@ var require_system_tabs = __commonJS({
           setMsg("");
           setReport(null);
           var policyMap = {};
-          exportable.forEach(function(a) {
-            policyMap[a.id] = policyOf(a.id);
+          exportable.forEach(function(a2) {
+            policyMap[a2.id] = policyOf(a2.id);
           });
           fetch("/workbench/api/backup/import", { method: "POST", headers: { "content-type": "application/zip", "x-wb-backup-policy": JSON.stringify(policyMap) }, body: file }).then(function(r) {
             if (r.status === 422) {
@@ -839,10 +1006,10 @@ var require_system_tabs = __commonJS({
             setBusy("");
           });
         }
-        function moduleCaps(a) {
+        function moduleCaps(a2) {
           var caps = [];
-          if (a.backup && a.backup.export) caps.push(t("backup_cap_export"));
-          if (a.backup && a.backup.import) caps.push(t("backup_cap_import"));
+          if (a2.backup && a2.backup.export) caps.push(t("backup_cap_export"));
+          if (a2.backup && a2.backup.import) caps.push(t("backup_cap_import"));
           return caps.join(" \xB7 ");
         }
         return jsx2.jsxs("div", { className: "wb-backup", children: [
@@ -858,18 +1025,18 @@ var require_system_tabs = __commonJS({
                 }, children: t("backup_clear") })
               ] })
             ] }),
-            exportable.length ? jsx2.jsx("div", { className: "wb-stack", style: { marginTop: 10 }, children: exportable.map(function(a) {
-              var open = !!openConfig[a.id];
+            exportable.length ? jsx2.jsx("div", { className: "wb-stack", style: { marginTop: 10 }, children: exportable.map(function(a2) {
+              var open = !!openConfig[a2.id];
               return jsx2.jsxs(react2.Fragment, { children: [
                 jsx2.jsxs("div", { className: "wb-backup-row" + (open ? " open" : ""), children: [
                   jsx2.jsxs("label", { className: "wb-backup-row-main", children: [
-                    jsx2.jsx("input", { type: "checkbox", checked: !!selected[a.id], onChange: function() {
-                      toggle(a.id);
+                    jsx2.jsx("input", { type: "checkbox", checked: !!selected[a2.id], onChange: function() {
+                      toggle(a2.id);
                     } }),
                     jsx2.jsxs("span", { className: "wb-backup-main", children: [
-                      jsx2.jsxs("span", { className: "wb-backup-name", children: [a.title || a.id, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a.version || "?") })] }),
-                      jsx2.jsx("span", { className: "wb-backup-meta", children: moduleCaps(a) }),
-                      a.description ? jsx2.jsx("span", { className: "wb-backup-meta", children: a.description }) : null
+                      jsx2.jsxs("span", { className: "wb-backup-name", children: [a2.title || a2.id, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a2.version || "?") })] }),
+                      jsx2.jsx("span", { className: "wb-backup-meta", children: moduleCaps(a2) }),
+                      a2.description ? jsx2.jsx("span", { className: "wb-backup-meta", children: a2.description }) : null
                     ] })
                   ] }),
                   jsx2.jsx("button", {
@@ -879,7 +1046,7 @@ var require_system_tabs = __commonJS({
                     "aria-label": t("backup_dup_policy"),
                     "aria-expanded": open,
                     onClick: function() {
-                      toggleConfig(a.id);
+                      toggleConfig(a2.id);
                     },
                     children: "\u2699"
                   })
@@ -888,9 +1055,9 @@ var require_system_tabs = __commonJS({
                   jsx2.jsx("span", { className: "wb-backup-config-label", children: t("backup_dup_policy") }),
                   jsx2.jsx("select", {
                     className: "wb-select",
-                    value: policyOf(a.id),
+                    value: policyOf(a2.id),
                     onChange: function(e) {
-                      setPolicy(a.id, e.target.value);
+                      setPolicy(a2.id, e.target.value);
                     },
                     children: [
                       jsx2.jsx("option", { value: "newest", children: t("backup_dup_newest") }),
@@ -900,7 +1067,7 @@ var require_system_tabs = __commonJS({
                   }),
                   jsx2.jsx("span", { className: "wb-backup-note", children: t("backup_dup_hint") })
                 ] }) : null
-              ] }, a.id);
+              ] }, a2.id);
             }) }) : jsx2.jsx("div", { className: "wb-msg", children: t("backup_no_modules") }),
             jsx2.jsxs("div", { className: "wb-backup-actions", style: { marginTop: 12 }, children: [
               jsx2.jsx("button", { className: "wb-btn", disabled: !!busy || !exportable.length, onClick: doExport, children: busy === "export" ? t("backup_exporting") : t("backup_export") }),
@@ -917,11 +1084,11 @@ var require_system_tabs = __commonJS({
               jsx2.jsx("h3", { children: t("backup_export_result") }),
               jsx2.jsx("span", { className: "wb-hint", children: t("backup_download_started") })
             ] }),
-            jsx2.jsx("div", { className: "wb-stack", children: exported.map(function(a) {
+            jsx2.jsx("div", { className: "wb-stack", children: exported.map(function(a2) {
               return jsx2.jsxs("div", { className: "wb-backup-result-row", children: [
-                jsx2.jsx("span", { className: "wb-backup-table", children: a.table }),
-                jsx2.jsxs("span", { className: "wb-backup-meta", children: [a.module, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a.version || "?") })] })
-              ] }, a.id);
+                jsx2.jsx("span", { className: "wb-backup-table", children: a2.table }),
+                jsx2.jsxs("span", { className: "wb-backup-meta", children: [a2.module, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a2.version || "?") })] })
+              ] }, a2.id);
             }) })
           ] }) : null,
           report ? jsx2.jsxs("div", { className: "wb-card wb-backup-report", children: [
@@ -1387,8 +1554,8 @@ function setAddons(list) {
   addonState.addons = Array.isArray(list) ? list : [];
   addonState.loaded = true;
   var alive = {};
-  addonState.addons.forEach(function(a) {
-    alive[a.id] = a;
+  addonState.addons.forEach(function(a2) {
+    alive[a2.id] = a2;
   });
   registry.forEach(function(_m, id) {
     if (!alive[id]) registry.delete(id);
@@ -1582,6 +1749,118 @@ function ensureCss() {
   s.textContent = CSS;
   document.head.appendChild(s);
 }
+function SearchPanel(props) {
+  var api = props.api;
+  var st = react.useState("");
+  var rs = react.useState([]);
+  var bs = react.useState(false);
+  var es = react.useState("");
+  var os = react.useState(false);
+  var inputRef = react.useRef(null);
+  var q = st[0];
+  var results = rs[0];
+  var loading = bs[0];
+  var error = es[0];
+  var open = os[0];
+  var t = props.t;
+  react.useEffect(function() {
+    function onKey(e) {
+      if ((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === "k") {
+        e.preventDefault();
+        os[1](true);
+        setTimeout(function() {
+          if (inputRef.current) inputRef.current.focus();
+        }, 0);
+      }
+      if (e.key === "Escape") os[1](false);
+    }
+    document.addEventListener("keydown", onKey);
+    return function() {
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+  react.useEffect(function() {
+    var text = String(q || "").trim();
+    if (!text) {
+      rs[1]([]);
+      es[1]("");
+      return;
+    }
+    var alive = true;
+    bs[1](true);
+    es[1]("");
+    var timer = setTimeout(function() {
+      api.post("/domains/wb-shell/actions/search.query", { q: text, limit: 20 }).then(function(j) {
+        if (!alive) return;
+        var data = j && j.result || j || {};
+        rs[1](data.items || []);
+        if (data.partial) es[1](t("search_partial") + ": " + (data.failed || []).join("\u3001"));
+      }).catch(function(e) {
+        if (alive) es[1](String(e && e.message || e));
+      }).then(function() {
+        if (alive) bs[1](false);
+      });
+    }, 220);
+    return function() {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [q]);
+  function pick(hit) {
+    os[1](false);
+    st[1]("");
+    if (hit.url) {
+      window.open(hit.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    var addon = (props.addons || []).filter(function(a2) {
+      return a2.id === hit.domainId;
+    })[0];
+    if (addon) props.go("addon:" + addon.id + ":" + (hit.view || ""));
+  }
+  return jsx.jsxs("div", { className: "wb-search-wrap", children: [
+    jsx.jsxs("div", { className: "wb-search-bar", children: [
+      jsx.jsx("span", { className: "wb-search-icon", children: "\u2315" }),
+      jsx.jsx("input", {
+        ref: inputRef,
+        className: "wb-search-input",
+        value: q,
+        placeholder: t("search_placeholder"),
+        onFocus: function() {
+          os[1](true);
+        },
+        onChange: function(e) {
+          st[1](e.target.value);
+          os[1](true);
+        },
+        onKeyDown: function(e) {
+          if (e.key === "Enter" && results.length) pick(results[0]);
+        }
+      }),
+      jsx.jsx("kbd", { className: "wb-search-kbd", children: "\u2318K" })
+    ] }),
+    open && String(q || "").trim() ? jsx.jsxs("div", { className: "wb-search-panel", children: [
+      loading ? jsx.jsx("div", { className: "wb-search-empty", children: t("searching") }) : null,
+      error ? jsx.jsx("div", { className: "wb-search-empty", children: error }) : null,
+      !loading && !error && results.length === 0 ? jsx.jsx("div", { className: "wb-search-empty", children: t("search_none") }) : null,
+      results.map(function(hit) {
+        var addon = (props.addons || []).filter(function(a2) {
+          return a2.id === hit.domainId;
+        })[0];
+        var title = addon ? addon.title || addon.id : hit.domainId;
+        return jsx.jsxs("button", { type: "button", className: "wb-search-hit", onClick: function() {
+          pick(hit);
+        }, children: [
+          jsx.jsx("span", { className: "wb-search-domain", children: title }),
+          jsx.jsxs("span", { className: "wb-search-hit-main", children: [
+            jsx.jsx("span", { className: "wb-search-hit-title", children: hit.title }),
+            hit.snippet ? jsx.jsx("span", { className: "wb-search-hit-snippet", children: hit.snippet }) : null
+          ] })
+        ] }, hit.domainId + ":" + hit.id);
+      })
+    ] }) : null
+  ] });
+}
 function WorkbenchPage(props) {
   var t = props.t;
   var store = useAddonStore();
@@ -1591,18 +1870,19 @@ function WorkbenchPage(props) {
   var navigation = react.useState({});
   var viewParams = navigation[0];
   var lang = currentLang();
+  var api = useApi();
   react.useEffect(function() {
     ensureCss();
   }, []);
-  var addons = (store.addons || []).filter(function(a) {
-    return a && a.enabled;
+  var addons = (store.addons || []).filter(function(a2) {
+    return a2 && a2.enabled;
   });
   var currentAddon = null;
   if (route.indexOf("addon:") === 0) {
     var parts = route.split(":");
     var wanted = parts[1] || "";
-    addons.forEach(function(a) {
-      if (a.id === wanted) currentAddon = a;
+    addons.forEach(function(a2) {
+      if (a2.id === wanted) currentAddon = a2;
     });
   }
   var mod = currentAddon ? registry.get(currentAddon.id) : null;
@@ -1626,13 +1906,15 @@ function WorkbenchPage(props) {
       go("addon:" + currentAddon.id + ":" + viewId, params);
     }
   }
-  function cardIcon(title) {
+  function cardIcon(id, title) {
+    var m = registry.get(id) || registry.get("wb-addon-" + id);
+    if (m && m.icon) return h(m.icon, { size: 18, strokeWidth: 1.9, "aria-hidden": "true" });
     return String(title || "?").slice(0, 1);
   }
-  function openAddon(a) {
-    var m = registry.get(a.id);
-    var v = m && m.views && m.views[0] || a.views && a.views[0] || null;
-    go("addon:" + a.id + ":" + (v && v.id ? v.id : ""));
+  function openAddon(a2) {
+    var m = registry.get(a2.id);
+    var v = m && m.views && m.views[0] || a2.views && a2.views[0] || null;
+    go("addon:" + a2.id + ":" + (v && v.id ? v.id : ""));
   }
   function pageHead(title, desc) {
     return jsx.jsxs("div", { className: "wb-page-head", children: [
@@ -1642,38 +1924,46 @@ function WorkbenchPage(props) {
         }, children: "\u2190 " + t("back_home") })
       ] }),
       jsx.jsxs("div", { className: "wb-page-title", children: [
-        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(title) }),
+        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(a.id, title) }),
         jsx.jsx("h2", { children: title })
       ] }),
       desc ? jsx.jsx("div", { className: "wb-page-desc", children: desc }) : null
     ] });
   }
-  function addonCard(a) {
-    var m = registry.get(a.id);
-    var v = m && m.views && m.views[0] || a.views && a.views[0] || null;
-    var title = a.title || pickTitle(v && v.title, lang) || a.id;
-    var count = m && m.views ? m.views.length : a.views ? a.views.length : 0;
-    return jsx.jsxs("button", { type: "button", className: "wb-home-card" + (a.error ? " dim" : ""), onClick: function() {
-      openAddon(a);
+  function addonCard(a2) {
+    var m = registry.get(a2.id);
+    var v = m && m.views && m.views[0] || a2.views && a2.views[0] || null;
+    var title = a2.title || pickTitle(v && v.title, lang) || a2.id;
+    var count = m && m.views ? m.views.length : a2.views ? a2.views.length : 0;
+    return jsx.jsxs("button", { type: "button", className: "wb-home-card" + (a2.error ? " dim" : ""), onClick: function() {
+      openAddon(a2);
     }, children: [
       jsx.jsxs("div", { className: "wb-home-top", children: [
-        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(a.title || title) }),
-        jsx.jsx("span", { className: "wb-badge", children: "v" + (a.version || "?") })
+        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(a2.id, a2.title || title) }),
+        jsx.jsx("span", { className: "wb-badge", children: "v" + (a2.version || "?") })
       ] }),
       jsx.jsx("div", { className: "wb-home-title", children: title }),
-      jsx.jsx("div", { className: "wb-home-desc", children: a.description || (count > 1 ? count + " " + t("views") : "") }),
-      a.error ? jsx.jsx("div", { className: "wb-err", children: t("addon_error") + ": " + a.error }) : null
-    ] }, a.id);
+      jsx.jsx("div", { className: "wb-home-desc", children: a2.description || (count > 1 ? count + " " + t("views") : "") }),
+      a2.error ? jsx.jsx("div", { className: "wb-err", children: t("addon_error") + ": " + a2.error }) : null,
+      jsx.jsxs("div", { className: "wb-home-foot", children: [
+        jsx.jsx("span", { children: count ? count + " " + t("views") : "" }),
+        jsx.jsx("b", { children: t("open") + " \u2192" })
+      ] })
+    ] }, a2.id);
   }
   function systemCard(key, icon, title, desc) {
     return jsx.jsxs("button", { type: "button", className: "wb-home-card", onClick: function() {
       go(key);
     }, children: [
       jsx.jsxs("div", { className: "wb-home-top", children: [
-        jsx.jsx("span", { className: "wb-home-icon", children: icon })
+        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(key, icon) })
       ] }),
       jsx.jsx("div", { className: "wb-home-title", children: title }),
-      jsx.jsx("div", { className: "wb-home-desc", children: desc })
+      jsx.jsx("div", { className: "wb-home-desc", children: desc }),
+      jsx.jsxs("div", { className: "wb-home-foot", children: [
+        jsx.jsx("span", { children: "" }),
+        jsx.jsx("b", { children: t("open") + " \u2192" })
+      ] })
     ] }, key);
   }
   if (route === "backup") {
@@ -1696,19 +1986,20 @@ function WorkbenchPage(props) {
     var addonTitle = currentAddon.title || pickTitle(activeView && activeView.title, lang) || currentAddon.id;
     return jsx.jsxs("div", { className: "wb-root wb-immersive", children: [
       jsx.jsxs("div", { className: "wb-immersive-bar", children: [
-        jsx.jsx("button", { className: "wb-back", onClick: function() {
-          go("home");
-        }, children: "\u2190 " + t("back_home") }),
-        jsx.jsx("div", { className: "wb-grow" }),
+        jsx.jsxs("div", { className: "wb-immersive-left", children: [
+          jsx.jsx("span", { className: "wb-immersive-icon", children: cardIcon(currentAddon.id, addonTitle) }),
+          jsx.jsx("button", { className: "wb-back", onClick: function() {
+            go("home");
+          }, children: "\u2190 " + t("back_home") }),
+          jsx.jsx(ViewTabs, { views: viewList, activeView, addonId: currentAddon.id, lang, go })
+        ] }),
         jsx.jsxs("div", { className: "wb-immersive-title", children: [
-          jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(addonTitle) }),
           jsx.jsx("span", { children: addonTitle }),
           jsx.jsx("span", { className: "wb-badge", children: "v" + (currentAddon.version || "?") })
         ] })
       ] }),
       jsx.jsxs("div", { className: "wb-immersive-main", children: [
         jsx.jsxs("div", { className: "wb-inner wb-wide", children: [
-          jsx.jsx(ViewTabs, { views: viewList, activeView, addonId: currentAddon.id, lang, go }),
           currentAddon.error ? jsx.jsx("div", { className: "wb-card", children: jsx.jsx("div", { className: "wb-err", children: t("addon_error") + ": " + currentAddon.error }) }) : canRender ? jsx.jsx(ViewOutlet, { view: activeView, viewProps: { api: apiFor(currentAddon.id), lang, addonId: currentAddon.id, t, viewParams, onNavigate: navigateView } }, currentAddon.id) : !viewList.length ? jsx.jsx("div", { className: "wb-card", children: jsx.jsx("div", { className: "wb-msg", children: t("no_views") }) }) : jsx.jsx("div", { className: "wb-card", children: jsx.jsx("div", { className: "wb-page-loading", children: jsx.jsx("div", { className: "wb-msg", style: { padding: "4px 0" }, children: lastAddonError ? t("addon_unavailable") + " \xB7 " + lastAddonError : t("addon_loading") }) }) })
         ] })
       ] })
@@ -1722,15 +2013,16 @@ function WorkbenchPage(props) {
           go("account");
         } })
       ] }),
+      jsx.jsx(SearchPanel, { api, addons, go, t }),
       addons.length ? jsx.jsx("div", { className: "wb-home-grid", children: addons.map(addonCard) }) : jsx.jsx("div", { className: "wb-card", children: jsx.jsx("div", { className: "wb-msg wb-empty-cta", children: t("no_installed") }) }),
       jsx.jsxs("div", { className: "wb-sec", children: [
         jsx.jsx("h3", { children: t("manage") }),
         jsx.jsx("span", { className: "wb-hint", children: t("home_hint") })
       ] }),
       jsx.jsxs("div", { className: "wb-home-grid manage", children: [
-        systemCard("backup", "\u2913", t("tab_backup"), t("backup_desc")),
-        systemCard("audit", "\u25A4", t("tab_audit"), t("audit_desc")),
-        systemCard("account", "\u2601", t("tab_account"), t("account_desc"))
+        systemCard("backup", "backup", t("tab_backup"), t("backup_desc")),
+        systemCard("audit", "audit", t("tab_audit"), t("audit_desc")),
+        systemCard("account", "account", t("tab_account"), t("account_desc"))
       ] })
     ] })
   ] });

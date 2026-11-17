@@ -21,6 +21,7 @@ import {
 } from "../db/db.js";
 import { quickStats, statsReport, renderStats } from "../stats/stats.js";
 import { configValues } from "../infra/config.js";
+import { sourceGate } from "./sources.js";
 
 const DEFAULT_PAGE_SIZE = 18;
 const MAX_PAGE_SIZE = 200;
@@ -203,6 +204,8 @@ function mapRow(row) {
 
 function linkTags(db, args, origin, api) {
   const itemType = itemTypeArg(args);
+  // 写入门禁：来源必须恰好注册一次（未注册 / 重复都抛带 code 的结构化错误）。
+  sourceGate(db, itemType);
   const tagIds = idListArg(args.tagIds, "tagIds");
   const itemIds = idListArg(args.itemIds !== undefined ? args.itemIds : args.itemId, "itemIds");
   if (!tagIds.length) throw new Error("tagIds 不能为空");
@@ -249,6 +252,7 @@ function linkTags(db, args, origin, api) {
 
 function unlinkTags(db, args, origin, api) {
   const itemType = itemTypeArg(args);
+  sourceGate(db, itemType);
   const itemIds = idListArg(args.itemIds !== undefined ? args.itemIds : args.itemId, "itemIds");
   const tagIds = args.tagIds === undefined ? [] : idListArg(args.tagIds, "tagIds");
   const ts = now();

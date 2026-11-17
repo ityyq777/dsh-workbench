@@ -12,6 +12,7 @@ import {
   logChange,
   tableExists,
 } from "../db/db.js";
+import { TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE, ensureTagSource, tagSourceReady, tagSourceError } from "../tagging/source.js";
 
 const SCHEMA_VERSION = 1;
 const TAG_MAPPING_TABLE = "tag_mapping";
@@ -151,6 +152,13 @@ export function importSitesData(api, raw, options) {
       "WHERE ? = 1 OR excluded.updated_at > site_node_mapping.updated_at",
   );
   const hasTagMapping = tableExists(db, TAG_MAPPING_TABLE);
+  // 来源注册：标签域 ≥ 1.7.1 的写入门禁要求 item_type 先注册，否则整批映射都会被拒。
+  if (hasTagMapping && data.tagMappings.length && tableExists(db, "tag_source")) {
+    ensureTagSource(db, TAG_SOURCE, TAG_SOURCE_OWNER, TAG_SOURCE_TITLE);
+    if (!tagSourceReady(db, TAG_SOURCE).ok) {
+      return { ok: false, imported: 0, skipped: 0, failed: 0, message: tagSourceError(db, TAG_SOURCE).message };
+    }
+  }
   const tagMappingUpsert = hasTagMapping
     ? db.prepare(
         "INSERT INTO tag_mapping(id,tag_id,item_id,item_type,created_at,updated_at,deleted_at,rev) VALUES(?,?,?,?,?,?,?,?) " +

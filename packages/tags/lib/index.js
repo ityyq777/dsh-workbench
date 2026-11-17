@@ -7,6 +7,7 @@ import { bindClock, ensureSchema } from "./db/db.js";
 import { exportTagsData, importTagsData } from "./infra/backup.js";
 import { tagSync } from "./infra/sync.js";
 import { registerTagActions } from "./domain/tags.js";
+import { ensureSourceSchema, registerSourceActions } from "./domain/sources.js";
 import { registerConfigActions } from "./infra/config.js";
 import { registerDataActions } from "./infra/data.js";
 
@@ -57,11 +58,25 @@ export function setup(api) {
   domainApi = api;
   if (typeof api.now === "function") bindClock(api.now);
   ensureSchema(api.db, api.log);
+  ensureSourceSchema(api.db, api.log);
   const actionDefs = trackActions(api);
   registerTagActions(api);
+  registerSourceActions(api);
   registerConfigActions(api);
   registerDataActions(api);
   registerActionSchemaAction(api, actionDefs, "wb-addon-tags");
+  if (typeof api.registerSearchProvider === "function") {
+    api.registerSearchProvider({
+      domainId: "wb-addon-tags",
+      search(q, { limit }) {
+        const like = "%" + String(q).replace(/[\\%_]/g, "\\$&") + "%";
+        const rows = api.db
+          .prepare("SELECT id,name,updated_at FROM tag WHERE deleted_at IS NULL AND name LIKE ? ESCAPE '\\' ORDER BY updated_at DESC LIMIT ?")
+          .all(like, Math.max(1, Math.min(50, Number(limit) || 20)));
+        return rows.map((r) => ({ id: r.id, title: r.name, snippet: "标签", view: "tags", at: r.updated_at }));
+      },
+    });
+  }
   api.log("tags domain ready", api.addon.version);
 }
 
@@ -74,7 +89,7 @@ export function apply(ctx) {
         id: "wb-addon-tags",
         title: "标签",
         description: "创建与管理标签，为站点等业务提供标签归类；含统计/记录/配置/数据四个视图",
-        version: "1.7.0",
+        version: "1.7.1",
         tables: ["tag", "tag_mapping"],
         sync: tagSync,
         views: [

@@ -27,27 +27,103 @@ function Editor(props) {
   var err = React.useState(null),
     busy = React.useState(false),
     query = React.useState(""),
-    options = React.useState(item.tags || []);
+    options = React.useState([]),
+    page = React.useState(0),
+    total = React.useState(0),
+    hasMore = React.useState(false),
+    loading = React.useState(false),
+    names = React.useState(function () {
+      var map = {};
+      (item.tags || []).forEach(function (t) {
+        map[String(t.id)] = t.name;
+      });
+      return map;
+    });
   var selected = React.useState(item.tags || []);
+  var seq = React.useRef(0);
+  // 每页 20 个标签：搜索回到第一页，滚动到底追加下一页；已选标签不随搜索/翻页丢失。
+  var load = React.useCallback(
+    function (text, pageNumber, append) {
+      var mine = ++seq.current;
+      loading[1](true);
+      return ui
+        .call(props.api, "storageTags.search", { text: text || "", pageNumber: pageNumber, pageSize: 20 })
+        .then(function (r) {
+          if (mine !== seq.current) return;
+          loading[1](false);
+          var records = (r && r.records) || [];
+          total[1]((r && r.total) || 0);
+          page[1]((r && r.current) || pageNumber);
+          hasMore[1](((r && r.current) || pageNumber) < ((r && r.pages) || 0));
+          options[1](function (prev) {
+            var list = append ? prev.slice() : [];
+            var seen = {};
+            list.forEach(function (x) {
+              seen[String(x.id)] = true;
+            });
+            records.forEach(function (x) {
+              if (!seen[String(x.id)]) list.push(x);
+            });
+            return list;
+          });
+          names[1](function (prev) {
+            var next = Object.assign({}, prev);
+            records.forEach(function (x) {
+              next[String(x.id)] = x.name;
+            });
+            return next;
+          });
+        })
+        .catch(function (e) {
+          if (mine !== seq.current) return;
+          loading[1](false);
+          err[1](e);
+        });
+    },
+    [props.api],
+  );
   React.useEffect(
     function () {
-      if (!props.tagsEnabled) return;
-      var active = true;
-      var timer = setTimeout(function () {
-        ui.call(props.api, "storageTags.search", { text: query[0], pageSize: 50 })
-          .then(function (r) {
-            if (active) options[1](r.records || []);
-          })
-          .catch(function (e) {
-            if (active) err[1](e);
-          });
-      }, 200);
+      if (!props.tagsEnabled) return undefined;
+      var timer = setTimeout(
+        function () {
+          load(query[0], 1, false);
+        },
+        query[0] ? 200 : 0,
+      );
       return function () {
-        active = false;
         clearTimeout(timer);
       };
     },
-    [query[0], props.tagsEnabled, props.api],
+    [query[0], props.tagsEnabled, load],
+  );
+  // 已选项可能不在当前页或当前搜索词里，按 id 补齐名字，保证保存前的勾选可读。
+  React.useEffect(
+    function () {
+      if (!props.tagsEnabled) return undefined;
+      var missing = form.tagIds.filter(function (id) {
+        return !names[0][String(id)];
+      });
+      if (!missing.length) return undefined;
+      var active = true;
+      ui.call(props.api, "storageTags.byIds", { ids: missing })
+        .then(function (r) {
+          if (!active) return;
+          var next = {};
+          ((r && r.records) || []).forEach(function (x) {
+            next[String(x.id)] = x.name;
+          });
+          if (!Object.keys(next).length) return;
+          names[1](function (prev) {
+            return Object.assign({}, prev, next);
+          });
+        })
+        .catch(function () {});
+      return function () {
+        active = false;
+      };
+    },
+    [props.api, props.tagsEnabled, form.tagIds.join(",")],
   );
   function update(k, v) {
     setForm(function (f) {
@@ -117,6 +193,20 @@ function Editor(props) {
   selected[0].concat(options[0]).forEach(function (t) {
     candidates.set(t.id, t);
   });
+  function onListScroll(e) {
+    var el = e.currentTarget;
+    if (!hasMore[0] || loading[0]) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) load(query[0], (page[0] || 1) + 1, true);
+  }
+  var tagsNote = loading[0]
+    ? tr(lang, "加载中…", "Loading…")
+    : !candidates.size
+      ? query[0]
+        ? tr(lang, "没有匹配的标签", "No matching tags")
+        : tr(lang, "暂无标签，可在标签插件中创建", "No tags. Create them in the Tags plugin.")
+      : hasMore[0]
+        ? ""
+        : tr(lang, "没有更多", "No more");
   return h(
     ui.Modal,
     {
@@ -157,7 +247,7 @@ function Editor(props) {
                 }),
                 h(
                   "div",
-                  { className: "wbi-tagoptions" },
+                  { className: "wbi-tagoptions", onScroll: onListScroll },
                   Array.from(candidates.values()).map(function (t) {
                     return h(
                       "label",
@@ -189,17 +279,11 @@ function Editor(props) {
                           });
                         },
                       }),
-                      t.name,
+                      names[0][String(t.id)] || t.name,
                     );
                   }),
                 ),
-                !candidates.size
-                  ? h(
-                      "span",
-                      { className: "wbi-muted" },
-                      tr(lang, "暂无标签，可在标签插件中创建", "No tags. Create them in the Tags plugin."),
-                    )
-                  : null,
+                h("div", { className: "wbi-tagmore" }, tagsNote),
               )
             : h(
                 "span",

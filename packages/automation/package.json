@@ -1,0 +1,102 @@
+{
+  "name": "dsh-workbench-automation",
+  "version": "0.2.1",
+  "description": "个人工作台自动化：定时/域事件/手动触发白名单 action，含模板、条件、限频与运行记录",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "wb": {
+    "addon": {
+      "id": "wb-addon-automation",
+      "title": "自动化",
+      "version": "0.2.1",
+      "minShell": "0.6.7",
+      "tables": [
+        "automation_rule",
+        "automation_run",
+        "automation_meta"
+      ],
+      "views": [
+        "stats",
+        "rules",
+        "runs",
+        "config",
+        "data",
+        "actions"
+      ],
+      "toolActions": [
+        "automation.status",
+        "automation.ruleList",
+        "automation.ruleGet",
+        "automation.ruleCreate",
+        "automation.ruleUpdate",
+        "automation.ruleDelete",
+        "automation.ruleRun",
+        "automation.runList",
+        "automation.runGet",
+        "automation.stats",
+        "automation.configGet",
+        "automation.configSet",
+        "automation.actionOptions",
+        "automation.actionSchema",
+        "automation.dataTables",
+        "automation.dataQuery"
+      ],
+      "client": "lib/client.js"
+    }
+  },
+  "dependencies": {
+    "dsh-workbench-host": "^0.7.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "dsh-workbench-host"
+      ],
+      "platform": "web"
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0"
+    }
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "author": "ityyq777",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "automation",
+    "rules",
+    "cron",
+    "trigger"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ityyq777/dsh-workbench.git",
+    "directory": "packages/automation"
+  },
+  "homepage": "https://github.com/ityyq777/dsh-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/ityyq777/dsh-workbench/issues"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

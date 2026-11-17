@@ -153,4 +153,4 @@ module.exports = [
     ".wbs-note{font-size:11px;color:var(--wbs-muted);line-height:1.6}",
     "@media(max-width:860px){.wbs-body{flex-direction:column}.wbs-tree{width:100%;max-height:220px}.wbs-table{min-width:760px}.wbs-root{min-height:0}}",
     "@media(max-width:600px){.wbs-head h2{font-size:18px}.wbs-linkrow{grid-template-columns:1fr 1fr}.wbs-modal{padding:14px}}"
-].join("\n");
+].concat(require("../../../lib/filter-checklist-styles.cjs")).join("\n");

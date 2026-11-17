@@ -5,6 +5,7 @@ var h = React.createElement;
 var useState = React.useState;
 var useEffect = React.useEffect;
 var useCallback = React.useCallback;
+var FilterChecklist = require("../../../lib/filter-checklist.cjs");
 
 module.exports = function TagFilter(props) {
   var api = props.api;
@@ -30,7 +31,18 @@ module.exports = function TagFilter(props) {
       if (!r || !r.ok) return;
       var out = r.result || {};
       var records = out.records || [];
-      setRows(function (prev) { return append ? prev.concat(records) : records; });
+      setRows(function (prev) {
+        if (!append) return records;
+        var seen = {};
+        var out = [];
+        prev.concat(records).forEach(function (x) {
+          var key = String(x.id);
+          if (seen[key]) return;
+          seen[key] = true;
+          out.push(x);
+        });
+        return out;
+      });
       setTotal(out.total || 0);
       setPage(out.current || pageNumber);
       setHasMore(!!out.hasNext || (out.current || pageNumber) * 20 < (out.total || 0));
@@ -71,42 +83,33 @@ module.exports = function TagFilter(props) {
       onClick: function (e) { e.stopPropagation(); setOpen(!open); },
     }, h(Icon, { name: "tag", size: 13 }), text("tagFilter") + (ids.length ? " · " + ids.length : ""), h(Icon, { name: "chevron-down", size: 12 })),
     open ? h("div", { className: "wbs-tagmenu", style: { width: 260 }, onClick: function (e) { e.stopPropagation(); } },
-      h("div", { style: { padding: "2px 4px 6px" } },
-        h("input", {
-          className: "wbs-input", autoFocus: true, value: query,
-          placeholder: text("tagSearchPlaceholder"),
-          onChange: function (e) { setQuery(e.target.value); },
-        })
-      ),
-      ids.length ? h("div", { style: { padding: "0 4px 4px", display: "flex", flexDirection: "column", gap: 3 } },
-        h("div", { className: "wbs-tagmenu-head" }, h("span", null, text("tagSelected") + " " + ids.length)),
-        ids.map(function (id) {
-          return h("button", { key: id, className: "wbs-mini", style: { justifyContent: "space-between" }, onClick: function () { toggle(id); } },
-            h("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, names[String(id)] || ("#" + id)),
-            h("span", null, "×"));
-        })
-      ) : null,
-      h("div", { className: "wbs-tagmenu-head" },
-        h("span", null, text("allTags") + (total ? " · " + total : "")),
-        h("span", { className: "wbs-grow" }),
-        h("button", { className: "wbs-mini", title: text("clear"), onClick: function () { onChange([]); setQuery(""); } }, h(Icon, { name: "x", size: 12 }), text("clear"))
-      ),
-      h("div", {
-        style: { maxHeight: 240, overflow: "auto" },
-        onScroll: function (e) {
-          var el = e.currentTarget;
-          if (!hasMore || loading) return;
-          if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) load(query, (page || 1) + 1, true);
-        },
-      },
-        rows.length ? rows.map(function (t) {
-          var on = ids.indexOf(String(t.id)) >= 0;
-          return h("label", { key: t.id, className: "wbs-tagopt" },
-            h("input", { type: "checkbox", checked: on, onChange: function () { toggle(t.id); } }),
-            h("span", null, t.name));
-        }) : h("div", { className: "wbs-note", style: { padding: 6 } }, loading ? text("loadingMore") : (query ? text("tagNoMatch") : text("allTags"))),
-        rows.length ? h("div", { className: "wbs-note", style: { padding: 6, textAlign: "center" } }, loading ? text("loadingMore") : (hasMore ? "" : text("noMore"))) : null
-      )
+      h(FilterChecklist, {
+        beforeHead: ids.length ? h("div", { style: { padding: "0 4px 4px" } },
+          h("div", { className: "wbs-tagmenu-head" }, h("span", null, text("tagSelected") + " " + ids.length)),
+          ids.map(function (id) {
+            return h("button", { key: id, className: "wbs-mini", style: { justifyContent: "space-between" }, onClick: function () { toggle(id); } },
+              h("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, names[String(id)] || ("#" + id)),
+              h("span", null, "×"));
+          })
+        ) : null,
+        items: rows.map(function (x) { return { id: x.id, name: x.name }; }),
+        selected: ids,
+        onToggle: toggle,
+        query: query,
+        onQuery: setQuery,
+        title: text("allTags"),
+        total: total,
+        clearText: text("clear"),
+        onClear: function () { onChange([]); setQuery(""); },
+        searchPlaceholder: text("tagSearchPlaceholder"),
+        loading: loading,
+        hasMore: hasMore,
+        onLoadMore: function () { load(query, (page || 1) + 1, true); },
+        emptyText: text("noTags"),
+        noMatchText: text("tagNoMatch"),
+        loadingText: text("loadingMore"),
+        noMoreText: text("noMore"),
+      })
     ) : null
   );
 };

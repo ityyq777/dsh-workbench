@@ -2,7 +2,8 @@
  * 站点域的同步声明：site / site_node_mapping / site_account / site_account_external 行级（tag_mapping 归标签域），
  * site_node 树表整表收敛（虚拟根 0，不落库），描述随快照完整保留。
  * 旧端需先升级并迁移 description 列再接收新快照：旧宿主按快照列写入，缺列会失败。
- * 账号表的敏感列在写本地库前已加密，同步上行的是密文（见 vault.js / docs/specs/22）。
+ * 1.11.0 起账号的敏感字段整体移入凭据保险箱（见 docs/specs/48），site_account 不再有敏感列；
+ * 旧端若仍上传带敏感列的行，由 normalizeIncoming 剥掉后再落库。
  */
 
 function stableTs(rows) {
@@ -112,6 +113,15 @@ export function reconcileSiteTree(remoteRows, localRows) {
   };
 }
 
+/** 旧端账号行可能仍带敏感列；这些列已迁到凭据保险箱，接收时必须剥掉，否则整行 INSERT 会因未知列失败。 */
+export function normalizeAccountRow(context) {
+  const row = Object.assign({}, context && context.row ? context.row : {});
+  delete row.password;
+  delete row.phone_number;
+  delete row.identity_card;
+  return row;
+}
+
 export const siteSync = {
   tables: [
     { name: "site", mode: "row" },
@@ -124,8 +134,8 @@ export const siteSync = {
     // tag_mapping 归标签域同步（packages/addons/tags/lib/infra/sync.js 整表行级同步，不区分 item_type）：
     // 站点域重复声明同一张表会让两处手写同一套唯一键/墓碑策略，一处改了另一处没跟上就会分叉。
     { name: "site_node", mode: "tree", reconcile: reconcileSiteTree },
-    // 二期：账号表同步的是密文（password/phone_number/identity_card 写库前加密），云端无密钥。
-    { name: "site_account", mode: "row" },
+    // 账号敏感字段已移入凭据保险箱；这里同步的只是账号行，旧端带敏感列时由 normalizeIncoming 剥掉。
+    { name: "site_account", mode: "row", normalizeIncoming: normalizeAccountRow },
     { name: "site_account_external", mode: "row" },
   ],
 };

@@ -38,6 +38,123 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// packages/addons/lib/filter-checklist.cjs
+var require_filter_checklist = __commonJS({
+  "packages/addons/lib/filter-checklist.cjs"(exports2, module2) {
+    "use strict";
+    var React2 = require("react");
+    var h2 = React2.createElement;
+    var NEAR = 24;
+    function nearBottom(el, threshold) {
+      if (!el) return false;
+      var gap = Number(threshold);
+      if (!isFinite(gap) || gap < 0) gap = NEAR;
+      return el.scrollTop + el.clientHeight >= el.scrollHeight - gap;
+    }
+    function FilterChecklist(props) {
+      var items = props.items || [];
+      var selected = props.selected || [];
+      var disabled = props.disabled === true;
+      var loading = props.loading === true;
+      var hasMore = props.hasMore === true;
+      var query = props.query || "";
+      var total = typeof props.total === "number" ? props.total : items.length;
+      var title = props.title || "\u5168\u90E8";
+      var selectedText = props.selectedText || "\u5DF2\u9009";
+      var clearText = props.clearText || "\u6E05\u7A7A";
+      var searchPlaceholder = props.searchPlaceholder || "\u641C\u7D22";
+      var emptyText = props.emptyText || "\u6682\u65E0\u6570\u636E";
+      var noMatchText = props.noMatchText || "\u6CA1\u6709\u5339\u914D\u9879";
+      var loadingText = props.loadingText || "\u52A0\u8F7D\u4E2D\u2026";
+      var noMoreText = typeof props.noMoreText === "string" ? props.noMoreText : "\u6CA1\u6709\u66F4\u591A";
+      var onToggle = props.onToggle || function() {
+      };
+      var onQuery = props.onQuery || function() {
+      };
+      var onLoadMore = props.onLoadMore;
+      var onClear = props.onClear || function() {
+      };
+      function toggle(id) {
+        if (disabled) return;
+        onToggle(id);
+      }
+      function scroll(e) {
+        if (disabled || loading || !hasMore || !onLoadMore) return;
+        if (nearBottom(e.currentTarget)) onLoadMore();
+      }
+      var head = h2(
+        "div",
+        { className: "wbck-head" },
+        h2("span", { className: "wbck-grow" }, title + (total ? " \xB7 " + total : "")),
+        selected.length ? h2("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
+        selected.length || query ? h2("button", {
+          type: "button",
+          className: "wbck-clear",
+          title: clearText,
+          disabled,
+          onClick: function() {
+            if (disabled) return;
+            onClear();
+          }
+        }, clearText) : null
+      );
+      var body;
+      if (!items.length) {
+        body = h2("div", { className: "wbck-note", role: "status" }, loading ? loadingText : query ? noMatchText : emptyText);
+      } else {
+        body = items.map(function(x) {
+          var on = selected.indexOf(String(x.id)) >= 0;
+          return h2(
+            "label",
+            { key: x.id, className: "wbck-opt" + (on ? " is-on" : "") },
+            h2("input", {
+              type: "checkbox",
+              checked: on,
+              disabled,
+              onChange: function() {
+                toggle(x.id);
+              }
+            }),
+            h2("span", { className: "wbck-nm", title: x.name }, x.name),
+            x.meta ? h2("span", { className: "wbck-meta" }, x.meta) : null
+          );
+        });
+        var more = loading ? loadingText : hasMore ? "" : noMoreText;
+        if (more) body = body.concat([h2("div", { key: "__more", className: "wbck-more", role: "status" }, more)]);
+      }
+      return h2(
+        "div",
+        { className: "wbck", "data-role": "checklist" },
+        h2(
+          "div",
+          { className: "wbck-search" },
+          h2("input", {
+            type: "search",
+            autoFocus: props.autoFocus !== false,
+            className: "wbck-input",
+            placeholder: searchPlaceholder,
+            "aria-label": searchPlaceholder,
+            value: query,
+            disabled,
+            onChange: function(e) {
+              onQuery(e.target.value);
+            }
+          })
+        ),
+        props.beforeHead || null,
+        head,
+        h2("div", {
+          className: "wbck-list",
+          onScroll: scroll,
+          "aria-busy": loading ? "true" : "false"
+        }, body)
+      );
+    }
+    module2.exports = FilterChecklist;
+    module2.exports.nearBottom = nearBottom;
+  }
+});
+
 // packages/addons/sites/client/ui/tagfilter.cjs
 var require_tagfilter = __commonJS({
   "packages/addons/sites/client/ui/tagfilter.cjs"(exports2, module2) {
@@ -46,6 +163,7 @@ var require_tagfilter = __commonJS({
     var useState = React2.useState;
     var useEffect = React2.useEffect;
     var useCallback = React2.useCallback;
+    var FilterChecklist = require_filter_checklist();
     module2.exports = function TagFilter2(props) {
       var api = props.api;
       var text = props.text;
@@ -69,7 +187,16 @@ var require_tagfilter = __commonJS({
           var out = r.result || {};
           var records = out.records || [];
           setRows(function(prev) {
-            return append ? prev.concat(records) : records;
+            if (!append) return records;
+            var seen = {};
+            var out2 = [];
+            prev.concat(records).forEach(function(x) {
+              var key = String(x.id);
+              if (seen[key]) return;
+              seen[key] = true;
+              out2.push(x);
+            });
+            return out2;
           });
           setTotal(out.total || 0);
           setPage(out.current || pageNumber);
@@ -128,67 +255,47 @@ var require_tagfilter = __commonJS({
           { className: "wbs-tagmenu", style: { width: 260 }, onClick: function(e) {
             e.stopPropagation();
           } },
-          h2(
-            "div",
-            { style: { padding: "2px 4px 6px" } },
-            h2("input", {
-              className: "wbs-input",
-              autoFocus: true,
-              value: query,
-              placeholder: text("tagSearchPlaceholder"),
-              onChange: function(e) {
-                setQuery(e.target.value);
-              }
-            })
-          ),
-          ids.length ? h2(
-            "div",
-            { style: { padding: "0 4px 4px", display: "flex", flexDirection: "column", gap: 3 } },
-            h2("div", { className: "wbs-tagmenu-head" }, h2("span", null, text("tagSelected") + " " + ids.length)),
-            ids.map(function(id) {
-              return h2(
-                "button",
-                { key: id, className: "wbs-mini", style: { justifyContent: "space-between" }, onClick: function() {
-                  toggle(id);
-                } },
-                h2("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, names[String(id)] || "#" + id),
-                h2("span", null, "\xD7")
-              );
-            })
-          ) : null,
-          h2(
-            "div",
-            { className: "wbs-tagmenu-head" },
-            h2("span", null, text("allTags") + (total ? " \xB7 " + total : "")),
-            h2("span", { className: "wbs-grow" }),
-            h2("button", { className: "wbs-mini", title: text("clear"), onClick: function() {
+          h2(FilterChecklist, {
+            beforeHead: ids.length ? h2(
+              "div",
+              { style: { padding: "0 4px 4px" } },
+              h2("div", { className: "wbs-tagmenu-head" }, h2("span", null, text("tagSelected") + " " + ids.length)),
+              ids.map(function(id) {
+                return h2(
+                  "button",
+                  { key: id, className: "wbs-mini", style: { justifyContent: "space-between" }, onClick: function() {
+                    toggle(id);
+                  } },
+                  h2("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, names[String(id)] || "#" + id),
+                  h2("span", null, "\xD7")
+                );
+              })
+            ) : null,
+            items: rows.map(function(x) {
+              return { id: x.id, name: x.name };
+            }),
+            selected: ids,
+            onToggle: toggle,
+            query,
+            onQuery: setQuery,
+            title: text("allTags"),
+            total,
+            clearText: text("clear"),
+            onClear: function() {
               onChange([]);
               setQuery("");
-            } }, h2(Icon2, { name: "x", size: 12 }), text("clear"))
-          ),
-          h2(
-            "div",
-            {
-              style: { maxHeight: 240, overflow: "auto" },
-              onScroll: function(e) {
-                var el = e.currentTarget;
-                if (!hasMore || loading) return;
-                if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) load(query, (page || 1) + 1, true);
-              }
             },
-            rows.length ? rows.map(function(t) {
-              var on = ids.indexOf(String(t.id)) >= 0;
-              return h2(
-                "label",
-                { key: t.id, className: "wbs-tagopt" },
-                h2("input", { type: "checkbox", checked: on, onChange: function() {
-                  toggle(t.id);
-                } }),
-                h2("span", null, t.name)
-              );
-            }) : h2("div", { className: "wbs-note", style: { padding: 6 } }, loading ? text("loadingMore") : query ? text("tagNoMatch") : text("allTags")),
-            rows.length ? h2("div", { className: "wbs-note", style: { padding: 6, textAlign: "center" } }, loading ? text("loadingMore") : hasMore ? "" : text("noMore")) : null
-          )
+            searchPlaceholder: text("tagSearchPlaceholder"),
+            loading,
+            hasMore,
+            onLoadMore: function() {
+              load(query, (page || 1) + 1, true);
+            },
+            emptyText: text("noTags"),
+            noMatchText: text("tagNoMatch"),
+            loadingText: text("loadingMore"),
+            noMoreText: text("noMore")
+          })
         ) : null
       );
     };
@@ -2615,7 +2722,9 @@ var require_data_view = __commonJS({
         }
         function loadTables() {
           setLoadingTables(true);
-          Promise.resolve(api.call(DOMAIN + ".dataTables")).then(function(r) {
+          Promise.resolve((options.tablesLoader || function(a) {
+            return a.call(DOMAIN + ".dataTables");
+          })(api)).then(function(r) {
             if (r && r.ok === false) throw new Error(r && r.error || t.loadFail);
             var body = unwrap(r);
             if (!body || !Array.isArray(body.tables)) throw new Error(t.loadFail);
@@ -2680,7 +2789,9 @@ var require_data_view = __commonJS({
           if (sort) args.sort = sort;
           if (search) args.search = search;
           if (Object.keys(filters).length) args.filters = filters;
-          Promise.resolve(api.call(DOMAIN + ".dataQuery", args)).then(function(r) {
+          Promise.resolve((options.query || function(a, q) {
+            return a.call(DOMAIN + ".dataQuery", q);
+          })(api, args)).then(function(r) {
             if (req !== reqRef.current) return;
             if (r && r.ok === false) throw new Error(r && r.error || t.queryFail);
             var body = unwrap(r);
@@ -3062,7 +3173,7 @@ var require_data_view = __commonJS({
                 }
               }
             }),
-            h2("span", null, fmt(t.queryTime, { n: data ? data.queryMs : 0 }))
+            data && data.queryMs !== void 0 ? h2("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
           );
         }
         if (!tables && loadingTables && options.Skeleton) return h2(options.Skeleton, { lang, label: t.loading });
@@ -3098,7 +3209,7 @@ var require_data_view = __commonJS({
                   "span",
                   { className: P + "-stabname" },
                   h2("span", null, tableLabel(tb)),
-                  h2("span", { className: P + "-sidecount" }, String(tb.count))
+                  h2("span", { className: P + "-sidecount" }, tb.count === void 0 || tb.count === null ? "" : String(tb.count))
                 ),
                 h2("span", { className: P + "-sidetable" }, tb.name)
               );
@@ -3125,7 +3236,7 @@ var require_data_view = __commonJS({
                   h2(
                     "div",
                     { className: P + "-sub" },
-                    current ? fmt(t.rowCount, { n: current.count }) : "",
+                    current && data && data.total !== void 0 ? fmt(t.rowCount, { n: data.total }) : "",
                     current && current.deletedCount ? " \xB7 " + fmt(t.deletedCount, { n: current.deletedCount }) : "",
                     " \xB7 " + t.subtitle
                   )
@@ -4068,6 +4179,7 @@ var require_copy = __commonJS({
         cancel: "\u53D6\u6D88",
         close: "\u5173\u95ED",
         sensitiveHint: "\u5BC6\u7801/\u624B\u673A\u53F7/\u8EAB\u4EFD\u8BC1\u5199\u5E93\u524D\u52A0\u5BC6\uFF0C\u4EC5\u5728\u754C\u9762\u89E3\u9501\u4FDD\u9669\u7BB1\u540E\u53EF\u67E5\u770B\u4E0E\u590D\u5236\u3002",
+        vaultInvalid: "\u51ED\u636E\u96C6\u5408\u5DF2\u5931\u6548\uFF08\u96C6\u5408\u88AB\u5220\u9664\uFF09\uFF0C\u4FDD\u5B58\u4EFB\u4E00\u654F\u611F\u5B57\u6BB5\u5373\u53EF\u91CD\u5EFA\u3002",
         vaultNotSet: "\u8D26\u53F7\u4FDD\u9669\u7BB1\u5C1A\u672A\u8BBE\u7F6E\u53E3\u4EE4\uFF1A\u8BBE\u7F6E\u53E3\u4EE4\u540E\u624D\u80FD\u586B\u5199\u5BC6\u7801\u3001\u624B\u673A\u53F7\u4E0E\u8EAB\u4EFD\u8BC1\u3002",
         vaultLocked: "\u8D26\u53F7\u4FDD\u9669\u7BB1\u5DF2\u9501\u5B9A\uFF1A\u8F93\u5165\u53E3\u4EE4\u540E\u5373\u53EF\u67E5\u770B\u4E0E\u586B\u5199\u654F\u611F\u5B57\u6BB5\u3002",
         vaultUnlocked: "\u8D26\u53F7\u4FDD\u9669\u7BB1\u5DF2\u89E3\u9501\uFF0C\u7A7A\u95F2 {min} \u5206\u949F\u81EA\u52A8\u9501\u5B9A\u3002",
@@ -4179,6 +4291,7 @@ var require_copy = __commonJS({
         cancel: "Cancel",
         close: "Close",
         sensitiveHint: "Password / phone / ID card are encrypted before writing and can only be read after unlocking the vault.",
+        vaultInvalid: "The credential set is gone (deleted); saving any sensitive field rebuilds it.",
         vaultNotSet: "Vault passphrase is not set yet: set one before filling in password, phone or ID card.",
         vaultLocked: "Vault is locked: unlock to view or edit sensitive fields.",
         vaultUnlocked: "Vault unlocked; it locks after {min} idle minutes.",
@@ -4191,6 +4304,37 @@ var require_copy = __commonJS({
         passMismatch: "Passphrases do not match"
       }
     };
+  }
+});
+
+// packages/addons/lib/filter-checklist-styles.cjs
+var require_filter_checklist_styles = __commonJS({
+  "packages/addons/lib/filter-checklist-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = [
+      ".wbck{display:flex;flex-direction:column;min-width:0}",
+      ".wbck-search{padding:0 0 6px}",
+      ".wbck-input{width:100%;box-sizing:border-box;font:inherit;font-size:12.5px;padding:6px 9px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:inherit}",
+      ".wbck-input:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+      ".wbck-input:disabled{opacity:.6;cursor:not-allowed}",
+      ".wbck-head{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--wb-muted);padding:2px 4px 7px}",
+      ".wbck-grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbck-sel{flex:none;color:var(--wb-accent)}",
+      ".wbck-clear{appearance:none;flex:none;border:0;background:transparent;color:inherit;border-radius:4px;margin:0;padding:3px 5px;font:inherit;font-size:11.5px;line-height:1;cursor:pointer;opacity:.75}",
+      ".wbck-clear:hover:enabled{opacity:1;background:color-mix(in srgb, currentColor 8%, transparent)}",
+      ".wbck-clear:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+      ".wbck-clear:disabled{opacity:.4;cursor:not-allowed}",
+      ".wbck-list{max-height:220px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--wb-border);border-radius:10px;padding:2px}",
+      ".wbck-opt{display:flex;align-items:center;gap:7px;padding:6px;border-radius:6px;font-size:12.5px;cursor:pointer}",
+      ".wbck-opt:hover{background:color-mix(in srgb, currentColor 7%, transparent)}",
+      ".wbck-opt.is-on{background:color-mix(in srgb, var(--wb-accent) 10%, transparent)}",
+      ".wbck-opt input{margin:0;flex:none;accent-color:var(--wb-accent)}",
+      ".wbck-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbck-meta{margin-left:auto;flex:none;font-size:11.5px;color:var(--wb-muted)}",
+      ".wbck-note{font-size:12px;color:var(--wb-muted);padding:8px 6px}",
+      ".wbck-more{font-size:11px;color:var(--wb-muted);text-align:center;padding:6px 0 2px;opacity:.8}",
+      "@media (max-width:760px){.wbck-list{max-height:200px}}"
+    ];
   }
 });
 
@@ -4350,7 +4494,423 @@ var require_styles = __commonJS({
       ".wbs-note{font-size:11px;color:var(--wbs-muted);line-height:1.6}",
       "@media(max-width:860px){.wbs-body{flex-direction:column}.wbs-tree{width:100%;max-height:220px}.wbs-table{min-width:760px}.wbs-root{min-height:0}}",
       "@media(max-width:600px){.wbs-head h2{font-size:18px}.wbs-linkrow{grid-template-columns:1fr 1fr}.wbs-modal{padding:14px}}"
-    ].join("\n");
+    ].concat(require_filter_checklist_styles()).join("\n");
+  }
+});
+
+// packages/addons/sites/client/ui/accounts-modal.cjs
+var require_accounts_modal = __commonJS({
+  "packages/addons/sites/client/ui/accounts-modal.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function createAccountsModal(deps) {
+      var h2 = deps.h;
+      var React2 = deps.React;
+      var useState = deps.useState;
+      var useEffect = deps.useEffect;
+      var Modal = deps.Modal;
+      var Icon2 = deps.Icon;
+      var text = deps.text;
+      var callApi = deps.callApi;
+      var errText = deps.errText;
+      function AccountModal(props) {
+        var api = props.api;
+        var lang = props.lang || "zh";
+        var site = props.site;
+        var [accounts, setAccounts] = useState([]);
+        var [vault, setVault] = useState({});
+        var [loading, setLoading] = useState(true);
+        var [error, setError] = useState("");
+        var [busy, setBusy] = useState(false);
+        var [draft, setDraft] = useState(null);
+        var [pass, setPass] = useState("");
+        var [pass2, setPass2] = useState("");
+        var [cascade, setCascade] = useState([]);
+        var [pickKey, setPickKey] = useState("");
+        var [pendingDelete, setPendingDelete] = useState("");
+        var [shown, setShown] = useState({});
+        var [binding, setBinding] = useState(null);
+        function mapVault(st) {
+          var r = st || {};
+          var idle = Number(r.idleTimeoutSec) > 0 ? Math.round(Number(r.idleTimeoutSec) / 60) : 15;
+          return {
+            installed: true,
+            enabled: Boolean(r.initialized),
+            unlocked: !r.locked,
+            locked: Boolean(r.locked),
+            unlockMode: r.unlockMode,
+            idleMinutes: idle,
+            remainingMs: r.locked ? 0 : idle * 60 * 1e3
+          };
+        }
+        function reload() {
+          setLoading(true);
+          return Promise.all([
+            callApi(api, "sites.accounts.list", { siteId: site.id }),
+            callApi(api, "vault.status", {}),
+            callApi(api, "vault.bindingsOf", { subjectType: "site", subjectId: site.id })
+          ]).then(function(out) {
+            setAccounts(out[0].accounts || []);
+            setVault(mapVault(out[1]));
+            setBinding(out[2] && out[2].items && out[2].items[0] || null);
+            setError("");
+          }).catch(function(e) {
+            setError(errText(e));
+          }).finally(function() {
+            setLoading(false);
+          });
+        }
+        function loadCascade() {
+          callApi(api, "sites.accounts.cascade", { excludeSiteId: site.id }).then(function(r) {
+            var list = [];
+            (r.groups || []).forEach(function(g) {
+              g.accounts.forEach(function(a) {
+                list.push({ id: a.id, label: g.siteName + " \xB7 " + a.accountKey });
+              });
+            });
+            setCascade(list);
+          }).catch(function() {
+            setCascade([]);
+          });
+        }
+        useEffect(function() {
+          reload();
+          loadCascade();
+        }, [site.id]);
+        function guard(fn) {
+          setBusy(true);
+          setError("");
+          return Promise.resolve().then(fn).catch(function(e) {
+            setError(errText(e));
+          }).finally(function() {
+            setBusy(false);
+          });
+        }
+        function submitVault() {
+          if (!pass || pass.length < 12) {
+            setError(text(lang, "passTooShort"));
+            return;
+          }
+          if (!vault.enabled && pass !== pass2) {
+            setError(text(lang, "passMismatch"));
+            return;
+          }
+          guard(function() {
+            var req = vault.enabled ? callApi(api, "vault.unlock", { passphrase: pass }) : callApi(api, "vault.setup", { passphrase: pass, mode: "A" });
+            return req.then(function() {
+              setPass("");
+              setPass2("");
+              return reload();
+            });
+          });
+        }
+        function lockVault() {
+          guard(function() {
+            return callApi(api, "vault.lock", {}).then(function() {
+              setShown({});
+              return reload();
+            });
+          });
+        }
+        function bindGroup() {
+          guard(function() {
+            return callApi(api, "vault.groupCreate", { name: "\u7AD9\u70B9\u8D26\u53F7 \xB7 " + (site.siteName || site.id) }).then(function(g) {
+              return callApi(api, "vault.bind", { subjectType: "site", subjectId: site.id, groupId: g.id });
+            }).then(function() {
+              return reload();
+            });
+          });
+        }
+        function saveDraft() {
+          var body = {
+            accountKey: draft.accountKey,
+            account: draft.account,
+            remark: draft.remark
+          };
+          if (draft.password) body.password = draft.password;
+          if (draft.phoneNumber) body.phoneNumber = draft.phoneNumber;
+          if (draft.identityCard) body.identityCard = draft.identityCard;
+          guard(function() {
+            var req = draft.id ? callApi(api, "sites.accounts.update", Object.assign({ id: draft.id }, body)) : callApi(api, "sites.accounts.create", Object.assign({ siteId: site.id }, body));
+            return req.then(function() {
+              setDraft(null);
+              props.onChanged && props.onChanged();
+              return reload();
+            });
+          });
+        }
+        function removeAccount(id) {
+          guard(function() {
+            return callApi(api, "sites.accounts.delete", { id }).then(function() {
+              setPendingDelete("");
+              props.onChanged && props.onChanged();
+              return reload();
+            });
+          });
+        }
+        function reveal(acc) {
+          guard(function() {
+            return callApi(api, "sites.accounts.get", { id: acc.id }).then(function(r) {
+              var ids = r.secretIds || {};
+              var jobs = [["password", "password"], ["phone", "phoneNumber"], ["identity", "identityCard"]].filter(function(pair) {
+                return ids[pair[0]];
+              }).map(function(pair) {
+                return callApi(api, "vault.secretReveal", { id: ids[pair[0]] }).then(function(res) {
+                  var v = {};
+                  v[pair[1]] = res && res.secret !== void 0 ? res.secret : "";
+                  return v;
+                }).catch(function() {
+                  return null;
+                });
+              });
+              return Promise.all(jobs).then(function(list) {
+                var out = {};
+                list.forEach(function(v) {
+                  if (v) Object.assign(out, v);
+                });
+                setShown(function(prev) {
+                  var next = Object.assign({}, prev);
+                  next[acc.id] = out;
+                  return next;
+                });
+              });
+            });
+          });
+        }
+        function copyText(value) {
+          if (!value) return;
+          try {
+            navigator.clipboard.writeText(value);
+            if (typeof showToast === "function") showToast(text(lang, "copied"));
+          } catch (e) {
+            setError(String(e && e.message || e));
+          }
+        }
+        function linkExternal(acc) {
+          if (!pickKey) return;
+          guard(function() {
+            return callApi(api, "sites.accounts.link", { nativeAccountId: acc.id, externalAccountId: pickKey }).then(function() {
+              setPickKey("");
+              return reload();
+            });
+          });
+        }
+        function unlink(acc, rel) {
+          guard(function() {
+            return callApi(api, "sites.accounts.unlink", { nativeAccountId: acc.id, externalAccountId: rel.accountId }).then(function() {
+              return reload();
+            });
+          });
+        }
+        function renderVaultBar() {
+          if (!vault.enabled) {
+            return h2(
+              "div",
+              { className: "wbs-vaultbar" },
+              h2("div", { className: "wbs-vault-hint" }, text(lang, "vaultNotSet")),
+              h2(
+                "div",
+                { className: "wbs-vault-form" },
+                h2("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function(e) {
+                  setPass(e.target.value);
+                } }),
+                h2("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphraseAgain"), value: pass2, onChange: function(e) {
+                  setPass2(e.target.value);
+                } }),
+                h2("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultSetup"))
+              )
+            );
+          }
+          if (!vault.unlocked) {
+            return h2(
+              "div",
+              { className: "wbs-vaultbar locked" },
+              h2("div", { className: "wbs-vault-hint" }, text(lang, "vaultLocked")),
+              h2(
+                "div",
+                { className: "wbs-vault-form" },
+                h2("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function(e) {
+                  setPass(e.target.value);
+                } }),
+                h2("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultUnlock"))
+              )
+            );
+          }
+          return h2(
+            "div",
+            { className: "wbs-vaultbar unlocked" },
+            h2("div", { className: "wbs-vault-hint" }, text(lang, "vaultUnlocked", { min: vault.idleMinutes || 15 })),
+            h2("div", { className: "wbs-grow" }),
+            binding ? h2("span", { className: "wbs-chip" }, "\u51ED\u636E\u7EC4\uFF1A" + (binding.groupName || binding.groupId)) : h2(
+              React2.Fragment,
+              null,
+              h2("span", { className: "wbs-vault-hint" }, "\u672C\u7AD9\u70B9\u5C1A\u672A\u5173\u8054\u51ED\u636E\u7EC4"),
+              h2("button", { className: "wbs-btn sm", disabled: busy, onClick: bindGroup }, h2(Icon2, { name: "plus", size: 12 }), "\u521B\u5EFA\u5E76\u5173\u8054")
+            ),
+            h2("button", { className: "wbs-btn sm", disabled: busy, onClick: lockVault }, h2(Icon2, { name: "lock", size: 12 }), text(lang, "vaultLock"))
+          );
+        }
+        function renderDraft() {
+          var d = draft;
+          function field(key, label, type, ph) {
+            return h2(
+              React2.Fragment,
+              null,
+              h2("label", { className: "wbs-label" }, label),
+              h2("input", {
+                className: "wbs-input",
+                type: type || "text",
+                placeholder: ph || "",
+                value: d[key] || "",
+                onChange: function(e) {
+                  var v = e.target.value;
+                  setDraft(function(prev) {
+                    var next = Object.assign({}, prev);
+                    next[key] = v;
+                    return next;
+                  });
+                }
+              })
+            );
+          }
+          return h2(
+            "div",
+            { className: "wbs-accdraft" },
+            h2("div", { className: "wbs-accdraft-title" }, d.id ? text(lang, "editAccount") : text(lang, "addAccount")),
+            field("accountKey", text(lang, "accountKey") + " *", "text", "prod-admin"),
+            field("account", text(lang, "loginName")),
+            field("password", text(lang, "password"), "password"),
+            field("phoneNumber", text(lang, "phone")),
+            field("identityCard", text(lang, "identity")),
+            field("remark", text(lang, "remark")),
+            h2("div", { className: "wbs-vault-hint" }, text(lang, "sensitiveHint")),
+            h2(
+              "div",
+              { className: "wbs-formfoot" },
+              h2("div", { className: "wbs-grow" }),
+              h2("button", { className: "wbs-btn", disabled: busy, onClick: function() {
+                setDraft(null);
+              } }, text(lang, "cancel")),
+              h2("button", { className: "wbs-btn primary", disabled: busy, onClick: saveDraft }, text(lang, "save"))
+            )
+          );
+        }
+        return h2(
+          Modal,
+          { onClose: props.onClose },
+          h2(
+            "div",
+            { className: "wbs-modal-title" },
+            h2(Icon2, { name: "key", size: 15 }),
+            text(lang, "accountsTitle", { name: site.siteName }),
+            h2("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h2(Icon2, { name: "x", size: 15 }))
+          ),
+          h2("div", { className: "wbs-modal-sub" }, text(lang, "accountsSub")),
+          renderVaultBar(),
+          error ? h2("div", { className: "wbs-error" }, error) : null,
+          draft ? renderDraft() : h2(
+            React2.Fragment,
+            null,
+            loading ? h2("div", { className: "wbs-loading" }, text(lang, "loading")) : null,
+            !loading && !accounts.length ? h2("div", { className: "wbs-acc-empty" }, text(lang, "accountEmpty")) : null,
+            !loading ? accounts.map(function(acc) {
+              var plain = shown[acc.id] || null;
+              return h2(
+                "div",
+                { className: "wbs-accrow", key: acc.id },
+                h2(
+                  "div",
+                  { className: "wbs-accrow-head" },
+                  h2("b", null, acc.accountKey || "\u2014"),
+                  acc.account ? h2("span", { className: "wbs-acc-login" }, acc.account) : null,
+                  h2("div", { className: "wbs-grow" }),
+                  h2("button", { className: "wbs-btn sm icononly", title: text(lang, "edit"), onClick: function() {
+                    setDraft({ id: acc.id, accountKey: acc.accountKey, account: acc.account, remark: acc.remark, password: "", phoneNumber: "", identityCard: "" });
+                  } }, h2(Icon2, { name: "edit", size: 12 })),
+                  pendingDelete === acc.id ? h2(
+                    React2.Fragment,
+                    null,
+                    h2("button", { className: "wbs-btn sm danger", disabled: busy, onClick: function() {
+                      removeAccount(acc.id);
+                    } }, text(lang, "confirm")),
+                    h2("button", { className: "wbs-btn sm", onClick: function() {
+                      setPendingDelete("");
+                    } }, text(lang, "cancel"))
+                  ) : h2("button", { className: "wbs-btn sm danger icononly", title: text(lang, "del"), onClick: function() {
+                    setPendingDelete(acc.id);
+                  } }, h2(Icon2, { name: "trash", size: 12 }))
+                ),
+                acc.vaultInvalid ? h2("div", { className: "wbs-error" }, text(lang, "vaultInvalid")) : null,
+                h2(
+                  "div",
+                  { className: "wbs-accrow-fields" },
+                  h2(
+                    "div",
+                    null,
+                    h2("i", null, text(lang, "password")),
+                    h2("span", null, plain ? plain.password || "\u2014" : acc.hasPassword ? "\u2022\u2022\u2022\u2022\u2022\u2022" : "\u2014"),
+                    acc.hasPassword ? h2("button", { className: "wbs-mini", title: text(lang, "reveal"), onClick: function() {
+                      if (plain) {
+                        setShown(function(prev) {
+                          var next = Object.assign({}, prev);
+                          delete next[acc.id];
+                          return next;
+                        });
+                      } else {
+                        reveal(acc);
+                      }
+                    } }, h2(Icon2, { name: plain ? "eye-off" : "eye", size: 11 })) : null,
+                    acc.hasPassword ? h2("button", { className: "wbs-mini", title: text(lang, "copy"), onClick: function() {
+                      if (plain) copyText(plain.password);
+                      else reveal(acc);
+                    } }, h2(Icon2, { name: "copy", size: 11 })) : null
+                  ),
+                  h2("div", null, h2("i", null, text(lang, "phone")), h2("span", null, plain ? plain.phoneNumber || "\u2014" : acc.phoneNumber || "\u2014")),
+                  h2("div", null, h2("i", null, text(lang, "identity")), h2("span", null, plain ? plain.identityCard || "\u2014" : acc.identityCard || "\u2014")),
+                  acc.remark ? h2("div", { className: "wbs-acc-remark" }, h2("i", null, text(lang, "remark")), h2("span", null, acc.remark)) : null
+                ),
+                h2(
+                  "div",
+                  { className: "wbs-accrow-ext" },
+                  (acc.externals || []).map(function(rel) {
+                    return h2(
+                      "span",
+                      { className: "wbs-chip", key: rel.relationId },
+                      rel.siteName + " \xB7 " + rel.accountKey,
+                      h2("button", { className: "wbs-mini", title: text(lang, "unlink"), onClick: function() {
+                        unlink(acc, rel);
+                      } }, h2(Icon2, { name: "x", size: 10 }))
+                    );
+                  }),
+                  h2(
+                    "select",
+                    { className: "wbs-select wbs-acc-extsel", value: pickKey, onChange: function(e) {
+                      setPickKey(e.target.value);
+                    } },
+                    h2("option", { value: "" }, text(lang, "externalPick")),
+                    cascade.map(function(o) {
+                      return h2("option", { key: o.id, value: o.id }, o.label);
+                    })
+                  ),
+                  h2("button", { className: "wbs-btn sm", disabled: !pickKey || busy, onClick: function() {
+                    linkExternal(acc);
+                  } }, text(lang, "externalAdd"))
+                )
+              );
+            }) : null,
+            !loading ? h2(
+              "div",
+              { className: "wbs-formfoot" },
+              h2("button", { className: "wbs-btn primary", disabled: busy, onClick: function() {
+                setDraft({ id: "", accountKey: "", account: "", password: "", phoneNumber: "", identityCard: "", remark: "" });
+              } }, h2(Icon2, { name: "plus", size: 12 }), text(lang, "addAccount")),
+              h2("div", { className: "wbs-grow" }),
+              h2("button", { className: "wbs-btn", onClick: props.onClose }, text(lang, "close"))
+            ) : null
+          )
+        );
+      }
+      return AccountModal;
+    };
   }
 });
 
@@ -4781,7 +5341,7 @@ var require_action_schema_view = __commonJS({
               "div",
               { className: P + "-cardhead" },
               h2("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              h2("span", { className: P + "-badge" }, action.domain),
+              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
               h2("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
               rows.some(function(row) {
                 return row.required;
@@ -5404,353 +5964,17 @@ var TagFilter = require_tagfilter();
       )
     );
   }
-  function AccountModal(props) {
-    var api = props.api;
-    var lang = props.lang || "zh";
-    var site = props.site;
-    var [accounts, setAccounts] = useState([]);
-    var [vault, setVault] = useState({});
-    var [loading, setLoading] = useState(true);
-    var [error, setError] = useState("");
-    var [busy, setBusy] = useState(false);
-    var [draft, setDraft] = useState(null);
-    var [pass, setPass] = useState("");
-    var [pass2, setPass2] = useState("");
-    var [cascade, setCascade] = useState([]);
-    var [pickKey, setPickKey] = useState("");
-    var [pendingDelete, setPendingDelete] = useState("");
-    var [shown, setShown] = useState({});
-    function reload() {
-      setLoading(true);
-      return Promise.all([
-        callApi(api, "sites.accounts.list", { siteId: site.id }),
-        callApi(api, "sites.vault.status", {})
-      ]).then(function(out) {
-        setAccounts(out[0].accounts || []);
-        setVault(out[1] || {});
-        setError("");
-      }).catch(function(e) {
-        setError(errText(e));
-      }).finally(function() {
-        setLoading(false);
-      });
-    }
-    function loadCascade() {
-      callApi(api, "sites.accounts.cascade", { excludeSiteId: site.id }).then(function(r) {
-        var list = [];
-        (r.groups || []).forEach(function(g) {
-          g.accounts.forEach(function(a) {
-            list.push({ id: a.id, label: g.siteName + " \xB7 " + a.accountKey });
-          });
-        });
-        setCascade(list);
-      }).catch(function() {
-        setCascade([]);
-      });
-    }
-    useEffect(function() {
-      reload();
-      loadCascade();
-    }, [site.id]);
-    function guard(fn) {
-      setBusy(true);
-      setError("");
-      return Promise.resolve().then(fn).catch(function(e) {
-        setError(errText(e));
-      }).finally(function() {
-        setBusy(false);
-      });
-    }
-    function submitVault() {
-      if (!pass || pass.length < 8) {
-        setError(text(lang, "passTooShort"));
-        return;
-      }
-      if (!vault.enabled && pass !== pass2) {
-        setError(text(lang, "passMismatch"));
-        return;
-      }
-      guard(function() {
-        var name = vault.enabled ? "sites.vault.unlock" : "sites.vault.setup";
-        var args = vault.enabled ? { passphrase: pass } : { passphrase: pass };
-        return callApi(api, name, args).then(function() {
-          setPass("");
-          setPass2("");
-          return reload();
-        });
-      });
-    }
-    function lockVault() {
-      guard(function() {
-        return callApi(api, "sites.vault.lock", {}).then(function() {
-          setShown({});
-          return reload();
-        });
-      });
-    }
-    function saveDraft() {
-      var body = {
-        accountKey: draft.accountKey,
-        account: draft.account,
-        remark: draft.remark
-      };
-      if (draft.password) body.password = draft.password;
-      if (draft.phoneNumber) body.phoneNumber = draft.phoneNumber;
-      if (draft.identityCard) body.identityCard = draft.identityCard;
-      guard(function() {
-        var req = draft.id ? callApi(api, "sites.accounts.update", Object.assign({ id: draft.id }, body)) : callApi(api, "sites.accounts.create", Object.assign({ siteId: site.id }, body));
-        return req.then(function() {
-          setDraft(null);
-          props.onChanged && props.onChanged();
-          return reload();
-        });
-      });
-    }
-    function removeAccount(id) {
-      guard(function() {
-        return callApi(api, "sites.accounts.delete", { id }).then(function() {
-          setPendingDelete("");
-          props.onChanged && props.onChanged();
-          return reload();
-        });
-      });
-    }
-    function reveal(acc) {
-      guard(function() {
-        return callApi(api, "sites.accounts.reveal", { id: acc.id }).then(function(r) {
-          setShown(function(prev) {
-            var next = Object.assign({}, prev);
-            next[acc.id] = r;
-            return next;
-          });
-        });
-      });
-    }
-    function copyText(value) {
-      if (!value) return;
-      try {
-        navigator.clipboard.writeText(value);
-        showToast(text(lang, "copied"));
-      } catch (e) {
-        setError(String(e && e.message || e));
-      }
-    }
-    function linkExternal(acc) {
-      if (!pickKey) return;
-      guard(function() {
-        return callApi(api, "sites.accounts.link", { nativeAccountId: acc.id, externalAccountId: pickKey }).then(function() {
-          setPickKey("");
-          return reload();
-        });
-      });
-    }
-    function unlink(acc, rel) {
-      guard(function() {
-        return callApi(api, "sites.accounts.unlink", { nativeAccountId: acc.id, externalAccountId: rel.accountId }).then(function() {
-          return reload();
-        });
-      });
-    }
-    function renderVaultBar() {
-      if (!vault.enabled) {
-        return h2(
-          "div",
-          { className: "wbs-vaultbar" },
-          h2("div", { className: "wbs-vault-hint" }, text(lang, "vaultNotSet")),
-          h2(
-            "div",
-            { className: "wbs-vault-form" },
-            h2("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function(e) {
-              setPass(e.target.value);
-            } }),
-            h2("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphraseAgain"), value: pass2, onChange: function(e) {
-              setPass2(e.target.value);
-            } }),
-            h2("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultSetup"))
-          )
-        );
-      }
-      if (!vault.unlocked) {
-        return h2(
-          "div",
-          { className: "wbs-vaultbar locked" },
-          h2("div", { className: "wbs-vault-hint" }, text(lang, "vaultLocked")),
-          h2(
-            "div",
-            { className: "wbs-vault-form" },
-            h2("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function(e) {
-              setPass(e.target.value);
-            } }),
-            h2("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultUnlock"))
-          )
-        );
-      }
-      return h2(
-        "div",
-        { className: "wbs-vaultbar unlocked" },
-        h2("div", { className: "wbs-vault-hint" }, text(lang, "vaultUnlocked", { min: vault.idleMinutes || 15 })),
-        h2("button", { className: "wbs-btn sm", disabled: busy, onClick: lockVault }, h2(Icon2, { name: "lock", size: 12 }), text(lang, "vaultLock"))
-      );
-    }
-    function renderDraft() {
-      var d = draft;
-      function field(key, label, type, ph) {
-        return h2(
-          React2.Fragment,
-          null,
-          h2("label", { className: "wbs-label" }, label),
-          h2("input", {
-            className: "wbs-input",
-            type: type || "text",
-            placeholder: ph || "",
-            value: d[key] || "",
-            onChange: function(e) {
-              var v = e.target.value;
-              setDraft(function(prev) {
-                var next = Object.assign({}, prev);
-                next[key] = v;
-                return next;
-              });
-            }
-          })
-        );
-      }
-      return h2(
-        "div",
-        { className: "wbs-accdraft" },
-        h2("div", { className: "wbs-accdraft-title" }, d.id ? text(lang, "editAccount") : text(lang, "addAccount")),
-        field("accountKey", text(lang, "accountKey") + " *", "text", "prod-admin"),
-        field("account", text(lang, "loginName")),
-        field("password", text(lang, "password"), "password"),
-        field("phoneNumber", text(lang, "phone")),
-        field("identityCard", text(lang, "identity")),
-        field("remark", text(lang, "remark")),
-        h2("div", { className: "wbs-vault-hint" }, text(lang, "sensitiveHint")),
-        h2(
-          "div",
-          { className: "wbs-formfoot" },
-          h2("div", { className: "wbs-grow" }),
-          h2("button", { className: "wbs-btn", disabled: busy, onClick: function() {
-            setDraft(null);
-          } }, text(lang, "cancel")),
-          h2("button", { className: "wbs-btn primary", disabled: busy, onClick: saveDraft }, text(lang, "save"))
-        )
-      );
-    }
-    return h2(
-      Modal,
-      { onClose: props.onClose },
-      h2(
-        "div",
-        { className: "wbs-modal-title" },
-        h2(Icon2, { name: "key", size: 15 }),
-        text(lang, "accountsTitle", { name: site.siteName }),
-        h2("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h2(Icon2, { name: "x", size: 15 }))
-      ),
-      h2("div", { className: "wbs-modal-sub" }, text(lang, "accountsSub")),
-      renderVaultBar(),
-      error ? h2("div", { className: "wbs-error" }, error) : null,
-      draft ? renderDraft() : h2(
-        React2.Fragment,
-        null,
-        loading ? h2("div", { className: "wbs-loading" }, text(lang, "loading")) : null,
-        !loading && !accounts.length ? h2("div", { className: "wbs-acc-empty" }, text(lang, "accountEmpty")) : null,
-        !loading ? accounts.map(function(acc) {
-          var plain = shown[acc.id] || null;
-          return h2(
-            "div",
-            { className: "wbs-accrow", key: acc.id },
-            h2(
-              "div",
-              { className: "wbs-accrow-head" },
-              h2("b", null, acc.accountKey || "\u2014"),
-              acc.account ? h2("span", { className: "wbs-acc-login" }, acc.account) : null,
-              h2("div", { className: "wbs-grow" }),
-              h2("button", { className: "wbs-btn sm icononly", title: text(lang, "edit"), onClick: function() {
-                setDraft({ id: acc.id, accountKey: acc.accountKey, account: acc.account, remark: acc.remark, password: "", phoneNumber: "", identityCard: "" });
-              } }, h2(Icon2, { name: "edit", size: 12 })),
-              pendingDelete === acc.id ? h2(
-                React2.Fragment,
-                null,
-                h2("button", { className: "wbs-btn sm danger", disabled: busy, onClick: function() {
-                  removeAccount(acc.id);
-                } }, text(lang, "confirm")),
-                h2("button", { className: "wbs-btn sm", onClick: function() {
-                  setPendingDelete("");
-                } }, text(lang, "cancel"))
-              ) : h2("button", { className: "wbs-btn sm danger icononly", title: text(lang, "del"), onClick: function() {
-                setPendingDelete(acc.id);
-              } }, h2(Icon2, { name: "trash", size: 12 }))
-            ),
-            h2(
-              "div",
-              { className: "wbs-accrow-fields" },
-              h2(
-                "div",
-                null,
-                h2("i", null, text(lang, "password")),
-                h2("span", null, plain ? plain.password || "\u2014" : acc.hasPassword ? "\u2022\u2022\u2022\u2022\u2022\u2022" : "\u2014"),
-                acc.hasPassword ? h2("button", { className: "wbs-mini", title: text(lang, "reveal"), onClick: function() {
-                  if (plain) {
-                    setShown(function(prev) {
-                      var next = Object.assign({}, prev);
-                      delete next[acc.id];
-                      return next;
-                    });
-                  } else {
-                    reveal(acc);
-                  }
-                } }, h2(Icon2, { name: plain ? "eye-off" : "eye", size: 11 })) : null,
-                acc.hasPassword ? h2("button", { className: "wbs-mini", title: text(lang, "copy"), onClick: function() {
-                  if (plain) copyText(plain.password);
-                  else reveal(acc);
-                } }, h2(Icon2, { name: "copy", size: 11 })) : null
-              ),
-              h2("div", null, h2("i", null, text(lang, "phone")), h2("span", null, plain ? plain.phoneNumber || "\u2014" : acc.phoneNumber || "\u2014")),
-              h2("div", null, h2("i", null, text(lang, "identity")), h2("span", null, plain ? plain.identityCard || "\u2014" : acc.identityCard || "\u2014")),
-              acc.remark ? h2("div", { className: "wbs-acc-remark" }, h2("i", null, text(lang, "remark")), h2("span", null, acc.remark)) : null
-            ),
-            h2(
-              "div",
-              { className: "wbs-accrow-ext" },
-              (acc.externals || []).map(function(rel) {
-                return h2(
-                  "span",
-                  { className: "wbs-chip", key: rel.relationId },
-                  rel.siteName + " \xB7 " + rel.accountKey,
-                  h2("button", { className: "wbs-mini", title: text(lang, "unlink"), onClick: function() {
-                    unlink(acc, rel);
-                  } }, h2(Icon2, { name: "x", size: 10 }))
-                );
-              }),
-              h2(
-                "select",
-                { className: "wbs-select wbs-acc-extsel", value: pickKey, onChange: function(e) {
-                  setPickKey(e.target.value);
-                } },
-                h2("option", { value: "" }, text(lang, "externalPick")),
-                cascade.map(function(o) {
-                  return h2("option", { key: o.id, value: o.id }, o.label);
-                })
-              ),
-              h2("button", { className: "wbs-btn sm", disabled: !pickKey || busy, onClick: function() {
-                linkExternal(acc);
-              } }, text(lang, "externalAdd"))
-            )
-          );
-        }) : null,
-        !loading ? h2(
-          "div",
-          { className: "wbs-formfoot" },
-          h2("button", { className: "wbs-btn primary", disabled: busy, onClick: function() {
-            setDraft({ id: "", accountKey: "", account: "", password: "", phoneNumber: "", identityCard: "", remark: "" });
-          } }, h2(Icon2, { name: "plus", size: 12 }), text(lang, "addAccount")),
-          h2("div", { className: "wbs-grow" }),
-          h2("button", { className: "wbs-btn", onClick: props.onClose }, text(lang, "close"))
-        ) : null
-      )
-    );
-  }
+  var AccountModal = require_accounts_modal()({
+    h: h2,
+    React: React2,
+    useState,
+    useEffect,
+    Modal,
+    Icon: Icon2,
+    text,
+    callApi,
+    errText
+  });
   function DeleteSiteModal(props) {
     var api = props.api;
     var lang = props.lang || "zh";
@@ -6496,7 +6720,8 @@ var TagFilter = require_tagfilter();
   injectCss();
   host.registerAddon({
     id: "wb-addon-sites",
-    version: "1.10.0",
+    version: "1.12.1",
+    icon: (init_globe(), __toCommonJS(globe_exports)).default,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.SitesStatsView },
       { id: "sites", icon: tabIcon("globe"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: SitesView },

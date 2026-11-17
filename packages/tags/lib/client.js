@@ -1947,7 +1947,9 @@ var require_data_view = __commonJS({
         }
         function loadTables() {
           setLoadingTables(true);
-          Promise.resolve(api.call(DOMAIN + ".dataTables")).then(function(r) {
+          Promise.resolve((options.tablesLoader || function(a) {
+            return a.call(DOMAIN + ".dataTables");
+          })(api)).then(function(r) {
             if (r && r.ok === false) throw new Error(r && r.error || t.loadFail);
             var body = unwrap(r);
             if (!body || !Array.isArray(body.tables)) throw new Error(t.loadFail);
@@ -2012,7 +2014,9 @@ var require_data_view = __commonJS({
           if (sort) args.sort = sort;
           if (search) args.search = search;
           if (Object.keys(filters).length) args.filters = filters;
-          Promise.resolve(api.call(DOMAIN + ".dataQuery", args)).then(function(r) {
+          Promise.resolve((options.query || function(a, q) {
+            return a.call(DOMAIN + ".dataQuery", q);
+          })(api, args)).then(function(r) {
             if (req !== reqRef.current) return;
             if (r && r.ok === false) throw new Error(r && r.error || t.queryFail);
             var body = unwrap(r);
@@ -2394,7 +2398,7 @@ var require_data_view = __commonJS({
                 }
               }
             }),
-            h2("span", null, fmt(t.queryTime, { n: data ? data.queryMs : 0 }))
+            data && data.queryMs !== void 0 ? h2("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
           );
         }
         if (!tables && loadingTables && options.Skeleton) return h2(options.Skeleton, { lang, label: t.loading });
@@ -2430,7 +2434,7 @@ var require_data_view = __commonJS({
                   "span",
                   { className: P + "-stabname" },
                   h2("span", null, tableLabel(tb)),
-                  h2("span", { className: P + "-sidecount" }, String(tb.count))
+                  h2("span", { className: P + "-sidecount" }, tb.count === void 0 || tb.count === null ? "" : String(tb.count))
                 ),
                 h2("span", { className: P + "-sidetable" }, tb.name)
               );
@@ -2457,7 +2461,7 @@ var require_data_view = __commonJS({
                   h2(
                     "div",
                     { className: P + "-sub" },
-                    current ? fmt(t.rowCount, { n: current.count }) : "",
+                    current && data && data.total !== void 0 ? fmt(t.rowCount, { n: data.total }) : "",
                     current && current.deletedCount ? " \xB7 " + fmt(t.deletedCount, { n: current.deletedCount }) : "",
                     " \xB7 " + t.subtitle
                   )
@@ -3191,6 +3195,35 @@ var init_code_xml = __esm({
   }
 });
 
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs
+var tag_exports = {};
+__export(tag_exports, {
+  __iconData: () => __iconData13,
+  default: () => Tag
+});
+var __iconData13, Tag;
+var init_tag = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs"() {
+    init_createLucideIcon();
+    __iconData13 = {
+      name: "tag",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z",
+            key: "vktsd0"
+          }
+        ],
+        ["circle", { cx: "7.5", cy: "7.5", r: ".5", fill: "currentColor", key: "kqv944" }]
+      ]
+    };
+    __iconData13.node;
+    Tag = createLucideIcon(__iconData13);
+  }
+});
+
 // packages/addons/lib/highlight.cjs
 var require_highlight = __commonJS({
   "packages/addons/lib/highlight.cjs"(exports2, module2) {
@@ -3618,7 +3651,7 @@ var require_action_schema_view = __commonJS({
               "div",
               { className: P + "-cardhead" },
               h2("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              h2("span", { className: P + "-badge" }, action.domain),
+              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
               h2("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
               rows.some(function(row) {
                 return row.required;
@@ -4447,7 +4480,8 @@ var h = React.createElement;
   }
   host.registerAddon({
     id: "wb-addon-tags",
-    version: "1.7.0",
+    version: "1.7.1",
+    icon: (init_tag(), __toCommonJS(tag_exports)).default,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.TagsStatsView },
       { id: "tags", icon: tabIcon("tags"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: TagsView },
