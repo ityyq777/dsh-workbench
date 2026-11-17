@@ -1,19 +1,25 @@
 # 个人工作台 · DSH 插件
 
-个人工作台是 DeepSeek Harness（DSH）的本地优先工作台，由六个可独立安装的插件组成：
+个人工作台是 DeepSeek Harness（DSH）的本地优先工作台：一个共享宿主加若干可独立安装的业务插件。
+当前发布 12 个包（宿主 + 11 个插件）：
 
 | 包 | 作用 |
 | --- | --- |
 | `dsh-workbench-host` | 共享宿主：本地 SQLite、业务域注册、HTTP/SSE、`Workbench` agent 工具、账号与数据同步、按模块导出/导入、卡片首页 |
-| `dsh-workbench-tasks` | 任务与任务树（9 个视图、时间线、重启、批量归并/迁表） |
-| `dsh-workbench-tags` | 标签管理，供站点等业务归类 |
+| `dsh-workbench-tasks` | 任务与任务树（8 个视图、时间线、重启、批量归并/迁表） |
+| `dsh-workbench-tags` | 标签管理，供任务、站点与储物归类 |
 | `dsh-workbench-sites` | 站点收藏：目录树、多链接、标签与筛选 |
-| `dsh-workbench-storage` | 储物：名称、品牌、单位、库存文本与标签的本地台账 |
+| `dsh-workbench-storage` | 储物：名称、品牌、位置、单位、库存文本与标签的本地台账 |
 | `dsh-workbench-message` | 消息中心：给 agent 与其他插件的统一发送入口，收件箱、未读数与可配置提示音 |
+| `dsh-workbench-vault` | 凭据保险箱：scrypt 派生密钥 + AES-256-GCM 加密，agent 只见掩码 |
+| `dsh-workbench-connector` | 连接器：RSS/Webhook 来源接入，条目与运行记录 |
+| `dsh-workbench-automation` | 自动化：定时、域事件或手动触发白名单 action，含模板、条件、限频与运行记录 |
+| `dsh-workbench-contacts` | 联系人：本地通讯录、分组、多值字段与 vCard 导入导出 |
+| `dsh-workbench-calendar` | 日历：本地日历、事件、参与人与提醒 |
+| `dsh-workbench-mail` | 邮件：IMAP 抓邮件头、SMTP 发纯文本，密码托管在保险箱 |
 
-任务、标签、站点、储物、消息都会把 `dsh-workbench-host` 声明为依赖：安装任意业务插件时，
-DSH 会一并准备宿主。数据保存在 `~/.dsh/workbench/workbench.db`，卸载插件只删代码，
-不删数据。
+所有业务插件都声明 `dependencies: { "dsh-workbench-host": "^<宿主版本>" }`：安装任意业务插件时，
+DSH 会一并准备宿主。数据保存在 `~/.dsh/workbench/workbench.db`，卸载插件只删代码，不删数据。
 
 ## 仓库关系
 
@@ -56,19 +62,20 @@ pnpm cloud:build
 
 ## 安装
 
-从插件市场或 DSH 设置 → 插件安装；命令行（五个业务包任选其一即可，宿主会被自动带入）：
+从插件市场或 DSH 设置 → 插件安装；命令行（业务包任选其一即可，宿主会被自动带入，默认装最新版）：
 
 ```sh
-dsh plugin --profile web add dsh-workbench-tasks@5.2.6
-dsh plugin --profile web add dsh-workbench-tags@1.7.0
-dsh plugin --profile web add dsh-workbench-sites@1.10.0
-dsh plugin --profile web add dsh-workbench-storage@1.5.2
-dsh plugin --profile web add dsh-workbench-message@0.1.0
+dsh plugin --profile web add dsh-workbench-tasks
+dsh plugin --profile web add dsh-workbench-message
+dsh plugin --profile web add dsh-workbench-vault
 ```
+
+要锁定版本就加 `@版本号`，例如 `dsh-workbench-tasks@5.2.19`；各插件当前版本见
+`packages/<插件>/package.json` 或 npm 上的同名包。
 
 - 装任意一个业务包都会自动安装宿主 `dsh-workbench-host`（业务包依赖它），不需要先单独装宿主；
 - 也可以在同一个 profile 里装多个业务包，它们共享同一份宿主与同一套数据；
-- 宿主版本下限见各包 `wb.addon.minShell`（当前最低 0.6.3）；想用未发布的本地构建，
+- 宿主版本下限见各包 `wb.addon.minShell`（当前最低 0.5.0，最新插件要求 0.6.7）；想用未发布的本地构建，
   先 `pnpm build && node scripts/dist-shell.mjs`，再
   `dsh plugin --profile web add "file:$PWD/packages/addons/tasks"`。
 
@@ -80,9 +87,9 @@ dsh plugin --profile web add dsh-workbench-message@0.1.0
 也可以从发布镜像查看各包 README：
 
 - 发布镜像：https://github.com/ityyq777/dsh-workbench
-- 包目录：[`packages/host`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/host)、[`packages/tasks`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/tasks)、[`packages/tags`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/tags)、[`packages/sites`](https://github.com/ityyq777/dsh-workbench/tree/main/packages/sites)
+- 包目录：[`packages/`](https://github.com/ityyq777/dsh-workbench/tree/main/packages)，一个目录一个 npm 包
 
-> 发布镜像由源码主仓库的 `scripts/stage-release.mjs` 生成，五个目录分别是可发布的 npm 包。
+> 发布镜像由源码主仓库的 `scripts/stage-release.mjs` 生成，`packages/` 下的目录都是可发布的 npm 包。
 > 修改代码请回 [源码主仓库](https://github.com/ityyq777/dsh-workbench-source)，不要直接编辑生成出来的文件。
 
 ## 数据与隐私

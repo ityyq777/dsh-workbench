@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T01:59:08.504Z",
+  "generatedAt": "2026-11-17T02:09:50.572Z",
   "packages": [
     "host",
     "tasks",
@@ -21,7 +21,7 @@
   "addons": {
     "tasks": {
       "name": "dsh-workbench-tasks",
-      "version": "5.2.19"
+      "version": "5.2.20"
     },
     "tags": {
       "name": "dsh-workbench-tags",

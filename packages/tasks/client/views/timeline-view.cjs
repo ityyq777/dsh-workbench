@@ -6,6 +6,8 @@ module.exports = function (deps) {
   var Merge = require("../timeline/timeline-merge.cjs")(React);
   var CSS = require("../timeline/timeline-styles.cjs");
   var MemberRows = require("../timeline/timeline-member-rows.cjs")(React, deps.statusInfo);
+  var TaskPreview = require("../modals/task-preview.cjs")(React, deps.TaskItem);
+  var receipts = require("../modals/ownership.cjs");
   var splitTitle = require("../timeline/timeline-title.cjs");
   var Highlight = require("../ui/highlight.cjs")(React);
   function result(r) { if (!r || !r.ok) throw new Error(r && r.error || "Request failed"); return r.result; }
@@ -45,6 +47,12 @@ module.exports = function (deps) {
     var addS = React.useState(false), adding = addS[0], setAdding = addS[1];
     var deleteS = React.useState(false), deleting = deleteS[0], setDeleting = deleteS[1];
     var writeS = React.useState(false), writing = writeS[0], setWriting = writeS[1];
+    var editS = React.useState(null), editTask = editS[0], setEditTask = editS[1];
+    var doneS = React.useState(null), doneTask = doneS[0], setDoneTask = doneS[1];
+    var timelineS = React.useState(null), timelineTask = timelineS[0], setTimelineTask = timelineS[1];
+    var createS = React.useState(null), createState = createS[0], setCreateState = createS[1];
+    var toastS = React.useState(""), toast = toastS[0], setToast = toastS[1];
+    var cfg = deps.configView.useConfig(api, deps.CFG_FALLBACK).values;
     React.useEffect(function () { deps.injectCss(); }, []);
     React.useEffect(function () {
       var cancelled = false; setBusy(true); setError("");
@@ -68,10 +76,11 @@ module.exports = function (deps) {
       return function () { cancelled = true; };
     }, [api, activeKey, memberPage, refresh]);
     React.useEffect(function () {
-      if (!detail) return; var cancelled = false;
+      if (!editTask && !createState) return; var cancelled = false;
       api.call("taskNodes.tree", {}).then(result).then(function (r) { if (!cancelled) setTree(Array.isArray(r) ? r : []); }).catch(function () {});
       return function () { cancelled = true; };
-    }, [api, !!detail]);
+    }, [api, !!editTask, !!createState]);
+    React.useEffect(function () { if (!toast) return; var timer = setTimeout(function () { setToast(""); }, 2600); return function () { clearTimeout(timer); }; }, [toast]);
     function reload() { setRefresh(function (n) { return n + 1; }); }
     function choose(item, toggle) {
       if (busy) return;
@@ -92,6 +101,24 @@ module.exports = function (deps) {
       if (node) { node.focus({ preventScroll: true }); node.scrollIntoView({ block: "nearest" }); }
     }
     function closeDetail() { setDetail(null); if (detailTrigger.current) detailTrigger.current.focus({ preventScroll: true }); }
+    function say(message) { setToast(String(message || "")); }
+    function refreshDetail(id) {
+      api.call("tasks.get", { id: id }).then(result).then(function (r) {
+        setDetail(function (old) { return old && String(old.id) === String(id) ? r.task : old; });
+      }).catch(function () {});
+    }
+    function updateTask(task, patch) {
+      api.call("tasks.update", Object.assign({ id: task.id }, patch)).then(result).then(function () {
+        refreshDetail(task.id); createdRef.current = active; reload();
+      }).catch(function (e) { say(String((e && e.message) || e)); });
+    }
+    function removeTask(task) {
+      if (cfg["ui.confirmDelete"] !== false && !window.confirm(t.deleteTaskConfirm)) return;
+      api.call("tasks.delete", { id: task.id }).then(result).then(function () {
+        setDetail(null); say(t.deleted); createdRef.current = active; reload();
+      }).catch(function (e) { say(String((e && e.message) || e)); });
+    }
+    function savedTask(result) { if (result) say(receipts.receipt(result)); }
     function closeMerge() { setMerge(false); if (mergeButton.current) mergeButton.current.focus({ preventScroll: true }); }
     return h("div", { className: "wbt-root wbt-timeline-view" }, h("style", null, CSS),
       h("div", { className: "wbt-timeline-toolbar" },
@@ -141,7 +168,46 @@ module.exports = function (deps) {
       editor ? h(controls.Editor, { api: api, t: t, item: editor.timelineKey ? editor : null, onClose: function () { setEditor(null); }, onSaved: function (line) { setEditor(null); setSingle(true); setDraft(""); setQuery(""); setPage(1); createdRef.current = Object.assign({}, line, { timelineKey: line.timelineId || line.timelineKey || line.id }); setActive(createdRef.current); reload(); } }) : null,
       adding && active ? h(AddMembers, { api: api, t: t, timelineId: activeKey, onClose: function () { setAdding(false); }, onSaved: function () { setAdding(false); createdRef.current = active; reload(); } }) : null,
       merge ? h(Merge, { api: api, t: t, items: selected, onClose: closeMerge, onMerged: function () { closeMerge(); setSelected([]); setMulti(false); reload(); } }) : null,
-      detail ? h(deps.EditModal, { key: detail.id, api: api, t: t, lang: lang, task: detail, tree: tree, onClose: closeDetail, onSaved: function () { closeDetail(); reload(); } }) : null);
+      detail && !editTask ? h(TaskPreview, {
+        key: "preview-" + detail.id, t: t, task: detail, onClose: closeDetail,
+        cardProps: {
+          task: detail, t: t, lang: lang, keyword: "", bodyMode: cfg["ui.bodyMode"],
+          update: updateTask,
+          onEdit: function (task) { setEditTask(task); },
+          onDone: function (task) { setDoneTask(task); },
+          onRestart: function (task) { setCreateState({ source: "2", originTask: task }); },
+          onTimeline: function (task) { setTimelineTask(task); },
+          onDelete: removeTask,
+        },
+      }) : null,
+      editTask ? h(deps.EditModal, {
+        key: "edit-" + editTask.id, api: api, t: t, lang: lang, task: editTask, tree: tree,
+        onClose: function () { setEditTask(null); },
+        onSaved: function (result) { var id = editTask.id; setEditTask(null); savedTask(result); refreshDetail(id); createdRef.current = active; reload(); },
+      }) : null,
+      doneTask ? h(deps.DoneModal, {
+        key: "done-" + doneTask.id, t: t, api: api, task: doneTask,
+        onClose: function () { setDoneTask(null); },
+        onDone: function () { setDoneTask(null); closeDetail(); say(t.doneSuccess); createdRef.current = active; reload(); },
+        onError: function (e) { setDoneTask(null); say(String(e)); },
+      }) : null,
+      timelineTask ? h(deps.TimelineModal, {
+        key: "tl-" + timelineTask.id, t: t, api: api, task: timelineTask, onChanged: reload,
+        onClose: function () { setTimelineTask(null); },
+        onOpen: function (member) {
+          api.call("tasks.get", { id: member.id }).then(result).then(function (r) { setTimelineTask(null); setEditTask(r.task); }).catch(function (e) { say(String((e && e.message) || e)); });
+        },
+        onCreateTimeline: function (originTask) { setTimelineTask(null); setCreateState({ source: "1", originTask: originTask, defaultTableId: originTask.tableId }); },
+      }) : null,
+      createState ? h(deps.CreateModal, {
+        key: (createState.source || "0") + "-" + ((createState.originTask && createState.originTask.id) || ""),
+        t: t, api: api, tree: tree, source: createState.source,
+        originTask: createState.originTask, defaultTableId: createState.defaultTableId,
+        defaults: { priority: cfg["form.defaultPriority"], difficulty: cfg["form.defaultDifficulty"], targetOffset: cfg["form.defaultTargetOffset"] },
+        onClose: function () { setCreateState(null); },
+        onCreated: function (result) { setCreateState(null); savedTask(result); createdRef.current = active; reload(); },
+      }) : null,
+      toast ? h("div", { className: "wbt-toast" }, toast) : null);
   }
   return TimelineView;
 };

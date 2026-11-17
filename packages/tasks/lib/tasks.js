@@ -309,9 +309,9 @@ export function registerTaskActions(api) {
   });
 
   action("tasks.timeline", {
-    description: "取某条时间线有效任务，按publishDate/id正序；省略分页参数返回数组，传pageNumber或pageSize返回{records,total,current,size}，默认20条。排除已重启及已删除任务。",
+    description: "取某条时间线有效任务，按publishDate/id正序；省略分页参数返回数组，传pageNumber或pageSize返回{records,total,current,size}，默认20条。排除已重启及已删除任务。每条任务附带 tags/tagIds（标签域未安装时省略）与 workspaces，与任务列表同口径，供卡片与预览复用。",
     input: { type: "object", properties: { ...TIMELINE_ID_SCHEMA, ...TIMELINE_PAGE_SCHEMA } },
-    execute: function (args) { return timelineTasks(db, args || {}); },
+    execute: function (args) { return timelineTasks(db, args || {}, api); },
     render: function (r) { return renderArray(Array.isArray(r) ? r : r.records); },
   });
 

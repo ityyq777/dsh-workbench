@@ -3,6 +3,8 @@ import { timelineIdArg, requireTimeline, activeTimeline, setMembership, touchTim
 import { idOf, nodeMap, taskOut, now } from "../db/db.js";
 import { taskTransaction } from "../task/write/task-transaction.js";
 import { getTask } from "../task/model/task-model.js";
+import { attachTags } from "../tagging/tagging.js";
+import { attachWorkspaces } from "../workspace/workspace-store.js";
 
 const LIVE = "t.deleted_at IS NULL AND t.status!='3' AND l.deleted_at IS NULL AND e.deleted_at IS NULL";
 const MEMBERS = "task t JOIN task_timeline_link l ON l.task_id=t.id JOIN task_timeline e ON e.id=l.timeline_id";
@@ -39,7 +41,8 @@ export function timelines(db, args) {
   return { records: rows.filter(r => r.timelineKey !== null).map(({ total, ...row }) => ({ ...row })), total: Number(rows[0].total), current, size };
 }
 
-export function timelineTasks(db, args) {
+/** api 可选：传入时按列表同口径补齐 tags/tagIds 与 workspaces，供只读预览复用同一张卡片。 */
+export function timelineTasks(db, args, api) {
   const key = timelineIdArg(args, false);
   const paged = args.pageNumber !== undefined || args.pageSize !== undefined;
   const { current, size, offset } = pagination(args);
@@ -48,6 +51,10 @@ export function timelineTasks(db, args) {
   const rows = db.prepare("SELECT t.* FROM " + MEMBERS + where + " ORDER BY t.publish_date ASC,t.id ASC" + (paged ? " LIMIT ? OFFSET ?" : "")).all(...(paged ? [key,size,offset] : [key]));
   const map = nodeMap(db);
   const records = rows.map(r => taskOut(r, map));
+  if (api) {
+    attachTags(db, api, records);
+    attachWorkspaces(db, records);
+  }
   if (!paged) return records;
   const total = Number(db.prepare("SELECT COUNT(*) AS total FROM " + MEMBERS + where).get(key).total);
   return { records, total, current, size };

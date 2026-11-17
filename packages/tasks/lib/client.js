@@ -4595,7 +4595,7 @@ var require_copy = __commonJS({
         timelineSearch: "\u641C\u7D22\u65F6\u95F4\u7EBF\u6807\u9898\u6216\u63CF\u8FF0",
         timelineSearchButton: "\u641C\u7D22",
         timelineMembers: "\u6210\u5458\u4EFB\u52A1",
-        timelineOrder: "\u6309\u53D1\u5E03\u65F6\u95F4\u6B63\u5E8F\u6392\u5217\uFF0C\u70B9\u51FB\u4EFB\u52A1\u6253\u5F00\u8BE6\u60C5",
+        timelineOrder: "\u6309\u53D1\u5E03\u65F6\u95F4\u6B63\u5E8F\u6392\u5217\uFF0C\u70B9\u51FB\u4EFB\u52A1\u6253\u5F00\u9884\u89C8",
         timelineSearchEmpty: "\u6CA1\u6709\u627E\u5230\u5305\u542B \u201C{query}\u201D \u7684\u65F6\u95F4\u7EBF",
         timelineEmpty: "\u6682\u65E0\u65F6\u95F4\u7EBF\uFF0C\u53EF\u70B9\u51FB\u201C\u65B0\u5EFA\u65F6\u95F4\u7EBF\u201D\u624B\u52A8\u5EFA\u7ACB\u3002",
         timelineOpen: "\u5F00\u542F",
@@ -4607,6 +4607,10 @@ var require_copy = __commonJS({
         timelinePreview: "\u9884\u89C8\u5408\u5E76",
         timelinePreviewCount: "\u5C06\u79FB\u52A8 {n} \u6761\u4EFB\u52A1\u5230\u76EE\u6807\u65F6\u95F4\u7EBF\u3002",
         timelineConfirm: "\u786E\u8BA4\u5408\u5E76",
+        previewLabel: "\u4EFB\u52A1\u9884\u89C8",
+        previewUntitled: "\u672A\u547D\u540D\u4EFB\u52A1",
+        previewOpen: "\u70B9\u51FB\u9884\u89C8\u4EFB\u52A1",
+        previewHint: "\u53EA\u8BFB\u9884\u89C8\uFF1B\u9700\u8981\u4FEE\u6539\u8BF7\u70B9\u4E0B\u65B9\u300C\u7F16\u8F91\u4EFB\u52A1\u300D\u3002",
         bodyModeToggle: bodyCopy.zh.bodyModeToggle,
         bodyMode: "\u63CF\u8FF0\u4E0E\u611F\u53D7\u663E\u793A\u6A21\u5F0F",
         markdown: "Markdown \u6E32\u67D3",
@@ -4758,7 +4762,7 @@ var require_copy = __commonJS({
         timelineSearch: "Search timeline titles or descriptions",
         timelineSearchButton: "Search",
         timelineMembers: "Member tasks",
-        timelineOrder: "Oldest publication first. Click a task to open details.",
+        timelineOrder: "Oldest publication first. Click a task to open a preview.",
         timelineSearchEmpty: "No timelines contain \u201C{query}\u201D.",
         timelineEmpty: "No timelines yet. Use New timeline to create one manually.",
         timelineOpen: "Open",
@@ -4770,6 +4774,10 @@ var require_copy = __commonJS({
         timelinePreview: "Preview merge",
         timelinePreviewCount: "{n} tasks will move into the target timeline.",
         timelineConfirm: "Confirm merge",
+        previewLabel: "Task preview",
+        previewUntitled: "Untitled task",
+        previewOpen: "Click to preview task",
+        previewHint: "Read-only preview. Use Edit task below to make changes.",
         bodyModeToggle: bodyCopy.en.bodyModeToggle,
         bodyMode: "Description and reflection display mode",
         markdown: "Render Markdown",
@@ -8601,12 +8609,13 @@ var require_timeline_member_rows = __commonJS({
         return h("ol", { className: "wbt-timeline-members" }, (props.rows || []).map(function(task) {
           var status = statusInfo(task.status), title = task.title || (lang === "en" ? "Untitled task" : "\u672A\u547D\u540D\u4EFB\u52A1");
           var remove = lang === "en" ? "Remove from timeline: " + title : "\u4ECE\u65F6\u95F4\u7EBF\u79FB\u51FA\uFF1A" + title;
+          var open = lang === "en" ? "Click to preview task: " : "\u70B9\u51FB\u9884\u89C8\u4EFB\u52A1\uFF1A";
           return h(
             "li",
             { key: task.id, className: "wbt-timeline-member-row" },
             h("time", { className: "wbt-timeline-date", dateTime: task.publishDate || void 0 }, task.publishDate || "\u2014"),
             h("span", { className: "wbt-timeline-node", "aria-hidden": true }),
-            h("button", { type: "button", className: "wbt-timeline-member", title, "aria-label": title + " \xB7 " + (task.publishDate || "") + " \xB7 " + status[lang], onClick: function(event) {
+            h("button", { type: "button", className: "wbt-timeline-member", title, "aria-label": open + title + " \xB7 " + (task.publishDate || "") + " \xB7 " + status[lang], onClick: function(event) {
               if (props.onOpen) props.onOpen(task, event);
             } }, title),
             h("span", { className: "wbt-badge " + status.cls }, status[lang]),
@@ -10854,6 +10863,59 @@ var require_timeline_merge = __commonJS({
   }
 });
 
+// packages/addons/tasks/client/modals/task-preview.cjs
+var require_task_preview = __commonJS({
+  "packages/addons/tasks/client/modals/task-preview.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function createTaskPreview(React, TaskItem) {
+      var h = React.createElement;
+      function TaskPreview(props) {
+        var t = props.t, task = props.task;
+        var titleId = "wbt-preview-title";
+        function onKey(e) {
+          if (e.key !== "Escape") return;
+          e.preventDefault();
+          e.stopPropagation();
+          props.onClose();
+        }
+        return h(
+          "div",
+          {
+            className: "wbt-modal-mask",
+            onKeyDownCapture: onKey,
+            onMouseDown: function(e) {
+              if (e.target === e.currentTarget) props.onClose();
+            }
+          },
+          h(
+            "div",
+            {
+              className: "wbt-modal wide wbt-preview",
+              role: "dialog",
+              "aria-modal": "true",
+              "aria-labelledby": titleId,
+              "aria-label": t.previewLabel
+            },
+            h(
+              "div",
+              { className: "wbt-modal-head" },
+              h("h3", { id: titleId }, String(task.title || "").trim() || t.previewUntitled),
+              h("button", { type: "button", className: "wbt-icon", title: t.close, "aria-label": t.close, onClick: props.onClose }, "\xD7")
+            ),
+            h("div", { className: "wbt-preview-body" }, h(TaskItem, props.cardProps)),
+            h(
+              "div",
+              { className: "wbt-modal-foot" },
+              h("button", { type: "button", className: "wbt-btn ghost", autoFocus: true, onClick: props.onClose }, t.close)
+            )
+          )
+        );
+      }
+      return TaskPreview;
+    };
+  }
+});
+
 // packages/addons/tasks/client/views/timeline-view.cjs
 var require_timeline_view = __commonJS({
   "packages/addons/tasks/client/views/timeline-view.cjs"(exports2, module2) {
@@ -10864,6 +10926,8 @@ var require_timeline_view = __commonJS({
       var Merge = require_timeline_merge()(React);
       var CSS = require_timeline_styles();
       var MemberRows = require_timeline_member_rows()(React, deps.statusInfo);
+      var TaskPreview = require_task_preview()(React, deps.TaskItem);
+      var receipts = require_ownership();
       var splitTitle = require_timeline_title();
       var Highlight = require_highlight2()(React);
       function result(r) {
@@ -10915,6 +10979,12 @@ var require_timeline_view = __commonJS({
         var addS = React.useState(false), adding = addS[0], setAdding = addS[1];
         var deleteS = React.useState(false), deleting = deleteS[0], setDeleting = deleteS[1];
         var writeS = React.useState(false), writing = writeS[0], setWriting = writeS[1];
+        var editS = React.useState(null), editTask = editS[0], setEditTask = editS[1];
+        var doneS = React.useState(null), doneTask = doneS[0], setDoneTask = doneS[1];
+        var timelineS = React.useState(null), timelineTask = timelineS[0], setTimelineTask = timelineS[1];
+        var createS = React.useState(null), createState = createS[0], setCreateState = createS[1];
+        var toastS = React.useState(""), toast = toastS[0], setToast = toastS[1];
+        var cfg = deps.configView.useConfig(api, deps.CFG_FALLBACK).values;
         React.useEffect(function() {
           deps.injectCss();
         }, []);
@@ -10977,7 +11047,7 @@ var require_timeline_view = __commonJS({
           };
         }, [api, activeKey, memberPage, refresh]);
         React.useEffect(function() {
-          if (!detail) return;
+          if (!editTask && !createState) return;
           var cancelled = false;
           api.call("taskNodes.tree", {}).then(result).then(function(r) {
             if (!cancelled) setTree(Array.isArray(r) ? r : []);
@@ -10986,7 +11056,16 @@ var require_timeline_view = __commonJS({
           return function() {
             cancelled = true;
           };
-        }, [api, !!detail]);
+        }, [api, !!editTask, !!createState]);
+        React.useEffect(function() {
+          if (!toast) return;
+          var timer = setTimeout(function() {
+            setToast("");
+          }, 2600);
+          return function() {
+            clearTimeout(timer);
+          };
+        }, [toast]);
         function reload() {
           setRefresh(function(n) {
             return n + 1;
@@ -11027,6 +11106,40 @@ var require_timeline_view = __commonJS({
         function closeDetail() {
           setDetail(null);
           if (detailTrigger.current) detailTrigger.current.focus({ preventScroll: true });
+        }
+        function say(message) {
+          setToast(String(message || ""));
+        }
+        function refreshDetail(id) {
+          api.call("tasks.get", { id }).then(result).then(function(r) {
+            setDetail(function(old) {
+              return old && String(old.id) === String(id) ? r.task : old;
+            });
+          }).catch(function() {
+          });
+        }
+        function updateTask(task, patch) {
+          api.call("tasks.update", Object.assign({ id: task.id }, patch)).then(result).then(function() {
+            refreshDetail(task.id);
+            createdRef.current = active;
+            reload();
+          }).catch(function(e) {
+            say(String(e && e.message || e));
+          });
+        }
+        function removeTask(task) {
+          if (cfg["ui.confirmDelete"] !== false && !window.confirm(t.deleteTaskConfirm)) return;
+          api.call("tasks.delete", { id: task.id }).then(result).then(function() {
+            setDetail(null);
+            say(t.deleted);
+            createdRef.current = active;
+            reload();
+          }).catch(function(e) {
+            say(String(e && e.message || e));
+          });
+        }
+        function savedTask(result2) {
+          if (result2) say(receipts.receipt(result2));
         }
         function closeMerge() {
           setMerge(false);
@@ -11216,10 +11329,114 @@ var require_timeline_view = __commonJS({
             setMulti(false);
             reload();
           } }) : null,
-          detail ? h(deps.EditModal, { key: detail.id, api, t, lang, task: detail, tree, onClose: closeDetail, onSaved: function() {
-            closeDetail();
-            reload();
-          } }) : null
+          detail && !editTask ? h(TaskPreview, {
+            key: "preview-" + detail.id,
+            t,
+            task: detail,
+            onClose: closeDetail,
+            cardProps: {
+              task: detail,
+              t,
+              lang,
+              keyword: "",
+              bodyMode: cfg["ui.bodyMode"],
+              update: updateTask,
+              onEdit: function(task) {
+                setEditTask(task);
+              },
+              onDone: function(task) {
+                setDoneTask(task);
+              },
+              onRestart: function(task) {
+                setCreateState({ source: "2", originTask: task });
+              },
+              onTimeline: function(task) {
+                setTimelineTask(task);
+              },
+              onDelete: removeTask
+            }
+          }) : null,
+          editTask ? h(deps.EditModal, {
+            key: "edit-" + editTask.id,
+            api,
+            t,
+            lang,
+            task: editTask,
+            tree,
+            onClose: function() {
+              setEditTask(null);
+            },
+            onSaved: function(result2) {
+              var id = editTask.id;
+              setEditTask(null);
+              savedTask(result2);
+              refreshDetail(id);
+              createdRef.current = active;
+              reload();
+            }
+          }) : null,
+          doneTask ? h(deps.DoneModal, {
+            key: "done-" + doneTask.id,
+            t,
+            api,
+            task: doneTask,
+            onClose: function() {
+              setDoneTask(null);
+            },
+            onDone: function() {
+              setDoneTask(null);
+              closeDetail();
+              say(t.doneSuccess);
+              createdRef.current = active;
+              reload();
+            },
+            onError: function(e) {
+              setDoneTask(null);
+              say(String(e));
+            }
+          }) : null,
+          timelineTask ? h(deps.TimelineModal, {
+            key: "tl-" + timelineTask.id,
+            t,
+            api,
+            task: timelineTask,
+            onChanged: reload,
+            onClose: function() {
+              setTimelineTask(null);
+            },
+            onOpen: function(member) {
+              api.call("tasks.get", { id: member.id }).then(result).then(function(r) {
+                setTimelineTask(null);
+                setEditTask(r.task);
+              }).catch(function(e) {
+                say(String(e && e.message || e));
+              });
+            },
+            onCreateTimeline: function(originTask) {
+              setTimelineTask(null);
+              setCreateState({ source: "1", originTask, defaultTableId: originTask.tableId });
+            }
+          }) : null,
+          createState ? h(deps.CreateModal, {
+            key: (createState.source || "0") + "-" + (createState.originTask && createState.originTask.id || ""),
+            t,
+            api,
+            tree,
+            source: createState.source,
+            originTask: createState.originTask,
+            defaultTableId: createState.defaultTableId,
+            defaults: { priority: cfg["form.defaultPriority"], difficulty: cfg["form.defaultDifficulty"], targetOffset: cfg["form.defaultTargetOffset"] },
+            onClose: function() {
+              setCreateState(null);
+            },
+            onCreated: function(result2) {
+              setCreateState(null);
+              savedTask(result2);
+              createdRef.current = active;
+              reload();
+            }
+          }) : null,
+          toast ? h("div", { className: "wbt-toast" }, toast) : null
         );
       }
       return TimelineView;
@@ -11722,10 +11939,10 @@ var init_list_checks = __esm({
     "stats.sections": ["eventTrend", "trend", "status", "priority", "difficulty", "aging", "overdue", "tables", "groups", "workspaces", "recent"]
   };
   var TasksView = require_tasks_view()({ React, configView, CFG_FALLBACK, COPY, injectCss, allTables, findFirstTable, treeWalk, treeFlat, cx, Icon: Icon2, TaskItem, PathCrumbs, TagFilter, WorkspaceFilter, TreeNode, CreateModal, TimelineModal, NodeModal, EditModal, DoneModal, BatchModal });
-  var TimelineView = require_timeline_view()({ React, COPY, injectCss, statusInfo, EditModal });
+  var TimelineView = require_timeline_view()({ React, COPY, injectCss, statusInfo, configView, CFG_FALLBACK, TaskItem, EditModal, DoneModal, TimelineModal, CreateModal });
   host.registerAddon({
     id: "wb-addon-tasks",
-    version: "5.2.19",
+    version: "5.2.20",
     icon: (init_list_checks(), __toCommonJS(list_checks_exports)).default,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.TasksStatsView, keepAlive: true },

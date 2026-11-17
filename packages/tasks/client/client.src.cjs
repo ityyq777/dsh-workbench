@@ -378,11 +378,11 @@
 
   var TasksView = require("./views/tasks-view.cjs")({ React: React, configView: configView, CFG_FALLBACK: CFG_FALLBACK, COPY: COPY, injectCss: injectCss, allTables: allTables, findFirstTable: findFirstTable, treeWalk: treeWalk, treeFlat: treeFlat, cx: cx, Icon: Icon, TaskItem: TaskItem, PathCrumbs: PathCrumbs, TagFilter: TagFilter, WorkspaceFilter: WorkspaceFilter, TreeNode: TreeNode, CreateModal: CreateModal, TimelineModal: TimelineModal, NodeModal: NodeModal, EditModal: EditModal, DoneModal: DoneModal, BatchModal: BatchModal });
 
-  var TimelineView = require("./views/timeline-view.cjs")({ React: React, COPY: COPY, injectCss: injectCss, statusInfo: statusInfo, EditModal: EditModal });
+  var TimelineView = require("./views/timeline-view.cjs")({ React: React, COPY: COPY, injectCss: injectCss, statusInfo: statusInfo, configView: configView, CFG_FALLBACK: CFG_FALLBACK, TaskItem: TaskItem, EditModal: EditModal, DoneModal: DoneModal, TimelineModal: TimelineModal, CreateModal: CreateModal });
 
   host.registerAddon({
     id: "wb-addon-tasks",
-    version: "5.2.19",
+    version: "5.2.20",
     icon: require("lucide-react/icons/list-checks").default,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "统计", en: "Stats" }, component: statsView.TasksStatsView, keepAlive: true },

@@ -6,6 +6,7 @@
  * 5.2.17：标签筛选列表体改用共享 filter-checklist（搜索 + 滚动分页 + 三态文案）。
  * 5.2.18：年度活动热力图新增「目标」计划维度（target_date），单独口径、不计入活动总数。
  * 5.2.19：统计页新增「事件趋势」折线卡，发布/目标/完成/关闭/接取五条曲线，与年度活动同口径。
+ * 5.2.20：时间线成员点击改为任务预览面板（复用列表卡片与操作按钮）；`tasks.timeline` 补齐 tags/workspaces。
  */
 
 import { registerActivityCalendarAction } from "./stats/activity-calendar.js";
@@ -124,7 +125,7 @@ export function apply(ctx) {
         id: "wb-addon-tasks",
         title: "任务",
         description: "任务树 + 统计/记录/时间线/配置/数据五个视图：紧急/已关闭/已开启/已完成/总览，可按标签筛选（需安装标签插件），附统计报表与只读数据浏览",
-        version: "5.2.19",
+        version: "5.2.20",
         tables: ["task", "task_node", "task_timeline", "task_timeline_link", "task_workspace", "task_workspace_link"],
         sync: taskSync,
         views: [
