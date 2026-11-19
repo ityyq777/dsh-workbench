@@ -2,6 +2,7 @@
 module.exports = function createTasksView(deps) {
   var React = deps.React, configView = deps.configView, CFG_FALLBACK = deps.CFG_FALLBACK, COPY = deps.COPY, injectCss = deps.injectCss, allTables = deps.allTables, findFirstTable = deps.findFirstTable, treeWalk = deps.treeWalk, treeFlat = deps.treeFlat, cx = deps.cx, Icon = deps.Icon, TaskItem = deps.TaskItem, PathCrumbs = deps.PathCrumbs, TagFilter = deps.TagFilter, TreeNode = deps.TreeNode, CreateModal = deps.CreateModal, TimelineModal = deps.TimelineModal, NodeModal = deps.NodeModal, EditModal = deps.EditModal, DoneModal = deps.DoneModal, BatchModal = deps.BatchModal;
   var h = React.createElement, filters = require("./task-filter-model.cjs"), renderFilters = require("./task-filter-panel.cjs"), claimBatch = require("./claim-batch.cjs"), renderSelectionBar = require("./selection-bar.cjs");
+  var TaskPreview = require("../modals/task-preview.cjs")(React, TaskItem);
   function TasksView(props) {
     var lang = props.lang === "en" ? "en" : "zh";
     var cfg = configView.useConfig(props.api, CFG_FALLBACK);
@@ -104,6 +105,12 @@ module.exports = function createTasksView(deps) {
     var doneTask = doneS[0], setDoneTask = doneS[1];
     var editTaskS = React.useState(null);
     var editTask = editTaskS[0], setEditTask = editTaskS[1];
+    // 时间线弹窗里的成员预览：弹窗保持挂载（页码/滚动不丢），预览叠在它上面。
+    var timelinePreviewS = React.useState(null);
+    var timelinePreview = timelinePreviewS[0], setTimelinePreview = timelinePreviewS[1];
+    var timelineTrigger = React.useRef(null);
+    var timelineReloadS = React.useState(0);
+    var timelineReload = timelineReloadS[0], setTimelineReload = timelineReloadS[1];
     var editS = React.useState(null);
     var edit = editS[0], setEdit = editS[1];
     var nodeModalS = React.useState(null);
@@ -289,6 +296,36 @@ module.exports = function createTasksView(deps) {
         if (r && r.ok) {
           refreshList();
           refreshTagNav();
+          say(t.deleted);
+        } else say((r && r.error) || "delete failed");
+      });
+    }
+
+    // 时间线弹窗成员点击：先拉完整任务再开预览，失败退回成员行数据，保证预览一定能开。
+    function openTimelinePreview(member, event) {
+      timelineTrigger.current = (event && event.currentTarget) || timelineTrigger.current;
+      api.call("tasks.get", { id: member.id }).then(function (r) {
+        if (r && r.ok && r.result && r.result.task) return r.result.task;
+        return member;
+      }).catch(function () { return member; }).then(function (task) {
+        if (task) setTimelinePreview(task);
+      });
+    }
+    function closeTimelinePreview() {
+      setTimelinePreview(null);
+      var trigger = timelineTrigger.current;
+      timelineTrigger.current = null;
+      if (trigger && trigger.isConnected) trigger.focus({ preventScroll: true });
+    }
+    function bumpTimeline() { setTimelineReload(function (n) { return n + 1; }); }
+    function deletePreviewTask(task) {
+      if (cfgConfirm && !window.confirm(t.deleteTaskConfirm)) return;
+      api.call("tasks.delete", { id: task.id }).then(function (r) {
+        if (r && r.ok) {
+          closeTimelinePreview();
+          refreshList();
+          refreshTagNav();
+          bumpTimeline();
           say(t.deleted);
         } else say((r && r.error) || "delete failed");
       });
@@ -553,20 +590,37 @@ module.exports = function createTasksView(deps) {
           targetOffset: cfg["form.defaultTargetOffset"],
         },
         onClose: function () { setCreateState(null); },
-        onCreated: function (result) { setCreateState(null); refreshList(); refreshTree(); say(require("../modals/ownership.cjs").receipt(result)); },
+        onCreated: function (result) { setCreateState(null); refreshList(); refreshTree(); bumpTimeline(); say(require("../modals/ownership.cjs").receipt(result)); },
       }) : null,
       timelineTask ? h(TimelineModal, {
-        key: timelineTask.id, t: t, api: api, task: timelineTask, onChanged: refreshList,
-        onClose: function () { setTimelineTask(null); },
-        onOpen: function (member) {
-          api.call("tasks.get", { id: member.id }).then(function (r) {
-            if (!r || !r.ok) throw Error(r && r.error || t.fail);
-            setTimelineTask(null); setEditTask(r.result.task);
-          }).catch(function (err) { say(String(err.message || err)); });
-        },
+        key: timelineTask.id, t: t, api: api, task: timelineTask, onChanged: refreshList, refreshKey: timelineReload,
+        onClose: function () { setTimelineTask(null); setTimelinePreview(null); },
+        // 成员行只开只读预览；预览里的「编辑」才进编辑面板。
+        onOpen: openTimelinePreview,
         onCreateTimeline: function (originTask) {
           setTimelineTask(null);
+          setTimelinePreview(null);
           setCreateState({ source: "1", originTask: originTask, defaultTableId: originTask.tableId });
+        },
+      }) : null,
+      timelineTask && timelinePreview ? h(TaskPreview, {
+        key: "preview-" + timelinePreview.id, t: t, task: timelinePreview, onClose: closeTimelinePreview,
+        cardProps: {
+          task: timelinePreview, t: t, lang: props.lang, keyword: "", bodyMode: cfg["ui.bodyMode"],
+          update: function (task, patch) {
+            api.call("tasks.update", Object.assign({ id: task.id }, patch)).then(function (r) {
+              if (!r || !r.ok) { say((r && r.error) || "update failed"); return; }
+              return api.call("tasks.get", { id: task.id }).then(function (next) {
+                if (next && next.ok && next.result && next.result.task) setTimelinePreview(next.result.task);
+                refreshList(); bumpTimeline();
+              });
+            }).catch(function (e) { say(String((e && e.message) || e)); });
+          },
+          onEdit: function (task) { closeTimelinePreview(); setEditTask(task); },
+          onDone: function (task) { closeTimelinePreview(); setDoneTask(task); },
+          onRestart: function (task) { closeTimelinePreview(); setCreateState({ source: "2", originTask: task }); },
+          onTimeline: function (task) { closeTimelinePreview(); setTimelineTask(task); },
+          onDelete: deletePreviewTask,
         },
       }) : null,
       nodeModal ? h(NodeModal, {
@@ -578,12 +632,12 @@ module.exports = function createTasksView(deps) {
       editTask ? h(EditModal, {
         key: "edit-" + editTask.id, t: t, api: api, task: editTask, lang: props.lang, tree: tree,
         onClose: function () { setEditTask(null); },
-        onSaved: function (result) { setEditTask(null); refreshList(); say(require("../modals/ownership.cjs").receipt(result)); },
+        onSaved: function (result) { setEditTask(null); refreshList(); bumpTimeline(); say(require("../modals/ownership.cjs").receipt(result)); },
       }) : null,
       doneTask ? h(DoneModal, {
         key: doneTask.id, t: t, api: api, task: doneTask,
         onClose: function () { setDoneTask(null); },
-        onDone: function () { setDoneTask(null); refreshList(); say(t.doneSuccess); },
+        onDone: function () { setDoneTask(null); refreshList(); bumpTimeline(); say(t.doneSuccess); },
         onError: function (e) { setDoneTask(null); say(e); },
       }) : null,
       (selectedOpen && batchMode) ? h(BatchModal, {

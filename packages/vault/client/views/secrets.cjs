@@ -2,7 +2,7 @@
 /** 凭据库：全局列表 + 搜索/类型筛选 + 所属集合；明文只在 reveal 弹层里出现。 */
 var C = require("../ui/common.cjs");
 var AskPassphrase = require("../ui/ask-passphrase.cjs");
-var SecretField = require("../ui/secret-field.cjs");
+var SecretField = require("../../../lib/secret-field.cjs");
 
 var K = require("../ui/kinds.cjs");
 var KIND_LABEL = K.KIND_LABEL;
@@ -293,10 +293,11 @@ module.exports = function SecretsView(props) {
       label: "主口令",
       value: unlockS[0].value, busy: unlockS[0].busy, error: unlockS[0].error,
       onChange: function (v) { unlockS[1](Object.assign({}, unlockS[0], { value: v })); },
+    show: unlockS[0].show, onToggle: function () { unlockS[1](Object.assign({}, unlockS[0], { show: !unlockS[0].show })); },
       onCancel: function () { if (!unlockS[0].busy) unlockS[1](null); },
       onConfirm: confirmUnlock,
     }) : null,
-    askS[0] ? h(AskPassphrase, { h: h, C: C, title: "查看凭据明文", hint: "当前是 B 模式，查看明文需要再次输入主口令。", label: "主口令（" + askS[0].row.name + "）", value: askS[0].value, busy: askS[0].busy, error: askS[0].error, onChange: function (v) { askS[1](Object.assign({}, askS[0], { value: v })); }, onCancel: function () { if (!askS[0].busy) askS[1](null); }, onConfirm: confirmPassphrase }) : null,
+    askS[0] ? h(AskPassphrase, { h: h, C: C, title: "查看凭据明文", hint: "当前是 B 模式，查看明文需要再次输入主口令。", label: "主口令（" + askS[0].row.name + "）", value: askS[0].value, busy: askS[0].busy, error: askS[0].error, onChange: function (v) { askS[1](Object.assign({}, askS[0], { value: v })); }, show: askS[0].show, onToggle: function () { askS[1](Object.assign({}, askS[0], { show: !askS[0].show })); }, onCancel: function () { if (!askS[0].busy) askS[1](null); }, onConfirm: confirmPassphrase }) : null,
 
     revealS[0] ? h("div", { className: "wbv-modal", onClick: function () { revealS[1](null); } },
       h("div", { className: "wbv-modal-box", onClick: function (e) { e.stopPropagation(); } },

@@ -2,6 +2,7 @@
 /** 保险箱首页：初始化 / 解锁 / 状态 / 快速锁定。 */
 var C = require("../ui/common.cjs");
 var AskPassphrase = require("../ui/ask-passphrase.cjs");
+var SecretField = require("../../../lib/secret-field.cjs");
 
 module.exports = function StatusView(props) {
   var h = props.h;
@@ -17,6 +18,9 @@ module.exports = function StatusView(props) {
   var mode = React.useState("A");
   var msg = React.useState("");
   var askS = React.useState(null); // { value, busy, error }
+  var showMainS = React.useState(false);
+  var showConfirmS = React.useState(false);
+  var showUnlockS = React.useState(false);
   var refreshTick = React.useState(0);
   var refresh = function () { refreshTick[1](refreshTick[0] + 1); };
 
@@ -63,6 +67,7 @@ module.exports = function StatusView(props) {
     hint: "切换后下次启动需要重新解锁，请验证主口令。",
     value: askS[0].value, busy: askS[0].busy, error: askS[0].error,
     onChange: function (v) { askS[1](Object.assign({}, askS[0], { value: v })); },
+    show: askS[0].show, onToggle: function () { askS[1](Object.assign({}, askS[0], { show: !askS[0].show })); },
     onCancel: function () { if (!askS[0].busy) askS[1](null); },
     onConfirm: confirmAsk,
   }) : null;
@@ -94,6 +99,7 @@ module.exports = function StatusView(props) {
     hint: "切换后下次启动需要重新解锁，请验证主口令。",
     value: askS[0].value, busy: askS[0].busy, error: askS[0].error,
     onChange: function (v) { askS[1](Object.assign({}, askS[0], { value: v })); },
+    show: askS[0].show, onToggle: function () { askS[1](Object.assign({}, askS[0], { show: !askS[0].show })); },
     onCancel: function () { if (!askS[0].busy) askS[1](null); },
     onConfirm: confirmAsk,
   }) : null;
@@ -104,9 +110,17 @@ module.exports = function StatusView(props) {
       h(C.Notice, { h: h, kind: "info", text: "默认 A 模式：每次启动后需要重新解锁。可稍后在设置里改成自动解锁。" }),
       h("div", { className: "wbv-card wbv-row" },
         h(C.Field, { h: h, label: "主口令（至少 12 位）" },
-          h("input", { type: "password", value: pass[0], autoComplete: "new-password", onChange: function (e) { pass[1](e.target.value); } })),
+          h(SecretField, {
+            h: h, autoComplete: "new-password", ariaLabel: "主口令",
+            value: pass[0], show: showMainS[0],
+            onChange: pass[1], onToggle: function () { showMainS[1](!showMainS[0]); },
+          })),
         h(C.Field, { h: h, label: "确认口令" },
-          h("input", { type: "password", value: pass2[0], autoComplete: "new-password", onChange: function (e) { pass2[1](e.target.value); } })),
+          h(SecretField, {
+            h: h, autoComplete: "new-password", ariaLabel: "确认口令",
+            value: pass2[0], show: showConfirmS[0],
+            onChange: pass2[1], onToggle: function () { showConfirmS[1](!showConfirmS[0]); },
+          })),
         h(C.Field, { h: h, label: "解锁模式" },
           h("select", { value: mode[0], onChange: function (e) { mode[1](e.target.value); } },
             h("option", { value: "A" }, "A 全锁（推荐）"),
@@ -142,6 +156,7 @@ module.exports = function StatusView(props) {
     hint: "切换后下次启动需要重新解锁，请验证主口令。",
     value: askS[0].value, busy: askS[0].busy, error: askS[0].error,
     onChange: function (v) { askS[1](Object.assign({}, askS[0], { value: v })); },
+    show: askS[0].show, onToggle: function () { askS[1](Object.assign({}, askS[0], { show: !askS[0].show })); },
     onCancel: function () { if (!askS[0].busy) askS[1](null); },
     onConfirm: confirmAsk,
   }) : null;
@@ -151,7 +166,11 @@ module.exports = function StatusView(props) {
       h("p", { className: "wbv-muted" }, "输入主口令解锁。解锁状态只保存在当前进程内存，空闲超时会自动锁定。"),
       h("div", { className: "wbv-card wbv-row" },
         h(C.Field, { h: h, label: "主口令" },
-          h("input", { type: "password", value: pass[0], autoComplete: "current-password", onChange: function (e) { pass[1](e.target.value); } })),
+          h(SecretField, {
+            h: h, autoComplete: "current-password", ariaLabel: "主口令",
+            value: pass[0], show: showUnlockS[0],
+            onChange: pass[1], onToggle: function () { showUnlockS[1](!showUnlockS[0]); },
+          })),
         h(C.Btn, { h: h, kind: "primary", disabled: busy[0], onClick: function () {
           if (!pass[0]) return msg[1]("请输入口令");
           run(function () { return C.call(api, "vault.unlock", { passphrase: pass[0] }); });
@@ -181,6 +200,7 @@ module.exports = function StatusView(props) {
     hint: "切换后下次启动需要重新解锁，请验证主口令。",
     value: askS[0].value, busy: askS[0].busy, error: askS[0].error,
     onChange: function (v) { askS[1](Object.assign({}, askS[0], { value: v })); },
+    show: askS[0].show, onToggle: function () { askS[1](Object.assign({}, askS[0], { show: !askS[0].show })); },
     onCancel: function () { if (!askS[0].busy) askS[1](null); },
     onConfirm: confirmAsk,
   }) : null;

@@ -82,7 +82,7 @@ export function apply(ctx) {
         id: "wb-addon-message",
         title: "消息",
         description: "统一消息入口：子插件与 agent 都能发消息，含未读计数、提示音与保留期清理；含统计、收件箱、配置、数据与 Action 五个视图",
-        version: "0.1.0",
+        version: "0.1.1",
         tables: ["message"],
         // 只在本机保存：显式声明不同步任何表（不写 sync 时宿主默认按行同步）。
         sync: { tables: [] },

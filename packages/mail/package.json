@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-mail",
-  "version": "0.1.1",
+  "version": "0.2.6",
   "description": "个人工作台邮件插件：IMAP 收信头、SMTP 发信、保险箱托管密码",
   "type": "module",
   "main": "lib/index.js",
@@ -16,8 +16,8 @@
     "addon": {
       "id": "wb-addon-mail",
       "title": "邮件",
-      "version": "0.1.1",
-      "minShell": "0.6.7",
+      "version": "0.2.6",
+      "minShell": "0.8.0",
       "tables": [
         "mail_account",
         "mail_mailbox",
@@ -42,6 +42,7 @@
         "mail.mailboxSync",
         "mail.messageList",
         "mail.messageGet",
+        "mail.messageBody",
         "mail.messageSend",
         "mail.messageMarkRead",
         "mail.messageMove",
@@ -55,7 +56,7 @@
     }
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.7.0"
+    "dsh-workbench-host": "^0.8.0"
   },
   "dsh": {
     "bundle": {

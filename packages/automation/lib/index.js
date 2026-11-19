@@ -38,7 +38,7 @@ export function apply(ctx) {
         id: "wb-addon-automation",
         title: "自动化",
         description: "把定时、域事件或手动操作接到工作台 action：白名单、模板、条件、限频与运行记录",
-        version: "0.2.1",
+        version: "0.2.2",
         tables: ["automation_rule", "automation_run", "automation_meta"],
         // 规则可随备份迁移；运行记录只在本机，因此不参与云同步。
         sync: { tables: [] },

@@ -24,7 +24,7 @@ export function apply(ctx) {
     id: "wb-addon-contacts",
     title: "联系人",
     description: "本地联系人、分组、多值字段与 vCard 导入导出；支持跨域搜索",
-    version: "0.1.1",
+    version: "0.1.2",
     tables: ["contact", "contact_group", "contact_field", "contact_group_member"],
     sync: { tables: [] },
     views: [

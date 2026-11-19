@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-tags",
-  "version": "1.7.1",
+  "version": "1.7.3",
   "description": "个人工作台标签插件：创建与管理标签，为任务、站点与储物提供标签归类",
   "type": "module",
   "main": "lib/index.js",
@@ -16,8 +16,8 @@
       "id": "wb-addon-tags",
       "title": "标签",
       "description": "标签 + 统计/记录/配置/数据四个视图：创建与管理标签，为站点等业务提供标签归类，附表数据浏览",
-      "version": "1.7.1",
-      "minShell": "0.5.0",
+      "version": "1.7.3",
+      "minShell": "0.8.0",
       "tables": [
         "tag",
         "tag_mapping"
@@ -55,7 +55,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.7.0"
+    "dsh-workbench-host": "^0.8.0"
   },
   "dsh": {
     "bundle": {

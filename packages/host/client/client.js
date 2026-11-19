@@ -79,6 +79,8 @@ var require_locale = __commonJS({
         search_none: "\u6CA1\u6709\u547D\u4E2D",
         search_partial: "\u90E8\u5206\u57DF\u641C\u7D22\u5931\u8D25",
         account_desc: "\u767B\u5F55\u4E91\u7AEF\u8D26\u53F7\uFF0C\u5907\u4EFD\u4E0E\u540C\u6B65\u6570\u636E",
+        tab_agent: "Agent \u6743\u9650",
+        agent_desc: "\u9010\u4E2A action \u63A7\u5236 agent \u80FD\u5426\u8C03\u7528\uFF1B\u5F00\u5173\u53EA\u5B58\u672C\u673A\u3001\u7ACB\u5373\u751F\u6548\uFF0C\u754C\u9762\u64CD\u4F5C\u4E0E\u6570\u636E\u540C\u6B65\u90FD\u4E0D\u53D7\u5F71\u54CD",
         tab_audit: "\u5BA1\u8BA1\u65E5\u5FD7",
         audit_desc: "\u672C\u673A\u884C\u4E3A\u8D26\u672C\uFF1A\u8C01\u5728\u4F55\u65F6\u8C03\u7528\u4E86\u54EA\u4E2A action\u3001\u6210\u529F\u4E0E\u5426\uFF1B\u5BC6\u7801\u4E0E token \u7B49\u53C2\u6570\u5DF2\u8131\u654F",
         audit_filters: "\u7B5B\u9009",
@@ -251,6 +253,8 @@ var require_locale = __commonJS({
         search_none: "No matches",
         search_partial: "Some domains failed",
         account_desc: "Sign in to back up and sync your data",
+        tab_agent: "Agent access",
+        agent_desc: "Choose which actions the agent may call; switches stay on this machine, apply immediately, and never affect UI usage or sync",
         tab_audit: "Audit log",
         audit_desc: "A local ledger of who called which action and how it went; passwords and tokens are redacted",
         audit_filters: "Filters",
@@ -453,6 +457,10 @@ var require_styles = __commonJS({
       ".wb-immersive-title .wb-home-icon{width:24px;height:24px;border-radius:7px;font-size:12px}",
       ".wb-immersive-main{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 24px 24px}",
       ".wb-immersive-main>.wb-inner{max-width:none}",
+      // .wb-fill：页面根节点声明“我自己管滚动，请把整块可用高度给我”（三栏/双栏工作区这类应用式布局用）
+      ".wb-immersive-main:has(.wb-fill)>.wb-inner{height:100%}",
+      ".wb-inner>div:has(>.wb-fill){display:flex;flex-direction:column;height:100%;min-height:0}",
+      ".wb-fill{flex:1 1 auto;min-height:0}",
       "@media (max-width:760px){.wb-root{padding:16px}.wb-home-grid{grid-template-columns:1fr}.wb-page-title h2{font-size:17px}.wb-immersive-bar{padding:calc(8px + var(--dsh-frame-top-clearance,0px)) 14px 8px}.wb-immersive-main{padding:14px 16px 20px}.wb-immersive-title span:not(.wb-home-icon):not(.wb-badge){display:none}}",
       ".wb-backup{display:flex;flex-direction:column;gap:14px}",
       ".wb-backup-item{display:flex;flex-direction:column}",
@@ -536,44 +544,44 @@ var require_styles = __commonJS({
       ".wb-root{--wb-border:var(--wb-line);--wb-card:var(--dsw-alias-bg-layer-1,var(--dsw-alias-bg-layer-2,#fff));--wb-surface:var(--dsw-alias-bg-layer-1,var(--dsw-alias-bg-layer-2,#fff));--wb-accent:var(--dsw-alias-brand-primary,#11a89b);--wb-muted:var(--dsw-alias-label-secondary,color-mix(in oklab,currentColor 58%,transparent));--wb-ok:var(--dsw-alias-state-success-primary,#18a058);--wb-warn:var(--dsw-alias-state-warn-primary,var(--dsw-alias-state-warning-primary,#d48806));--wb-danger:var(--dsw-alias-state-error-primary,#e5484d);--wb-radius-card:14px;--wb-space-md:14px}",
       ".wb-root *{scrollbar-width:thin;scrollbar-color:color-mix(in oklab,currentColor 22%,transparent) transparent}",
       ".wb-root ::-webkit-scrollbar{width:10px;height:10px}.wb-root ::-webkit-scrollbar-thumb{background:color-mix(in oklab,currentColor 18%,transparent);border-radius:999px;border:2px solid transparent;background-clip:padding-box}",
-      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page){width:100%;max-width:none;margin:0;padding:0;gap:16px;box-sizing:border-box}",
-      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page) h2{font-size:20px;line-height:1.3;font-weight:680;letter-spacing:-.02em;margin:0}",
-      ".wb-root :is(.wbc-sub,.wba-sub,.wbct-sub,.wbca-sub,.wbm-sub,.wbv-muted,.wbct-muted,.wbc-muted,.wba-muted,.wbca-muted,.wbm-muted){font-size:12.5px;line-height:1.55;color:var(--wb-muted)}",
-      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page) > :is(.wbc-head,.wba-head,.wbct-head,.wbca-head,.wbm-head){padding-bottom:12px;border-bottom:1px solid var(--wb-border);align-items:flex-start}",
-      ".wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card,.wbct-panel){background:var(--wb-card);border:1px solid var(--wb-border);border-radius:var(--wb-radius-card);padding:16px;box-shadow:0 1px 2px color-mix(in oklab,#000 4%,transparent);transition:border-color .15s ease,box-shadow .15s ease}",
-      ".wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card):hover{border-color:color-mix(in oklab,var(--wb-accent) 32%,var(--wb-border));box-shadow:0 2px 14px color-mix(in oklab,#000 6%,transparent)}",
-      ".wb-root :is(.wbc-grid,.wbv-grid,.wba-grid,.wbct-grid,.wbca-grid,.wbm-grid){gap:12px}",
-      ".wb-root :is(.wbc-kpi,.wbv-kpi,.wba-kpi,.wbct-kpi,.wbca-kpi,.wbm-kpi){font-size:26px;line-height:1.15;font-weight:680;letter-spacing:-.03em;font-variant-numeric:tabular-nums}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn){min-height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--wb-border);background:var(--wb-card);color:inherit;font:inherit;font-size:12.5px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,border-color .12s ease,color .12s ease,transform .12s ease}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent) 8%,var(--wb-card));border-color:color-mix(in oklab,var(--wb-accent) 45%,var(--wb-border))}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):active:not(:disabled){transform:translateY(1px)}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):disabled{opacity:.45;cursor:not-allowed}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):is(.primary,.on){background:var(--wb-accent);border-color:var(--wb-accent);color:var(--dsw-alias-label-primary-inverted,#fff);font-weight:600}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn).primary:hover:not(:disabled){filter:brightness(1.06)}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):is(.danger){color:var(--wb-danger);border-color:color-mix(in oklab,var(--wb-danger) 40%,transparent);background:transparent}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn).danger:hover:not(:disabled){background:color-mix(in oklab,var(--wb-danger) 8%,var(--wb-card));border-color:var(--wb-danger)}",
-      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn):focus-visible,.wb-root :is(.wbc-input,.wbv input,.wbc-field input,.wbc-field select,.wbc-field textarea,.wba-field input,.wba-field select,.wba-field textarea,.wbct-input,.wbct-field input,.wbca-input,.wbca-field input,.wbm-input,.wbm-field input,.wbm-field select,.wbm-field textarea):focus-visible{outline:2px solid color-mix(in oklab,var(--wb-accent) 55%,transparent);outline-offset:2px}",
-      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field){gap:6px;font-size:12px}",
-      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) > :is(.wbc-label,.wbv-label,.wba-label,.wbct-label,.wbca-label,.wbm-label){font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--wb-muted);opacity:1}",
-      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) :is(input,select,textarea),.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input){min-height:34px;padding:7px 10px;border:1px solid var(--wb-border);border-radius:8px;background:color-mix(in oklab,var(--wb-card) 92%,transparent);color:inherit;font:inherit;font-size:12.5px;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease}",
-      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) :is(input,select,textarea):hover,.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input):hover{border-color:color-mix(in oklab,currentColor 26%,var(--wb-border))}",
-      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field) :is(input,select,textarea):focus,.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input):focus{border-color:var(--wb-accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--wb-accent) 14%,transparent);outline:none}",
-      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table){width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}",
-      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--wb-muted);padding:9px 10px;border-bottom:1px solid var(--wb-border);white-space:nowrap;background:color-mix(in oklab,currentColor 3%,transparent)}",
-      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) td{padding:10px;border-bottom:1px solid color-mix(in oklab,var(--wb-border) 70%,transparent);vertical-align:top}",
-      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) tbody tr{transition:background .12s ease}",
-      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table) tbody tr:hover{background:color-mix(in oklab,var(--wb-accent) 4%,transparent)}",
-      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill){display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;border:1px solid var(--wb-border);background:color-mix(in oklab,currentColor 5%,transparent);color:inherit;font-size:11px;font-weight:500;line-height:1.5;white-space:nowrap}",
-      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill).ok{color:var(--wb-ok);border-color:color-mix(in oklab,var(--wb-ok) 35%,transparent);background:color-mix(in oklab,var(--wb-ok) 10%,transparent)}",
-      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill).warn{color:var(--wb-warn);border-color:color-mix(in oklab,var(--wb-warn) 35%,transparent);background:color-mix(in oklab,var(--wb-warn) 10%,transparent)}",
-      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill):is(.error,.bad){color:var(--wb-danger);border-color:color-mix(in oklab,var(--wb-danger) 35%,transparent);background:color-mix(in oklab,var(--wb-danger) 10%,transparent)}",
-      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice){padding:10px 12px;border:1px solid color-mix(in oklab,var(--wb-accent) 24%,var(--wb-border));border-left:3px solid var(--wb-accent);border-radius:8px;background:color-mix(in oklab,var(--wb-accent) 6%,var(--wb-card));color:inherit;font-size:12.5px;line-height:1.55}",
-      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice).error{border-color:color-mix(in oklab,var(--wb-danger) 30%,var(--wb-border));border-left-color:var(--wb-danger);background:color-mix(in oklab,var(--wb-danger) 7%,var(--wb-card))}",
-      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice).ok{border-color:color-mix(in oklab,var(--wb-ok) 30%,var(--wb-border));border-left-color:var(--wb-ok);background:color-mix(in oklab,var(--wb-ok) 7%,var(--wb-card))}",
-      ".wb-root :is(.wbc-empty,.wbv-empty,.wba-empty,.wbct-empty,.wbca-empty,.wbm-empty){padding:42px 20px;border:1px dashed var(--wb-border);border-radius:var(--wb-radius-card);background:color-mix(in oklab,currentColor 2%,transparent);color:var(--wb-muted);font-size:12.5px;line-height:1.6}",
-      ".wb-root :is(.wbc-json,.wbv-code,.wba-json,.wbct-json,.wbca-json,.wbm-json){margin:0;padding:12px;border:1px solid var(--wb-border);border-radius:10px;background:color-mix(in oklab,currentColor 4%,transparent);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.6;max-height:260px;overflow:auto}",
-      ".wb-root :is(.wbc-table-wrap,.wba-table-wrap,.wbct-table-wrap,.wbca-table-wrap,.wbm-table-wrap){overflow:auto;border:1px solid var(--wb-border);border-radius:var(--wb-radius-card);background:var(--wb-card)}",
-      ".wb-root :is(.wbc-table-wrap,.wba-table-wrap,.wbct-table-wrap,.wbca-table-wrap,.wbm-table-wrap) :is(.wbc-table,.wba-table,.wbct-table,.wbca-table,.wbm-table){border:0}",
+      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbml-wrap,.wbm-page,.wbml-page){width:100%;max-width:none;margin:0;padding:0;gap:16px;box-sizing:border-box}",
+      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbml-wrap,.wbm-page,.wbml-page) h2{font-size:20px;line-height:1.3;font-weight:680;letter-spacing:-.02em;margin:0}",
+      ".wb-root :is(.wbc-sub,.wba-sub,.wbct-sub,.wbca-sub,.wbm-sub,.wbml-sub,.wbv-muted,.wbct-muted,.wbc-muted,.wba-muted,.wbca-muted,.wbm-muted,.wbml-muted){font-size:12.5px;line-height:1.55;color:var(--wb-muted)}",
+      ".wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbml-wrap,.wbm-page,.wbml-page) > :is(.wbc-head,.wba-head,.wbct-head,.wbca-head,.wbm-head,.wbml-head){padding-bottom:12px;border-bottom:1px solid var(--wb-border);align-items:flex-start}",
+      ".wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card,.wbml-card,.wbct-panel){background:var(--wb-card);border:1px solid var(--wb-border);border-radius:var(--wb-radius-card);padding:16px;box-shadow:0 1px 2px color-mix(in oklab,#000 4%,transparent);transition:border-color .15s ease,box-shadow .15s ease}",
+      ".wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card,.wbml-card):hover{border-color:color-mix(in oklab,var(--wb-accent) 32%,var(--wb-border));box-shadow:0 2px 14px color-mix(in oklab,#000 6%,transparent)}",
+      ".wb-root :is(.wbc-grid,.wbv-grid,.wba-grid,.wbct-grid,.wbca-grid,.wbm-grid,.wbml-grid){gap:12px}",
+      ".wb-root :is(.wbc-kpi,.wbv-kpi,.wba-kpi,.wbct-kpi,.wbca-kpi,.wbm-kpi,.wbml-kpi){font-size:26px;line-height:1.15;font-weight:680;letter-spacing:-.03em;font-variant-numeric:tabular-nums}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn){min-height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--wb-border);background:var(--wb-card);color:inherit;font:inherit;font-size:12.5px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,border-color .12s ease,color .12s ease,transform .12s ease}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn):hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent) 8%,var(--wb-card));border-color:color-mix(in oklab,var(--wb-accent) 45%,var(--wb-border))}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn):active:not(:disabled){transform:translateY(1px)}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn):disabled{opacity:.45;cursor:not-allowed}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn):is(.primary,.on){background:var(--wb-accent);border-color:var(--wb-accent);color:var(--dsw-alias-label-primary-inverted,#fff);font-weight:600}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn).primary:hover:not(:disabled){filter:brightness(1.06)}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn):is(.danger){color:var(--wb-danger);border-color:color-mix(in oklab,var(--wb-danger) 40%,transparent);background:transparent}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn).danger:hover:not(:disabled){background:color-mix(in oklab,var(--wb-danger) 8%,var(--wb-card));border-color:var(--wb-danger)}",
+      ".wb-root :is(.wbc-btn,.wbv-btn,.wba-btn,.wbct-btn,.wbca-btn,.wbm-btn,.wbml-btn):focus-visible,.wb-root :is(.wbc-input,.wbv input,.wbc-field input,.wbc-field select,.wbc-field textarea,.wba-field input,.wba-field select,.wba-field textarea,.wbct-input,.wbct-field input,.wbca-input,.wbca-field input,.wbm-input,.wbml-input,.wbm-field input,.wbm-field select,.wbm-field textarea):focus-visible{outline:2px solid color-mix(in oklab,var(--wb-accent) 55%,transparent);outline-offset:2px}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field,.wbml-field){gap:6px;font-size:12px}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field,.wbml-field) > :is(.wbc-label,.wbv-label,.wba-label,.wbct-label,.wbca-label,.wbm-label,.wbml-label){font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--wb-muted);opacity:1}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field,.wbml-field) :is(input,select,textarea),.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input,.wbml-input){min-height:34px;padding:7px 10px;border:1px solid var(--wb-border);border-radius:8px;background:color-mix(in oklab,var(--wb-card) 92%,transparent);color:inherit;font:inherit;font-size:12.5px;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field,.wbml-field) :is(input,select,textarea):hover,.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input,.wbml-input):hover{border-color:color-mix(in oklab,currentColor 26%,var(--wb-border))}",
+      ".wb-root :is(.wbc-field,.wbv-field,.wba-field,.wbct-field,.wbca-field,.wbm-field,.wbml-field) :is(input,select,textarea):focus,.wb-root :is(.wbc-input,.wbct-input,.wbca-input,.wbm-input,.wbml-input):focus{border-color:var(--wb-accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--wb-accent) 14%,transparent);outline:none}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table,.wbml-table){width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table,.wbml-table) th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--wb-muted);padding:9px 10px;border-bottom:1px solid var(--wb-border);white-space:nowrap;background:color-mix(in oklab,currentColor 3%,transparent)}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table,.wbml-table) td{padding:10px;border-bottom:1px solid color-mix(in oklab,var(--wb-border) 70%,transparent);vertical-align:top}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table,.wbml-table) tbody tr{transition:background .12s ease}",
+      ".wb-root :is(.wbc-table,.wbv-table,.wba-table,.wbct-table,.wbca-table,.wbm-table,.wbml-table) tbody tr:hover{background:color-mix(in oklab,var(--wb-accent) 4%,transparent)}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill,.wbml-pill){display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;border:1px solid var(--wb-border);background:color-mix(in oklab,currentColor 5%,transparent);color:inherit;font-size:11px;font-weight:500;line-height:1.5;white-space:nowrap}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill,.wbml-pill).ok{color:var(--wb-ok);border-color:color-mix(in oklab,var(--wb-ok) 35%,transparent);background:color-mix(in oklab,var(--wb-ok) 10%,transparent)}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill,.wbml-pill).warn{color:var(--wb-warn);border-color:color-mix(in oklab,var(--wb-warn) 35%,transparent);background:color-mix(in oklab,var(--wb-warn) 10%,transparent)}",
+      ".wb-root :is(.wbc-pill,.wbv-pill,.wba-pill,.wbct-pill,.wbca-pill,.wbm-pill,.wbml-pill):is(.error,.bad){color:var(--wb-danger);border-color:color-mix(in oklab,var(--wb-danger) 35%,transparent);background:color-mix(in oklab,var(--wb-danger) 10%,transparent)}",
+      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice,.wbml-notice){padding:10px 12px;border:1px solid color-mix(in oklab,var(--wb-accent) 24%,var(--wb-border));border-left:3px solid var(--wb-accent);border-radius:8px;background:color-mix(in oklab,var(--wb-accent) 6%,var(--wb-card));color:inherit;font-size:12.5px;line-height:1.55}",
+      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice,.wbml-notice).error{border-color:color-mix(in oklab,var(--wb-danger) 30%,var(--wb-border));border-left-color:var(--wb-danger);background:color-mix(in oklab,var(--wb-danger) 7%,var(--wb-card))}",
+      ".wb-root :is(.wbc-notice,.wbv-notice,.wba-notice,.wbct-notice,.wbca-notice,.wbm-notice,.wbml-notice).ok{border-color:color-mix(in oklab,var(--wb-ok) 30%,var(--wb-border));border-left-color:var(--wb-ok);background:color-mix(in oklab,var(--wb-ok) 7%,var(--wb-card))}",
+      ".wb-root :is(.wbc-empty,.wbv-empty,.wba-empty,.wbct-empty,.wbca-empty,.wbm-empty,.wbml-empty){padding:42px 20px;border:1px dashed var(--wb-border);border-radius:var(--wb-radius-card);background:color-mix(in oklab,currentColor 2%,transparent);color:var(--wb-muted);font-size:12.5px;line-height:1.6}",
+      ".wb-root :is(.wbc-json,.wbv-code,.wba-json,.wbct-json,.wbca-json,.wbm-json,.wbml-json){margin:0;padding:12px;border:1px solid var(--wb-border);border-radius:10px;background:color-mix(in oklab,currentColor 4%,transparent);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.6;max-height:260px;overflow:auto}",
+      ".wb-root :is(.wbc-table-wrap,.wba-table-wrap,.wbct-table-wrap,.wbca-table-wrap,.wbm-table-wrap,.wbml-table-wrap){overflow:auto;border:1px solid var(--wb-border);border-radius:var(--wb-radius-card);background:var(--wb-card)}",
+      ".wb-root :is(.wbc-table-wrap,.wba-table-wrap,.wbct-table-wrap,.wbca-table-wrap,.wbm-table-wrap,.wbml-table-wrap) :is(.wbc-table,.wba-table,.wbct-table,.wbca-table,.wbm-table,.wbml-table){border:0}",
       ".wb-root .wba-pills{display:flex;flex-wrap:wrap;gap:6px}",
       ".wb-root .wba-list{display:flex;flex-direction:column;gap:8px}",
       ".wb-root .wba-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
@@ -582,10 +590,10 @@ var require_styles = __commonJS({
       ".wb-root .wba-card-num{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}",
       ".wb-root .wbct-list{display:flex;flex-direction:column;gap:8px}",
       ".wb-root .wb-home-icon svg{display:block}",
-      ".wb-root :is(.wba-panel,.wbca-panel,.wbm-panel,.wbc-panel){margin-top:4px;padding:18px;border:1px solid color-mix(in oklab,var(--wb-accent) 28%,var(--wb-border));border-radius:var(--wb-radius-card);background:var(--wb-card);box-shadow:0 10px 36px color-mix(in oklab,#000 8%,transparent)}",
-      ".wb-root :is(.wba-panel,.wbca-panel,.wbm-panel,.wbc-panel) > h3{font-size:15px;font-weight:650;margin:0 0 12px}",
-      ".wb-root :is(.wba-code,.wbca-code,.wbm-code,.wbc-code){font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.65;resize:vertical;min-height:90px}",
-      ".wb-root :is(.wba-input,.wbca-input,.wbm-input,.wbc-input){min-height:34px}",
+      ".wb-root :is(.wba-panel,.wbca-panel,.wbm-panel,.wbml-panel,.wbc-panel){margin-top:4px;padding:18px;border:1px solid color-mix(in oklab,var(--wb-accent) 28%,var(--wb-border));border-radius:var(--wb-radius-card);background:var(--wb-card);box-shadow:0 10px 36px color-mix(in oklab,#000 8%,transparent)}",
+      ".wb-root :is(.wba-panel,.wbca-panel,.wbm-panel,.wbml-panel,.wbc-panel) > h3{font-size:15px;font-weight:650;margin:0 0 12px}",
+      ".wb-root :is(.wba-code,.wbca-code,.wbm-code,.wbml-code,.wbc-code){font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.65;resize:vertical;min-height:90px}",
+      ".wb-root :is(.wba-input,.wbca-input,.wbm-input,.wbml-input,.wbc-input){min-height:34px}",
       ".wb-root .wbct-panel{margin-top:2px;border-color:color-mix(in oklab,var(--wb-accent) 30%,var(--wb-border))}",
       ".wb-root .wbct-pills{display:flex;flex-wrap:wrap;gap:8px 16px;padding:4px 0}",
       ".wb-root .wbct-check{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}",
@@ -597,7 +605,7 @@ var require_styles = __commonJS({
       ".wb-root .wbv-pill.warn{background:color-mix(in oklab,var(--wb-warn) 10%,transparent);color:var(--wb-warn)}",
       ".wb-root .wbv-pill.bad{background:color-mix(in oklab,var(--wb-danger) 10%,transparent);color:var(--wb-danger)}",
       ".wb-root .wbc-wrap>.wbc-head,.wb-root .wba-wrap>.wba-head,.wb-root .wbct-wrap>.wbct-head,.wb-root .wbca-wrap>.wbca-head,.wb-root .wbm-page>.wbm-head{margin-bottom:0}",
-      ".wb-root :is(.wbc-row,.wba-row,.wbct-row,.wbca-row,.wbm-row){gap:8px}",
+      ".wb-root :is(.wbc-row,.wba-row,.wbct-row,.wbca-row,.wbm-row,.wbml-row){gap:8px}",
       // 首页与导航视觉
       ".wb-root .wb-inner{gap:18px;max-width:1120px}",
       ".wb-root .wb-hero{padding:6px 2px 2px;align-items:center}",
@@ -645,8 +653,8 @@ var require_styles = __commonJS({
       ".wb-root .wbm-detail-title strong{font-size:15px;line-height:1.4;overflow-wrap:anywhere}",
       ".wb-root .wbm-detail-meta{display:flex;gap:16px;flex-wrap:wrap;padding:10px 16px;font-size:11.5px;color:var(--wb-muted);border-bottom:1px solid color-mix(in oklab,var(--wb-border) 65%,transparent)}",
       ".wb-root .wbm-detailpane .wbm-body{padding:0 16px 18px;margin:0}",
-      "@media (max-width:980px){.wb-root .wbm-layout,.wb-root .wbm-layout.has-detail{grid-template-columns:180px minmax(0,1fr)}.wb-root .wbm-layout.has-detail .wbm-detailpane{grid-column:1/-1;max-height:none}}",
-      "@media (max-width:760px){.wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbm-page){padding:16px 14px 28px;gap:14px}.wb-root .wb-hero h2{font-size:20px}.wb-root .wb-home-card{min-height:0;padding:16px}.wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card,.wbct-panel){padding:14px;border-radius:12px}.wb-root .wbm-layout,.wb-root .wbm-layout.has-detail{grid-template-columns:1fr}.wb-root .wbm-pane{max-height:none}.wb-root .wbm-rail{order:2}}",
+      "@media (max-width:980px){.wb-root .wbm-layout,.wbml-layout,.wb-root .wbm-layout.has-detail{grid-template-columns:180px minmax(0,1fr)}.wb-root .wbm-layout.has-detail .wbm-detailpane{grid-column:1/-1;max-height:none}}",
+      "@media (max-width:760px){.wb-root :is(.wbc-wrap,.wbv,.wba-wrap,.wbct-wrap,.wbca-wrap,.wbm-wrap,.wbml-wrap,.wbm-page,.wbml-page){padding:16px 14px 28px;gap:14px}.wb-root .wb-hero h2{font-size:20px}.wb-root .wb-home-card{min-height:0;padding:16px}.wb-root :is(.wbc-card,.wbv-card,.wba-card,.wbct-card,.wbca-card,.wbm-card,.wbml-card,.wbct-panel){padding:14px;border-radius:12px}.wb-root .wbm-layout,.wbml-layout,.wb-root .wbm-layout.has-detail{grid-template-columns:1fr}.wb-root .wbm-pane{max-height:none}.wb-root .wbm-rail{order:2}}",
       // 全宽模块页：去掉两侧留白，并把视图标签并入唯一的一层顶栏。
       ".wb-root .wb-inner{max-width:none}",
       ".wb-root .wb-immersive-main{padding:16px 22px 24px}",
@@ -672,6 +680,710 @@ var require_styles = __commonJS({
       ".wb-root .wb-immersive-bar .wb-tab{flex:0 0 auto;min-width:0;justify-content:center;text-align:center;padding:6px 10px}"
     ].join("\n");
     module2.exports = CSS2;
+  }
+});
+
+// packages/addons/lib/highlight.cjs
+var require_highlight = __commonJS({
+  "packages/addons/lib/highlight.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function(React) {
+      var h2 = React.createElement;
+      function sourceOf(keyword) {
+        var pattern = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return pattern.replace(/[a-zA-Z]/g, function(letter) {
+          return "[" + letter.toLowerCase() + letter.toUpperCase() + "]";
+        });
+      }
+      return function createHighlight(prefix) {
+        var className = String(prefix || "wb") + "-hit";
+        function hit(rawText, rawKeyword) {
+          var text = rawText == null ? "" : String(rawText);
+          var keyword = rawKeyword == null ? "" : String(rawKeyword);
+          if (!keyword) return text;
+          var matcher, match, end = 0, parts = [];
+          try {
+            matcher = new RegExp(sourceOf(keyword), "g");
+          } catch (error) {
+            return text;
+          }
+          while (match = matcher.exec(text)) {
+            if (match.index > end) parts.push(text.slice(end, match.index));
+            parts.push(h2("mark", { className, key: match.index }, match[0]));
+            end = match.index + match[0].length;
+            if (!match[0]) matcher.lastIndex += 1;
+          }
+          if (!parts.length) return text;
+          if (end < text.length) parts.push(text.slice(end));
+          return parts;
+        }
+        function Highlight(props) {
+          return hit(props.text, props.keyword);
+        }
+        Highlight.hit = hit;
+        return Highlight;
+      };
+    };
+  }
+});
+
+// packages/addons/lib/action-schema-style.cjs
+var require_action_schema_style = __commonJS({
+  "packages/addons/lib/action-schema-style.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function(PREFIX, DOMAIN) {
+      var P = PREFIX + "-as";
+      var CSS2 = [
+        "." + P + "{display:flex;flex-direction:column;gap:12px;width:100%;min-width:0;font-size:13px;color:inherit}",
+        "." + P + "-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+        "." + P + "-title{font-size:15px;font-weight:660;margin:0}",
+        "." + P + "-badge{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--wb-border,#e3e5e9);border-radius:999px;padding:1px 8px;font-size:11px;color:var(--dsw-alias-label-secondary,currentColor);font-variant-numeric:tabular-nums}",
+        "." + P + "-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}",
+        "." + P + "-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+        "." + P + "-search{position:relative;flex:1 1 220px;min-width:0;display:flex;align-items:center}",
+        "." + P + "-search input{width:100%;border:1px solid var(--wb-border,#e3e5e9);border-radius:8px;background:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));color:inherit;font:inherit;padding:6px 10px 6px 30px}",
+        "." + P + "-search input:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
+        "." + P + "-search .wbi-svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dsw-alias-label-tertiary,inherit)}",
+        "." + P + " select{border:1px solid var(--wb-border,#e3e5e9);border-radius:8px;background:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));color:inherit;font:inherit;padding:6px 8px}",
+        "." + P + " select:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
+        "." + P + "-list{display:flex;flex-direction:column;gap:8px}",
+        "." + P + "-card{border:1px solid var(--wb-border,#e3e5e9);border-radius:10px;padding:10px 12px;background:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));display:flex;flex-direction:column;gap:8px;min-width:0}",
+        "." + P + "-cardhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px}",
+        "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
+        "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
+        "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
+        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
+        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
+        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
+        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
+        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
+        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
+        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
+        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
+        "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
+        // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
+        "." + P + " mark." + P + "-hit{background:color-mix(in oklab,var(--dsw-alias-brand-primary,#4f6ef7) 22%,transparent);color:inherit;border-radius:2px;padding:0;font:inherit;box-decoration-break:clone;-webkit-box-decoration-break:clone}",
+        "." + P + "-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}",
+        "." + P + "-table th{text-align:left;font-weight:620;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--dsw-alias-label-tertiary,inherit);padding:4px 8px 4px 0;white-space:nowrap}",
+        "." + P + "-table td{padding:4px 8px 4px 0;vertical-align:top;border-top:1px solid color-mix(in oklab,currentColor 8%,transparent);line-height:1.5}",
+        "." + P + "-req{color:var(--dsw-alias-state-error-primary,#d9534f);font-weight:620}",
+        "." + P + "-opt{color:var(--dsw-alias-label-tertiary,inherit)}",
+        "." + P + "-none{color:var(--dsw-alias-label-tertiary,inherit);font-size:12px}",
+        "." + P + "-example{position:relative;display:flex;flex-direction:column;gap:4px}",
+        "." + P + "-examplehead{display:flex;align-items:center;justify-content:space-between;gap:8px}",
+        "." + P + "-pre{margin:0;padding:8px 10px;border-radius:8px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);color:inherit;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.5;overflow:auto;max-height:280px;white-space:pre-wrap;word-break:break-word}",
+        "." + P + "-copy{border:1px solid var(--wb-border,#e3e5e9);border-radius:7px;background:transparent;color:inherit;font:inherit;font-size:11.5px;padding:2px 8px;cursor:pointer}",
+        "." + P + "-copy:hover{background:var(--dsw-alias-interactive-bg-hover,color-mix(in oklab,currentColor 5%,transparent))}",
+        "." + P + "-copy:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:2px}",
+        "." + P + " details>summary{cursor:pointer;font-size:11.5px;color:var(--dsw-alias-label-secondary,inherit);width:max-content}",
+        "." + P + " details>summary:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:2px}",
+        "." + P + "-empty{padding:24px;text-align:center;border:1px dashed var(--wb-border,#e3e5e9);border-radius:10px;color:var(--dsw-alias-label-tertiary,inherit)}",
+        "." + P + "-error{padding:12px;border:1px solid var(--dsw-alias-state-error-primary,#d9534f);border-radius:10px;color:var(--dsw-alias-state-error-primary,#d9534f);display:flex;gap:10px;align-items:center}",
+        "." + P + "-toast{position:sticky;bottom:8px;align-self:flex-start;border-radius:999px;padding:3px 10px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);font-size:11.5px}",
+        "@media(max-width:600px){." + P + "-table thead{display:none}." + P + "-table td{display:block;border-top:0;padding:2px 0}." + P + "-table tr{display:block;border-top:1px solid color-mix(in oklab,currentColor 8%,transparent);padding:4px 0}}"
+      ].join("\n");
+      return function injectCss() {
+        if (typeof document === "undefined") return;
+        var id = "wb-addon-" + DOMAIN + "-actions-css";
+        var old = document.getElementById(id);
+        if (old) {
+          old.textContent = CSS2;
+          return;
+        }
+        var style = document.createElement("style");
+        style.id = id;
+        style.setAttribute("data-wb-addon", "wb-addon-" + DOMAIN);
+        style.textContent = CSS2;
+        document.head.appendChild(style);
+      };
+    };
+  }
+});
+
+// packages/addons/lib/action-schema-view.cjs
+var require_action_schema_view = __commonJS({
+  "packages/addons/lib/action-schema-view.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var createHighlight = require_highlight()(React);
+    var h2 = React.createElement;
+    var COPY = {
+      zh: {
+        title: "Action",
+        hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
+        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
+        agentSwitch: "agent \u53EF\u7528",
+        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
+        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
+        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
+        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
+        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        domain: "\u57DF",
+        versionLabel: "\u7248\u672C",
+        shell: "\u5BBF\u4E3B",
+        count: function(shown, total) {
+          return shown + " / " + total + " \u4E2A action";
+        },
+        search: "\u641C\u7D22\u540D\u79F0\u3001\u63CF\u8FF0\u3001\u53C2\u6570\uFF08\u547D\u4E2D\u5904\u9AD8\u4EAE\uFF09",
+        filterReq: "\u5FC5\u586B\u7B5B\u9009",
+        all: "\u5168\u90E8",
+        onlyRequired: "\u542B\u5FC5\u586B\u9879",
+        onlyOptional: "\u65E0\u5FC5\u586B\u9879",
+        filterType: "\u53C2\u6570\u7C7B\u578B",
+        allTypes: "\u5168\u90E8\u7C7B\u578B",
+        colName: "\u53C2\u6570",
+        colType: "\u7C7B\u578B",
+        colReq: "\u5FC5\u586B",
+        colExtra: "\u9ED8\u8BA4 / \u679A\u4E3E / \u7EA6\u675F",
+        colDesc: "\u8BF4\u660E",
+        required: "\u5FC5\u586B",
+        optional: "\u53EF\u9009",
+        noParams: "\u65E0\u53C2\u6570",
+        paramCount: function(n) {
+          return n + " \u4E2A\u53C2\u6570";
+        },
+        examples: "\u793A\u4F8B",
+        noExamples: "\u65E0\u793A\u4F8B",
+        copy: "\u590D\u5236",
+        copied: "\u5DF2\u590D\u5236",
+        raw: "\u539F\u59CB JSON Schema",
+        loading: "\u8F7D\u5165\u4E2D\u2026",
+        loadFail: "\u8BFB\u53D6 action schema \u5931\u8D25",
+        retry: "\u91CD\u8BD5",
+        empty: "\u6CA1\u6709\u5339\u914D\u7684 action",
+        emptyRegistry: "\u8BE5\u57DF\u6CA1\u6709\u6CE8\u518C action",
+        envelope: "\u9ED8\u8BA4",
+        enumLabel: "\u679A\u4E3E",
+        range: "\u8303\u56F4",
+        length: "\u957F\u5EA6",
+        pattern: "\u6B63\u5219",
+        format: "\u683C\u5F0F",
+        items: "\u5143\u7D20\u6570"
+      },
+      en: {
+        title: "Actions",
+        hint: "runtime registry \xB7 read-only",
+        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
+        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
+        agentSwitch: "Agent callable",
+        agentLocked: "UI only \xB7 security",
+        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
+        agentSaving: "Saving\u2026",
+        agentOnToast: "Agent calls allowed",
+        agentOffToast: "Agent calls blocked",
+        agentFail: "Failed to change the agent switch",
+        domain: "Domain",
+        versionLabel: "Version",
+        shell: "Host",
+        count: function(shown, total) {
+          return shown + " / " + total + " actions";
+        },
+        search: "Search name, description, params (matches highlighted)",
+        filterReq: "Required",
+        all: "All",
+        onlyRequired: "Has required",
+        onlyOptional: "No required",
+        filterType: "Param type",
+        allTypes: "All types",
+        colName: "Param",
+        colType: "Type",
+        colReq: "Required",
+        colExtra: "Default / enum / constraints",
+        colDesc: "Description",
+        required: "required",
+        optional: "optional",
+        noParams: "No parameters",
+        paramCount: function(n) {
+          return n + " params";
+        },
+        examples: "Examples",
+        noExamples: "No examples",
+        copy: "Copy",
+        copied: "Copied",
+        raw: "Raw JSON Schema",
+        loading: "Loading\u2026",
+        loadFail: "Failed to read action schema",
+        retry: "Retry",
+        empty: "No matching action",
+        emptyRegistry: "This domain has no registered action",
+        envelope: "Default",
+        enumLabel: "Enum",
+        range: "Range",
+        length: "Length",
+        pattern: "Pattern",
+        format: "Format",
+        items: "Items"
+      }
+    };
+    function typeLabel(schema) {
+      if (!schema || typeof schema !== "object") return "";
+      if (Array.isArray(schema.type)) return schema.type.join(" | ");
+      if (typeof schema.type === "string") {
+        if (schema.type === "array" && schema.items) {
+          var inner = typeLabel(schema.items);
+          return inner ? inner + "[]" : "array";
+        }
+        return schema.type;
+      }
+      if (Array.isArray(schema.oneOf)) return schema.oneOf.map(typeLabel).filter(Boolean).join(" | ");
+      if (Array.isArray(schema.anyOf)) return schema.anyOf.map(typeLabel).filter(Boolean).join(" | ");
+      return "";
+    }
+    function typeNames(schema) {
+      var label = typeLabel(schema);
+      if (!label) return [];
+      return label.split("|").map(function(x) {
+        return x.trim().replace(/\[\]$/, "");
+      }).filter(Boolean);
+    }
+    function scalar(value) {
+      if (typeof value === "string") return JSON.stringify(value);
+      return String(value);
+    }
+    function extraText(schema, t) {
+      if (!schema || typeof schema !== "object") return "";
+      var parts = [];
+      if (Object.prototype.hasOwnProperty.call(schema, "default")) {
+        parts.push(t.envelope + " " + scalar(schema.default));
+      }
+      if (Array.isArray(schema.enum)) {
+        parts.push(t.enumLabel + " " + schema.enum.map(scalar).join(" / "));
+      }
+      if (typeof schema.minimum === "number" || typeof schema.maximum === "number") {
+        var lo = typeof schema.minimum === "number" ? schema.minimum : null;
+        var hi = typeof schema.maximum === "number" ? schema.maximum : null;
+        if (lo !== null && hi !== null) parts.push(t.range + " \u2265" + lo + " \u4E14 \u2264" + hi);
+        else if (lo !== null) parts.push(t.range + " \u2265" + lo);
+        else parts.push(t.range + " \u2264" + hi);
+      }
+      if (typeof schema.minLength === "number" || typeof schema.maxLength === "number") {
+        parts.push(t.length + " " + (schema.minLength ?? 0) + "\u2013" + (schema.maxLength ?? "\u221E"));
+      }
+      if (typeof schema.minItems === "number" || typeof schema.maxItems === "number") {
+        parts.push(t.items + " " + (schema.minItems ?? 0) + "\u2013" + (schema.maxItems ?? "\u221E"));
+      }
+      if (typeof schema.pattern === "string") parts.push(t.pattern + " " + schema.pattern);
+      if (typeof schema.format === "string") parts.push(t.format + " " + schema.format);
+      return parts.join(" \xB7 ");
+    }
+    function paramRows(action) {
+      var input = action && action.input && typeof action.input === "object" ? action.input : {};
+      var props = input.properties && typeof input.properties === "object" ? input.properties : {};
+      var required = Array.isArray(input.required) ? input.required : [];
+      return Object.keys(props).map(function(key) {
+        var schema = props[key] && typeof props[key] === "object" ? props[key] : {};
+        return {
+          name: key,
+          schema,
+          type: typeLabel(schema),
+          types: typeNames(schema),
+          required: required.indexOf(key) >= 0,
+          description: typeof schema.description === "string" ? schema.description : ""
+        };
+      });
+    }
+    module2.exports = function createActionSchemaView(options) {
+      var raw = String(options.domain || "");
+      var SOURCE = options.source === "actions.list" ? "actions.list" : "actionSchema";
+      var DOMAIN = SOURCE === "actions.list" ? raw : raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var LIST_DOMAIN = options.listDomain ? String(options.listDomain) : DOMAIN;
+      var prefix = options.prefix;
+      var P = prefix + "-as";
+      var Icon = options.Icon || null;
+      var injectCss = require_action_schema_style()(prefix, DOMAIN);
+      var Highlight = createHighlight(P);
+      function icon(name, size) {
+        return Icon ? h2(Icon, { name, size: size || 14 }) : null;
+      }
+      function plainCopy(text) {
+        if (typeof document === "undefined") return;
+        var area = document.createElement("textarea");
+        area.value = text;
+        area.setAttribute("readonly", "readonly");
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        try {
+          document.execCommand("copy");
+        } catch (e) {
+        }
+        document.body.removeChild(area);
+      }
+      function ActionSchemaView(props) {
+        var lang = props.lang === "en" ? "en" : "zh";
+        var t = COPY[lang];
+        var api = props.api;
+        var snapState = React.useState(null);
+        var snap = snapState[0], setSnap = snapState[1];
+        var errState = React.useState("");
+        var err = errState[0], setErr = errState[1];
+        var loadingState = React.useState(true);
+        var loading = loadingState[0], setLoading = loadingState[1];
+        var reloadState = React.useState(0);
+        var reload = reloadState[0], setReload = reloadState[1];
+        var queryState = React.useState("");
+        var query = queryState[0], setQuery = queryState[1];
+        var reqState = React.useState("all");
+        var reqMode = reqState[0], setReqMode = reqState[1];
+        var typeState = React.useState("");
+        var typePick = typeState[0], setTypePick = typeState[1];
+        var toastState = React.useState("");
+        var toast = toastState[0], setToast = toastState[1];
+        var savingState = React.useState("");
+        var saving = savingState[0], setSaving = savingState[1];
+        React.useEffect(function() {
+          injectCss();
+        }, []);
+        React.useEffect(function() {
+          var alive = true;
+          setLoading(true);
+          setErr("");
+          var pending;
+          var actionName = SOURCE === "actions.list" ? "actions.list" : DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var callArgs = SOURCE === "actions.list" ? { detail: true, domain: LIST_DOMAIN } : void 0;
+          if (api && typeof api.call === "function") {
+            pending = Promise.resolve(api.call(actionName, callArgs)).then(function(r) {
+              if (r && r.ok === false) return r;
+              return r && r.result || r;
+            });
+          } else {
+            pending = Promise.reject(new Error("no call api"));
+          }
+          Promise.resolve(pending).then(function(r) {
+            if (!alive) return;
+            if (!r || r.ok === false) {
+              setSnap(null);
+              setErr(String(r && (r.error || r.text) || t.loadFail));
+            } else {
+              setSnap(r);
+            }
+            setLoading(false);
+          }, function(e) {
+            if (!alive) return;
+            setSnap(null);
+            setErr(String(e && e.message || e || t.loadFail));
+            setLoading(false);
+          });
+          return function() {
+            alive = false;
+          };
+        }, [reload]);
+        function copy(text) {
+          var done = function() {
+            setToast(t.copied);
+          };
+          if (typeof navigator !== "undefined" && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            navigator.clipboard.writeText(text).then(done, function() {
+              plainCopy(text);
+              done();
+            });
+            return;
+          }
+          plainCopy(text);
+          done();
+        }
+        function setAgent(action, next) {
+          var name = action.name;
+          setSaving(name);
+          setToast("");
+          var fail = function(e) {
+            setSaving("");
+            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+          };
+          var done = function(r) {
+            setSaving("");
+            var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
+            if (r && r.ok === false) {
+              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              return;
+            }
+            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            setSnap(function(prev) {
+              if (!prev || !Array.isArray(prev.actions)) return prev;
+              return Object.assign({}, prev, {
+                actions: prev.actions.map(function(a) {
+                  if (!a || a.name !== name) return a;
+                  return Object.assign({}, a, { agentEnabled: value });
+                })
+              });
+            });
+            setToast(value ? t.agentOnToast : t.agentOffToast);
+          };
+          if (!api || typeof api.call !== "function") {
+            fail(new Error("no call api"));
+            return;
+          }
+          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+        }
+        var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
+          return a && a.domain === DOMAIN;
+        }) : [];
+        var info = snap && Array.isArray(snap.domains) ? snap.domains.filter(function(d) {
+          return d && d.id === DOMAIN;
+        })[0] || null : null;
+        var typeOptions = [];
+        all.forEach(function(a) {
+          paramRows(a).forEach(function(row) {
+            row.types.forEach(function(name) {
+              if (typeOptions.indexOf(name) < 0) typeOptions.push(name);
+            });
+          });
+        });
+        typeOptions.sort();
+        var kw = String(query || "").trim();
+        var q = kw.toLowerCase();
+        var visible = all.filter(function(a) {
+          var rows = paramRows(a);
+          if (q) {
+            var hay = [a.name || "", a.description || ""].concat(rows.map(function(row) {
+              return row.name + " " + row.type + " " + row.description;
+            })).join(" ").toLowerCase();
+            if (hay.indexOf(q) < 0) return false;
+          }
+          var hasRequired = rows.some(function(row) {
+            return row.required;
+          });
+          if (reqMode === "required" && !hasRequired) return false;
+          if (reqMode === "optional" && hasRequired) return false;
+          if (typePick && !rows.some(function(row) {
+            return row.types.indexOf(typePick) >= 0;
+          })) return false;
+          return true;
+        });
+        function paramRow(row) {
+          var extra = extraText(row.schema, t);
+          return h2(
+            "tr",
+            { key: row.name },
+            h2("td", { className: P + "-mono" }, Highlight.hit(row.name, kw)),
+            h2("td", { className: P + "-mono" }, Highlight.hit(row.type, kw)),
+            h2("td", { className: row.required ? P + "-req" : P + "-opt" }, row.required ? t.required : t.optional),
+            // extra（默认 / 枚举 / 约束）不在过滤 haystack 里，因此也不高亮，保持「显示即命中」口径。
+            h2("td", { className: P + "-mono" }, extra),
+            h2("td", null, Highlight.hit(row.description, kw))
+          );
+        }
+        function agentSwitch(action) {
+          if (action.agentLocked === true) {
+            return h2("span", {
+              className: P + "-badge " + P + "-locked",
+              title: t.agentLockedHint,
+              "data-agent-locked": action.name
+            }, t.agentLocked);
+          }
+          if (typeof action.agentEnabled !== "boolean") return null;
+          var busy = saving === action.name;
+          return h2(
+            "button",
+            {
+              className: P + "-toggle",
+              "data-agent-row": action.name,
+              type: "button",
+              role: "switch",
+              "aria-checked": action.agentEnabled,
+              disabled: busy,
+              "data-agent-toggle": action.name,
+              "aria-label": t.agentSwitch + " \xB7 " + action.name,
+              onClick: function() {
+                setAgent(action, !action.agentEnabled);
+              }
+            },
+            h2("span", { className: P + "-track", "aria-hidden": true }),
+            h2("span", null, busy ? t.agentSaving : t.agentSwitch)
+          );
+        }
+        function card(action) {
+          var rows = paramRows(action);
+          var examples = Array.isArray(action.examples) ? action.examples : [];
+          return h2(
+            "div",
+            { className: P + "-card", key: action.name },
+            h2(
+              "div",
+              { className: P + "-cardhead" },
+              h2(
+                "div",
+                { className: P + "-cardmeta" },
+                h2("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
+                h2("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
+                rows.some(function(row) {
+                  return row.required;
+                }) ? h2("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              ),
+              agentSwitch(action)
+            ),
+            action.description ? h2("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
+            rows.length ? h2(
+              "table",
+              { className: P + "-table" },
+              h2("thead", null, h2(
+                "tr",
+                null,
+                h2("th", null, t.colName),
+                h2("th", null, t.colType),
+                h2("th", null, t.colReq),
+                h2("th", null, t.colExtra),
+                h2("th", null, t.colDesc)
+              )),
+              h2("tbody", null, rows.map(paramRow))
+            ) : h2("div", { className: P + "-none" }, t.noParams),
+            h2(
+              "div",
+              { className: P + "-example" },
+              h2(
+                "div",
+                { className: P + "-examplehead" },
+                h2("span", { className: P + "-none" }, t.examples),
+                examples.length ? h2("button", {
+                  type: "button",
+                  className: P + "-copy",
+                  "data-copy-example": action.name,
+                  onClick: function() {
+                    copy(JSON.stringify(examples.length === 1 ? examples[0] : examples, null, 2));
+                  }
+                }, t.copy) : null
+              ),
+              examples.length ? examples.map(function(example, index) {
+                return h2("pre", { className: P + "-pre", key: index }, JSON.stringify(example, null, 2));
+              }) : h2("div", { className: P + "-none" }, t.noExamples)
+            ),
+            h2(
+              "details",
+              null,
+              h2("summary", null, t.raw),
+              h2("pre", { className: P + "-pre" }, JSON.stringify(action.input || {}, null, 2))
+            )
+          );
+        }
+        var body;
+        if (loading) {
+          body = h2("div", { className: P + "-empty", role: "status" }, t.loading);
+        } else if (err) {
+          body = h2(
+            "div",
+            { className: P + "-error", role: "alert" },
+            h2("span", null, t.loadFail + "\uFF1A" + err),
+            h2("button", { type: "button", className: P + "-copy", onClick: function() {
+              setReload(reload + 1);
+            } }, t.retry)
+          );
+        } else if (!all.length) {
+          body = h2("div", { className: P + "-empty" }, t.emptyRegistry);
+        } else if (!visible.length) {
+          body = h2("div", { className: P + "-empty" }, t.empty);
+        } else {
+          body = h2("div", { className: P + "-list" }, visible.map(card));
+        }
+        return h2(
+          "div",
+          { className: P },
+          h2(
+            "div",
+            { className: P + "-head" },
+            h2("h3", { className: P + "-title" }, t.title),
+            h2("span", { className: P + "-badge" }, t.domain + " " + DOMAIN),
+            info && info.version ? h2("span", { className: P + "-badge" }, t.versionLabel + " v" + info.version) : null,
+            snap && snap.shellVersion ? h2("span", { className: P + "-badge" }, t.shell + " v" + snap.shellVersion) : null,
+            h2("span", { className: P + "-badge" }, t.count(visible.length, all.length)),
+            h2("span", { className: P + "-none" }, t.hint)
+          ),
+          h2("p", { className: P + "-hintline" }, SOURCE === "actions.list" ? t.hostHint : t.switchHint),
+          snap ? h2(
+            "div",
+            { className: P + "-toolbar" },
+            h2(
+              "label",
+              { className: P + "-search" },
+              icon("search", 14),
+              h2("input", {
+                type: "search",
+                value: query,
+                placeholder: t.search,
+                "aria-label": t.search,
+                onChange: function(e) {
+                  setQuery(e.target.value);
+                }
+              })
+            ),
+            h2(
+              "label",
+              { className: P + "-none" },
+              t.filterReq + " ",
+              h2(
+                "select",
+                { value: reqMode, "aria-label": t.filterReq, onChange: function(e) {
+                  setReqMode(e.target.value);
+                } },
+                h2("option", { value: "all" }, t.all),
+                h2("option", { value: "required" }, t.onlyRequired),
+                h2("option", { value: "optional" }, t.onlyOptional)
+              )
+            ),
+            h2(
+              "label",
+              { className: P + "-none" },
+              t.filterType + " ",
+              h2(
+                "select",
+                { value: typePick, "aria-label": t.filterType, onChange: function(e) {
+                  setTypePick(e.target.value);
+                } },
+                h2("option", { value: "" }, t.allTypes),
+                typeOptions.map(function(name) {
+                  return h2("option", { value: name, key: name }, name);
+                })
+              )
+            )
+          ) : null,
+          body,
+          toast ? h2("div", { className: P + "-toast", role: "status" }, toast) : null
+        );
+      }
+      return { ActionSchemaView, DOMAIN, typeLabel, paramRows };
+    };
+  }
+});
+
+// packages/shell/client/system-pages.cjs
+var require_system_pages = __commonJS({
+  "packages/shell/client/system-pages.cjs"(exports2, module2) {
+    "use strict";
+    var createActionSchemaView = require_action_schema_view();
+    function agentAccessPage(deps) {
+      var jsx2 = deps.jsx;
+      var t = deps.t;
+      var lang = deps.lang;
+      var api = deps.api;
+      var View = createActionSchemaView({ domain: "wb-shell", source: "actions.list", prefix: "wb" }).ActionSchemaView;
+      var hostApi = {
+        call: function(action, args) {
+          return api.post("/domains/wb-shell/actions/" + encodeURIComponent(action), args || {});
+        }
+      };
+      return jsx2.jsxs("div", { className: "wb-root", children: [
+        jsx2.jsxs("div", { className: "wb-inner wb-wide", children: [
+          deps.head(t("tab_agent"), t("agent_desc")),
+          jsx2.jsx(View, { api: hostApi, lang })
+        ] })
+      ] });
+    }
+    function manageCards(deps) {
+      var t = deps.t;
+      var card = deps.systemCard;
+      return [
+        card("agent", "agent", t("tab_agent"), t("agent_desc")),
+        card("backup", "backup", t("tab_backup"), t("backup_desc")),
+        card("audit", "audit", t("tab_audit"), t("audit_desc")),
+        card("account", "account", t("tab_account"), t("account_desc"))
+      ];
+    }
+    module2.exports = { agentAccessPage, manageCards };
   }
 });
 
@@ -827,11 +1539,11 @@ var require_system_tabs = __commonJS({
         var t = props.t;
         var lang = props.lang;
         var addons = props.addons || [];
-        var exportable = addons.filter(function(a2) {
-          return a2 && a2.backup && a2.backup.export;
+        var exportable = addons.filter(function(a) {
+          return a && a.backup && a.backup.export;
         });
-        var idsKey = exportable.map(function(a2) {
-          return a2.id;
+        var idsKey = exportable.map(function(a) {
+          return a.id;
         }).join(",");
         var st = react2.useState({});
         var selected = st[0];
@@ -859,21 +1571,21 @@ var require_system_tabs = __commonJS({
           setSelected(function(prev) {
             var next = {};
             var changed = false;
-            exportable.forEach(function(a2) {
-              if (prev[a2.id]) next[a2.id] = true;
-              else next[a2.id] = true;
-              if (!prev[a2.id]) changed = true;
+            exportable.forEach(function(a) {
+              if (prev[a.id]) next[a.id] = true;
+              else next[a.id] = true;
+              if (!prev[a.id]) changed = true;
             });
             Object.keys(prev).forEach(function(id) {
-              if (!exportable.some(function(a2) {
-                return a2.id === id;
+              if (!exportable.some(function(a) {
+                return a.id === id;
               })) changed = true;
             });
             return changed ? next : prev;
           });
         }, [idsKey]);
-        var allSelected = exportable.length > 0 && exportable.every(function(a2) {
-          return selected[a2.id];
+        var allSelected = exportable.length > 0 && exportable.every(function(a) {
+          return selected[a.id];
         });
         function toggle(id) {
           var next = Object.assign({}, selected);
@@ -882,8 +1594,8 @@ var require_system_tabs = __commonJS({
         }
         function selectAll(flag) {
           var next = {};
-          exportable.forEach(function(a2) {
-            next[a2.id] = flag;
+          exportable.forEach(function(a) {
+            next[a.id] = flag;
           });
           setSelected(next);
         }
@@ -917,11 +1629,11 @@ var require_system_tabs = __commonJS({
         }
         function doExport() {
           if (busy) return;
-          var chosen = exportable.filter(function(a2) {
-            return selected[a2.id];
+          var chosen = exportable.filter(function(a) {
+            return selected[a.id];
           });
-          var ids = chosen.map(function(a2) {
-            return a2.id;
+          var ids = chosen.map(function(a) {
+            return a.id;
           });
           if (!ids.length) {
             setMsg(t("backup_select_required"));
@@ -945,22 +1657,22 @@ var require_system_tabs = __commonJS({
             var name = m ? m[1] : "dsh-workbench-backup.zip";
             return r.blob().then(function(blob) {
               var href = URL.createObjectURL(blob);
-              var a2 = document.createElement("a");
-              a2.href = href;
-              a2.download = name;
-              document.body.appendChild(a2);
-              a2.click();
-              a2.remove();
+              var a = document.createElement("a");
+              a.href = href;
+              a.download = name;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
               setTimeout(function() {
                 URL.revokeObjectURL(href);
               }, 1500);
               setMsg(t("backup_download_started"));
               var rows = [];
-              chosen.forEach(function(a3) {
-                var tables = a3.tables || [];
-                if (!tables.length) rows.push({ id: a3.id + ":*", table: "\u2014", module: a3.title || a3.id, version: a3.version });
+              chosen.forEach(function(a2) {
+                var tables = a2.tables || [];
+                if (!tables.length) rows.push({ id: a2.id + ":*", table: "\u2014", module: a2.title || a2.id, version: a2.version });
                 tables.forEach(function(table) {
-                  rows.push({ id: a3.id + ":" + table, table, module: a3.title || a3.id, version: a3.version });
+                  rows.push({ id: a2.id + ":" + table, table, module: a2.title || a2.id, version: a2.version });
                 });
               });
               setExported(rows);
@@ -979,8 +1691,8 @@ var require_system_tabs = __commonJS({
           setMsg("");
           setReport(null);
           var policyMap = {};
-          exportable.forEach(function(a2) {
-            policyMap[a2.id] = policyOf(a2.id);
+          exportable.forEach(function(a) {
+            policyMap[a.id] = policyOf(a.id);
           });
           fetch("/workbench/api/backup/import", { method: "POST", headers: { "content-type": "application/zip", "x-wb-backup-policy": JSON.stringify(policyMap) }, body: file }).then(function(r) {
             if (r.status === 422) {
@@ -1006,10 +1718,10 @@ var require_system_tabs = __commonJS({
             setBusy("");
           });
         }
-        function moduleCaps(a2) {
+        function moduleCaps(a) {
           var caps = [];
-          if (a2.backup && a2.backup.export) caps.push(t("backup_cap_export"));
-          if (a2.backup && a2.backup.import) caps.push(t("backup_cap_import"));
+          if (a.backup && a.backup.export) caps.push(t("backup_cap_export"));
+          if (a.backup && a.backup.import) caps.push(t("backup_cap_import"));
           return caps.join(" \xB7 ");
         }
         return jsx2.jsxs("div", { className: "wb-backup", children: [
@@ -1025,18 +1737,18 @@ var require_system_tabs = __commonJS({
                 }, children: t("backup_clear") })
               ] })
             ] }),
-            exportable.length ? jsx2.jsx("div", { className: "wb-stack", style: { marginTop: 10 }, children: exportable.map(function(a2) {
-              var open = !!openConfig[a2.id];
+            exportable.length ? jsx2.jsx("div", { className: "wb-stack", style: { marginTop: 10 }, children: exportable.map(function(a) {
+              var open = !!openConfig[a.id];
               return jsx2.jsxs(react2.Fragment, { children: [
                 jsx2.jsxs("div", { className: "wb-backup-row" + (open ? " open" : ""), children: [
                   jsx2.jsxs("label", { className: "wb-backup-row-main", children: [
-                    jsx2.jsx("input", { type: "checkbox", checked: !!selected[a2.id], onChange: function() {
-                      toggle(a2.id);
+                    jsx2.jsx("input", { type: "checkbox", checked: !!selected[a.id], onChange: function() {
+                      toggle(a.id);
                     } }),
                     jsx2.jsxs("span", { className: "wb-backup-main", children: [
-                      jsx2.jsxs("span", { className: "wb-backup-name", children: [a2.title || a2.id, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a2.version || "?") })] }),
-                      jsx2.jsx("span", { className: "wb-backup-meta", children: moduleCaps(a2) }),
-                      a2.description ? jsx2.jsx("span", { className: "wb-backup-meta", children: a2.description }) : null
+                      jsx2.jsxs("span", { className: "wb-backup-name", children: [a.title || a.id, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a.version || "?") })] }),
+                      jsx2.jsx("span", { className: "wb-backup-meta", children: moduleCaps(a) }),
+                      a.description ? jsx2.jsx("span", { className: "wb-backup-meta", children: a.description }) : null
                     ] })
                   ] }),
                   jsx2.jsx("button", {
@@ -1046,7 +1758,7 @@ var require_system_tabs = __commonJS({
                     "aria-label": t("backup_dup_policy"),
                     "aria-expanded": open,
                     onClick: function() {
-                      toggleConfig(a2.id);
+                      toggleConfig(a.id);
                     },
                     children: "\u2699"
                   })
@@ -1055,9 +1767,9 @@ var require_system_tabs = __commonJS({
                   jsx2.jsx("span", { className: "wb-backup-config-label", children: t("backup_dup_policy") }),
                   jsx2.jsx("select", {
                     className: "wb-select",
-                    value: policyOf(a2.id),
+                    value: policyOf(a.id),
                     onChange: function(e) {
-                      setPolicy(a2.id, e.target.value);
+                      setPolicy(a.id, e.target.value);
                     },
                     children: [
                       jsx2.jsx("option", { value: "newest", children: t("backup_dup_newest") }),
@@ -1067,7 +1779,7 @@ var require_system_tabs = __commonJS({
                   }),
                   jsx2.jsx("span", { className: "wb-backup-note", children: t("backup_dup_hint") })
                 ] }) : null
-              ] }, a2.id);
+              ] }, a.id);
             }) }) : jsx2.jsx("div", { className: "wb-msg", children: t("backup_no_modules") }),
             jsx2.jsxs("div", { className: "wb-backup-actions", style: { marginTop: 12 }, children: [
               jsx2.jsx("button", { className: "wb-btn", disabled: !!busy || !exportable.length, onClick: doExport, children: busy === "export" ? t("backup_exporting") : t("backup_export") }),
@@ -1084,11 +1796,11 @@ var require_system_tabs = __commonJS({
               jsx2.jsx("h3", { children: t("backup_export_result") }),
               jsx2.jsx("span", { className: "wb-hint", children: t("backup_download_started") })
             ] }),
-            jsx2.jsx("div", { className: "wb-stack", children: exported.map(function(a2) {
+            jsx2.jsx("div", { className: "wb-stack", children: exported.map(function(a) {
               return jsx2.jsxs("div", { className: "wb-backup-result-row", children: [
-                jsx2.jsx("span", { className: "wb-backup-table", children: a2.table }),
-                jsx2.jsxs("span", { className: "wb-backup-meta", children: [a2.module, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a2.version || "?") })] })
-              ] }, a2.id);
+                jsx2.jsx("span", { className: "wb-backup-table", children: a.table }),
+                jsx2.jsxs("span", { className: "wb-backup-meta", children: [a.module, jsx2.jsx("span", { className: "wb-badge", children: "v" + (a.version || "?") })] })
+              ] }, a.id);
             }) })
           ] }) : null,
           report ? jsx2.jsxs("div", { className: "wb-card wb-backup-report", children: [
@@ -1452,6 +2164,7 @@ var h = react.createElement;
 var NS = "workbench";
 var LOCALE = require_locale();
 var CSS = require_styles();
+var SystemPages = require_system_pages();
 var registry = /* @__PURE__ */ new Map();
 var listeners = /* @__PURE__ */ new Set();
 var apiCache = /* @__PURE__ */ new Map();
@@ -1554,8 +2267,8 @@ function setAddons(list) {
   addonState.addons = Array.isArray(list) ? list : [];
   addonState.loaded = true;
   var alive = {};
-  addonState.addons.forEach(function(a2) {
-    alive[a2.id] = a2;
+  addonState.addons.forEach(function(a) {
+    alive[a.id] = a;
   });
   registry.forEach(function(_m, id) {
     if (!alive[id]) registry.delete(id);
@@ -1622,6 +2335,7 @@ function useAddonStore() {
   }, []);
   return addonState;
 }
+var navigateAddonHook = null;
 window.__WB_HOST__ = {
   react,
   jsx,
@@ -1632,6 +2346,9 @@ window.__WB_HOST__ = {
   },
   error: function() {
     return lastAddonError;
+  },
+  navigateAddon: function(addonId) {
+    return typeof navigateAddonHook === "function" && !!addonId && navigateAddonHook(String(addonId)) !== false;
   }
 };
 function useApi() {
@@ -1813,8 +2530,8 @@ function SearchPanel(props) {
       window.open(hit.url, "_blank", "noopener,noreferrer");
       return;
     }
-    var addon = (props.addons || []).filter(function(a2) {
-      return a2.id === hit.domainId;
+    var addon = (props.addons || []).filter(function(a) {
+      return a.id === hit.domainId;
     })[0];
     if (addon) props.go("addon:" + addon.id + ":" + (hit.view || ""));
   }
@@ -1844,8 +2561,8 @@ function SearchPanel(props) {
       error ? jsx.jsx("div", { className: "wb-search-empty", children: error }) : null,
       !loading && !error && results.length === 0 ? jsx.jsx("div", { className: "wb-search-empty", children: t("search_none") }) : null,
       results.map(function(hit) {
-        var addon = (props.addons || []).filter(function(a2) {
-          return a2.id === hit.domainId;
+        var addon = (props.addons || []).filter(function(a) {
+          return a.id === hit.domainId;
         })[0];
         var title = addon ? addon.title || addon.id : hit.domainId;
         return jsx.jsxs("button", { type: "button", className: "wb-search-hit", onClick: function() {
@@ -1874,15 +2591,15 @@ function WorkbenchPage(props) {
   react.useEffect(function() {
     ensureCss();
   }, []);
-  var addons = (store.addons || []).filter(function(a2) {
-    return a2 && a2.enabled;
+  var addons = (store.addons || []).filter(function(a) {
+    return a && a.enabled;
   });
   var currentAddon = null;
   if (route.indexOf("addon:") === 0) {
     var parts = route.split(":");
     var wanted = parts[1] || "";
-    addons.forEach(function(a2) {
-      if (a2.id === wanted) currentAddon = a2;
+    addons.forEach(function(a) {
+      if (a.id === wanted) currentAddon = a;
     });
   }
   var mod = currentAddon ? registry.get(currentAddon.id) : null;
@@ -1911,11 +2628,23 @@ function WorkbenchPage(props) {
     if (m && m.icon) return h(m.icon, { size: 18, strokeWidth: 1.9, "aria-hidden": "true" });
     return String(title || "?").slice(0, 1);
   }
-  function openAddon(a2) {
-    var m = registry.get(a2.id);
-    var v = m && m.views && m.views[0] || a2.views && a2.views[0] || null;
-    go("addon:" + a2.id + ":" + (v && v.id ? v.id : ""));
+  function openAddon(a) {
+    var m = registry.get(a.id);
+    var v = m && m.views && m.views[0] || a.views && a.views[0] || null;
+    go("addon:" + a.id + ":" + (v && v.id ? v.id : ""));
   }
+  react.useEffect(function() {
+    navigateAddonHook = function(addonId) {
+      var t2 = addons.filter(function(a) {
+        return a && a.id === addonId;
+      })[0];
+      if (t2) openAddon(t2);
+      return !!t2;
+    };
+    return function() {
+      navigateAddonHook = null;
+    };
+  }, [addons]);
   function pageHead(title, desc) {
     return jsx.jsxs("div", { className: "wb-page-head", children: [
       jsx.jsx("div", { className: "wb-page-top", children: [
@@ -1924,32 +2653,32 @@ function WorkbenchPage(props) {
         }, children: "\u2190 " + t("back_home") })
       ] }),
       jsx.jsxs("div", { className: "wb-page-title", children: [
-        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(a.id, title) }),
+        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(route, title) }),
         jsx.jsx("h2", { children: title })
       ] }),
       desc ? jsx.jsx("div", { className: "wb-page-desc", children: desc }) : null
     ] });
   }
-  function addonCard(a2) {
-    var m = registry.get(a2.id);
-    var v = m && m.views && m.views[0] || a2.views && a2.views[0] || null;
-    var title = a2.title || pickTitle(v && v.title, lang) || a2.id;
-    var count = m && m.views ? m.views.length : a2.views ? a2.views.length : 0;
-    return jsx.jsxs("button", { type: "button", className: "wb-home-card" + (a2.error ? " dim" : ""), onClick: function() {
-      openAddon(a2);
+  function addonCard(a) {
+    var m = registry.get(a.id);
+    var v = m && m.views && m.views[0] || a.views && a.views[0] || null;
+    var title = a.title || pickTitle(v && v.title, lang) || a.id;
+    var count = m && m.views ? m.views.length : a.views ? a.views.length : 0;
+    return jsx.jsxs("button", { type: "button", className: "wb-home-card" + (a.error ? " dim" : ""), onClick: function() {
+      openAddon(a);
     }, children: [
       jsx.jsxs("div", { className: "wb-home-top", children: [
-        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(a2.id, a2.title || title) }),
-        jsx.jsx("span", { className: "wb-badge", children: "v" + (a2.version || "?") })
+        jsx.jsx("span", { className: "wb-home-icon", children: cardIcon(a.id, a.title || title) }),
+        jsx.jsx("span", { className: "wb-badge", children: "v" + (a.version || "?") })
       ] }),
       jsx.jsx("div", { className: "wb-home-title", children: title }),
-      jsx.jsx("div", { className: "wb-home-desc", children: a2.description || (count > 1 ? count + " " + t("views") : "") }),
-      a2.error ? jsx.jsx("div", { className: "wb-err", children: t("addon_error") + ": " + a2.error }) : null,
+      jsx.jsx("div", { className: "wb-home-desc", children: a.description || (count > 1 ? count + " " + t("views") : "") }),
+      a.error ? jsx.jsx("div", { className: "wb-err", children: t("addon_error") + ": " + a.error }) : null,
       jsx.jsxs("div", { className: "wb-home-foot", children: [
         jsx.jsx("span", { children: count ? count + " " + t("views") : "" }),
         jsx.jsx("b", { children: t("open") + " \u2192" })
       ] })
-    ] }, a2.id);
+    ] }, a.id);
   }
   function systemCard(key, icon, title, desc) {
     return jsx.jsxs("button", { type: "button", className: "wb-home-card", onClick: function() {
@@ -1966,6 +2695,7 @@ function WorkbenchPage(props) {
       ] })
     ] }, key);
   }
+  if (route === "agent") return SystemPages.agentAccessPage({ jsx, t, lang, api, head: pageHead });
   if (route === "backup") {
     return jsx.jsxs("div", { className: "wb-root", children: [
       jsx.jsxs("div", { className: "wb-inner wb-wide", children: [pageHead(t("tab_backup"), t("backup_desc")), jsx.jsx(BackupTab, { t, lang, addons })] })
@@ -2019,11 +2749,7 @@ function WorkbenchPage(props) {
         jsx.jsx("h3", { children: t("manage") }),
         jsx.jsx("span", { className: "wb-hint", children: t("home_hint") })
       ] }),
-      jsx.jsxs("div", { className: "wb-home-grid manage", children: [
-        systemCard("backup", "backup", t("tab_backup"), t("backup_desc")),
-        systemCard("audit", "audit", t("tab_audit"), t("audit_desc")),
-        systemCard("account", "account", t("tab_account"), t("account_desc"))
-      ] })
+      jsx.jsx("div", { className: "wb-home-grid manage", children: SystemPages.manageCards({ t, systemCard }) })
     ] })
   ] });
 }

@@ -40,6 +40,7 @@ export function registerActions(api, engine) {
   });
 
   action("automation.ruleCreate", {
+    agentEnabled: false,
     description: "创建规则；写操作仅 UI",
     input: {
       type: "object",
@@ -55,7 +56,7 @@ export function registerActions(api, engine) {
       required: ["name", "actionName"],
     },
     execute: (args, ctx) => {
-      deny(ctx.origin, ["ui"]);
+      deny(ctx.origin, ["ui", "agent"]);
       return engine.createRule({
         name: args.name,
         enabled: args.enabled,
@@ -69,6 +70,7 @@ export function registerActions(api, engine) {
   });
 
   action("automation.ruleUpdate", {
+    agentEnabled: false,
     description: "局部更新规则；写操作仅 UI",
     input: {
       type: "object",
@@ -85,7 +87,7 @@ export function registerActions(api, engine) {
       required: ["id"],
     },
     execute: (args, ctx) => {
-      deny(ctx.origin, ["ui"]);
+      deny(ctx.origin, ["ui", "agent"]);
       return engine.updateRule({
         id: args.id,
         name: args.name,
@@ -100,19 +102,21 @@ export function registerActions(api, engine) {
   });
 
   action("automation.ruleDelete", {
+    agentEnabled: false,
     description: "软删规则；仅 UI",
     input: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
     execute: (args, ctx) => {
-      deny(ctx.origin, ["ui"]);
+      deny(ctx.origin, ["ui", "agent"]);
       return engine.deleteRule(args.id);
     },
   });
 
   action("automation.ruleRun", {
+    agentEnabled: false,
     description: "立即执行一次规则；仍受白名单、条件和频率限制",
     input: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
     execute: (args, ctx) => {
-      deny(ctx.origin, ["ui"]);
+      deny(ctx.origin, ["ui", "agent"]);
       return engine.runRule(args.id, "manual", {});
     },
   });
@@ -142,13 +146,14 @@ export function registerActions(api, engine) {
   });
 
   action("automation.configSet", {
+    agentEnabled: false,
     description: "修改最大规则数与每小时上限；仅 UI",
     input: {
       type: "object",
       properties: { maxRules: { type: "number" }, perHour: { type: "number" } },
     },
     execute: (args, ctx) => {
-      deny(ctx.origin, ["ui"]);
+      deny(ctx.origin, ["ui", "agent"]);
       return engine.saveConfig({ maxRules: args.maxRules, perHour: args.perHour });
     },
   });
@@ -172,6 +177,7 @@ export function registerActions(api, engine) {
   });
 
   action("automation.dataQuery", {
+    agentEnabled: false,
     description: "只读查询白名单表；仅 UI",
     input: {
       type: "object",
@@ -179,7 +185,7 @@ export function registerActions(api, engine) {
       required: ["table"],
     },
     execute: (args, ctx) => {
-      deny(ctx.origin, ["ui"]);
+      deny(ctx.origin, ["ui", "agent"]);
       const table = String(args.table || "");
       if (!TABLE_WHITELIST[table]) throw new Error("表不在白名单：" + table);
       const limit = Math.max(1, Math.min(200, Number(args.limit) || 50));

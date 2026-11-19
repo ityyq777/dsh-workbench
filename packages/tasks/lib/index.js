@@ -7,6 +7,10 @@
  * 5.2.18：年度活动热力图新增「目标」计划维度（target_date），单独口径、不计入活动总数。
  * 5.2.19：统计页新增「事件趋势」折线卡，发布/目标/完成/关闭/接取五条曲线，与年度活动同口径。
  * 5.2.20：时间线成员点击改为任务预览面板（复用列表卡片与操作按钮）；`tasks.timeline` 补齐 tags/workspaces。
+ * 5.2.21：统计页版面重做——分区信息层级、KPI 两级字号、删除与事件趋势重复的旧趋势卡；存量区块开关 trend 迁移到 eventTrend。
+ * 5.2.23：预览面板收尾——只保留右上角 × 一个关闭入口，滚动收敛到内容区（标题栏与 × 固定），滚动条跟随主题。
+ * 5.2.25：日期输入统一到共享日期控件（lib/date-picker.cjs）——创建/编辑弹窗的发布、目标、完成、关闭日期与统计页自定义范围都用 DatePicker/RangePicker。
+ * 5.2.24：事件趋势折线图可交互——图例点击开关序列（至少保留一条）、按日期悬停/键盘取值提示、量程按可见序列重算；序列顺序改为发布→目标→接取→关闭→完成（换序不换色）。
  */
 
 import { registerActivityCalendarAction } from "./stats/activity-calendar.js";
@@ -125,7 +129,7 @@ export function apply(ctx) {
         id: "wb-addon-tasks",
         title: "任务",
         description: "任务树 + 统计/记录/时间线/配置/数据五个视图：紧急/已关闭/已开启/已完成/总览，可按标签筛选（需安装标签插件），附统计报表与只读数据浏览",
-        version: "5.2.20",
+        version: "5.2.26",
         tables: ["task", "task_node", "task_timeline", "task_timeline_link", "task_workspace", "task_workspace_link"],
         sync: taskSync,
         views: [

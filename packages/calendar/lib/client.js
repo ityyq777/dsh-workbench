@@ -43,10 +43,18 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var require_client_base_styles = __commonJS({
   "packages/addons/lib/client-base-styles.cjs"(exports2, module2) {
     "use strict";
+    var SECRET_FIELD = [
+      ".wb-secret-field{position:relative;display:flex;align-items:center;min-width:0}",
+      ".wb-secret-field input{flex:1 1 auto;min-width:0;padding-right:34px}",
+      ".wb-eye{position:absolute;right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:6px;padding:4px;color:var(--wb-muted,#6b7280);cursor:pointer}",
+      ".wb-eye:hover:not(:disabled){color:var(--wb-accent,#2563eb);background:color-mix(in srgb, var(--wb-accent,#2563eb) 12%, transparent)}",
+      ".wb-eye:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
+      ".wb-eye:disabled{opacity:.45;cursor:not-allowed}"
+    ];
     module2.exports = function baseStyles(prefix) {
       var p = String(prefix || "wb");
       var s = "." + p;
-      return [
+      return SECRET_FIELD.concat([
         s + "-wrap{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
         s + "-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}",
         s + "-title{font-size:16px;font-weight:650;margin:0}",
@@ -71,8 +79,9 @@ var require_client_base_styles = __commonJS({
         s + "-json{margin:0;padding:8px;background:#f8fafc;border-radius:8px;font-size:11px;max-height:240px;overflow:auto}",
         s + "-muted{color:var(--wb-muted,#6b7280)}" + s + "-link{color:var(--wb-accent,#2563eb);cursor:pointer;text-decoration:none}",
         s + "-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}"
-      ];
+      ]);
     };
+    module2.exports.secretFieldStyles = SECRET_FIELD;
   }
 });
 
@@ -2077,8 +2086,21 @@ var require_action_schema_style = __commonJS({
         "." + P + " select:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
         "." + P + "-list{display:flex;flex-direction:column;gap:8px}",
         "." + P + "-card{border:1px solid var(--wb-border,#e3e5e9);border-radius:10px;padding:10px 12px;background:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));display:flex;flex-direction:column;gap:8px;min-width:0}",
-        "." + P + "-cardhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-        "." + P + "-cardhead code{font-weight:640}",
+        "." + P + "-cardhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px}",
+        "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
+        "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
+        "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
+        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
+        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
+        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
+        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
+        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
+        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
+        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
+        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
         "." + P + " mark." + P + "-hit{background:color-mix(in oklab,var(--dsw-alias-brand-primary,#4f6ef7) 22%,transparent);color:inherit;border-radius:2px;padding:0;font:inherit;box-decoration-break:clone;-webkit-box-decoration-break:clone}",
@@ -2130,6 +2152,15 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
+        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
+        agentSwitch: "agent \u53EF\u7528",
+        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
+        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
+        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
+        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
+        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -2175,6 +2206,15 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
+        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
+        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
+        agentSwitch: "Agent callable",
+        agentLocked: "UI only \xB7 security",
+        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
+        agentSaving: "Saving\u2026",
+        agentOnToast: "Agent calls allowed",
+        agentOffToast: "Agent calls blocked",
+        agentFail: "Failed to change the agent switch",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -2287,7 +2327,9 @@ var require_action_schema_view = __commonJS({
     }
     module2.exports = function createActionSchemaView(options) {
       var raw = String(options.domain || "");
-      var DOMAIN = raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var SOURCE = options.source === "actions.list" ? "actions.list" : "actionSchema";
+      var DOMAIN = SOURCE === "actions.list" ? raw : raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var LIST_DOMAIN = options.listDomain ? String(options.listDomain) : DOMAIN;
       var prefix = options.prefix;
       var P = prefix + "-as";
       var Icon2 = options.Icon || null;
@@ -2331,6 +2373,8 @@ var require_action_schema_view = __commonJS({
         var typePick = typeState[0], setTypePick = typeState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
+        var savingState = React.useState("");
+        var saving = savingState[0], setSaving = savingState[1];
         React.useEffect(function() {
           injectCss();
         }, []);
@@ -2339,9 +2383,10 @@ var require_action_schema_view = __commonJS({
           setLoading(true);
           setErr("");
           var pending;
-          var actionName = DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var actionName = SOURCE === "actions.list" ? "actions.list" : DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var callArgs = SOURCE === "actions.list" ? { detail: true, domain: LIST_DOMAIN } : void 0;
           if (api && typeof api.call === "function") {
-            pending = Promise.resolve(api.call(actionName)).then(function(r) {
+            pending = Promise.resolve(api.call(actionName, callArgs)).then(function(r) {
               if (r && r.ok === false) return r;
               return r && r.result || r;
             });
@@ -2380,6 +2425,39 @@ var require_action_schema_view = __commonJS({
           }
           plainCopy(text);
           done();
+        }
+        function setAgent(action, next) {
+          var name = action.name;
+          setSaving(name);
+          setToast("");
+          var fail = function(e) {
+            setSaving("");
+            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+          };
+          var done = function(r) {
+            setSaving("");
+            var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
+            if (r && r.ok === false) {
+              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              return;
+            }
+            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            setSnap(function(prev) {
+              if (!prev || !Array.isArray(prev.actions)) return prev;
+              return Object.assign({}, prev, {
+                actions: prev.actions.map(function(a) {
+                  if (!a || a.name !== name) return a;
+                  return Object.assign({}, a, { agentEnabled: value });
+                })
+              });
+            });
+            setToast(value ? t.agentOnToast : t.agentOffToast);
+          };
+          if (!api || typeof api.call !== "function") {
+            fail(new Error("no call api"));
+            return;
+          }
+          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -2429,6 +2507,35 @@ var require_action_schema_view = __commonJS({
             h("td", null, Highlight.hit(row.description, kw))
           );
         }
+        function agentSwitch(action) {
+          if (action.agentLocked === true) {
+            return h("span", {
+              className: P + "-badge " + P + "-locked",
+              title: t.agentLockedHint,
+              "data-agent-locked": action.name
+            }, t.agentLocked);
+          }
+          if (typeof action.agentEnabled !== "boolean") return null;
+          var busy = saving === action.name;
+          return h(
+            "button",
+            {
+              className: P + "-toggle",
+              "data-agent-row": action.name,
+              type: "button",
+              role: "switch",
+              "aria-checked": action.agentEnabled,
+              disabled: busy,
+              "data-agent-toggle": action.name,
+              "aria-label": t.agentSwitch + " \xB7 " + action.name,
+              onClick: function() {
+                setAgent(action, !action.agentEnabled);
+              }
+            },
+            h("span", { className: P + "-track", "aria-hidden": true }),
+            h("span", null, busy ? t.agentSaving : t.agentSwitch)
+          );
+        }
         function card(action) {
           var rows = paramRows(action);
           var examples = Array.isArray(action.examples) ? action.examples : [];
@@ -2438,12 +2545,16 @@ var require_action_schema_view = __commonJS({
             h(
               "div",
               { className: P + "-cardhead" },
-              h("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
-              h("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
-              rows.some(function(row) {
-                return row.required;
-              }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              h(
+                "div",
+                { className: P + "-cardmeta" },
+                h("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
+                h("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
+                rows.some(function(row) {
+                  return row.required;
+                }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              ),
+              agentSwitch(action)
             ),
             action.description ? h("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h(
@@ -2520,6 +2631,7 @@ var require_action_schema_view = __commonJS({
             h("span", { className: P + "-badge" }, t.count(visible.length, all.length)),
             h("span", { className: P + "-none" }, t.hint)
           ),
+          h("p", { className: P + "-hintline" }, SOURCE === "actions.list" ? t.hostHint : t.switchHint),
           snap ? h(
             "div",
             { className: P + "-toolbar" },
@@ -2632,7 +2744,7 @@ var require_actions = __commonJS({
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-calendar",
-    version: "0.1.1",
+    version: "0.1.2",
     icon: (init_calendar_days(), __toCommonJS(calendar_days_exports)).default,
     views: [
       { id: "events", icon: tabIcon("calendar"), title: { zh: "\u65E5\u7A0B", en: "Agenda" }, component: withProps(require_events(), "\u65E5\u7A0B") },

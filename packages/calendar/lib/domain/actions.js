@@ -23,19 +23,22 @@ export function registerCalendarActions(api, cal) {
     execute: () => cal.listCalendars(),
   });
   action("calendar.calendarCreate", {
+    agentEnabled: false,
     description: "创建本地日历（仅 UI）",
     input: obj({ name: str("日历名称，必填"), color: str("颜色，可选"), tz: str("IANA 时区，默认 Asia/Shanghai") }, ["name"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.createCalendar({ name: args.name, color: args.color, tz: args.tz }) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.createCalendar({ name: args.name, color: args.color, tz: args.tz }) },
   });
   action("calendar.calendarUpdate", {
+    agentEnabled: false,
     description: "更新日历名称/颜色/时区（仅 UI）",
     input: obj({ id: str("日历 id"), name: str("新名称"), color: str("新颜色"), tz: str("新时区") }, ["id"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.updateCalendar({ id: args.id, name: args.name, color: args.color, tz: args.tz }) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.updateCalendar({ id: args.id, name: args.name, color: args.color, tz: args.tz }) },
   });
   action("calendar.calendarDelete", {
+    agentEnabled: false,
     description: "软删除日历（仅 UI；不再出现在列表，事件保留）",
     input: obj({ id: str("日历 id") }, ["id"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.deleteCalendar(args.id) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.deleteCalendar(args.id) },
   });
   action("calendar.eventsBetween", {
     description: "只读：查询时间范围内的事件（毫秒时间戳，默认今天前后一天到未来 7 天）",
@@ -48,24 +51,28 @@ export function registerCalendarActions(api, cal) {
     execute: (args) => cal.event(args.id),
   });
   action("calendar.eventCreate", {
+    agentEnabled: false,
     description: "创建事件（仅 UI）；startAt/endAt 为 UTC 毫秒，可带参与人与提醒",
     input: obj({ calendarId: str("日历 id，缺省用第一个"), title: str("标题，必填"), description: str("描述"), location: str("地点"), startAt: num("开始毫秒时间戳"), endAt: num("结束毫秒时间戳，默认开始 +1h"), allDay: bool("是否全天"), tz: str("IANA 时区"), rrule: str("RRULE 原文，不展开"), attendees: { type: "array", description: "[{name,email,role,status}]" }, reminders: { type: "array", description: "[{minutesBefore,channel,enabled}]" } }, ["title", "startAt"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.createEvent({ calendarId: args.calendarId, title: args.title, description: args.description, location: args.location, startAt: args.startAt, endAt: args.endAt, allDay: args.allDay, tz: args.tz, rrule: args.rrule, attendees: args.attendees, reminders: args.reminders }) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.createEvent({ calendarId: args.calendarId, title: args.title, description: args.description, location: args.location, startAt: args.startAt, endAt: args.endAt, allDay: args.allDay, tz: args.tz, rrule: args.rrule, attendees: args.attendees, reminders: args.reminders }) },
   });
   action("calendar.eventUpdate", {
+    agentEnabled: false,
     description: "更新事件字段（仅 UI；不传的字段保持原值）",
     input: obj({ id: str("事件 id"), title: str("标题"), description: str("描述"), location: str("地点"), startAt: num("开始毫秒时间戳"), endAt: num("结束毫秒时间戳"), allDay: bool("全天"), tz: str("时区"), rrule: str("RRULE 原文"), status: { type: "string", enum: ["confirmed", "tentative", "cancelled"] } }, ["id"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.updateEvent({ id: args.id, title: args.title, description: args.description, location: args.location, startAt: args.startAt, endAt: args.endAt, allDay: args.allDay, tz: args.tz, rrule: args.rrule, status: args.status }) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.updateEvent({ id: args.id, title: args.title, description: args.description, location: args.location, startAt: args.startAt, endAt: args.endAt, allDay: args.allDay, tz: args.tz, rrule: args.rrule, status: args.status }) },
   });
   action("calendar.eventDelete", {
+    agentEnabled: false,
     description: "软删除事件（仅 UI）",
     input: obj({ id: str("事件 id") }, ["id"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.deleteEvent(args.id) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.deleteEvent(args.id) },
   });
   action("calendar.eventRemind", {
+    agentEnabled: false,
     description: "通过消息插件发送一次事件提醒（仅 UI）",
     input: obj({ id: str("事件 id"), minutesBefore: num("提前分钟数，默认 15") }, ["id"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.remind({ id: args.id, minutesBefore: args.minutesBefore }) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.remind({ id: args.id, minutesBefore: args.minutesBefore }) },
   });
   action("calendar.dataTables", {
     description: "只读：日历域可浏览的表与列",
@@ -78,9 +85,10 @@ export function registerCalendarActions(api, cal) {
     ] }),
   });
   action("calendar.dataQuery", {
+    agentEnabled: false,
     description: "只读：白名单表查询（仅 UI；limit ≤ 100）",
     input: obj({ table: { type: "string", enum: ["calendar", "calendar_event", "calendar_attendee", "calendar_reminder"] }, limit: num("1–100，默认 20") }, ["table"]),
-    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui") throw new Error("该操作只允许在界面中执行"); return cal.dataQuery({ table: args.table, limit: args.limit }) },
+    execute: (args, ctx) => { if (ctx && ctx.origin && ctx.origin !== "ui" && ctx.origin !== "agent") throw new Error("该操作只允许在界面中执行"); return cal.dataQuery({ table: args.table, limit: args.limit }) },
   });
   action("calendar.actionSchema", {
     description: "只读：本插件注册的 action 清单",

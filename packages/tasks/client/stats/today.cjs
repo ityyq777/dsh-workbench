@@ -5,7 +5,7 @@ var COPY = {
   zh: { title: "今日", published: "今日发布", claimed: "今日接取", done: "今日完成", shutdown: "今日关闭", average: "平均难度", sample: "样本数", noSample: "无样本", clock: "以服务端当前时间为准" },
   en: { title: "Today", published: "Published today", claimed: "Claimed today", done: "Completed today", shutdown: "Closed today", average: "Avg difficulty", sample: "samples", noSample: "No samples", clock: "Based on the server's current time" },
 };
-var css = ".wbt-today{margin:12px 0}";
+var css = ".wbt-today{margin:12px 0;grid-column:span 12}";
 function Today(props) {
   var data = props.today;
   // An older server has no daily snapshot: omit the card rather than invent zero activity.

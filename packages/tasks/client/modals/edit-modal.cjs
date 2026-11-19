@@ -5,6 +5,7 @@ module.exports = function createEditModal(React, statusInfo, stars) {
   var difficultyField = require("../item/difficulty-field.cjs")(React);
   var WorkspaceSelect = require("../workspace/workspace-select.cjs")(React).WorkspaceSelect;
   var ownership = require("./ownership.cjs"), fields = require("./ownership-fields.cjs")(React);
+  var DP = require("../../../lib/date-picker.cjs");
   // 任务编辑弹窗：按状态收敛可编辑字段。
   // 所有状态均可编辑难度；0/null 表示未设置。
   // 已完成（2）：标题、描述、感受、难度；优先级完成即清零，不再可改。
@@ -100,7 +101,7 @@ module.exports = function createEditModal(React, statusInfo, stars) {
         ),
         canPriority ? h("label", { className: "wbt-field" },
           h("span", null, t.targetDate),
-          h("input", { className: "wbt-input", type: "date", value: form.targetDate, onChange: function (e) { set("targetDate", e.target.value); } })
+          h(DP.DatePicker, { React: React, h: h, prefix: "wbt", lang: props.lang, label: t.targetDate, value: form.targetDate, onChange: function (next) { set("targetDate", next); } })
         ) : null,
         canPriority ? h("label", { className: "wbt-field" },
           h("span", null, t.priority + "（1–10）"),

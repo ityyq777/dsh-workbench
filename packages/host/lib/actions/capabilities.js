@@ -1,5 +1,5 @@
 import { renderTaskTarget } from "./task-targets.js";
-export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTargets }) {
+export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTargets, agentVisible }) {
     function findDomain(raw) {
         const key = String(raw ?? "").trim();
         if (!key)
@@ -123,7 +123,7 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
         };
     }
     /** capabilities.list：聚合各插件“记录什么、首选哪个 action”，给 agent 做统一发现。 */
-    async function capabilityListMeta(args) {
+    async function capabilityListMeta(args, origin = "ui") {
         const kind = args.kind === undefined || args.kind === null ? "" : String(args.kind).trim();
         const out = [];
         for (const rec of domains.values()) {
@@ -138,7 +138,9 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
                 error: rec.error,
                 summary: cap.summary,
                 source: cap.source,
-                actionCount: rec.actions.size,
+                actionCount: origin === "agent"
+                    ? [...rec.actions].filter(([action, def]) => agentVisible(action, def)).length
+                    : rec.actions.size,
                 requires: cap.requires ?? [],
                 missingRequires: cap.missingRequires ?? [],
                 records: cap.records.map((r) => ({
@@ -177,7 +179,7 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
         return lines.join("\n");
     }
     /** capabilities.get：单个业务域的完整能力清单 + action 摘要（字段细节仍走 actions.help）。 */
-    async function capabilityGetMeta(args) {
+    async function capabilityGetMeta(args, origin = "ui") {
         const name = String(args.domain ?? args.id ?? "").trim();
         if (!name)
             throw new Error("缺少 domain；先用 capabilities.list 查看可用业务域");
@@ -206,7 +208,10 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
                 missingRequires: cap.missingRequires ?? [],
             },
             source: cap.source,
-            actions: [...rec.actions].map(([action, def]) => actionEntry(action, rec.def.id, def)),
+            // capabilities.get 也是 agent 的发现入口：被本机关闭的 action 不列给它（ui 仍看全量）。
+            actions: [...rec.actions]
+                .filter(([action, def]) => origin !== "agent" || agentVisible(action, def))
+                .map(([action, def]) => actionEntry(action, rec.def.id, def)),
             warnings: cap.warnings,
         };
     }

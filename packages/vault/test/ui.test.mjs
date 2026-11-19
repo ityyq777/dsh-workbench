@@ -10,7 +10,7 @@ const { renderToStaticMarkup } = require("react-dom/server");
 const h = React.createElement;
 const C = require("../../lib/client-common.cjs")("wbv");
 
-const SecretField = require("../client/ui/secret-field.cjs");
+const SecretField = require("../../lib/secret-field.cjs");
 const AskPassphrase = require("../client/ui/ask-passphrase.cjs");
 const SecretsView = require("../client/views/secrets.cjs");
 
@@ -35,7 +35,8 @@ test("明文框默认 password，点击后切 text 且 aria-pressed 同步", () 
   assert.match(hidden, /type="password"/);
   assert.match(hidden, /aria-pressed="false"/);
   assert.match(hidden, /aria-label="显示明文"/);
-  assert.match(hidden, /class="wbv-eye"/);
+  assert.match(hidden, /class="wb-secret-field"/);
+  assert.match(hidden, /class="wb-eye"/);
 
   const shown = render(SecretField, { show: true, value: "s3cret" });
   assert.match(shown, /type="text"/);
@@ -44,9 +45,34 @@ test("明文框默认 password，点击后切 text 且 aria-pressed 同步", () 
   assert.match(shown, /aria-label="隐藏明文"/);
 });
 
+test("切换明文只改 type，value 原样保留", () => {
+  const hidden = render(SecretField, { value: "p@ss<&>ok" });
+  const shown = render(SecretField, { show: true, value: "p@ss<&>ok" });
+  const valueOf = (html) => html.match(/value="([^"]*)"/)[1];
+  assert.equal(valueOf(hidden), valueOf(shown));
+  assert.match(valueOf(hidden), /p@ss/);
+});
+
 test("明文框的眼睛是 type=button，不会提交表单", () => {
   const html = render(SecretField, { value: "" });
   assert.match(html, /<button[^>]*type="button"/);
+  // 点击时先 preventDefault，再切状态并回焦输入框
+  const src = fs.readFileSync(path.join(process.cwd(), "packages/addons/lib/secret-field.cjs"), "utf8");
+  assert.match(src, /e\.preventDefault\(\)/);
+  assert.match(src, /input\.focus\(\)/);
+});
+
+test("小眼睛只有一份实现：vault 私有版本已删除，vault 与 sites 都引用共享控件", () => {
+  assert.equal(fs.existsSync(path.join(dir, "ui/secret-field.cjs")), false);
+  const vaultFiles = ["views/secrets.cjs", "views/status.cjs", "ui/ask-passphrase.cjs"];
+  for (const f of vaultFiles) {
+    const src = fs.readFileSync(path.join(dir, f), "utf8");
+    assert.match(src, /lib\/secret-field\.cjs/, `${f} 未引用共享控件`);
+    assert.doesNotMatch(src, /type:\s*"password"/, `${f} 仍有裸密码框`);
+  }
+  const sitesModal = fs.readFileSync(path.join(process.cwd(), "packages/addons/sites/client/ui/accounts-modal.cjs"), "utf8");
+  assert.match(sitesModal, /lib\/secret-field\.cjs/);
+  assert.doesNotMatch(sitesModal, /type:\s*"password"/);
 });
 
 test("主口令弹层有输入框、取消与确认，且不依赖 window.prompt", () => {

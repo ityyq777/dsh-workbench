@@ -705,6 +705,10 @@ var require_filter_checklist_styles = __commonJS({
       ".wbck-opt:hover{background:color-mix(in srgb, currentColor 7%, transparent)}",
       ".wbck-opt.is-on{background:color-mix(in srgb, var(--wb-accent) 10%, transparent)}",
       ".wbck-opt input{margin:0;flex:none;accent-color:var(--wb-accent)}",
+      // 单选变体用 button 渲染（role="radio"），这里把浏览器默认按钮样式清掉，视觉与多选行一致。
+      '.wbck-opt[role="radio"]{appearance:none;width:100%;box-sizing:border-box;border:0;background:transparent;color:inherit;font:inherit;text-align:left}',
+      '.wbck-opt[role="radio"]:disabled{opacity:.55;cursor:not-allowed}',
+      '.wbck-opt[role="radio"]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:-2px}',
       ".wbck-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
       ".wbck-meta{margin-left:auto;flex:none;font-size:11.5px;color:var(--wb-muted)}",
       ".wbck-note{font-size:12px;color:var(--wb-muted);padding:8px 6px}",
@@ -2193,6 +2197,8 @@ var require_filter_checklist = __commonJS({
       var onLoadMore = props.onLoadMore;
       var onClear = props.onClear || function() {
       };
+      var single = props.mode === "single";
+      var onPick = typeof props.onPick === "function" ? props.onPick : onToggle;
       function toggle(id) {
         if (disabled) return;
         onToggle(id);
@@ -2205,8 +2211,8 @@ var require_filter_checklist = __commonJS({
         "div",
         { className: "wbck-head" },
         h2("span", { className: "wbck-grow" }, title + (total ? " \xB7 " + total : "")),
-        selected.length ? h2("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
-        selected.length || query ? h2("button", {
+        !single && selected.length ? h2("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
+        !single && (selected.length || query) ? h2("button", {
           type: "button",
           className: "wbck-clear",
           title: clearText,
@@ -2223,6 +2229,25 @@ var require_filter_checklist = __commonJS({
       } else {
         body = items.map(function(x) {
           var on = selected.indexOf(String(x.id)) >= 0;
+          if (single) {
+            return h2(
+              "button",
+              {
+                key: x.id,
+                type: "button",
+                role: "radio",
+                "aria-checked": on ? "true" : "false",
+                className: "wbck-opt" + (on ? " is-on" : ""),
+                disabled,
+                onClick: function() {
+                  if (disabled) return;
+                  onPick(x.id);
+                }
+              },
+              h2("span", { className: "wbck-nm", title: x.name }, x.name),
+              x.meta ? h2("span", { className: "wbck-meta" }, x.meta) : null
+            );
+          }
           return h2(
             "label",
             { key: x.id, className: "wbck-opt" + (on ? " is-on" : "") },
@@ -2265,6 +2290,8 @@ var require_filter_checklist = __commonJS({
         h2("div", {
           className: "wbck-list",
           onScroll: scroll,
+          role: single ? "radiogroup" : void 0,
+          "aria-label": single ? props.groupLabel || searchPlaceholder : void 0,
           "aria-busy": loading ? "true" : "false"
         }, body)
       );
@@ -4657,8 +4684,21 @@ var require_action_schema_style = __commonJS({
         "." + P + " select:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
         "." + P + "-list{display:flex;flex-direction:column;gap:8px}",
         "." + P + "-card{border:1px solid var(--wb-border,#e3e5e9);border-radius:10px;padding:10px 12px;background:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));display:flex;flex-direction:column;gap:8px;min-width:0}",
-        "." + P + "-cardhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-        "." + P + "-cardhead code{font-weight:640}",
+        "." + P + "-cardhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px}",
+        "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
+        "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
+        "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
+        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
+        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
+        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
+        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
+        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
+        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
+        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
+        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
         "." + P + " mark." + P + "-hit{background:color-mix(in oklab,var(--dsw-alias-brand-primary,#4f6ef7) 22%,transparent);color:inherit;border-radius:2px;padding:0;font:inherit;box-decoration-break:clone;-webkit-box-decoration-break:clone}",
@@ -4710,6 +4750,15 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
+        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
+        agentSwitch: "agent \u53EF\u7528",
+        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
+        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
+        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
+        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
+        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -4755,6 +4804,15 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
+        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
+        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
+        agentSwitch: "Agent callable",
+        agentLocked: "UI only \xB7 security",
+        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
+        agentSaving: "Saving\u2026",
+        agentOnToast: "Agent calls allowed",
+        agentOffToast: "Agent calls blocked",
+        agentFail: "Failed to change the agent switch",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -4867,7 +4925,9 @@ var require_action_schema_view = __commonJS({
     }
     module2.exports = function createActionSchemaView(options) {
       var raw = String(options.domain || "");
-      var DOMAIN = raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var SOURCE = options.source === "actions.list" ? "actions.list" : "actionSchema";
+      var DOMAIN = SOURCE === "actions.list" ? raw : raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var LIST_DOMAIN = options.listDomain ? String(options.listDomain) : DOMAIN;
       var prefix = options.prefix;
       var P = prefix + "-as";
       var Icon3 = options.Icon || null;
@@ -4911,6 +4971,8 @@ var require_action_schema_view = __commonJS({
         var typePick = typeState[0], setTypePick = typeState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
+        var savingState = React.useState("");
+        var saving = savingState[0], setSaving = savingState[1];
         React.useEffect(function() {
           injectCss();
         }, []);
@@ -4919,9 +4981,10 @@ var require_action_schema_view = __commonJS({
           setLoading(true);
           setErr("");
           var pending;
-          var actionName = DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var actionName = SOURCE === "actions.list" ? "actions.list" : DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var callArgs = SOURCE === "actions.list" ? { detail: true, domain: LIST_DOMAIN } : void 0;
           if (api && typeof api.call === "function") {
-            pending = Promise.resolve(api.call(actionName)).then(function(r) {
+            pending = Promise.resolve(api.call(actionName, callArgs)).then(function(r) {
               if (r && r.ok === false) return r;
               return r && r.result || r;
             });
@@ -4960,6 +5023,39 @@ var require_action_schema_view = __commonJS({
           }
           plainCopy(text);
           done();
+        }
+        function setAgent(action, next) {
+          var name = action.name;
+          setSaving(name);
+          setToast("");
+          var fail = function(e) {
+            setSaving("");
+            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+          };
+          var done = function(r) {
+            setSaving("");
+            var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
+            if (r && r.ok === false) {
+              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              return;
+            }
+            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            setSnap(function(prev) {
+              if (!prev || !Array.isArray(prev.actions)) return prev;
+              return Object.assign({}, prev, {
+                actions: prev.actions.map(function(a) {
+                  if (!a || a.name !== name) return a;
+                  return Object.assign({}, a, { agentEnabled: value });
+                })
+              });
+            });
+            setToast(value ? t.agentOnToast : t.agentOffToast);
+          };
+          if (!api || typeof api.call !== "function") {
+            fail(new Error("no call api"));
+            return;
+          }
+          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -5009,6 +5105,35 @@ var require_action_schema_view = __commonJS({
             h2("td", null, Highlight.hit(row.description, kw))
           );
         }
+        function agentSwitch(action) {
+          if (action.agentLocked === true) {
+            return h2("span", {
+              className: P + "-badge " + P + "-locked",
+              title: t.agentLockedHint,
+              "data-agent-locked": action.name
+            }, t.agentLocked);
+          }
+          if (typeof action.agentEnabled !== "boolean") return null;
+          var busy = saving === action.name;
+          return h2(
+            "button",
+            {
+              className: P + "-toggle",
+              "data-agent-row": action.name,
+              type: "button",
+              role: "switch",
+              "aria-checked": action.agentEnabled,
+              disabled: busy,
+              "data-agent-toggle": action.name,
+              "aria-label": t.agentSwitch + " \xB7 " + action.name,
+              onClick: function() {
+                setAgent(action, !action.agentEnabled);
+              }
+            },
+            h2("span", { className: P + "-track", "aria-hidden": true }),
+            h2("span", null, busy ? t.agentSaving : t.agentSwitch)
+          );
+        }
         function card(action) {
           var rows = paramRows(action);
           var examples = Array.isArray(action.examples) ? action.examples : [];
@@ -5018,12 +5143,16 @@ var require_action_schema_view = __commonJS({
             h2(
               "div",
               { className: P + "-cardhead" },
-              h2("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
-              h2("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
-              rows.some(function(row) {
-                return row.required;
-              }) ? h2("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              h2(
+                "div",
+                { className: P + "-cardmeta" },
+                h2("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
+                h2("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
+                rows.some(function(row) {
+                  return row.required;
+                }) ? h2("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              ),
+              agentSwitch(action)
             ),
             action.description ? h2("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h2(
@@ -5100,6 +5229,7 @@ var require_action_schema_view = __commonJS({
             h2("span", { className: P + "-badge" }, t.count(visible.length, all.length)),
             h2("span", { className: P + "-none" }, t.hint)
           ),
+          h2("p", { className: P + "-hintline" }, SOURCE === "actions.list" ? t.hostHint : t.switchHint),
           snap ? h2(
             "div",
             { className: P + "-toolbar" },
@@ -5186,7 +5316,7 @@ if (host) {
   h = require("react").createElement, Icon2 = require_icons().Icon;
   host.registerAddon({
     id: "wb-addon-storage",
-    version: "1.5.5",
+    version: "1.5.6",
     icon: (init_package(), __toCommonJS(package_exports)).default,
     views: [
       { id: "stats", icon: tabIcon2("chart"), title: { zh: "\u7EDF\u8BA1", en: "Statistics" }, component: require_stats().Stats },

@@ -23,7 +23,7 @@ export function createDomain(host) {
     id: "wb-addon-connector",
     title: "连接器",
     description: "把 RSS、Webhook 等外部内容接进工作台；来源定义可同步，凭据与本机状态不出机器。",
-    version: "0.1.2",
+    version: "0.1.3",
     tables: ["connector_source", "connector_source_state", "connector_item", "connector_run"],
     sync: {
       tables: [{ name: "connector_source", mode: "row", uniqueKeys: [["id"]], uniquePolicy: "lww-tombstone" }],

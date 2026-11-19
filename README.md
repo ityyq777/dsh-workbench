@@ -17,6 +17,7 @@
 | `dsh-workbench-contacts` | 联系人：本地通讯录、分组、多值字段与 vCard 导入导出 |
 | `dsh-workbench-calendar` | 日历：本地日历、事件、参与人与提醒 |
 | `dsh-workbench-mail` | 邮件：IMAP 抓邮件头、SMTP 发纯文本，密码托管在保险箱 |
+| `dsh-workbench-salary` | 工资记录：按发薪日期记录构成、扣款与实发，含年度统计 |
 
 所有业务插件都声明 `dependencies: { "dsh-workbench-host": "^<宿主版本>" }`：安装任意业务插件时，
 DSH 会一并准备宿主。数据保存在 `~/.dsh/workbench/workbench.db`，卸载插件只删代码，不删数据。

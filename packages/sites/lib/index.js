@@ -1,6 +1,8 @@
 /**
  * 站点业务插件（DSH 原生插件）。
  * 业务全部本地；云端只备份数据。标签能力通过 host.hasDomain 探测。
+ * 1.12.3：统计页自定义日期范围改用共享 DatePicker（lib/date-picker.cjs），删除插件内复制的区间控件。
+ * 1.12.2：账号弹窗的口令/确认口令改用共享明文切换控件（lib/secret-field.cjs），与保险箱同一套小眼睛。
  * 1.12.1：站点标签筛选列表体改用共享 filter-checklist。
  */
 
@@ -98,7 +100,7 @@ export function apply(ctx) {
         id: "wb-addon-sites",
         title: "站点",
         description: "站点收藏：目录树、链接与标签（标签需安装标签插件）；含统计/记录/配置/数据四个视图",
-        version: "1.12.1",
+        version: "1.12.4",
         tables: ["site", "site_node", "site_node_mapping", "tag_mapping", "site_account", "site_account_external"],
         sync: siteSync,
         views: [

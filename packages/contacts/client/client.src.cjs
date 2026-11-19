@@ -33,7 +33,7 @@
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-contacts",
-    version: "0.1.1",
+    version: "0.1.2",
     icon: require("lucide-react/icons/users").default,
     views: [
       { id: "contacts", icon: tabIcon("users"), title: { zh: "联系人", en: "Contacts" }, component: withProps(require("./views/contacts.cjs"), "联系人") },

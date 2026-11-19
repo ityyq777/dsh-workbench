@@ -113,6 +113,8 @@ module.exports = {
       passphraseAgain: "再输一次口令",
       passTooShort: "口令至少 8 位",
       passMismatch: "两次口令不一致",
+      showPlain: "显示明文",
+      hidePlain: "隐藏明文",
     },
     en: {
       title: "Sites",
@@ -225,5 +227,7 @@ module.exports = {
       passphraseAgain: "Repeat passphrase",
       passTooShort: "Passphrase must be at least 8 characters",
       passMismatch: "Passphrases do not match",
+      showPlain: "Show plain text",
+      hidePlain: "Hide plain text",
     },
   };

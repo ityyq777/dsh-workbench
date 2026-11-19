@@ -31,7 +31,7 @@
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-calendar",
-    version: "0.1.1",
+    version: "0.1.2",
     icon: require("lucide-react/icons/calendar-days").default,
     views: [
       { id: "events", icon: tabIcon("calendar"), title: { zh: "日程", en: "Agenda" }, component: withProps(require("./views/events.cjs"), "日程") },

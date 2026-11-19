@@ -10,6 +10,7 @@ var english = {
   "展开描述": "Expand description",
   "收起描述": "Collapse description",
   "按发布时间正序排列": "Oldest publication first",
+  "按发布时间正序排列，点击任务打开预览": "Oldest publication first. Click a task to open a preview.",
   "新建时间线或选择已有时间线，将相关任务集中查看。": "Create or choose a timeline to view related tasks together.",
   "其他时间线": "Other timelines",
   "请选择已有时间线；无匹配时可新建": "Choose a timeline, or create one if there is no match",

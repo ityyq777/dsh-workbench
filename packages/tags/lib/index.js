@@ -1,6 +1,7 @@
 /**
  * 标签业务插件（DSH 原生插件）。
  * 所有业务逻辑都在本地 SQLite 完成；云端只负责备份。
+ * 1.7.2：统计页自定义日期范围改用共享 DatePicker（lib/date-picker.cjs），删除插件内复制的区间控件。
  */
 
 import { bindClock, ensureSchema } from "./db/db.js";
@@ -89,7 +90,7 @@ export function apply(ctx) {
         id: "wb-addon-tags",
         title: "标签",
         description: "创建与管理标签，为站点等业务提供标签归类；含统计/记录/配置/数据四个视图",
-        version: "1.7.1",
+        version: "1.7.3",
         tables: ["tag", "tag_mapping"],
         sync: tagSync,
         views: [

@@ -82,6 +82,8 @@ var require_filter_checklist = __commonJS({
       var onLoadMore = props.onLoadMore;
       var onClear = props.onClear || function() {
       };
+      var single = props.mode === "single";
+      var onPick = typeof props.onPick === "function" ? props.onPick : onToggle;
       function toggle(id) {
         if (disabled) return;
         onToggle(id);
@@ -94,8 +96,8 @@ var require_filter_checklist = __commonJS({
         "div",
         { className: "wbck-head" },
         h("span", { className: "wbck-grow" }, title + (total ? " \xB7 " + total : "")),
-        selected.length ? h("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
-        selected.length || query ? h("button", {
+        !single && selected.length ? h("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
+        !single && (selected.length || query) ? h("button", {
           type: "button",
           className: "wbck-clear",
           title: clearText,
@@ -112,6 +114,25 @@ var require_filter_checklist = __commonJS({
       } else {
         body = items.map(function(x) {
           var on = selected.indexOf(String(x.id)) >= 0;
+          if (single) {
+            return h(
+              "button",
+              {
+                key: x.id,
+                type: "button",
+                role: "radio",
+                "aria-checked": on ? "true" : "false",
+                className: "wbck-opt" + (on ? " is-on" : ""),
+                disabled,
+                onClick: function() {
+                  if (disabled) return;
+                  onPick(x.id);
+                }
+              },
+              h("span", { className: "wbck-nm", title: x.name }, x.name),
+              x.meta ? h("span", { className: "wbck-meta" }, x.meta) : null
+            );
+          }
           return h(
             "label",
             { key: x.id, className: "wbck-opt" + (on ? " is-on" : "") },
@@ -154,6 +175,8 @@ var require_filter_checklist = __commonJS({
         h("div", {
           className: "wbck-list",
           onScroll: scroll,
+          role: single ? "radiogroup" : void 0,
+          "aria-label": single ? props.groupLabel || searchPlaceholder : void 0,
           "aria-busy": loading ? "true" : "false"
         }, body)
       );
@@ -447,11 +470,557 @@ var require_workspacefilter = __commonJS({
   }
 });
 
+// packages/addons/lib/date-picker.cjs
+var require_date_picker = __commonJS({
+  "packages/addons/lib/date-picker.cjs"(exports2, module2) {
+    "use strict";
+    var ReactDefault = require("react");
+    var MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+    function todayISO() {
+      var d = /* @__PURE__ */ new Date();
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+    }
+    function validDate(value) {
+      if (!value) return false;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+      var d = /* @__PURE__ */ new Date(value + "T00:00:00Z");
+      return isFinite(d.getTime()) && d.toISOString().slice(0, 10) === value && value.slice(0, 4) !== "0000";
+    }
+    function toUTC(iso) {
+      return /* @__PURE__ */ new Date(iso + "T00:00:00Z");
+    }
+    function shiftDate(iso, days) {
+      var d = toUTC(iso);
+      d.setUTCDate(d.getUTCDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+    function shiftMonth(month, delta) {
+      var d = toUTC(month + "-01");
+      d.setUTCMonth(d.getUTCMonth() + delta);
+      return d.toISOString().slice(0, 7);
+    }
+    function monthKey(iso) {
+      return (iso || todayISO()).slice(0, 7);
+    }
+    function monthLabel(month, en) {
+      return en ? month.slice(0, 4) + "-" + month.slice(5) : month.slice(0, 4) + "\u5E74" + Number(month.slice(5)) + "\u6708";
+    }
+    function daysInMonth(month) {
+      return new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5)), 0)).getUTCDate();
+    }
+    function normalizeRange(value) {
+      var from = value && validDate(value.from) ? value.from : "";
+      var to = value && validDate(value.to) ? value.to : "";
+      if (from && to && from > to) return { from: to, to: from, swapped: true };
+      return { from, to, swapped: false };
+    }
+    function clampDay(iso, min, max) {
+      if (min && iso < min) return false;
+      if (max && iso > max) return false;
+      return true;
+    }
+    function ctx(props) {
+      var R = props && props.React || ReactDefault;
+      return { R, h: props && props.h || R.createElement };
+    }
+    function usePopover(R, open, setOpen, root) {
+      R.useEffect(function() {
+        if (!open) return void 0;
+        function onDoc(ev) {
+          if (root.current && !root.current.contains(ev.target)) setOpen(false);
+        }
+        function onKey(ev) {
+          if (ev.key === "Escape") setOpen(false);
+        }
+        if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+          document.addEventListener("mousedown", onDoc);
+          document.addEventListener("keydown", onKey);
+          return function() {
+            document.removeEventListener("mousedown", onDoc);
+            document.removeEventListener("keydown", onKey);
+          };
+        }
+        return void 0;
+      }, [open]);
+    }
+    function Calendar(props) {
+      var h = props.h, p = props.prefix, en = props.lang === "en";
+      var month = props.month, cells = [];
+      var offset = toUTC(month + "-01").getUTCDay();
+      var count = daysInMonth(month);
+      var i;
+      for (i = 0; i < offset; i++) cells.push(h("span", { key: "e" + i, "aria-hidden": "true" }));
+      for (i = 1; i <= count; i++) {
+        var day = month + "-" + pad(i);
+        var disabled = !clampDay(day, props.min, props.max);
+        var selected = props.isSelected ? props.isSelected(day) : false;
+        var between = props.isBetween ? props.isBetween(day) : false;
+        cells.push(h("button", {
+          key: day,
+          type: "button",
+          disabled,
+          "data-day": day,
+          "aria-label": day,
+          "aria-pressed": selected,
+          "aria-current": day === todayISO() ? "date" : void 0,
+          className: p + "-dp-day" + (selected ? " is-on" : "") + (between ? " is-between" : "") + (day === todayISO() ? " is-today" : ""),
+          onClick: props.onPick.bind(null, day),
+          onKeyDown: function(ev) {
+            var delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[ev.key];
+            if (!delta) return;
+            ev.preventDefault();
+            var next = shiftDate(ev.currentTarget.getAttribute("data-day"), delta);
+            if (clampDay(next, props.min, props.max)) props.onMove(monthKey(next), next);
+          }
+        }, i));
+      }
+      return h(
+        "div",
+        { className: p + "-dp-cal", role: "group", "aria-label": en ? "Calendar" : "\u65E5\u5386" },
+        h(
+          "div",
+          { className: p + "-dp-head" },
+          h("button", { type: "button", className: p + "-dp-nav", "aria-label": en ? "Previous month" : "\u4E0A\u4E2A\u6708", onClick: function() {
+            props.onMove(shiftMonth(month, -1), "");
+          } }, "\u2039"),
+          h("strong", { className: p + "-dp-title", "aria-live": "polite" }, monthLabel(month, en)),
+          h("button", { type: "button", className: p + "-dp-nav", "aria-label": en ? "Next month" : "\u4E0B\u4E2A\u6708", onClick: function() {
+            props.onMove(shiftMonth(month, 1), "");
+          } }, "\u203A")
+        ),
+        h(
+          "div",
+          { className: p + "-dp-weekdays", "aria-hidden": "true" },
+          (en ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] : ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"]).map(function(w) {
+            return h("span", { key: w }, w);
+          })
+        ),
+        h("div", { className: p + "-dp-grid" }, cells)
+      );
+    }
+    function DatePicker(props) {
+      var c = ctx(props), R = c.R, h = c.h;
+      var p = props.prefix, en = props.lang === "en";
+      var value = validDate(props.value) ? props.value : "";
+      var openS = R.useState(!!props.defaultOpen), open = openS[0], setOpen = openS[1];
+      var monthS = R.useState(monthKey(value || props.max || todayISO())), month = monthS[0], setMonth = monthS[1];
+      var root = R.useRef(null);
+      usePopover(R, open, setOpen, root);
+      function pick(day) {
+        if (props.onChange) props.onChange(day);
+        setOpen(false);
+      }
+      function toggle() {
+        setMonth(monthKey(validDate(props.value) ? props.value : props.max || todayISO()));
+        setOpen(!open);
+      }
+      return h(
+        "div",
+        { className: p + "-dp" + (props.className ? " " + props.className : ""), ref: root },
+        h(
+          "div",
+          { className: p + "-dp-field" },
+          h(
+            "button",
+            {
+              type: "button",
+              className: p + "-dp-trigger",
+              disabled: !!props.disabled,
+              "aria-haspopup": "dialog",
+              "aria-expanded": open,
+              "aria-label": (props.label ? props.label + ": " : "") + (value || props.placeholder || (en ? "Pick a date" : "\u9009\u62E9\u65E5\u671F")),
+              onClick: toggle
+            },
+            h("span", { className: p + "-dp-glyph", "aria-hidden": "true" }),
+            h("span", { className: p + "-dp-value" + (value ? "" : " is-empty") }, value || props.placeholder || (en ? "Pick a date" : "\u9009\u62E9\u65E5\u671F"))
+          ),
+          value && !props.disabled && props.clearable !== false ? h("button", { type: "button", className: p + "-dp-clear", "aria-label": en ? "Clear date" : "\u6E05\u9664\u65E5\u671F", onClick: function() {
+            if (props.onChange) props.onChange("");
+          } }, "\xD7") : null
+        ),
+        open ? h(
+          "div",
+          { className: p + "-dp-pop", role: "dialog", "aria-modal": "false", "aria-label": props.label || (en ? "Pick a date" : "\u9009\u62E9\u65E5\u671F") },
+          h(Calendar, { h, prefix: p, lang: props.lang, month, min: props.min, max: props.max, onMove: function(m) {
+            setMonth(m);
+          }, isSelected: function(d) {
+            return d === value;
+          }, onPick: pick }),
+          h(
+            "div",
+            { className: p + "-dp-foot" },
+            h("button", { type: "button", className: p + "-dp-link", onClick: function() {
+              pick(todayISO());
+            } }, en ? "Today" : "\u4ECA\u5929"),
+            props.min || props.max ? h("span", { className: p + "-dp-hint" }, [props.min, props.max].filter(Boolean).join(" \u2014 ")) : null
+          )
+        ) : null
+      );
+    }
+    function RangePicker(props) {
+      var c = ctx(props), R = c.R, h = c.h;
+      var p = props.prefix, en = props.lang === "en";
+      var range = normalizeRange(props.value);
+      var from = range.from, to = range.to;
+      var openS = R.useState(!!props.defaultOpen), open = openS[0], setOpen = openS[1];
+      var startS = R.useState(""), start = startS[0], setStart = startS[1];
+      var monthS = R.useState(monthKey(from || to || props.max || todayISO())), month = monthS[0], setMonth = monthS[1];
+      var root = R.useRef(null);
+      usePopover(R, open, setOpen, root);
+      function apply(next) {
+        if (typeof props.onChange === "function") props.onChange(normalizeRange(next));
+        setStart("");
+        setOpen(false);
+      }
+      function pick(day) {
+        if (!start) {
+          setStart(day);
+          return;
+        }
+        apply({ from: start, to: day });
+      }
+      function toggle() {
+        setStart("");
+        setMonth(monthKey(from || to || props.max || todayISO()));
+        setOpen(!open);
+      }
+      var summary = from && to ? from + " \u2014 " + to : from ? from + (en ? " onward" : " \u8D77") : to ? (en ? "Until " : "\u622A\u81F3 ") + to : props.placeholder || (en ? "Choose date range" : "\u9009\u62E9\u65E5\u671F\u8303\u56F4");
+      return h(
+        "div",
+        { className: p + "-dr" + (props.className ? " " + props.className : ""), ref: root },
+        h(
+          "div",
+          { className: p + "-dp-field" },
+          h(
+            "button",
+            {
+              type: "button",
+              className: p + "-dp-trigger",
+              "aria-haspopup": "dialog",
+              "aria-expanded": open,
+              "aria-label": (props.label || (en ? "Date range" : "\u65E5\u671F\u8303\u56F4")) + ": " + summary,
+              onClick: toggle
+            },
+            h("span", { className: p + "-dp-glyph", "aria-hidden": "true" }),
+            h("span", { className: p + "-dp-value" + (from || to ? "" : " is-empty") }, summary)
+          ),
+          (from || to) && props.clearable !== false ? h("button", { type: "button", className: p + "-dp-clear", "aria-label": en ? "Clear range" : "\u6E05\u9664\u8303\u56F4", onClick: function() {
+            apply({ from: "", to: "" });
+          } }, "\xD7") : null
+        ),
+        open ? h(
+          "div",
+          { className: p + "-dp-pop", role: "dialog", "aria-modal": "false", "aria-label": props.label || (en ? "Date range" : "\u65E5\u671F\u8303\u56F4") },
+          h(Calendar, {
+            h,
+            prefix: p,
+            lang: props.lang,
+            month,
+            min: props.min,
+            max: props.max,
+            onMove: function(m) {
+              setMonth(m);
+            },
+            isSelected: function(d) {
+              return start ? d === start : d === from || d === to;
+            },
+            isBetween: function(d) {
+              return start ? start < d && d < (to || "") : !!(from && to && d > from && d < to);
+            },
+            onPick: pick
+          }),
+          h(
+            "p",
+            { className: p + "-dp-hint", role: "status" },
+            start ? en ? "Start " + start + " \xB7 pick the end date" : "\u8D77\u59CB " + start + " \xB7 \u8BF7\u9009\u62E9\u7ED3\u675F\u65E5\u671F" : en ? "Pick start, then end date" : "\u5148\u9009\u5F00\u59CB\u65E5\u671F\uFF0C\u518D\u9009\u7ED3\u675F\u65E5\u671F"
+          ),
+          start ? h(
+            "div",
+            { className: p + "-dp-acts" },
+            h("button", { type: "button", className: p + "-dp-link", onClick: function() {
+              apply({ from: start, to: "" });
+            } }, en ? "Only start" : "\u4EC5\u8D77\u59CB\u65E5\u671F"),
+            h("button", { type: "button", className: p + "-dp-link", onClick: function() {
+              apply({ from: "", to: start });
+            } }, en ? "Only end" : "\u4EC5\u622A\u6B62\u65E5\u671F")
+          ) : null,
+          h(
+            "div",
+            { className: p + "-dp-foot" },
+            h("button", { type: "button", className: p + "-dp-link", onClick: function() {
+              setOpen(false);
+              setStart("");
+            } }, en ? "Cancel" : "\u53D6\u6D88")
+          )
+        ) : null
+      );
+    }
+    function MonthPicker(props) {
+      var c = ctx(props), R = c.R, h = c.h;
+      var p = props.prefix, en = props.lang === "en";
+      var value = /^\d{4}-\d{2}$/.test(props.value || "") ? props.value : "";
+      var base = value || monthKey(props.max || todayISO());
+      var openS = R.useState(!!props.defaultOpen), open = openS[0], setOpen = openS[1];
+      var yearS = R.useState(Number(base.slice(0, 4))), year = yearS[0], setYear = yearS[1];
+      var root = R.useRef(null);
+      usePopover(R, open, setOpen, root);
+      function pick(month) {
+        if (props.onChange) props.onChange(month);
+        setOpen(false);
+      }
+      var months = [];
+      for (var m = 1; m <= 12; m++) {
+        var key = year + "-" + pad(m);
+        months.push(h("button", {
+          key,
+          type: "button",
+          "data-month": key,
+          "aria-pressed": key === value,
+          className: p + "-dp-day" + (key === value ? " is-on" : "") + (key === monthKey(todayISO()) ? " is-today" : ""),
+          onClick: pick.bind(null, key)
+        }, en ? MONTH_EN[m - 1] : m + "\u6708"));
+      }
+      return h(
+        "div",
+        { className: p + "-dp" + (props.className ? " " + props.className : ""), ref: root },
+        h(
+          "div",
+          { className: p + "-dp-field" },
+          h(
+            "button",
+            {
+              type: "button",
+              className: p + "-dp-trigger",
+              "aria-haspopup": "dialog",
+              "aria-expanded": open,
+              "aria-label": (props.label || (en ? "Pick a month" : "\u9009\u62E9\u6708\u4EFD")) + ": " + (value ? monthLabel(value, en) : ""),
+              onClick: function() {
+                setYear(Number((value || base).slice(0, 4)));
+                setOpen(!open);
+              }
+            },
+            h("span", { className: p + "-dp-glyph", "aria-hidden": "true" }),
+            h("span", { className: p + "-dp-value" + (value ? "" : " is-empty") }, value ? monthLabel(value, en) : props.placeholder || (en ? "Pick a month" : "\u9009\u62E9\u6708\u4EFD"))
+          ),
+          value && props.clearable !== false ? h("button", { type: "button", className: p + "-dp-clear", "aria-label": en ? "Clear month" : "\u6E05\u9664\u6708\u4EFD", onClick: function() {
+            if (props.onChange) props.onChange("");
+          } }, "\xD7") : null
+        ),
+        open ? h(
+          "div",
+          { className: p + "-dp-pop is-months", role: "dialog", "aria-modal": "false", "aria-label": props.label || (en ? "Pick a month" : "\u9009\u62E9\u6708\u4EFD") },
+          h(
+            "div",
+            { className: p + "-dp-head" },
+            h("button", { type: "button", className: p + "-dp-nav", "aria-label": en ? "Previous year" : "\u4E0A\u4E00\u5E74", onClick: function() {
+              setYear(year - 1);
+            } }, "\u2039"),
+            h("strong", { className: p + "-dp-title", "aria-live": "polite" }, en ? String(year) : year + "\u5E74"),
+            h("button", { type: "button", className: p + "-dp-nav", "aria-label": en ? "Next year" : "\u4E0B\u4E00\u5E74", onClick: function() {
+              setYear(year + 1);
+            } }, "\u203A")
+          ),
+          h("div", { className: p + "-dp-months" }, months),
+          h(
+            "div",
+            { className: p + "-dp-foot" },
+            h("button", { type: "button", className: p + "-dp-link", onClick: function() {
+              pick(monthKey(todayISO()));
+            } }, en ? "This month" : "\u672C\u6708"),
+            h("button", { type: "button", className: p + "-dp-link", onClick: function() {
+              setOpen(false);
+            } }, en ? "Cancel" : "\u53D6\u6D88")
+          )
+        ) : null
+      );
+    }
+    function InlineCalendar(props) {
+      var c = ctx(props), R = c.R, h = c.h;
+      var p = props.prefix;
+      var value = validDate(props.value) ? props.value : "";
+      var monthS = R.useState(monthKey(props.month || value || props.max || todayISO())), month = monthS[0], setMonth = monthS[1];
+      return h(
+        "div",
+        { className: p + "-dp is-inline" },
+        h(Calendar, {
+          h,
+          prefix: p,
+          lang: props.lang,
+          month,
+          min: props.min,
+          max: props.max,
+          onMove: function(m) {
+            setMonth(m);
+            if (props.onMonthChange) props.onMonthChange(m);
+          },
+          isSelected: function(d) {
+            return d === value;
+          },
+          isBetween: props.isBetween,
+          onPick: function(d) {
+            if (props.onChange) props.onChange(d);
+          }
+        }),
+        props.footer ? h("div", { className: p + "-dp-foot" }, props.footer) : null
+      );
+    }
+    module2.exports = {
+      DatePicker,
+      RangePicker,
+      MonthPicker,
+      InlineCalendar,
+      todayISO,
+      validDate,
+      shiftDate,
+      shiftMonth,
+      normalizeRange,
+      monthLabel,
+      daysInMonth
+    };
+  }
+});
+
+// packages/addons/lib/date-picker-styles.cjs
+var require_date_picker_styles = __commonJS({
+  "packages/addons/lib/date-picker-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function datePickerStyles(prefix) {
+      var p = String(prefix || "wb");
+      return [
+        ".{p}-dp,.{p}-dr{position:relative;min-width:0}",
+        ".{p}-dp-field{display:flex;align-items:center;gap:6px;min-width:0}",
+        ".{p}-dp-trigger{display:flex;align-items:center;gap:8px;min-width:0;width:100%;padding:8px 10px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:var(--wb-text,inherit);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s}",
+        ".{p}-dp-trigger:hover{border-color:var(--wb-accent)}",
+        ".{p}-dp-trigger:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+        ".{p}-dp-trigger[disabled]{opacity:.55;cursor:not-allowed}",
+        ".{p}-dp-glyph{width:13px;height:13px;flex:none;border:1.5px solid currentColor;border-radius:3px;position:relative;opacity:.72}",
+        '.{p}-dp-glyph::before{content:"";position:absolute;left:-1.5px;right:-1.5px;top:3px;border-top:1.5px solid currentColor}',
+        '.{p}-dp-glyph::after{content:"";position:absolute;left:3px;top:-3px;width:1.5px;height:3px;background:currentColor;box-shadow:4px 0 currentColor}',
+        ".{p}-dp-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}",
+        ".{p}-dp-value.is-empty{color:var(--wb-muted)}",
+        ".{p}-dp-clear{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--wb-muted) 14%,transparent);color:var(--wb-muted);font:inherit;line-height:1;cursor:pointer}",
+        ".{p}-dp-clear:hover{color:var(--wb-danger);background:color-mix(in srgb,var(--wb-danger) 16%,transparent)}",
+        ".{p}-dp-pop{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:272px;padding:10px;border:1px solid var(--wb-border);border-radius:12px;background:var(--wb-card);box-shadow:0 16px 40px color-mix(in srgb,var(--wb-text,var(--wb-border)) 18%,transparent);animation:{p}-dp-in .14s ease-out}",
+        ".{p}-dp-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}",
+        ".{p}-dp-title{flex:1;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}",
+        ".{p}-dp-nav{width:26px;height:26px;padding:0;border:1px solid var(--wb-border);border-radius:7px;background:transparent;color:inherit;font:inherit;line-height:1;cursor:pointer}",
+        ".{p}-dp-nav:hover{border-color:var(--wb-accent);color:var(--wb-accent)}",
+        ".{p}-dp-weekdays,.{p}-dp-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}",
+        ".{p}-dp-weekdays{margin-bottom:4px;font-size:11px;color:var(--wb-muted);text-align:center}",
+        ".{p}-dp-day{min-width:0;height:30px;padding:0;border:0;border-radius:7px;background:transparent;color:inherit;font:inherit;font-variant-numeric:tabular-nums;cursor:pointer}",
+        ".{p}-dp-day:hover{background:color-mix(in srgb,var(--wb-accent) 12%,transparent)}",
+        ".{p}-dp-day.is-between{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);border-radius:0}",
+        ".{p}-dp-day.is-today{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--wb-accent) 55%,transparent)}",
+        ".{p}-dp-day.is-on{background:var(--wb-accent);color:var(--wb-on-accent,inherit);font-weight:600}",
+        ".{p}-dp-day:disabled{opacity:.35;cursor:not-allowed}",
+        ".{p}-dp-day:focus-visible{outline:2px solid var(--wb-accent);outline-offset:-2px}",
+        ".{p}-dp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--wb-line)}",
+        ".{p}-dp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}",
+        ".{p}-dp-link{padding:4px 8px;border:0;border-radius:6px;background:color-mix(in srgb,var(--wb-muted) 12%,transparent);color:inherit;font:inherit;font-size:12px;cursor:pointer}",
+        ".{p}-dp-link:hover{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);color:var(--wb-accent)}",
+        ".{p}-dp-hint{margin:6px 0 0;font-size:11px;color:var(--wb-muted)}",
+        ".{p}-dp-pop.is-months{width:248px}",
+        ".{p}-dp-months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:6px}",
+        ".{p}-dp-months .{p}-dp-day{height:34px}",
+        "@keyframes {p}-dp-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}"
+      ].join("\n").replace(/\{p\}/g, p);
+    };
+  }
+});
+
+// packages/addons/tasks/client/stats/trend-interaction.cjs
+var require_trend_interaction = __commonJS({
+  "packages/addons/tasks/client/stats/trend-interaction.cjs"(exports2, module2) {
+    function isVisible(hidden, key) {
+      return !(hidden && hidden[key]);
+    }
+    function visibleSeries(series, hidden) {
+      return (series || []).filter(function(s) {
+        return s && isVisible(hidden, s.key);
+      });
+    }
+    function rangeMax(data, series, hidden) {
+      if (!data || !data.length) return 1;
+      var list = visibleSeries(series, hidden);
+      var max = 1;
+      (data || []).forEach(function(d) {
+        list.forEach(function(s) {
+          max = Math.max(max, Number(d[s.key] || 0));
+        });
+      });
+      return Math.ceil(max * 1.15) || 1;
+    }
+    function toggle(hidden, series, key) {
+      var next = Object.assign({}, hidden);
+      if (isVisible(hidden, key)) {
+        if (visibleSeries(series, hidden).length <= 1) return { hidden, blocked: true };
+        next[key] = true;
+      } else {
+        delete next[key];
+      }
+      return { hidden: next, blocked: false };
+    }
+    function indexAt(ratio, length) {
+      if (!length) return 0;
+      var i = Math.round(Number(ratio) * (length - 1));
+      if (!isFinite(i)) return 0;
+      return Math.min(length - 1, Math.max(0, i));
+    }
+    function moveIndex(index, delta, length) {
+      if (!length) return 0;
+      if (index === null || index === void 0 || index < 0) return delta > 0 ? 0 : length - 1;
+      return Math.min(length - 1, Math.max(0, index + delta));
+    }
+    function tipAnchor(ratio, plotLeftPct, plotWidthPct) {
+      var r = Math.min(1, Math.max(0, Number(ratio) || 0));
+      var left = plotLeftPct + r * plotWidthPct;
+      var flip = left > 72 ? "right" : left < 18 ? "left" : "center";
+      return { left: Math.round(left * 100) / 100, flip };
+    }
+    function tipTransform(flip) {
+      if (flip === "right") return "translateX(-100%)";
+      if (flip === "left") return "translateX(0)";
+      return "translateX(-50%)";
+    }
+    function tipRows(data, series, hidden, index) {
+      var row = (data || [])[index];
+      if (!row) return [];
+      return visibleSeries(series, hidden).map(function(s) {
+        return { key: s.key, label: s.label, color: s.color, value: Number(row[s.key] || 0) };
+      });
+    }
+    function summaryText(data, series, hidden, sep) {
+      var list = visibleSeries(series, hidden);
+      return list.map(function(s) {
+        return s.label + " " + (data || []).reduce(function(n, d) {
+          return n + Number(d[s.key] || 0);
+        }, 0);
+      }).join(sep || "\uFF0C");
+    }
+    module2.exports = {
+      isVisible,
+      visibleSeries,
+      rangeMax,
+      toggle,
+      indexAt,
+      moveIndex,
+      tipAnchor,
+      tipTransform,
+      tipRows,
+      summaryText
+    };
+  }
+});
+
 // packages/addons/tasks/client/stats/charts.cjs
 var require_charts = __commonJS({
   "packages/addons/tasks/client/stats/charts.cjs"(exports2, module2) {
     var React = require("react");
     var h = React.createElement;
+    var DP = require_date_picker();
     var COLORS = [
       "var(--dsw-alias-state-business-primary, #4f6ef7)",
       "var(--dsw-alias-state-success-primary, #2f9e6e)",
@@ -464,13 +1033,12 @@ var require_charts = __commonJS({
     function css(prefix) {
       return [
         ".@-table-link{border:0;padding:0;background:none;font:inherit;color:var(--dsw-alias-brand-primary,#4f6ef7);text-align:left;cursor:pointer}.@-table-link:hover{text-decoration:underline}.@-table-link:focus-visible{outline:2px solid currentColor;outline-offset:3px}.@-recent-difficulty{white-space:nowrap}.@-recent-reason{opacity:.65}",
-        ".@-stats{display:flex;flex-direction:column;gap:14px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-stats{display:flex;flex-direction:column;gap:18px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary,#1f2329)}",
         ".@-stoolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
         ".@-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,#fff)}",
         ".@-seg button{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-size:12px;padding:6px 10px;cursor:pointer;white-space:nowrap}",
         ".@-seg button.@-on{background:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-label-primary-inverted,#fff)}",
-        ".@-range{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;padding:2px 6px;background:var(--dsw-alias-bg-layer-1,#fff)}",
-        ".@-range:focus-within{border-color:var(--dsw-alias-brand-primary,#4f6ef7)}",
+        ".@-range{display:inline-flex;align-items:center;gap:4px}",
         ".@-date{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-family:inherit;font-size:12px;padding:4px 2px;width:116px;outline:none}",
         ".@-date::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}",
         ".@-dash{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
@@ -487,20 +1055,36 @@ var require_charts = __commonJS({
         ".@-dims button[aria-selected=true]{border-color:var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-skeleton,#f2f3f5);font-weight:600;opacity:1}",
         ".@-dims button:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
         ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
+        // 分区容器：把 12 栅格切成「一眼看清 → 结构 → 风险 → 排行 → 明细」几段，
+        // 每段自己一条标题带，卡片之间仍按 span 排；段与段之间用更大的间距制造阅读停顿。
+        ".@-sect{grid-column:span 12;display:flex;flex-direction:column;gap:8px;min-width:0}",
+        ".@-sect-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:2px 2px 0}",
+        ".@-sect-title{margin:0;font-size:13px;font-weight:650;letter-spacing:.2px;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-sect-note{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-sect-body{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;min-width:0}",
         ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
         ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
         ".@-chead{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}",
         ".@-ctitle{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329)}",
         ".@-cnote{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
         ".@-kpis{grid-column:span 12;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}",
+        // 核心指标与次级指标分两行：核心 4 张给足字号，次级 4 张收紧，避免 8 张 KPI 抢同一层的视觉重量。
+        ".@-kpis-main{grid-template-columns:repeat(4,minmax(0,1fr))}",
+        ".@-kpis-sub{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}",
+        ".@-kpi-lg{padding:14px 16px}",
+        ".@-kpi-lg .@-kpi-v{font-size:30px}",
+        ".@-kpi-sm{padding:9px 12px}",
+        ".@-kpi-sm .@-kpi-l{font-size:11.5px}",
+        ".@-kpi-sm .@-kpi-v{font-size:19px}",
+        ".@-kpi-sm .@-kpi-h{font-size:10.5px;margin-top:1px}",
         ".@-kpi{background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:12px 14px;min-width:0}",
         ".@-kpi-l{font-size:12px;color:var(--dsw-alias-label-tertiary,#8f959e);display:flex;align-items:center;gap:6px}",
         ".@-kpi-v{font-size:26px;line-height:1.25;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}",
         ".@-kpi-u{font-size:12px;font-weight:400;color:var(--dsw-alias-label-tertiary,#8f959e);margin-left:3px}",
         ".@-kpi-h{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);margin-top:3px}",
-        ".@-kpi.@-danger .@-kpi-v{color:var(--dsw-alias-state-error-primary,#d9534f)}",
-        ".@-kpi.@-warn .@-kpi-v{color:var(--dsw-alias-state-warn-primary,#d99100)}",
-        ".@-kpi.@-ok .@-kpi-v{color:var(--dsw-alias-state-success-primary,#2f9e6e)}",
+        ".@-kpi.@-kpi-tone-danger .@-kpi-v{color:var(--dsw-alias-state-error-primary,#d9534f)}",
+        ".@-kpi.@-kpi-tone-warn .@-kpi-v{color:var(--dsw-alias-state-warn-primary,#d99100)}",
+        ".@-kpi.@-kpi-tone-ok .@-kpi-v{color:var(--dsw-alias-state-success-primary,#2f9e6e)}",
         ".@-donut{display:flex;align-items:center;gap:16px;flex-wrap:wrap}",
         ".@-donut svg{flex:0 0 auto}",
         ".@-legend{display:flex;flex-direction:column;gap:7px;min-width:120px;flex:1}",
@@ -529,6 +1113,21 @@ var require_charts = __commonJS({
         ".@-hbar-link:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:2px}",
         ".@-trend{width:100%;height:auto;display:block}",
         ".@-tlegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-trend-wrap{position:relative}",
+        ".@-trend-box{position:relative;border-radius:10px}",
+        ".@-trend-box:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:2px}",
+        ".@-trend-tip{position:absolute;top:4px;z-index:3;pointer-events:none;display:flex;flex-direction:column;gap:2px;min-width:104px;padding:6px 8px;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:8px;background:var(--dsw-alias-bg-layer-1,#fff);box-shadow:0 6px 20px color-mix(in srgb,var(--dsw-alias-label-primary,#1f2329) 16%,transparent);font-size:11px;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-tip-day{font-size:11.5px;margin-bottom:2px}",
+        ".@-tip-row{display:flex;align-items:center;gap:6px;white-space:nowrap}",
+        ".@-tip-name{color:var(--dsw-alias-label-secondary,#646a73)}",
+        ".@-tip-row b{margin-left:auto;font-variant-numeric:tabular-nums}",
+        ".@-tlegend-item{display:inline-flex;align-items:center;gap:5px;appearance:none;border:0;background:none;padding:2px 0;font:inherit;font-size:11px;color:inherit;cursor:pointer;border-radius:4px}",
+        ".@-tlegend-item:hover:not(:disabled){color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-tlegend-item[aria-pressed=false]{opacity:.45}",
+        ".@-tlegend-item[aria-pressed=false] .@-dot{background:transparent;border:1px solid currentColor}",
+        ".@-tlegend-item:disabled{cursor:default}",
+        ".@-tlegend-item:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:2px}",
+        ".@-dot-off{width:8px;height:8px;border-radius:50%;border:1px solid;flex:0 0 auto}",
         ".@-table-scroll{max-width:100%;overflow-x:auto}.@-table{width:100%;border-collapse:collapse;font-size:12px}",
         ".@-table th{text-align:left;font-weight:500;color:var(--dsw-alias-label-tertiary,#8f959e);padding:6px 8px;border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb);white-space:nowrap}",
         ".@-table td{padding:7px 8px;border-bottom:1px solid var(--dsw-alias-border-l1,#f2f3f5);color:var(--dsw-alias-label-secondary,#646a73);vertical-align:top}",
@@ -536,12 +1135,13 @@ var require_charts = __commonJS({
         ".@-table th.@-num,.@-table td.@-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}",
         ".@-empty{padding:26px 8px;text-align:center;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
         ".@-err{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 8%,transparent);border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 30%,transparent);color:var(--dsw-alias-state-error-primary,#d9534f);border-radius:10px;padding:10px 12px;font-size:12px}",
-        ".@-warn{grid-column:span 12;border:1px dashed var(--dsw-alias-state-warn-primary,#d99100);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--dsw-alias-state-warn-primary,#d99100);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#d99100) 6%,transparent)}",
+        ".@-warnbar{grid-column:span 12;border:1px dashed var(--dsw-alias-state-warn-primary,#d99100);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--dsw-alias-state-warn-primary,#d99100);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#d99100) 6%,transparent)}",
         ".@-sk{height:14px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);margin:7px 0;animation:@-pulse 1.2s ease-in-out infinite}",
         "@keyframes @-pulse{0%,100%{opacity:.55}50%{opacity:1}}",
-        "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-        "@media (max-width:600px){.@-stats{padding-bottom:16px}.@-hist{height:130px}.@-kpi-v{font-size:22px}}",
-        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}"
+        "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis,.@-kpis-main,.@-kpis-sub{grid-template-columns:repeat(2,minmax(0,1fr))}}",
+        "@media (max-width:600px){.@-stats{padding-bottom:16px;gap:14px}.@-hist{height:130px}.@-kpi-v{font-size:22px}.@-kpi-lg .@-kpi-v{font-size:24px}.@-kpi-sm .@-kpi-v{font-size:18px}}",
+        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}",
+        require_date_picker_styles()(prefix)
       ].join("\n").replace(/@-/g, prefix + "-");
     }
     function makeCharts(prefix) {
@@ -595,11 +1195,31 @@ var require_charts = __commonJS({
           props.children
         );
       }
+      function Section(props) {
+        var body = props.children || [];
+        var list = Array.isArray(body) ? body.filter(function(n) {
+          return n !== null && n !== void 0 && n !== false;
+        }) : body;
+        if (Array.isArray(list) && !list.length) return null;
+        return h(
+          "section",
+          { className: prefix + "-sect", "aria-label": props.title },
+          h(
+            "div",
+            { className: prefix + "-sect-head" },
+            h("h2", { className: prefix + "-sect-title" }, props.title),
+            props.note ? h("span", { className: prefix + "-sect-note" }, props.note) : null,
+            props.right ? h("span", { className: prefix + "-sect-note", style: { marginLeft: "auto" } }, props.right) : null
+          ),
+          h("div", { className: prefix + "-sect-body" }, list)
+        );
+      }
       function Kpi(props) {
-        var tone = props.tone ? " " + prefix + "-" + props.tone : "";
+        var tone = props.tone ? " " + prefix + "-kpi-tone-" + props.tone : "";
+        var size = props.size === "lg" || props.size === "sm" ? " " + prefix + "-kpi-" + props.size : "";
         return h(
           "div",
-          { className: prefix + "-kpi" + tone },
+          { className: prefix + "-kpi" + size + tone },
           h("div", { className: prefix + "-kpi-l" }, props.label),
           h(
             "div",
@@ -706,13 +1326,13 @@ var require_charts = __commonJS({
         var height = props.height || 200;
         var left = 30, right = 10, top = 12, bottom = 24;
         var pw = width - left - right, ph = height - top - bottom;
-        var max = 1;
-        data.forEach(function(d) {
-          series.forEach(function(s) {
-            max = Math.max(max, Number(d[s.key] || 0));
-          });
-        });
-        max = Math.ceil(max * 1.15) || 1;
+        var ix = require_trend_interaction();
+        var hiddenS = React.useState({});
+        var activeS = React.useState(null);
+        var hidden = hiddenS[0];
+        var active = activeS[0];
+        var visible = ix.visibleSeries(series, hidden);
+        var max = ix.rangeMax(data, series, hidden);
         function x(i2) {
           return left + (data.length <= 1 ? pw / 2 : i2 / (data.length - 1) * pw);
         }
@@ -727,53 +1347,135 @@ var require_charts = __commonJS({
           for (var i = 0; i < data.length; i += step) labelIdx.push(i);
           if (labelIdx[labelIdx.length - 1] !== data.length - 1) labelIdx.push(data.length - 1);
         }
-        var aria = series.map(function(s) {
-          return s.label + " " + data.reduce(function(n, d) {
-            return n + Number(d[s.key] || 0);
-          }, 0);
-        }).join("\uFF0C");
-        return h(
+        var aria = ix.summaryText(data, series, hidden, "\uFF0C");
+        var band = data.length > 1 ? pw / (data.length - 1) : pw;
+        function bandBox(i2) {
+          var bx = Math.max(left, x(i2) - band / 2);
+          return { x: bx, width: Math.max(1, Math.min(width - right, x(i2) + band / 2) - bx) };
+        }
+        var tipLeftPct = left / width * 100, tipWidthPct = pw / width * 100;
+        var activeRow = active !== null && data[active] ? data[active] : null;
+        var anchor = activeRow ? ix.tipAnchor((x(active) - left) / pw, tipLeftPct, tipWidthPct) : null;
+        var tip = activeRow ? h(
           "div",
-          null,
-          h(
-            "svg",
-            { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": props.aria || aria },
-            ticks.map(function(v, i2) {
-              return h(
-                "g",
-                { key: "t" + i2 },
-                h("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
-                h("text", { x: left - 5, y: y(v) + 3, textAnchor: "end", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, num(props.lang, v))
-              );
-            }),
-            series.map(function(s, si) {
-              var pts = data.map(function(d, i2) {
-                return x(i2) + "," + y(d[s.key]);
-              }).join(" ");
-              return h(
-                "g",
-                { key: s.key },
-                h("polyline", { points: pts, fill: "none", stroke: s.color || COLORS[si % COLORS.length], strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round" }),
-                data.map(function(d, i2) {
-                  if (data.length > 40 && i2 % 3 !== 0) return null;
-                  return h(
-                    "circle",
-                    { key: i2, cx: x(i2), cy: y(d[s.key]), r: 2.4, fill: s.color || COLORS[si % COLORS.length] },
-                    h("title", null, d.bucket + "\uFF1A" + s.label + " " + (d[s.key] || 0))
-                  );
-                })
-              );
-            }),
-            labelIdx.map(function(i2) {
-              var anchor = i2 === data.length - 1 ? "end" : "middle";
-              return h("text", { key: "x" + i2, x: x(i2), y: height - 6, textAnchor: anchor, fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i2].bucket).slice(5));
-            })
-          ),
-          h("div", { className: prefix + "-tlegend" }, series.map(function(s, i2) {
+          {
+            className: prefix + "-trend-tip",
+            style: { left: anchor.left + "%", transform: ix.tipTransform(anchor.flip) }
+          },
+          h("b", { className: prefix + "-tip-day" }, String(activeRow.bucket)),
+          ix.tipRows(data, series, hidden, active).map(function(r) {
             return h(
               "span",
-              { key: s.key, style: { display: "inline-flex", alignItems: "center", gap: 5 } },
-              h("span", { className: prefix + "-dot", style: { background: s.color || COLORS[i2 % COLORS.length] } }),
+              { key: r.key, className: prefix + "-tip-row" },
+              h("span", { className: prefix + "-dot", style: { background: r.color } }),
+              h("span", { className: prefix + "-tip-name" }, r.label),
+              h("b", null, num(props.lang, r.value))
+            );
+          })
+        ) : null;
+        return h(
+          "div",
+          { className: prefix + "-trend-wrap" },
+          h(
+            "div",
+            {
+              className: prefix + "-trend-box",
+              role: "group",
+              tabIndex: 0,
+              "aria-label": props.aria || aria,
+              onMouseLeave: function() {
+                activeS[1](null);
+              },
+              onBlur: function() {
+                activeS[1](null);
+              },
+              onKeyDown: function(e) {
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                  e.preventDefault();
+                  activeS[1](ix.moveIndex(active, e.key === "ArrowRight" ? 1 : -1, data.length));
+                } else if (e.key === "Escape") {
+                  activeS[1](null);
+                }
+              }
+            },
+            h(
+              "svg",
+              { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, "aria-hidden": "true" },
+              ticks.map(function(v, i2) {
+                return h(
+                  "g",
+                  { key: "t" + i2 },
+                  h("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
+                  h("text", { x: left - 5, y: y(v) + 3, textAnchor: "end", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, num(props.lang, v))
+                );
+              }),
+              activeRow ? h("line", {
+                className: prefix + "-trend-guide",
+                x1: x(active),
+                x2: x(active),
+                y1: top,
+                y2: top + ph,
+                stroke: "var(--dsw-alias-border-l2,#c9cdd4)",
+                strokeWidth: 1,
+                strokeDasharray: "3 3"
+              }) : null,
+              visible.map(function(s, si) {
+                var pts = data.map(function(d, i2) {
+                  return x(i2) + "," + y(d[s.key]);
+                }).join(" ");
+                return h(
+                  "g",
+                  { key: s.key },
+                  h("polyline", { points: pts, fill: "none", stroke: s.color || COLORS[si % COLORS.length], strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round" }),
+                  data.map(function(d, i2) {
+                    if (data.length > 40 && i2 % 3 !== 0 && i2 !== active) return null;
+                    return h("circle", { key: i2, cx: x(i2), cy: y(d[s.key]), r: i2 === active ? 4 : 2.4, fill: s.color || COLORS[si % COLORS.length] });
+                  })
+                );
+              }),
+              labelIdx.map(function(i2) {
+                var textAnchor = i2 === data.length - 1 ? "end" : "middle";
+                return h("text", { key: "x" + i2, x: x(i2), y: height - 6, textAnchor, fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i2].bucket).slice(5));
+              }),
+              data.map(function(d, i2) {
+                var box = bandBox(i2);
+                return h("rect", {
+                  key: "h" + i2,
+                  x: box.x,
+                  y: top,
+                  width: box.width,
+                  height: ph + 8,
+                  fill: "transparent",
+                  style: { cursor: "crosshair" },
+                  onMouseEnter: function() {
+                    activeS[1](i2);
+                  },
+                  onTouchStart: function() {
+                    activeS[1](i2);
+                  }
+                });
+              })
+            ),
+            tip
+          ),
+          h("div", { className: prefix + "-tlegend" }, series.map(function(s, i2) {
+            var on = ix.isVisible(hidden, s.key);
+            var last = on && ix.visibleSeries(series, hidden).length <= 1;
+            return h(
+              "button",
+              {
+                key: s.key,
+                type: "button",
+                className: prefix + "-tlegend-item",
+                "aria-pressed": on ? "true" : "false",
+                disabled: last,
+                title: last ? props.lang === "en" ? "At least one series stays visible" : "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u6761\u66F2\u7EBF" : void 0,
+                onClick: function() {
+                  var r = ix.toggle(hidden, series, s.key);
+                  if (!r.blocked) hiddenS[1](r.hidden);
+                }
+              },
+              h("span", { className: prefix + "-dot" + (on ? "" : " " + prefix + "-dot-off"), style: on ? { background: s.color || COLORS[i2 % COLORS.length] } : { borderColor: s.color || COLORS[i2 % COLORS.length] } }),
               s.label
             );
           }))
@@ -841,16 +1543,6 @@ var require_charts = __commonJS({
         var custom = props.custom || null;
         var from = custom && custom.from ? custom.from : "";
         var to = custom && custom.to ? custom.to : "";
-        function setDate(key, value, input) {
-          if (input && input.validity && input.validity.badInput) {
-            if (props.onInvalidInput) props.onInvalidInput();
-            return;
-          }
-          if (typeof props.onCustomChange !== "function") return;
-          var next = { from, to };
-          next[key] = value;
-          props.onCustomChange(next);
-        }
         return h(
           "div",
           { className: prefix + "-stoolbar" },
@@ -868,28 +1560,18 @@ var require_charts = __commonJS({
           h(
             "div",
             { className: prefix + "-range", role: "group", "aria-label": props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4" },
-            h("input", {
-              type: "date",
-              className: prefix + "-date",
-              value: from,
-              max: to && (!props.today || to < props.today) ? to : props.today || void 0,
-              "aria-label": props.fromLabel || "\u8D77\u59CB\u65E5\u671F",
-              title: props.fromLabel || "\u8D77\u59CB\u65E5\u671F",
-              onChange: function(e) {
-                setDate("from", e.target.value, e.target);
-              }
-            }),
-            h("span", { className: prefix + "-dash", "aria-hidden": "true" }, "\u2013"),
-            h("input", {
-              type: "date",
-              className: prefix + "-date",
-              value: to,
-              min: from || void 0,
+            h(DP.RangePicker, {
+              React,
+              h,
+              prefix,
+              lang: props.lang,
+              label: props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4",
+              value: { from, to },
               max: props.today || void 0,
-              "aria-label": props.toLabel || "\u7EC8\u6B62\u65E5\u671F",
-              title: props.toLabel || "\u7EC8\u6B62\u65E5\u671F",
-              onChange: function(e) {
-                setDate("to", e.target.value, e.target);
+              clearable: false,
+              onChange: function(next) {
+                if (typeof props.onCustomChange !== "function") return;
+                props.onCustomChange({ from: next.from, to: next.to });
               }
             }),
             from || to ? h("button", {
@@ -954,11 +1636,12 @@ var require_charts = __commonJS({
       function Warnings(props) {
         var items = props.items || [];
         if (!items.length) return null;
-        return h("div", { className: prefix + "-warn", role: "status" }, items.map(function(w) {
+        return h("div", { className: prefix + "-warnbar", role: "status" }, items.map(function(w) {
           return w.message;
         }).join("\uFF1B"));
       }
       return {
+        Section,
         Card,
         Kpi,
         Donut,
@@ -1687,6 +2370,8 @@ var require_heatmap_styles = __commonJS({
   "packages/addons/tasks/client/stats/heatmap-styles.cjs"(exports2, module2) {
     module2.exports = [
       ".wbt-heatmap{",
+      // 作为统计页「活动与趋势」分区的一员时占满一行；脱离栅格容器时该声明无副作用。
+      "grid-column:span 12;",
       "--hm-gap:3px;",
       "--hm-hue-done:var(--wb-ok,#18a058);",
       "--hm-hue-publish:var(--wbt-accent,var(--wb-accent,#11a89b));",
@@ -1949,7 +2634,7 @@ var require_today = __commonJS({
       zh: { title: "\u4ECA\u65E5", published: "\u4ECA\u65E5\u53D1\u5E03", claimed: "\u4ECA\u65E5\u63A5\u53D6", done: "\u4ECA\u65E5\u5B8C\u6210", shutdown: "\u4ECA\u65E5\u5173\u95ED", average: "\u5E73\u5747\u96BE\u5EA6", sample: "\u6837\u672C\u6570", noSample: "\u65E0\u6837\u672C", clock: "\u4EE5\u670D\u52A1\u7AEF\u5F53\u524D\u65F6\u95F4\u4E3A\u51C6" },
       en: { title: "Today", published: "Published today", claimed: "Claimed today", done: "Completed today", shutdown: "Closed today", average: "Avg difficulty", sample: "samples", noSample: "No samples", clock: "Based on the server's current time" }
     };
-    var css = ".wbt-today{margin:12px 0}";
+    var css = ".wbt-today{margin:12px 0;grid-column:span 12}";
     function Today(props) {
       var data = props.today;
       if (!data || typeof data !== "object") return null;
@@ -2305,6 +2990,18 @@ var require_stats = __commonJS({
         range90: "\u8FD1 90 \u5929",
         range365: "\u8FD1 1 \u5E74",
         rangeAll: "\u5168\u90E8",
+        secToday: "\u4ECA\u65E5",
+        secTodayNote: "\u670D\u52A1\u7AEF\u5F53\u65E5\u5FEB\u7167\uFF0C\u4E0D\u968F\u4E0A\u65B9\u65F6\u95F4\u8303\u56F4\u53D8\u5316",
+        secHealth: "\u603B\u4F53\u5065\u5EB7\u5EA6",
+        secHealthNote: "\u5B58\u91CF\u53E3\u5F84\uFF1B\u300C\u8303\u56F4\u5185\u300D\u4E24\u9879\u8DDF\u968F\u65F6\u95F4\u8303\u56F4",
+        secActivity: "\u6D3B\u52A8\u4E0E\u8D8B\u52BF",
+        secActivityNote: "\u4E8B\u4EF6\u8D8B\u52BF\u8DDF\u968F\u65F6\u95F4\u8303\u56F4\uFF0C\u5E74\u5EA6\u6D3B\u52A8\u8986\u76D6\u6574\u5E74",
+        secDist: "\u5206\u5E03",
+        secDistNote: "\u5F53\u524D\u5B58\u91CF\u7ED3\u6784\uFF0C\u70B9\u67F1\u5F62\u53EF\u4E0B\u94BB\u5230\u8BB0\u5F55\u9875",
+        secRisk: "\u98CE\u9669",
+        secRiskNote: "\u5F53\u524D\u5B58\u91CF\uFF1B\u8D26\u9F84\u4E0E\u6E05\u5355\u540C\u4E00\u53E3\u5F84",
+        secRank: "\u6392\u884C",
+        secRankNote: "\u6309\u4EFB\u52A1\u8868 / \u4EFB\u52A1\u7EC4 / \u5DE5\u4F5C\u533A\u805A\u5408",
         refresh: "\u5237\u65B0",
         asOf: "\u622A\u81F3",
         retry: "\u91CD\u8BD5",
@@ -2328,8 +3025,6 @@ var require_stats = __commonJS({
         inRange: "\u8303\u56F4\u5185",
         ofTotal: "\u5360\u603B\u91CF",
         ofActive: "\u5360\u5DF2\u5F00\u542F",
-        trend: "\u65B0\u589E / \u5B8C\u6210 / \u5230\u671F\u8D8B\u52BF",
-        trendNote: "\u6309\u81EA\u7136\u65E5 / \u5468 / \u6708\u5206\u6876",
         eventTrend: "\u4E8B\u4EF6\u8D8B\u52BF",
         eventTrendNote: "\u4E0E\u5E74\u5EA6\u6D3B\u52A8\u540C\u53E3\u5F84\uFF1B\u6309\u65E5 / \u5468 / \u6708\u5206\u6876\uFF0C\u76EE\u6807\u6309\u8BA1\u5212\u5B8C\u6210\u65E5\u671F\u7EDF\u8BA1",
         publish: "\u53D1\u5E03",
@@ -2409,6 +3104,18 @@ var require_stats = __commonJS({
         range90: "90 days",
         range365: "1 year",
         rangeAll: "All",
+        secToday: "Today",
+        secTodayNote: "Server-side snapshot for today; the range above does not affect it",
+        secHealth: "Health",
+        secHealthNote: "Current stock; the two in-range figures follow the range above",
+        secActivity: "Activity & trend",
+        secActivityNote: "The event trend follows the range; annual activity covers the whole year",
+        secDist: "Distribution",
+        secDistNote: "Current stock; click a bar to list matching tasks",
+        secRisk: "Risk",
+        secRiskNote: "Current stock; aging and the overdue list share one scope",
+        secRank: "Rankings",
+        secRankNote: "Grouped by task table / group / workspace",
         refresh: "Refresh",
         asOf: "As of",
         retry: "Retry",
@@ -2432,8 +3139,6 @@ var require_stats = __commonJS({
         inRange: "In range",
         ofTotal: "of total",
         ofActive: "of active",
-        trend: "Created / done / due trend",
-        trendNote: "Bucketed by day / week / month",
         eventTrend: "Event trend",
         eventTrendNote: "Same scope as annual activity; bucketed by day / week / month, target by planned date",
         publish: "Published",
@@ -2672,57 +3377,68 @@ var require_stats = __commonJS({
         return { key, label: t["range" + (key === "all" ? "All" : key.replace("d", ""))] };
       });
       var children = [];
+      var totals = data ? data.totals || {} : {};
+      var rates = data ? data.rates || {} : {};
+      var b = data ? data.breakdowns || {} : {};
       if (!data && loading) children.push(h(ch.Skeleton, { key: "sk" }));
       if (!data && !loading && err) {
         children.push(h(ch.Card, { key: "err", span: 12 }, h(ch.Empty, { text: t.loadFail })));
       }
       if (data) {
-        var totals = data.totals || {};
-        var rates = data.rates || {};
-        var b = data.breakdowns || {};
         children.push(h(
-          "div",
-          { key: "kpi", className: "wbt-kpis" },
-          h(ch.Kpi, { label: t.total, value: totals.total, hint: t.current, lang }),
-          h(ch.Kpi, { label: t.active, value: totals.active, hint: t.ofTotal + " " + ch.pct(totals.total ? totals.active / totals.total : 0), lang }),
-          h(ch.Kpi, { label: t.overdue, value: totals.overdue, hint: t.ofActive + " " + ch.pct(rates.overdue), tone: totals.overdue > 0 ? "danger" : "", lang }),
-          h(ch.Kpi, { label: t.completion, value: ch.pct(rates.completion), hint: totals.done + " / " + totals.total, tone: "ok", lang }),
-          h(ch.Kpi, { label: t.dueToday, value: totals.dueToday, hint: t.current, tone: totals.dueToday > 0 ? "warn" : "", lang }),
-          h(ch.Kpi, { label: t.dueNext7, value: totals.dueNext7, hint: t.current, lang }),
-          h(ch.Kpi, { label: t.newInRange, value: totals.newInRange, hint: t.inRange, lang }),
-          h(ch.Kpi, { label: t.avgCycle, value: rates.avgCycleDays === null || rates.avgCycleDays === void 0 ? "\u2014" : rates.avgCycleDays, unit: t.days, hint: t.inRange, lang })
+          ch.Section,
+          { key: "today", title: t.secToday, note: t.secTodayNote },
+          data.today ? h(Today, { today: data.today, lang }) : null
         ));
-        if (totals.total === 0) {
-          children.push(h(ch.Card, { key: "empty", span: 12 }, h(ch.Empty, { text: t.noData })));
-        } else {
-          children.push(h(
+      }
+      if (data && totals.total === 0) {
+        children.push(h(ch.Card, { key: "empty", span: 12 }, h(ch.Empty, { text: t.noData })));
+      }
+      if (data && totals.total > 0) {
+        if (cfg["stats.showKpi"] !== false) {
+          children.push(h(ch.Section, { key: "health", title: t.secHealth, note: t.secHealthNote }, [
+            h(
+              "div",
+              { key: "kpiMain", className: "wbt-kpis wbt-kpis-main" },
+              h(ch.Kpi, { label: t.total, value: totals.total, hint: t.current, size: "lg", lang }),
+              h(ch.Kpi, { label: t.active, value: totals.active, hint: t.ofTotal + " " + ch.pct(totals.total ? totals.active / totals.total : 0), size: "lg", lang }),
+              h(ch.Kpi, { label: t.overdue, value: totals.overdue, hint: t.ofActive + " " + ch.pct(rates.overdue), tone: totals.overdue > 0 ? "danger" : "", size: "lg", lang }),
+              h(ch.Kpi, { label: t.completion, value: ch.pct(rates.completion), hint: totals.done + " / " + totals.total, tone: "ok", size: "lg", lang })
+            ),
+            h(
+              "div",
+              { key: "kpiSub", className: "wbt-kpis wbt-kpis-sub" },
+              h(ch.Kpi, { label: t.dueToday, value: totals.dueToday, hint: t.current, tone: totals.dueToday > 0 ? "warn" : "", size: "sm", lang }),
+              h(ch.Kpi, { label: t.dueNext7, value: totals.dueNext7, hint: t.current, size: "sm", lang }),
+              h(ch.Kpi, { label: t.newInRange, value: totals.newInRange, hint: t.inRange, size: "sm", lang }),
+              h(ch.Kpi, { label: t.avgCycle, value: rates.avgCycleDays === null || rates.avgCycleDays === void 0 ? "\u2014" : rates.avgCycleDays, unit: t.days, hint: t.inRange, size: "sm", lang })
+            )
+          ]));
+        }
+        var activity = [];
+        if (sectionOn("eventTrend")) {
+          activity.push(h(
             ch.Card,
             { key: "eventTrend", span: 12, title: t.eventTrend, note: t.eventTrendNote },
             h(ch.Trend, {
               data: data.eventTrend || [],
               lang,
+              // 顺序按用户要求：发布 → 目标 → 接取 → 关闭 → 完成；
+              // 颜色跟着含义走不跟着位置走（换序不换色），否则读者要重新认一遍颜色。
               series: [
                 { key: "publish", label: t.publish, color: ch.colors[0] },
                 { key: "target", label: t.target, color: ch.colors[5] },
-                { key: "done", label: t.done, color: ch.colors[1] },
+                { key: "claimed", label: t.evClaimed, color: ch.colors[2] },
                 { key: "shutdown", label: t.evShutdown, color: ch.colors[3] },
-                { key: "claimed", label: t.evClaimed, color: ch.colors[2] }
+                { key: "done", label: t.done, color: ch.colors[1] }
               ]
             })
           ));
-          children.push(h(
-            ch.Card,
-            { key: "trend", span: 8, title: t.trend, note: t.trendNote },
-            h(ch.Trend, {
-              data: data.trend || [],
-              lang,
-              series: [
-                { key: "created", label: t.created, color: ch.colors[0] },
-                { key: "done", label: t.done, color: ch.colors[1] },
-                { key: "due", label: t.due, color: ch.colors[2] }
-              ]
-            })
-          ));
+        }
+        activity.push(h(Heatmap, { key: "heatmap", api, lang, active: props.active, onNavigate: props.onNavigate }));
+        children.push(h(ch.Section, { key: "activity", title: t.secActivity, note: t.secActivityNote }, activity));
+        var dist = [];
+        if (sectionOn("status")) {
           var statusData = (b.status || []).filter(function(s) {
             return Object.prototype.hasOwnProperty.call(ch.statusColors, s.key);
           }).map(function(s) {
@@ -2731,7 +3447,7 @@ var require_stats = __commonJS({
           var statusTotal = statusData.reduce(function(sum, s) {
             return sum + Number(s.count || 0);
           }, 0);
-          children.push(h(
+          dist.push(h(
             ch.Card,
             { key: "status", span: 4, title: t.status, note: t.statusNote },
             h(ch.Donut, {
@@ -2744,20 +3460,24 @@ var require_stats = __commonJS({
               }).join("; ")
             })
           ));
-          children.push(h(
+        }
+        if (sectionOn("priority")) {
+          dist.push(h(
             ch.Card,
-            { key: "priority", span: 6, title: t.priority, note: t.priorityNote },
+            { key: "priority", span: 4, title: t.priority, note: t.priorityNote },
             h(ch.Histogram, { data: visibleBins(b.priority), lang, color: ch.colors[0], onSelect: priorityPicker(props.onNavigate), selectHint: lang === "en" ? "click to list" : "\u70B9\u51FB\u67E5\u770B\u4EFB\u52A1" })
           ));
+        }
+        if (sectionOn("difficulty")) {
           var missingBin = (b.difficulty || []).find(function(bin) {
             return bin.key === "unset";
           });
           var dims = [["all", t.dimAll], ["done", t.dimDone], ["publish", t.dimPublish], ["claimed", t.dimClaimed], ["shutdown", t.dimShutdown]];
           var rangeBox = data.range || {};
           var diffNote = dimension === "all" ? t.difficultyNote : t.difficultyNoteRange.replace("{from}", String(rangeBox.from || "")).replace("{to}", String(rangeBox.to || ""));
-          children.push(h(
+          dist.push(h(
             ch.Card,
-            { key: "difficulty", span: 6, title: t.difficulty, note: diffNote },
+            { key: "difficulty", span: 4, title: t.difficulty, note: diffNote },
             h(
               "div",
               { className: "wbt-dims", role: "tablist", "aria-label": t.difficultyDimension },
@@ -2787,12 +3507,18 @@ var require_stats = __commonJS({
               } }, t.difficultyMissingLink) : null
             )
           ));
-          children.push(h(
+        }
+        children.push(h(ch.Section, { key: "distribution", title: t.secDist, note: t.secDistNote }, dist));
+        var risk = [];
+        if (sectionOn("aging")) {
+          risk.push(h(
             ch.Card,
             { key: "aging", span: 6, title: t.aging, note: t.agingNote },
             h(ch.Histogram, { data: data.aging || [], lang, color: ch.colors[2] })
           ));
-          children.push(h(
+        }
+        if (sectionOn("overdue")) {
+          risk.push(h(
             ch.Card,
             { key: "overdue", span: 6, title: t.overdueList, note: t.overdueNote },
             h(ch.DataTable, listProps(data, "overdue", lang, {
@@ -2806,7 +3532,11 @@ var require_stats = __commonJS({
               ]
             }))
           ));
-          children.push(h(
+        }
+        children.push(h(ch.Section, { key: "risk", title: t.secRisk, note: t.secRiskNote }, risk));
+        var rank = [];
+        if (sectionOn("tables")) {
+          rank.push(h(
             ch.Card,
             { key: "tables", span: 6, title: t.tables, note: t.tablesNote },
             h(ch.DataTable, {
@@ -2823,7 +3553,9 @@ var require_stats = __commonJS({
               ]
             })
           ));
-          children.push(h(
+        }
+        if (sectionOn("groups")) {
+          rank.push(h(
             ch.Card,
             { key: "groups", span: 6, title: t.groups, note: t.groupsNote },
             h(ch.DataTable, {
@@ -2840,14 +3572,16 @@ var require_stats = __commonJS({
               ]
             })
           ));
+        }
+        if (sectionOn("workspaces")) {
           var wsRows = (data.rankings && data.rankings.workspaces || []).slice();
           var noneRow = data.rankings && data.rankings.noWorkspace;
           if (noneRow && (wsRows.length || noneRow.total > 0)) {
             wsRows.push(Object.assign({}, noneRow, { title: t.noWorkspaceRow }));
           }
-          children.push(h(
+          rank.push(h(
             ch.Card,
-            { key: "workspaces", span: 6, title: t.workspaces, note: t.workspacesNote },
+            { key: "workspaces", span: 12, title: t.workspaces, note: t.workspacesNote },
             h(ch.DataTable, {
               rows: wsRows,
               lang,
@@ -2863,7 +3597,12 @@ var require_stats = __commonJS({
               ]
             })
           ));
+        }
+        children.push(h(ch.Section, { key: "rank", title: t.secRank, note: t.secRankNote }, rank));
+        if (sectionOn("timeline")) {
           children.push(h(TimelineSection, { key: "timeline", api, lang, active: props.active, ch }));
+        }
+        if (sectionOn("recent")) {
           var recentCols = recentColumns(t, lang, props.onNavigate);
           var recentTabs = [
             ["publish", t.recentTabPublish, "recentPublish", t.noRecentPublish],
@@ -2897,19 +3636,11 @@ var require_stats = __commonJS({
             h(ch.DataTable, listProps(data, recentTab[2], lang, { lang, empty: recentTab[3], columns: recentCols }))
           ));
         }
-        children.push(h(ch.Warnings, { key: "warn", items: data.warnings || [] }));
       }
-      children = children.filter(function(node) {
-        var k = node && node.key;
-        if (!k || k === "sk" || k === "err" || k === "warn" || k === "empty") return true;
-        if (k === "kpi") return cfg["stats.showKpi"] !== false;
-        return sectionOn(k);
-      });
+      if (data) children.push(h(ch.Warnings, { key: "warn", items: data.warnings || [] }));
       return h(
         "div",
         { className: "wbt-stats" },
-        h(Today, { today: data && data.today, lang }),
-        h(Heatmap, { api, lang, active: props.active, onNavigate: props.onNavigate }),
         h(ch.RangeSwitch, {
           options,
           value: customFrom || customTo ? null : range,
@@ -4061,8 +4792,21 @@ var require_action_schema_style = __commonJS({
         "." + P + " select:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
         "." + P + "-list{display:flex;flex-direction:column;gap:8px}",
         "." + P + "-card{border:1px solid var(--wb-border,#e3e5e9);border-radius:10px;padding:10px 12px;background:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));display:flex;flex-direction:column;gap:8px;min-width:0}",
-        "." + P + "-cardhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-        "." + P + "-cardhead code{font-weight:640}",
+        "." + P + "-cardhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px}",
+        "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
+        "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
+        "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
+        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
+        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
+        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
+        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
+        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
+        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
+        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
+        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
         "." + P + " mark." + P + "-hit{background:color-mix(in oklab,var(--dsw-alias-brand-primary,#4f6ef7) 22%,transparent);color:inherit;border-radius:2px;padding:0;font:inherit;box-decoration-break:clone;-webkit-box-decoration-break:clone}",
@@ -4114,6 +4858,15 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
+        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
+        agentSwitch: "agent \u53EF\u7528",
+        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
+        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
+        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
+        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
+        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -4159,6 +4912,15 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
+        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
+        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
+        agentSwitch: "Agent callable",
+        agentLocked: "UI only \xB7 security",
+        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
+        agentSaving: "Saving\u2026",
+        agentOnToast: "Agent calls allowed",
+        agentOffToast: "Agent calls blocked",
+        agentFail: "Failed to change the agent switch",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -4271,7 +5033,9 @@ var require_action_schema_view = __commonJS({
     }
     module2.exports = function createActionSchemaView(options) {
       var raw = String(options.domain || "");
-      var DOMAIN = raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var SOURCE = options.source === "actions.list" ? "actions.list" : "actionSchema";
+      var DOMAIN = SOURCE === "actions.list" ? raw : raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var LIST_DOMAIN = options.listDomain ? String(options.listDomain) : DOMAIN;
       var prefix = options.prefix;
       var P = prefix + "-as";
       var Icon2 = options.Icon || null;
@@ -4315,6 +5079,8 @@ var require_action_schema_view = __commonJS({
         var typePick = typeState[0], setTypePick = typeState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
+        var savingState = React.useState("");
+        var saving = savingState[0], setSaving = savingState[1];
         React.useEffect(function() {
           injectCss();
         }, []);
@@ -4323,9 +5089,10 @@ var require_action_schema_view = __commonJS({
           setLoading(true);
           setErr("");
           var pending;
-          var actionName = DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var actionName = SOURCE === "actions.list" ? "actions.list" : DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var callArgs = SOURCE === "actions.list" ? { detail: true, domain: LIST_DOMAIN } : void 0;
           if (api && typeof api.call === "function") {
-            pending = Promise.resolve(api.call(actionName)).then(function(r) {
+            pending = Promise.resolve(api.call(actionName, callArgs)).then(function(r) {
               if (r && r.ok === false) return r;
               return r && r.result || r;
             });
@@ -4364,6 +5131,39 @@ var require_action_schema_view = __commonJS({
           }
           plainCopy(text);
           done();
+        }
+        function setAgent(action, next) {
+          var name = action.name;
+          setSaving(name);
+          setToast("");
+          var fail = function(e) {
+            setSaving("");
+            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+          };
+          var done = function(r) {
+            setSaving("");
+            var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
+            if (r && r.ok === false) {
+              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              return;
+            }
+            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            setSnap(function(prev) {
+              if (!prev || !Array.isArray(prev.actions)) return prev;
+              return Object.assign({}, prev, {
+                actions: prev.actions.map(function(a) {
+                  if (!a || a.name !== name) return a;
+                  return Object.assign({}, a, { agentEnabled: value });
+                })
+              });
+            });
+            setToast(value ? t.agentOnToast : t.agentOffToast);
+          };
+          if (!api || typeof api.call !== "function") {
+            fail(new Error("no call api"));
+            return;
+          }
+          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -4413,6 +5213,35 @@ var require_action_schema_view = __commonJS({
             h("td", null, Highlight.hit(row.description, kw))
           );
         }
+        function agentSwitch(action) {
+          if (action.agentLocked === true) {
+            return h("span", {
+              className: P + "-badge " + P + "-locked",
+              title: t.agentLockedHint,
+              "data-agent-locked": action.name
+            }, t.agentLocked);
+          }
+          if (typeof action.agentEnabled !== "boolean") return null;
+          var busy = saving === action.name;
+          return h(
+            "button",
+            {
+              className: P + "-toggle",
+              "data-agent-row": action.name,
+              type: "button",
+              role: "switch",
+              "aria-checked": action.agentEnabled,
+              disabled: busy,
+              "data-agent-toggle": action.name,
+              "aria-label": t.agentSwitch + " \xB7 " + action.name,
+              onClick: function() {
+                setAgent(action, !action.agentEnabled);
+              }
+            },
+            h("span", { className: P + "-track", "aria-hidden": true }),
+            h("span", null, busy ? t.agentSaving : t.agentSwitch)
+          );
+        }
         function card(action) {
           var rows = paramRows(action);
           var examples = Array.isArray(action.examples) ? action.examples : [];
@@ -4422,12 +5251,16 @@ var require_action_schema_view = __commonJS({
             h(
               "div",
               { className: P + "-cardhead" },
-              h("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
-              h("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
-              rows.some(function(row) {
-                return row.required;
-              }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              h(
+                "div",
+                { className: P + "-cardmeta" },
+                h("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
+                h("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
+                rows.some(function(row) {
+                  return row.required;
+                }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              ),
+              agentSwitch(action)
             ),
             action.description ? h("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h(
@@ -4504,6 +5337,7 @@ var require_action_schema_view = __commonJS({
             h("span", { className: P + "-badge" }, t.count(visible.length, all.length)),
             h("span", { className: P + "-none" }, t.hint)
           ),
+          h("p", { className: P + "-hintline" }, SOURCE === "actions.list" ? t.hostHint : t.switchHint),
           snap ? h(
             "div",
             { className: P + "-toolbar" },
@@ -7126,6 +7960,10 @@ var require_filter_checklist_styles = __commonJS({
       ".wbck-opt:hover{background:color-mix(in srgb, currentColor 7%, transparent)}",
       ".wbck-opt.is-on{background:color-mix(in srgb, var(--wb-accent) 10%, transparent)}",
       ".wbck-opt input{margin:0;flex:none;accent-color:var(--wb-accent)}",
+      // 单选变体用 button 渲染（role="radio"），这里把浏览器默认按钮样式清掉，视觉与多选行一致。
+      '.wbck-opt[role="radio"]{appearance:none;width:100%;box-sizing:border-box;border:0;background:transparent;color:inherit;font:inherit;text-align:left}',
+      '.wbck-opt[role="radio"]:disabled{opacity:.55;cursor:not-allowed}',
+      '.wbck-opt[role="radio"]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:-2px}',
       ".wbck-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
       ".wbck-meta{margin-left:auto;flex:none;font-size:11.5px;color:var(--wb-muted)}",
       ".wbck-note{font-size:12px;color:var(--wb-muted);padding:8px 6px}",
@@ -7155,7 +7993,6 @@ var require_styles = __commonJS({
       ".wbt-grow{flex:1;min-width:0}",
       ".wbt-btn{border:1px solid var(--wbt-line);background:var(--wbt-surface);color:inherit;border-radius:var(--wb-radius-sm);padding:6px 11px;font-size:12.5px;cursor:pointer;white-space:nowrap;line-height:1.3;display:inline-flex;align-items:center;gap:5px}",
       ".wbt-svg{display:block;flex:none}",
-      ".wbt-publication-filter{min-width:0;max-width:100%}",
       ".wbt-btn:hover{border-color:var(--wbt-accent)}",
       ".wbt-btn.primary{background:var(--wbt-accent);border-color:var(--wbt-accent);color:var(--dsw-alias-label-primary-inverted,#fff);font-weight:600}",
       ".wbt-btn.ghost{background:transparent}",
@@ -7172,7 +8009,6 @@ var require_styles = __commonJS({
       ".wbt-limit-row{display:flex;flex-direction:column;gap:4px;min-width:0}.wbt-limit-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0}.wbt-limit-hint{margin:0;font-size:11.5px;line-height:1.6;opacity:.65;overflow-wrap:anywhere}.wbt-limit-head>strong{font-weight:560;font-size:12.5px;flex:none}.wbt-limit-fields{display:flex;align-items:center;gap:4px;min-width:0}.wbt-limit-fields input{flex:1 1 0;width:0;min-width:0;box-sizing:border-box;text-align:center;padding-left:6px;padding-right:6px}.wbt-limit-fields .wbt-limit-input{background-color:var(--wbt-surface);border:1px solid var(--wbt-line);border-radius:8px;padding:6px 4px;font-size:13px;color:inherit;font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield}.wbt-limit-fields .wbt-limit-input:focus{border-color:var(--wbt-accent);outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--wbt-accent) 18%,transparent)}.wbt-limit-fields .wbt-limit-input::-webkit-outer-spin-button,.wbt-limit-fields .wbt-limit-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.wbt-limit-fields>span{flex:none;opacity:.55;font-size:11.5px}.wbt-limit-clear{flex:none;padding:2px 6px;line-height:1.2}.wbt-limit-unit{font-size:11px;opacity:.55;overflow-wrap:anywhere;min-width:0}",
       ".wbt-presets{gap:6px}.wbt-preset-list{display:flex;flex-wrap:wrap;gap:6px}.wbt-preset{padding:4px 9px;border:1px solid var(--wbt-line);border-radius:999px;background:var(--wbt-surface);color:inherit;font-size:12px;line-height:1.5;white-space:normal}.wbt-preset:hover{border-color:var(--wbt-accent)}.wbt-preset.active{background:var(--wbt-accent);border-color:var(--wbt-accent);color:#fff}.wbt-preset:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:2px}.wbt-target-group{gap:8px}",
       ".wbt-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px}.wbt-status-grid .wbt-check{min-width:0;overflow-wrap:anywhere}.wbt-pathrow>.wbt-sum{flex:none;white-space:nowrap}",
-      ".wbt-publication-filter{width:100%}.wbt-range-entry{display:flex;gap:4px;align-items:center}.wbt-range-trigger{width:100%;min-width:0;text-align:left;white-space:normal}.wbt-range-trigger span{min-width:0;overflow-wrap:anywhere}.wbt-range-calendar{margin-top:8px;padding:6px;border:1px solid var(--wbt-line);border-radius:8px;background:var(--wbt-bg)}.wbt-range-month{display:flex;gap:4px;align-items:center;margin-bottom:8px}.wbt-range-month input{width:100%;min-width:0;padding:4px;border:1px solid var(--wbt-line);border-radius:4px;background:var(--wbt-bg);color:inherit}.wbt-range-month .wbt-btn{padding:4px 7px}.wbt-range-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin:8px 0}.wbt-range-weekday{text-align:center;font-size:11px;opacity:.7}.wbt-range-day{min-width:0;padding:6px 0;border:0;border-radius:4px;background:transparent;color:inherit;font:inherit;cursor:pointer}.wbt-range-day.between{background:color-mix(in srgb,var(--wbt-accent) 18%,transparent)}.wbt-range-day:hover{box-shadow:inset 0 0 0 1px var(--wbt-accent)}.wbt-range-day.selected{background:var(--wbt-accent);color:#fff}.wbt-range-day:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:1px}.wbt-range-actions{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}",
       ".wbt-nav{display:flex;flex-direction:column;gap:2px;flex:0 0 138px;width:138px;padding:3px 0;border-right:1px solid var(--wbt-line)}",
       ".wbt-content{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;border:1px solid var(--wbt-line);border-radius:10px;background:var(--wbt-surface);overflow:hidden}.wbt-list-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px;scrollbar-gutter:stable}.wbt-content>.wbt-pager{flex:none;margin:0;padding:8px 10px;border-top:1px solid var(--wbt-line)}",
       ".wbt-nav-sep{height:1px;background:var(--wbt-line);margin:5px 9px;opacity:.7}",
@@ -7340,6 +8176,15 @@ var require_styles = __commonJS({
       ".wbt-field.full{grid-column:1 / -1}",
       ".wbt-field>span{opacity:.62;font-size:11.5px}",
       ".wbt-modal-foot{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:2px}",
+      // 预览面板：只让内容区滚动，头部标题与右上角 × 固定不动（滚动壳限定在 .wbt-preview，不影响其它弹窗）。
+      ".wbt-preview{overflow:hidden}",
+      ".wbt-preview-head{flex:none}",
+      ".wbt-preview-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:2px;scrollbar-width:thin;scrollbar-color:color-mix(in oklab,var(--wbt-line) 85%,transparent) transparent}",
+      ".wbt-preview-body::-webkit-scrollbar{width:10px;height:10px}",
+      ".wbt-preview-body::-webkit-scrollbar-track{background:transparent}",
+      ".wbt-preview-body::-webkit-scrollbar-thumb{background-color:color-mix(in oklab,var(--wbt-line) 78%,transparent);border-radius:999px;border:3px solid transparent;background-clip:content-box}",
+      ".wbt-preview-body::-webkit-scrollbar-thumb:hover{background-color:color-mix(in oklab,var(--wbt-line) 100%,transparent)}",
+      ".wbt-preview-body::-webkit-scrollbar-corner{background:transparent}",
       ".wbt-timeline{display:flex;flex-direction:column;gap:0;margin:2px 0}",
       ".wbt-tl-item{display:flex;gap:9px;min-height:40px}",
       ".wbt-tl-rail{width:12px;display:flex;flex-direction:column;align-items:center;flex:none}",
@@ -7389,7 +8234,7 @@ var require_styles = __commonJS({
       "@media (max-width:760px){.wbt-body{flex-direction:column;gap:8px}.wbt-nav{flex-direction:row;width:100%;flex:0 0 auto;overflow-x:auto;border-right:none;border-bottom:1px solid var(--wbt-line);padding:0 0 6px}.wbt-tab{width:auto;white-space:nowrap;padding:6px 9px}.wbt-tab.on{box-shadow:inset 0 -2px 0 var(--wbt-accent)}.wbt-nav-sep{width:1px;height:18px;flex:none;margin:auto 4px}.wbt-tree-slot{flex:0 0 auto;width:auto;margin-right:0}.wbt-pathrow .wbt-search{flex:1 1 160px;max-width:none}}",
       "@media (max-width:760px){.wbt-filter-panel{width:100%;flex:0 0 auto;padding:8px;max-height:40%}.wbt-filter-toggle{display:inline-flex}.wbt-filter-panel:not(.expanded) .wbt-filter-content{display:none}.wbt-filter-panel.expanded .wbt-filter-content{padding-top:10px}.wbt-content{width:100%;box-sizing:border-box}}",
       "@media (max-width:640px){.wbt-form{grid-template-columns:1fr}.wbt-drawer{width:94vw}.wbt-search{width:100%}.wbt-item{padding:9px}.wbt-ops{width:100%;justify-content:flex-end}}"
-    ].concat(require_filter_checklist_styles()).join("\n");
+    ].concat(require_filter_checklist_styles(), require_date_picker_styles()("wbt")).join("\n");
   }
 });
 
@@ -7581,6 +8426,7 @@ var require_timeline_copy = __commonJS({
       "\u5C55\u5F00\u63CF\u8FF0": "Expand description",
       "\u6536\u8D77\u63CF\u8FF0": "Collapse description",
       "\u6309\u53D1\u5E03\u65F6\u95F4\u6B63\u5E8F\u6392\u5217": "Oldest publication first",
+      "\u6309\u53D1\u5E03\u65F6\u95F4\u6B63\u5E8F\u6392\u5217\uFF0C\u70B9\u51FB\u4EFB\u52A1\u6253\u5F00\u9884\u89C8": "Oldest publication first. Click a task to open a preview.",
       "\u65B0\u5EFA\u65F6\u95F4\u7EBF\u6216\u9009\u62E9\u5DF2\u6709\u65F6\u95F4\u7EBF\uFF0C\u5C06\u76F8\u5173\u4EFB\u52A1\u96C6\u4E2D\u67E5\u770B\u3002": "Create or choose a timeline to view related tasks together.",
       "\u5176\u4ED6\u65F6\u95F4\u7EBF": "Other timelines",
       "\u8BF7\u9009\u62E9\u5DF2\u6709\u65F6\u95F4\u7EBF\uFF1B\u65E0\u5339\u914D\u65F6\u53EF\u65B0\u5EFA": "Choose a timeline, or create one if there is no match",
@@ -8375,6 +9221,7 @@ var require_create_modal = __commonJS({
       var WorkspaceSelect = require_workspace_select()(React).WorkspaceSelect;
       var difficultyField = require_difficulty_field()(React);
       var ownership = require_ownership(), fields = require_ownership_fields()(React);
+      var DP = require_date_picker();
       var allTables = deps.allTables, tagNames = deps.tagNames, splitTags = deps.splitTags;
       var today = deps.today, addDays = deps.addDays, hostHasAddon = deps.hostHasAddon;
       function CreateModal(props) {
@@ -8566,20 +9413,20 @@ var require_create_modal = __commonJS({
                 set("priority", e.target.value);
               } })),
               fields({ form, set, setMany, tree: props.tree, recommended: props.defaultTableId || origin && origin.tableId }),
-              h("label", { className: "wbt-field" }, h("span", null, t.publishDate), h("input", { className: "wbt-input", type: "date", value: form.publishDate, onChange: function(e) {
-                set("publishDate", e.target.value);
+              h("label", { className: "wbt-field" }, h("span", null, t.publishDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.publishDate, value: form.publishDate, onChange: function(next) {
+                set("publishDate", next);
               } })),
-              h("label", { className: "wbt-field" }, h("span", null, t.targetDate), h("input", { className: "wbt-input", type: "date", value: form.targetDate, onChange: function(e) {
-                set("targetDate", e.target.value);
+              h("label", { className: "wbt-field" }, h("span", null, t.targetDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.targetDate, value: form.targetDate, onChange: function(next) {
+                set("targetDate", next);
               } })),
-              source !== "2" && form.status === "2" ? h("label", { className: "wbt-field" }, h("span", null, t.doneDate), h("input", { className: "wbt-input", type: "date", value: form.doneDate, onChange: function(e) {
-                set("doneDate", e.target.value);
+              source !== "2" && form.status === "2" ? h("label", { className: "wbt-field" }, h("span", null, t.doneDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.doneDate, value: form.doneDate, onChange: function(next) {
+                set("doneDate", next);
               } })) : null,
               difficultyField(t, form.difficulty, function(value) {
                 set("difficulty", value);
               }, "wbt-create-difficulty"),
-              source !== "2" && form.status === "1" ? h("label", { className: "wbt-field" }, h("span", null, t.shutdownDate), h("input", { className: "wbt-input", type: "date", value: form.shutdownDate, onChange: function(e) {
-                set("shutdownDate", e.target.value);
+              source !== "2" && form.status === "1" ? h("label", { className: "wbt-field" }, h("span", null, t.shutdownDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.shutdownDate, value: form.shutdownDate, onChange: function(next) {
+                set("shutdownDate", next);
               } })) : null
             ),
             priorityError ? h("div", { id: "wbt-create-priority-error", className: "wbt-err", role: "alert" }, priorityError) : null,
@@ -8747,6 +9594,11 @@ var require_task_timeline_modal = __commonJS({
             cancelled = true;
           };
         }, [p.api, p.task.id, revision]);
+        React.useEffect(function() {
+          if (p.refreshKey) setRevision(function(n) {
+            return n + 1;
+          });
+        }, [p.refreshKey]);
         function change(action, args) {
           if (busy || pending.current) return;
           pending.current = true;
@@ -8846,7 +9698,7 @@ var require_task_timeline_modal = __commonJS({
           h(
             "div",
             { className: "wbt-timeline-pager" },
-            h("span", null, tr("\u6309\u53D1\u5E03\u65F6\u95F4\u6B63\u5E8F\u6392\u5217")),
+            h("span", null, tr("\u6309\u53D1\u5E03\u65F6\u95F4\u6B63\u5E8F\u6392\u5217\uFF0C\u70B9\u51FB\u4EFB\u52A1\u6253\u5F00\u9884\u89C8")),
             h("button", { type: "button", className: "wbt-btn", disabled: busy || page <= 1, onClick: function() {
               setPage(page - 1);
             } }, tr("\u4E0A\u4E00\u9875")),
@@ -8918,6 +9770,7 @@ var require_edit_modal = __commonJS({
       var difficultyField = require_difficulty_field()(React);
       var WorkspaceSelect = require_workspace_select()(React).WorkspaceSelect;
       var ownership = require_ownership(), fields = require_ownership_fields()(React);
+      var DP = require_date_picker();
       function EditModal(props) {
         var t = props.t;
         var task = props.task;
@@ -9062,8 +9915,8 @@ var require_edit_modal = __commonJS({
               "label",
               { className: "wbt-field" },
               h("span", null, t.targetDate),
-              h("input", { className: "wbt-input", type: "date", value: form.targetDate, onChange: function(e) {
-                set("targetDate", e.target.value);
+              h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.targetDate, value: form.targetDate, onChange: function(next) {
+                set("targetDate", next);
               } })
             ) : null,
             canPriority ? h(
@@ -9180,147 +10033,35 @@ var require_date_filter = __commonJS({
   "packages/addons/tasks/client/ui/date-filter.cjs"(exports2, module2) {
     var React = require("react");
     var h = React.createElement;
-    var Icon2 = require_icons().Icon;
-    function validDate(value) {
-      if (!value) return true;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-      var d = /* @__PURE__ */ new Date(value + "T00:00:00Z");
-      return isFinite(d.getTime()) && d.toISOString().slice(0, 10) === value && value.slice(0, 4) !== "0000";
-    }
-    function normalize(value) {
-      var from = value.from || "", to = value.to || "";
-      if (!validDate(from) || !validDate(to)) return null;
-      return from && to && from > to ? { from: to, to: from, swapped: true } : { from, to, swapped: false };
-    }
-    function today() {
-      var d = /* @__PURE__ */ new Date();
-      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    }
-    function shift(date, days) {
-      var d = /* @__PURE__ */ new Date(date + "T00:00:00Z");
-      d.setUTCDate(d.getUTCDate() + days);
-      return d.toISOString().slice(0, 10);
-    }
+    var DP = require_date_picker();
+    var NAMES = {
+      zh: { publish: "\u53D1\u5E03", done: "\u5B8C\u6210", shutdown: "\u5173\u95ED", target: "\u76EE\u6807" },
+      en: { publish: "Publication", done: "Completion", shutdown: "Closure", target: "Target" }
+    };
     function DateFilter(props) {
-      var en = props.lang === "en", value = props.value;
-      var names = en ? { publish: "Publication", done: "Completion", shutdown: "Closure", target: "Target" } : { publish: "\u53D1\u5E03", done: "\u5B8C\u6210", shutdown: "\u5173\u95ED", target: "\u76EE\u6807" };
-      var name = names[props.kind] || names.publish, title = name + (en ? " date range" : "\u65F6\u95F4\u8303\u56F4");
-      var openS = React.useState(false), open = openS[0], setOpen = openS[1];
-      var startS = React.useState(""), start = startS[0], setStart = startS[1];
-      var monthS = React.useState((value.from || value.to || today()).slice(0, 7)), month = monthS[0], setMonth = monthS[1];
-      var focusS = React.useState(""), focus = focusS[0], setFocus = focusS[1];
-      var root = React.useRef(null), trigger = React.useRef(null), id = React.useId();
-      React.useEffect(function() {
-        if (open && focus && root.current) {
-          var b = root.current.querySelector('[data-day="' + focus + '"]');
-          if (b) b.focus();
+      var en = props.lang === "en";
+      var names = en ? NAMES.en : NAMES.zh;
+      var name = names[props.kind] || names.publish;
+      return h(DP.RangePicker, {
+        React,
+        h,
+        prefix: "wbt",
+        lang: props.lang,
+        label: name + (en ? " date range" : "\u65F6\u95F4\u8303\u56F4"),
+        placeholder: en ? "Choose date range" : "\u9009\u62E9\u65E5\u671F\u8303\u56F4",
+        value: props.value || { from: "", to: "" },
+        onChange: function(next) {
+          props.onChange({ from: next.from, to: next.to });
         }
-      }, [open, focus, month]);
-      function close() {
-        setOpen(false);
-        setStart("");
-        if (trigger.current) trigger.current.focus();
-      }
-      function apply(next) {
-        var result = normalize(next);
-        if (result) {
-          props.onChange(result);
-          close();
-        }
-      }
-      function pick(day2) {
-        if (!start) setStart(day2);
-        else apply({ from: start, to: day2 });
-      }
-      function moveMonth(delta) {
-        var d = /* @__PURE__ */ new Date(month + "-01T00:00:00Z");
-        d.setUTCMonth(d.getUTCMonth() + delta);
-        var next = d.toISOString().slice(0, 7);
-        if (/^\d{4}-\d{2}$/.test(next) && next.slice(0, 4) !== "0000") setMonth(next);
-      }
-      function keyDay(e, day2) {
-        var delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
-        if (delta) {
-          e.preventDefault();
-          var next = shift(day2, delta);
-          if (validDate(next)) {
-            setMonth(next.slice(0, 7));
-            setFocus(next);
-          }
-        }
-      }
-      var first = month + "-01", offset = (/* @__PURE__ */ new Date(first + "T00:00:00Z")).getUTCDay();
-      var count = new Date(Number(month.slice(0, 4)), Number(month.slice(5)), 0).getDate(), cells = [];
-      for (var i = 0; i < offset; i++) cells.push(h("span", { key: "empty" + i, "aria-hidden": true }));
-      for (var n = 1; n <= count; n++) {
-        var day = month + "-" + String(n).padStart(2, "0"), endpoint = start ? day === start : day === value.from || day === value.to;
-        var inside = !start && value.from && value.to && day > value.from && day < value.to;
-        cells.push(h("button", {
-          key: day,
-          type: "button",
-          "data-day": day,
-          "aria-label": day,
-          "aria-pressed": !!endpoint,
-          "aria-current": day === today() ? "date" : void 0,
-          className: "wbt-range-day" + (endpoint ? " selected" : "") + (inside ? " between" : ""),
-          onClick: pick.bind(null, day),
-          onKeyDown: function(d, e) {
-            keyDay(e, d);
-          }.bind(null, day)
-        }, n));
-      }
-      var summary = value.from && value.to ? value.from + " \u2014 " + value.to : value.from ? value.from + (en ? " onward" : " \u8D77") : value.to ? (en ? "Until " : "\u622A\u81F3 ") + value.to : en ? "Choose date range" : "\u9009\u62E9\u65E5\u671F\u8303\u56F4";
-      return h(
-        "div",
-        { className: "wbt-publication-filter", ref: root, onKeyDown: function(e) {
-          if (e.key === "Escape" && open) {
-            e.stopPropagation();
-            close();
-          }
-        } },
-        h(
-          "div",
-          { className: "wbt-range-entry" },
-          h("button", { ref: trigger, type: "button", className: "wbt-btn wbt-range-trigger", "aria-label": title + ": " + summary, "aria-expanded": open, "aria-controls": id, onClick: function() {
-            setStart("");
-            setFocus("");
-            setMonth((value.from || value.to || today()).slice(0, 7));
-            setOpen(!open);
-          } }, h(Icon2, { name: "calendar" }), h("span", null, summary)),
-          value.from || value.to ? h("button", { type: "button", className: "wbt-date-clear", "aria-label": en ? "Clear time range" : "\u6E05\u9664\u65F6\u95F4\u8303\u56F4", onClick: function() {
-            apply({ from: "", to: "" });
-          } }, "\xD7") : null
-        ),
-        open ? h(
-          "div",
-          { id, className: "wbt-range-calendar", role: "group", "aria-label": title },
-          h(
-            "div",
-            { className: "wbt-range-month" },
-            h("button", { type: "button", className: "wbt-btn ghost", "aria-label": en ? "Previous month" : "\u4E0A\u4E2A\u6708", onClick: function() {
-              moveMonth(-1);
-            } }, "\u2039"),
-            h("input", { type: "month", value: month, min: "0001-01", max: "9999-12", "aria-label": en ? "Calendar month" : "\u65E5\u5386\u6708\u4EFD", onChange: function(e) {
-              if (validDate(e.target.value + "-01")) setMonth(e.target.value);
-            } }),
-            h("button", { type: "button", className: "wbt-btn ghost", "aria-label": en ? "Next month" : "\u4E0B\u4E2A\u6708", onClick: function() {
-              moveMonth(1);
-            } }, "\u203A")
-          ),
-          h("p", { className: "wbt-mhint", role: "status" }, start ? (en ? "Start: " : "\u8D77\u59CB\uFF1A") + start + (en ? " \xB7 Choose end date" : " \xB7 \u8BF7\u9009\u62E9\u7ED3\u675F\u65E5\u671F") : en ? "Choose start, then end date" : "\u5148\u9009\u5F00\u59CB\u65E5\u671F\uFF0C\u518D\u9009\u7ED3\u675F\u65E5\u671F"),
-          h("div", { className: "wbt-range-grid" }, (en ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] : ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"]).map(function(x) {
-            return h("span", { key: x, className: "wbt-range-weekday", "aria-hidden": true }, x);
-          }), cells),
-          start ? h("div", { className: "wbt-range-actions" }, h("button", { type: "button", className: "wbt-btn ghost", onClick: function() {
-            apply({ from: start, to: "" });
-          } }, en ? "From this date" : "\u4EC5\u8D77\u59CB\u65E5\u671F"), h("button", { type: "button", className: "wbt-btn ghost", onClick: function() {
-            apply({ from: "", to: start });
-          } }, en ? "Until this date" : "\u4EC5\u622A\u6B62\u65E5\u671F")) : null,
-          h("button", { type: "button", className: "wbt-btn ghost", onClick: close }, en ? "Cancel" : "\u53D6\u6D88")
-        ) : null
-      );
+      });
     }
-    module2.exports = { DateFilter, normalize, validDate, today, shift };
+    module2.exports = {
+      DateFilter,
+      normalize: DP.normalizeRange,
+      validDate: DP.validDate,
+      today: DP.todayISO,
+      shift: DP.shiftDate
+    };
   }
 });
 
@@ -9839,12 +10580,82 @@ var require_selection_bar = __commonJS({
   }
 });
 
+// packages/addons/tasks/client/modals/task-preview.cjs
+var require_task_preview = __commonJS({
+  "packages/addons/tasks/client/modals/task-preview.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function createTaskPreview(React, TaskItem) {
+      var h = React.createElement;
+      function TaskPreview(props) {
+        var t = props.t, task = props.task;
+        var titleId = "wbt-preview-title";
+        function onKey(e) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            props.onClose();
+            return;
+          }
+          if (e.key !== "Tab") return;
+          var mask = e.currentTarget;
+          var box = mask && mask.querySelector ? mask.querySelector('[role="dialog"]') : null;
+          if (!box) return;
+          var nodes = Array.from(box.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]')).filter(function(node) {
+            return node.getClientRects().length > 0;
+          });
+          var first = nodes[0], last = nodes[nodes.length - 1];
+          if (!first) {
+            e.preventDefault();
+            if (box.focus) box.focus();
+          } else if (e.shiftKey && (document.activeElement === first || document.activeElement === box)) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+        return h(
+          "div",
+          {
+            className: "wbt-modal-mask",
+            onKeyDownCapture: onKey,
+            onMouseDown: function(e) {
+              if (e.target === e.currentTarget) props.onClose();
+            }
+          },
+          h(
+            "div",
+            {
+              tabIndex: -1,
+              className: "wbt-modal wide wbt-preview",
+              role: "dialog",
+              "aria-modal": "true",
+              "aria-labelledby": titleId,
+              "aria-label": t.previewLabel
+            },
+            h(
+              "div",
+              { className: "wbt-modal-head wbt-preview-head" },
+              h("h3", { id: titleId }, String(task.title || "").trim() || t.previewUntitled),
+              h("button", { type: "button", className: "wbt-icon", title: t.close, "aria-label": t.close, autoFocus: true, onClick: props.onClose }, "\xD7")
+            ),
+            h("div", { className: "wbt-preview-body" }, h(TaskItem, props.cardProps))
+          )
+        );
+      }
+      return TaskPreview;
+    };
+  }
+});
+
 // packages/addons/tasks/client/views/tasks-view.cjs
 var require_tasks_view = __commonJS({
   "packages/addons/tasks/client/views/tasks-view.cjs"(exports2, module2) {
     module2.exports = function createTasksView(deps) {
       var React = deps.React, configView = deps.configView, CFG_FALLBACK = deps.CFG_FALLBACK, COPY = deps.COPY, injectCss = deps.injectCss, allTables = deps.allTables, findFirstTable = deps.findFirstTable, treeWalk = deps.treeWalk, treeFlat = deps.treeFlat, cx = deps.cx, Icon2 = deps.Icon, TaskItem = deps.TaskItem, PathCrumbs = deps.PathCrumbs, TagFilter = deps.TagFilter, TreeNode = deps.TreeNode, CreateModal = deps.CreateModal, TimelineModal = deps.TimelineModal, NodeModal = deps.NodeModal, EditModal = deps.EditModal, DoneModal = deps.DoneModal, BatchModal = deps.BatchModal;
       var h = React.createElement, filters = require_task_filter_model(), renderFilters = require_task_filter_panel(), claimBatch = require_claim_batch(), renderSelectionBar = require_selection_bar();
+      var TaskPreview = require_task_preview()(React, TaskItem);
       function TasksView(props) {
         var lang = props.lang === "en" ? "en" : "zh";
         var cfg = configView.useConfig(props.api, CFG_FALLBACK);
@@ -9943,6 +10754,11 @@ var require_tasks_view = __commonJS({
         var doneTask = doneS[0], setDoneTask = doneS[1];
         var editTaskS = React.useState(null);
         var editTask = editTaskS[0], setEditTask = editTaskS[1];
+        var timelinePreviewS = React.useState(null);
+        var timelinePreview = timelinePreviewS[0], setTimelinePreview = timelinePreviewS[1];
+        var timelineTrigger = React.useRef(null);
+        var timelineReloadS = React.useState(0);
+        var timelineReload = timelineReloadS[0], setTimelineReload = timelineReloadS[1];
         var editS = React.useState(null);
         var edit = editS[0], setEdit = editS[1];
         var nodeModalS = React.useState(null);
@@ -10168,6 +10984,40 @@ var require_tasks_view = __commonJS({
             if (r && r.ok) {
               refreshList();
               refreshTagNav();
+              say(t.deleted);
+            } else say(r && r.error || "delete failed");
+          });
+        }
+        function openTimelinePreview(member, event) {
+          timelineTrigger.current = event && event.currentTarget || timelineTrigger.current;
+          api.call("tasks.get", { id: member.id }).then(function(r) {
+            if (r && r.ok && r.result && r.result.task) return r.result.task;
+            return member;
+          }).catch(function() {
+            return member;
+          }).then(function(task) {
+            if (task) setTimelinePreview(task);
+          });
+        }
+        function closeTimelinePreview() {
+          setTimelinePreview(null);
+          var trigger = timelineTrigger.current;
+          timelineTrigger.current = null;
+          if (trigger && trigger.isConnected) trigger.focus({ preventScroll: true });
+        }
+        function bumpTimeline() {
+          setTimelineReload(function(n) {
+            return n + 1;
+          });
+        }
+        function deletePreviewTask(task) {
+          if (cfgConfirm && !window.confirm(t.deleteTaskConfirm)) return;
+          api.call("tasks.delete", { id: task.id }).then(function(r) {
+            if (r && r.ok) {
+              closeTimelinePreview();
+              refreshList();
+              refreshTagNav();
+              bumpTimeline();
               say(t.deleted);
             } else say(r && r.error || "delete failed");
           });
@@ -10627,6 +11477,7 @@ var require_tasks_view = __commonJS({
               setCreateState(null);
               refreshList();
               refreshTree();
+              bumpTimeline();
               say(require_ownership().receipt(result));
             }
           }) : null,
@@ -10636,21 +11487,62 @@ var require_tasks_view = __commonJS({
             api,
             task: timelineTask,
             onChanged: refreshList,
+            refreshKey: timelineReload,
             onClose: function() {
               setTimelineTask(null);
+              setTimelinePreview(null);
             },
-            onOpen: function(member) {
-              api.call("tasks.get", { id: member.id }).then(function(r) {
-                if (!r || !r.ok) throw Error(r && r.error || t.fail);
-                setTimelineTask(null);
-                setEditTask(r.result.task);
-              }).catch(function(err) {
-                say(String(err.message || err));
-              });
-            },
+            // 成员行只开只读预览；预览里的「编辑」才进编辑面板。
+            onOpen: openTimelinePreview,
             onCreateTimeline: function(originTask) {
               setTimelineTask(null);
+              setTimelinePreview(null);
               setCreateState({ source: "1", originTask, defaultTableId: originTask.tableId });
+            }
+          }) : null,
+          timelineTask && timelinePreview ? h(TaskPreview, {
+            key: "preview-" + timelinePreview.id,
+            t,
+            task: timelinePreview,
+            onClose: closeTimelinePreview,
+            cardProps: {
+              task: timelinePreview,
+              t,
+              lang: props.lang,
+              keyword: "",
+              bodyMode: cfg["ui.bodyMode"],
+              update: function(task, patch) {
+                api.call("tasks.update", Object.assign({ id: task.id }, patch)).then(function(r) {
+                  if (!r || !r.ok) {
+                    say(r && r.error || "update failed");
+                    return;
+                  }
+                  return api.call("tasks.get", { id: task.id }).then(function(next) {
+                    if (next && next.ok && next.result && next.result.task) setTimelinePreview(next.result.task);
+                    refreshList();
+                    bumpTimeline();
+                  });
+                }).catch(function(e) {
+                  say(String(e && e.message || e));
+                });
+              },
+              onEdit: function(task) {
+                closeTimelinePreview();
+                setEditTask(task);
+              },
+              onDone: function(task) {
+                closeTimelinePreview();
+                setDoneTask(task);
+              },
+              onRestart: function(task) {
+                closeTimelinePreview();
+                setCreateState({ source: "2", originTask: task });
+              },
+              onTimeline: function(task) {
+                closeTimelinePreview();
+                setTimelineTask(task);
+              },
+              onDelete: deletePreviewTask
             }
           }) : null,
           nodeModal ? h(NodeModal, {
@@ -10678,6 +11570,7 @@ var require_tasks_view = __commonJS({
             onSaved: function(result) {
               setEditTask(null);
               refreshList();
+              bumpTimeline();
               say(require_ownership().receipt(result));
             }
           }) : null,
@@ -10692,6 +11585,7 @@ var require_tasks_view = __commonJS({
             onDone: function() {
               setDoneTask(null);
               refreshList();
+              bumpTimeline();
               say(t.doneSuccess);
             },
             onError: function(e) {
@@ -10859,59 +11753,6 @@ var require_timeline_merge = __commonJS({
           )
         ));
       };
-    };
-  }
-});
-
-// packages/addons/tasks/client/modals/task-preview.cjs
-var require_task_preview = __commonJS({
-  "packages/addons/tasks/client/modals/task-preview.cjs"(exports2, module2) {
-    "use strict";
-    module2.exports = function createTaskPreview(React, TaskItem) {
-      var h = React.createElement;
-      function TaskPreview(props) {
-        var t = props.t, task = props.task;
-        var titleId = "wbt-preview-title";
-        function onKey(e) {
-          if (e.key !== "Escape") return;
-          e.preventDefault();
-          e.stopPropagation();
-          props.onClose();
-        }
-        return h(
-          "div",
-          {
-            className: "wbt-modal-mask",
-            onKeyDownCapture: onKey,
-            onMouseDown: function(e) {
-              if (e.target === e.currentTarget) props.onClose();
-            }
-          },
-          h(
-            "div",
-            {
-              className: "wbt-modal wide wbt-preview",
-              role: "dialog",
-              "aria-modal": "true",
-              "aria-labelledby": titleId,
-              "aria-label": t.previewLabel
-            },
-            h(
-              "div",
-              { className: "wbt-modal-head" },
-              h("h3", { id: titleId }, String(task.title || "").trim() || t.previewUntitled),
-              h("button", { type: "button", className: "wbt-icon", title: t.close, "aria-label": t.close, onClick: props.onClose }, "\xD7")
-            ),
-            h("div", { className: "wbt-preview-body" }, h(TaskItem, props.cardProps)),
-            h(
-              "div",
-              { className: "wbt-modal-foot" },
-              h("button", { type: "button", className: "wbt-btn ghost", autoFocus: true, onClick: props.onClose }, t.close)
-            )
-          )
-        );
-      }
-      return TaskPreview;
     };
   }
 });
@@ -11106,6 +11947,13 @@ var require_timeline_view = __commonJS({
         function closeDetail() {
           setDetail(null);
           if (detailTrigger.current) detailTrigger.current.focus({ preventScroll: true });
+        }
+        function openPreview(member) {
+          api.call("tasks.get", { id: member.id }).then(function(r) {
+            setDetail(r && r.ok && r.result && r.result.task ? r.result.task : member);
+          }).catch(function() {
+            setDetail(member);
+          });
         }
         function say(message) {
           setToast(String(message || ""));
@@ -11329,33 +12177,6 @@ var require_timeline_view = __commonJS({
             setMulti(false);
             reload();
           } }) : null,
-          detail && !editTask ? h(TaskPreview, {
-            key: "preview-" + detail.id,
-            t,
-            task: detail,
-            onClose: closeDetail,
-            cardProps: {
-              task: detail,
-              t,
-              lang,
-              keyword: "",
-              bodyMode: cfg["ui.bodyMode"],
-              update: updateTask,
-              onEdit: function(task) {
-                setEditTask(task);
-              },
-              onDone: function(task) {
-                setDoneTask(task);
-              },
-              onRestart: function(task) {
-                setCreateState({ source: "2", originTask: task });
-              },
-              onTimeline: function(task) {
-                setTimelineTask(task);
-              },
-              onDelete: removeTask
-            }
-          }) : null,
           editTask ? h(deps.EditModal, {
             key: "edit-" + editTask.id,
             api,
@@ -11401,20 +12222,52 @@ var require_timeline_view = __commonJS({
             api,
             task: timelineTask,
             onChanged: reload,
+            refreshKey: refresh,
             onClose: function() {
               setTimelineTask(null);
+              setDetail(null);
             },
-            onOpen: function(member) {
-              api.call("tasks.get", { id: member.id }).then(result).then(function(r) {
-                setTimelineTask(null);
-                setEditTask(r.task);
-              }).catch(function(e) {
-                say(String(e && e.message || e));
-              });
+            // 弹窗里的成员行同样只开预览：弹窗保持挂载，页码与滚动不丢。
+            onOpen: function(member, e) {
+              detailTrigger.current = e && e.currentTarget;
+              openPreview(member);
             },
             onCreateTimeline: function(originTask) {
               setTimelineTask(null);
+              setDetail(null);
               setCreateState({ source: "1", originTask, defaultTableId: originTask.tableId });
+            }
+          }) : null,
+          // 预览渲染在时间线弹窗之后，叠在它上面：Esc 只关预览，弹窗与分页原样保留。
+          detail && !editTask ? h(TaskPreview, {
+            key: "preview-" + detail.id,
+            t,
+            task: detail,
+            onClose: closeDetail,
+            cardProps: {
+              task: detail,
+              t,
+              lang,
+              keyword: "",
+              bodyMode: cfg["ui.bodyMode"],
+              update: updateTask,
+              onEdit: function(task) {
+                closeDetail();
+                setEditTask(task);
+              },
+              onDone: function(task) {
+                closeDetail();
+                setDoneTask(task);
+              },
+              onRestart: function(task) {
+                closeDetail();
+                setCreateState({ source: "2", originTask: task });
+              },
+              onTimeline: function(task) {
+                closeDetail();
+                setTimelineTask(task);
+              },
+              onDelete: removeTask
             }
           }) : null,
           createState ? h(deps.CreateModal, {
@@ -11942,7 +12795,7 @@ var init_list_checks = __esm({
   var TimelineView = require_timeline_view()({ React, COPY, injectCss, statusInfo, configView, CFG_FALLBACK, TaskItem, EditModal, DoneModal, TimelineModal, CreateModal });
   host.registerAddon({
     id: "wb-addon-tasks",
-    version: "5.2.20",
+    version: "5.2.26",
     icon: (init_list_checks(), __toCommonJS(list_checks_exports)).default,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.TasksStatsView, keepAlive: true },

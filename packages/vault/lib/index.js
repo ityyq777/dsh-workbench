@@ -5,6 +5,7 @@
  * 0.3.1：凭据表单明文支持小眼睛临时显示；主口令/删除确认改用应用内弹层（桌面端不支持 window.prompt）。
  * 0.3.3：备注两栏合并为单个「备注」（meta.note）；新建分组改弹窗并可直接勾选集合。
  * 0.3.4：集合选择改用共享 filter-checklist（关键字搜索 + 滚动分页），任务/站点/储物标签筛选同步复用。
+ * 0.3.6：口令输入框统一用共享的明文切换控件（lib/secret-field.cjs），初始化页主/确认口令、解锁页与口令弹层都能点小眼睛看明文，各自独立切换。
  * 0.3.5：修复「保存凭据后列表不新增」——客户端 unwrap 对 ok:false 抛错、锁定态在凭据页提示并可内联解锁、写成功后无条件刷新列表。
  */
 import { ensureSchema, bindClock } from "./db/db.js";
@@ -30,7 +31,7 @@ export function createDomain(host) {
     id: "wb-addon-vault",
     title: "凭据保险箱",
     description: "集中保存密码、应用专用密码与 token；按分组授权给业务模块，加密落库、密文可同步。",
-    version: "0.3.5",
+    version: "0.3.7",
     tables: [
       "vault_header",
       "vault_device",
@@ -143,7 +144,7 @@ export function createDomain(host) {
       api.action("vault.actionSchema", {
         description: "只读：本域 action 清单与输入 schema（插件自证，不读宿主统一接口）。",
         input: { type: "object", properties: {}, additionalProperties: false },
-        execute: () => ({ shellVersion: api.shellVersion || "", domains: [{ id: "wb-addon-vault", version: (api.addon && api.addon.version) || "0.3.5" }], actions: schemas }),
+        execute: () => ({ shellVersion: api.shellVersion || "", domains: [{ id: "wb-addon-vault", version: (api.addon && api.addon.version) || "0.3.6" }], actions: schemas }),
       });
       void host;
     },

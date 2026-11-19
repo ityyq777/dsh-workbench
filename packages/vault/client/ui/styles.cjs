@@ -58,9 +58,4 @@ module.exports = [
   ".wbv-check-list{display:flex;flex-wrap:wrap;gap:6px 14px;margin:4px 0}",
   ".wbv-check{display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}",
   ".wbv-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}",
-  ".wbv-secret-field{position:relative;display:flex;align-items:center;min-width:0}",
-  ".wbv-secret-field input{flex:1 1 auto;min-width:0;padding-right:34px}",
-  ".wbv-eye{position:absolute;right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:6px;padding:4px;color:var(--wb-muted);cursor:pointer}",
-  ".wbv-eye:hover{color:var(--wb-accent);background:color-mix(in srgb, var(--wb-accent) 12%, transparent)}",
-  ".wbv-eye:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
-].concat(require("../../../lib/filter-checklist-styles.cjs"));
+].concat(require("../../../lib/filter-checklist-styles.cjs")).concat(require("../../../lib/client-base-styles.cjs").secretFieldStyles);

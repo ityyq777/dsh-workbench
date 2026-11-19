@@ -50,6 +50,40 @@ async function expect(read, ok, label) {
   return batch;
 }
 
+/**
+ * 只做「连得上 + 认证得过」的探测：走到 AUTH LOGIN 成功就 QUIT，不发信。
+ * 保存前的自检用它，避免为了验证凭据真的发一封邮件出去。
+ */
+export async function probeSmtp(account, password, timeout = 15000) {
+  let socket = await connect(account.host, account.port, !!account.secure, timeout);
+  let read = reader(socket);
+  const cmd = async (line, ok, label) => { socket.write(line + "\r\n"); return expect(read, ok, label); };
+  try {
+    await expect(read, [220], "SMTP 问候");
+    let ehlo = await cmd("EHLO dsh-workbench", [250], "EHLO");
+    if (!account.secure) {
+      const caps = (ehlo || []).join("\n").toUpperCase();
+      if (!caps.includes("STARTTLS")) throw new Error("服务器不支持 STARTTLS");
+      await cmd("STARTTLS", [220], "STARTTLS");
+      socket = tls.connect({ socket, servername: account.host });
+      read = reader(socket);
+      ehlo = await cmd("EHLO dsh-workbench", [250], "EHLO(TLS)");
+    }
+    const caps = (ehlo || []).join("\n").toUpperCase();
+    let auth = false;
+    if (caps.includes("AUTH") && account.user) {
+      await cmd("AUTH LOGIN", [334], "AUTH LOGIN");
+      await cmd(Buffer.from(account.user).toString("base64"), [334], "SMTP 用户名");
+      await cmd(Buffer.from(password || "").toString("base64"), [235], "SMTP 密码");
+      auth = true;
+    }
+    try { await cmd("QUIT", [221], "QUIT"); } catch { /* 忽略 */ }
+    return { ok: true, auth };
+  } finally {
+    socket.destroy();
+  }
+}
+
 export async function sendMail(account, password, msg) {
   let socket = await connect(account.host, account.port, !!account.secure);
   let read = reader(socket);

@@ -2,7 +2,11 @@
 /**
  * 主口令输入弹层。
  * 桌面端 webview 不支持 window.prompt（点了没反应），所有需要口令的操作统一走这里。
+ * 输入框用共享的明文切换控件（lib/secret-field.cjs），显示状态由调用方传入，
+ * 弹层本身不持有状态（测试会把它当纯函数直接调用）。
  */
+var SecretField = require("../../../lib/secret-field.cjs");
+
 module.exports = function AskPassphraseModal(props) {
   var h = props.h, C = props.C;
   return h("div", { className: "wbv-modal", onClick: function () { if (!props.busy) props.onCancel(); } },
@@ -10,13 +14,16 @@ module.exports = function AskPassphraseModal(props) {
       h("h3", null, props.title || "输入主口令"),
       props.hint ? h("p", { className: "wbv-sub" }, props.hint) : null,
       h(C.Field, { h: h, label: props.label || "主口令" },
-        h("input", {
-          type: "password",
+        h(SecretField, {
+          h: h,
           autoFocus: true,
           autoComplete: "current-password",
           value: props.value,
           disabled: props.busy,
-          onChange: function (e) { props.onChange(e.target.value); },
+          show: props.show,
+          ariaLabel: props.label || "主口令",
+          onChange: props.onChange,
+          onToggle: props.onToggle,
           onKeyDown: function (e) { if (e.key === "Enter" && props.value && !props.busy) props.onConfirm(); },
         })),
       props.error ? h(C.Notice, { h: h, kind: "error", text: props.error }) : null,

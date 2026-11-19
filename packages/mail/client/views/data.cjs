@@ -4,7 +4,7 @@ var legacy = require("../../../lib/legacy-data.cjs")("mail", { paged: false });
 
 module.exports = require("../../../lib/data-view.cjs")({
   domain: "mail",
-  prefix: "wbm",
+  prefix: "wbml",
   tables: ["mail_account", "mail_mailbox", "mail_message", "mail_attachment"],
   useConfig: function (api, fallback) { return { values: fallback, ready: true }; },
   tablesLoader: legacy.tablesLoader,

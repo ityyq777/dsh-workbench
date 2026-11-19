@@ -22,7 +22,6 @@ const GROUPS = [
 
 const SECTIONS = [
   { value: "eventTrend", zh: "事件趋势", en: "Event trend" },
-  { value: "trend", zh: "新增/完成/到期趋势", en: "Created / done / due trend" },
   { value: "status", zh: "状态构成", en: "Status breakdown" },
   { value: "priority", zh: "优先级分布", en: "Priority distribution" },
   { value: "difficulty", zh: "难度分布", en: "Difficulty distribution" },
@@ -144,7 +143,9 @@ const ITEMS = [
     hintZh: "统计页展示哪些区块；KPI 由下一项单独控制", hintEn: "Sections rendered on Stats; KPIs are controlled separately",
     values: SECTIONS,
     // 5.2.15 把三张最近清单卡并成一张「最近任务」：旧值里的三个 id 迁移到 recent，避免整项回退默认。
-    aliases: { recentPublish: "recent", recentDone: "recent", recentShutdown: "recent" },
+    // 5.2.21 删除与事件趋势重复的旧「新增/完成/到期趋势」卡：旧值 trend 迁到 eventTrend，
+    // 否则整项会被判成非法取值并回退默认，用户失去其它区块的开关。
+    aliases: { recentPublish: "recent", recentDone: "recent", recentShutdown: "recent", trend: "eventTrend" },
   },
   {
     id: "stats.recentPublishLimit", group: "stats", type: "int", surface: "ui", apply: "mount", default: 10, min: 1, max: 50,

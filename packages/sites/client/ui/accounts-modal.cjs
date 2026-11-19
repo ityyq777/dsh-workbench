@@ -13,6 +13,7 @@ module.exports = function createAccountsModal(deps) {
   var text = deps.text;
   var callApi = deps.callApi;
   var errText = deps.errText;
+  var SecretField = require("../../../lib/secret-field.cjs");
 
   function AccountModal(props) {
     var api = props.api;
@@ -31,6 +32,9 @@ module.exports = function createAccountsModal(deps) {
     var [pendingDelete, setPendingDelete] = useState("");
     var [shown, setShown] = useState({});
     var [binding, setBinding] = useState(null);
+    var [vaultPassShow, setVaultPassShow] = useState(false);
+    var [vaultPass2Show, setVaultPass2Show] = useState(false);
+    var [draftPassShow, setDraftPassShow] = useState(false);
 
     function mapVault(st) {
       var r = st || {};
@@ -177,8 +181,20 @@ module.exports = function createAccountsModal(deps) {
         return h("div", { className: "wbs-vaultbar" },
           h("div", { className: "wbs-vault-hint" }, text(lang, "vaultNotSet")),
           h("div", { className: "wbs-vault-form" },
-            h("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function (e) { setPass(e.target.value); } }),
-            h("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphraseAgain"), value: pass2, onChange: function (e) { setPass2(e.target.value); } }),
+            h(SecretField, {
+              h: h, inputClassName: "wbs-input", autoComplete: "new-password",
+              ariaLabel: text(lang, "passphrase"), placeholder: text(lang, "passphrase"),
+              showLabel: text(lang, "showPlain"), hideLabel: text(lang, "hidePlain"),
+              value: pass, show: vaultPassShow,
+              onChange: setPass, onToggle: function () { setVaultPassShow(!vaultPassShow); },
+            }),
+            h(SecretField, {
+              h: h, inputClassName: "wbs-input", autoComplete: "new-password",
+              ariaLabel: text(lang, "passphraseAgain"), placeholder: text(lang, "passphraseAgain"),
+              showLabel: text(lang, "showPlain"), hideLabel: text(lang, "hidePlain"),
+              value: pass2, show: vaultPass2Show,
+              onChange: setPass2, onToggle: function () { setVaultPass2Show(!vaultPass2Show); },
+            }),
             h("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultSetup")),
           ),
         );
@@ -187,7 +203,13 @@ module.exports = function createAccountsModal(deps) {
         return h("div", { className: "wbs-vaultbar locked" },
           h("div", { className: "wbs-vault-hint" }, text(lang, "vaultLocked")),
           h("div", { className: "wbs-vault-form" },
-            h("input", { className: "wbs-input", type: "password", placeholder: text(lang, "passphrase"), value: pass, onChange: function (e) { setPass(e.target.value); } }),
+            h(SecretField, {
+              h: h, inputClassName: "wbs-input", autoComplete: "current-password",
+              ariaLabel: text(lang, "passphrase"), placeholder: text(lang, "passphrase"),
+              showLabel: text(lang, "showPlain"), hideLabel: text(lang, "hidePlain"),
+              value: pass, show: vaultPassShow,
+              onChange: setPass, onToggle: function () { setVaultPassShow(!vaultPassShow); },
+            }),
             h("button", { className: "wbs-btn", disabled: busy, onClick: submitVault }, text(lang, "vaultUnlock")),
           ),
         );
@@ -207,13 +229,26 @@ module.exports = function createAccountsModal(deps) {
 
     function renderDraft() {
       var d = draft;
+      function setField(key, v) {
+        setDraft(function (prev) { var next = Object.assign({}, prev); next[key] = v; return next; });
+      }
       function field(key, label, type, ph) {
+        var input = type === "password"
+          ? h(SecretField, {
+              h: h, inputClassName: "wbs-input", autoComplete: "new-password",
+              ariaLabel: label, placeholder: ph || "",
+              showLabel: text(lang, "showPlain"), hideLabel: text(lang, "hidePlain"),
+              value: d[key] || "", show: draftPassShow,
+              onChange: function (v) { setField(key, v); },
+              onToggle: function () { setDraftPassShow(!draftPassShow); },
+            })
+          : h("input", {
+              className: "wbs-input", type: type || "text", placeholder: ph || "", value: d[key] || "",
+              onChange: function (e) { setField(key, e.target.value); },
+            });
         return h(React.Fragment, null,
           h("label", { className: "wbs-label" }, label),
-          h("input", {
-            className: "wbs-input", type: type || "text", placeholder: ph || "", value: d[key] || "",
-            onChange: function (e) { var v = e.target.value; setDraft(function (prev) { var next = Object.assign({}, prev); next[key] = v; return next; }); },
-          }),
+          input,
         );
       }
       return h("div", { className: "wbs-accdraft" },

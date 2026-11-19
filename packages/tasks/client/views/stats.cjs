@@ -14,6 +14,12 @@ var listState = require("../stats/list-state.cjs");
 var COPY = {
   zh: {
     title: "任务统计", range7: "近 7 天", range30: "近 30 天", range90: "近 90 天", range365: "近 1 年", rangeAll: "全部",
+    secToday: "今日", secTodayNote: "服务端当日快照，不随上方时间范围变化",
+    secHealth: "总体健康度", secHealthNote: "存量口径；「范围内」两项跟随时间范围",
+    secActivity: "活动与趋势", secActivityNote: "事件趋势跟随时间范围，年度活动覆盖整年",
+    secDist: "分布", secDistNote: "当前存量结构，点柱形可下钻到记录页",
+    secRisk: "风险", secRiskNote: "当前存量；账龄与清单同一口径",
+    secRank: "排行", secRankNote: "按任务表 / 任务组 / 工作区聚合",
     refresh: "刷新", asOf: "截至", retry: "重试", loadFail: "统计服务未就绪，请升级插件后重试",
     rangeFrom: "起始日期", rangeTo: "终止日期", rangeClear: "清除自定义范围",
     rangeCustom: "自定义日期范围", rangeIncomplete: "请选择完整的起始与终止日期",
@@ -21,7 +27,6 @@ var COPY = {
     total: "总任务", active: "已开启", overdue: "逾期", completion: "完成率",
     dueToday: "今日到期", dueNext7: "未来 7 天到期", newInRange: "范围内新增", avgCycle: "平均完成周期",
     days: "天", current: "当前", inRange: "范围内", ofTotal: "占总量", ofActive: "占已开启",
-    trend: "新增 / 完成 / 到期趋势", trendNote: "按自然日 / 周 / 月分桶",
     eventTrend: "事件趋势", eventTrendNote: "与年度活动同口径；按日 / 周 / 月分桶，目标按计划完成日期统计",
     publish: "发布", target: "目标", evShutdown: "关闭", evClaimed: "接取",
     created: "新增", done: "完成", due: "到期",
@@ -50,6 +55,12 @@ var COPY = {
   },
   en: {
     title: "Task stats", range7: "7 days", range30: "30 days", range90: "90 days", range365: "1 year", rangeAll: "All",
+    secToday: "Today", secTodayNote: "Server-side snapshot for today; the range above does not affect it",
+    secHealth: "Health", secHealthNote: "Current stock; the two in-range figures follow the range above",
+    secActivity: "Activity & trend", secActivityNote: "The event trend follows the range; annual activity covers the whole year",
+    secDist: "Distribution", secDistNote: "Current stock; click a bar to list matching tasks",
+    secRisk: "Risk", secRiskNote: "Current stock; aging and the overdue list share one scope",
+    secRank: "Rankings", secRankNote: "Grouped by task table / group / workspace",
     refresh: "Refresh", asOf: "As of", retry: "Retry", loadFail: "Stats service not ready. Upgrade the plugin and retry.",
     rangeFrom: "Start date", rangeTo: "End date", rangeClear: "Clear custom range",
     rangeCustom: "Custom date range", rangeIncomplete: "Pick both start and end dates",
@@ -57,7 +68,6 @@ var COPY = {
     total: "Tasks", active: "Active", overdue: "Overdue", completion: "Completion",
     dueToday: "Due today", dueNext7: "Due next 7d", newInRange: "New in range", avgCycle: "Avg cycle",
     days: "d", current: "Current", inRange: "In range", ofTotal: "of total", ofActive: "of active",
-    trend: "Created / done / due trend", trendNote: "Bucketed by day / week / month",
     eventTrend: "Event trend", eventTrendNote: "Same scope as annual activity; bucketed by day / week / month, target by planned date",
     publish: "Published", target: "Target", evShutdown: "Closed", evClaimed: "Claimed",
     created: "Created", done: "Done", due: "Due",
@@ -251,70 +261,92 @@ function TasksStatsBody(props) {
     return { key: key, label: t["range" + (key === "all" ? "All" : key.replace("d", ""))] };
   });
 
+  // 页面按「先结论后明细」分区：今日 → 健康度 → 活动 → 分布 → 风险 → 排行 → 明细。
+  // 分区只承担视觉与读屏层级，区块开关仍是卡片粒度的 stats.sections。
   var children = [];
+  var totals = data ? data.totals || {} : {};
+  var rates = data ? data.rates || {} : {};
+  var b = data ? data.breakdowns || {} : {};
+
   if (!data && loading) children.push(h(ch.Skeleton, { key: "sk" }));
   if (!data && !loading && err) {
     children.push(h(ch.Card, { key: "err", span: 12 }, h(ch.Empty, { text: t.loadFail })));
   }
-  if (data) {
-    var totals = data.totals || {};
-    var rates = data.rates || {};
-    var b = data.breakdowns || {};
-    children.push(h("div", { key: "kpi", className: "wbt-kpis" },
-      h(ch.Kpi, { label: t.total, value: totals.total, hint: t.current, lang: lang }),
-      h(ch.Kpi, { label: t.active, value: totals.active, hint: t.ofTotal + " " + ch.pct(totals.total ? totals.active / totals.total : 0), lang: lang }),
-      h(ch.Kpi, { label: t.overdue, value: totals.overdue, hint: t.ofActive + " " + ch.pct(rates.overdue), tone: totals.overdue > 0 ? "danger" : "", lang: lang }),
-      h(ch.Kpi, { label: t.completion, value: ch.pct(rates.completion), hint: totals.done + " / " + totals.total, tone: "ok", lang: lang }),
-      h(ch.Kpi, { label: t.dueToday, value: totals.dueToday, hint: t.current, tone: totals.dueToday > 0 ? "warn" : "", lang: lang }),
-      h(ch.Kpi, { label: t.dueNext7, value: totals.dueNext7, hint: t.current, lang: lang }),
-      h(ch.Kpi, { label: t.newInRange, value: totals.newInRange, hint: t.inRange, lang: lang }),
-      h(ch.Kpi, { label: t.avgCycle, value: rates.avgCycleDays === null || rates.avgCycleDays === undefined ? "—" : rates.avgCycleDays, unit: t.days, hint: t.inRange, lang: lang }),
-    ));
 
-    if (totals.total === 0) {
-      children.push(h(ch.Card, { key: "empty", span: 12 }, h(ch.Empty, { text: t.noData })));
-    } else {
-      // 事件趋势与年度活动日历同口径（发布/目标/完成/关闭/接取），颜色对齐热力图 hue，
-      // 保证两张图同色同义；旧趋势卡的 created/due 是存量语义，两张卡并存不合并。
-      children.push(h(ch.Card, { key: "eventTrend", span: 12, title: t.eventTrend, note: t.eventTrendNote },
+  // ① 今日：服务端当日快照，独立于存量与上方时间范围；存量归零时也照常显示。
+  if (data) {
+    children.push(h(ch.Section, { key: "today", title: t.secToday, note: t.secTodayNote },
+      data.today ? h(Today, { today: data.today, lang: lang }) : null));
+  }
+
+  if (data && totals.total === 0) {
+    children.push(h(ch.Card, { key: "empty", span: 12 }, h(ch.Empty, { text: t.noData })));
+  }
+
+  if (data && totals.total > 0) {
+    // ② 健康度：4 张核心指标给足字号，4 张次级指标收一行，避免 8 张 KPI 抢同一层视觉重量。
+    if (cfg["stats.showKpi"] !== false) {
+      children.push(h(ch.Section, { key: "health", title: t.secHealth, note: t.secHealthNote }, [
+        h("div", { key: "kpiMain", className: "wbt-kpis wbt-kpis-main" },
+          h(ch.Kpi, { label: t.total, value: totals.total, hint: t.current, size: "lg", lang: lang }),
+          h(ch.Kpi, { label: t.active, value: totals.active, hint: t.ofTotal + " " + ch.pct(totals.total ? totals.active / totals.total : 0), size: "lg", lang: lang }),
+          h(ch.Kpi, { label: t.overdue, value: totals.overdue, hint: t.ofActive + " " + ch.pct(rates.overdue), tone: totals.overdue > 0 ? "danger" : "", size: "lg", lang: lang }),
+          h(ch.Kpi, { label: t.completion, value: ch.pct(rates.completion), hint: totals.done + " / " + totals.total, tone: "ok", size: "lg", lang: lang }),
+        ),
+        h("div", { key: "kpiSub", className: "wbt-kpis wbt-kpis-sub" },
+          h(ch.Kpi, { label: t.dueToday, value: totals.dueToday, hint: t.current, tone: totals.dueToday > 0 ? "warn" : "", size: "sm", lang: lang }),
+          h(ch.Kpi, { label: t.dueNext7, value: totals.dueNext7, hint: t.current, size: "sm", lang: lang }),
+          h(ch.Kpi, { label: t.newInRange, value: totals.newInRange, hint: t.inRange, size: "sm", lang: lang }),
+          h(ch.Kpi, { label: t.avgCycle, value: rates.avgCycleDays === null || rates.avgCycleDays === undefined ? "—" : rates.avgCycleDays, unit: t.days, hint: t.inRange, size: "sm", lang: lang }),
+        ),
+      ]));
+    }
+
+    // ③ 活动与趋势：事件趋势跟随时间范围；年度活动热力图按整年，两者同口径同配色。
+    var activity = [];
+    if (sectionOn("eventTrend")) {
+      activity.push(h(ch.Card, { key: "eventTrend", span: 12, title: t.eventTrend, note: t.eventTrendNote },
         h(ch.Trend, {
           data: data.eventTrend || [], lang: lang,
+          // 顺序按用户要求：发布 → 目标 → 接取 → 关闭 → 完成；
+          // 颜色跟着含义走不跟着位置走（换序不换色），否则读者要重新认一遍颜色。
           series: [
             { key: "publish", label: t.publish, color: ch.colors[0] },
             { key: "target", label: t.target, color: ch.colors[5] },
-            { key: "done", label: t.done, color: ch.colors[1] },
-            { key: "shutdown", label: t.evShutdown, color: ch.colors[3] },
             { key: "claimed", label: t.evClaimed, color: ch.colors[2] },
-          ],
-        })));
-      children.push(h(ch.Card, { key: "trend", span: 8, title: t.trend, note: t.trendNote },
-        h(ch.Trend, {
-          data: data.trend || [], lang: lang,
-          series: [
-            { key: "created", label: t.created, color: ch.colors[0] },
+            { key: "shutdown", label: t.evShutdown, color: ch.colors[3] },
             { key: "done", label: t.done, color: ch.colors[1] },
-            { key: "due", label: t.due, color: ch.colors[2] },
           ],
         })));
+    }
+    activity.push(h(Heatmap, { key: "heatmap", api: api, lang: lang, active: props.active, onNavigate: props.onNavigate }));
+    children.push(h(ch.Section, { key: "activity", title: t.secActivity, note: t.secActivityNote }, activity));
+
+    // ④ 分布：状态 / 优先级 / 难度三张结构图等宽一行。
+    var dist = [];
+    if (sectionOn("status")) {
       var statusData = (b.status || []).filter(function (s) { return Object.prototype.hasOwnProperty.call(ch.statusColors, s.key); }).map(function (s) {
         return { key: s.key, label: String(s.key) === "0" ? t.open : String(s.key) === "1" ? t.shutdown : String(s.key) === "4" ? t.claimed : t.colDone, count: s.count, color: ch.statusColors[s.key] };
       });
       var statusTotal = statusData.reduce(function (sum, s) { return sum + Number(s.count || 0); }, 0);
-      children.push(h(ch.Card, { key: "status", span: 4, title: t.status, note: t.statusNote },
+      dist.push(h(ch.Card, { key: "status", span: 4, title: t.status, note: t.statusNote },
         h(ch.Donut, {
           data: statusData,
           total: statusTotal, lang: lang, centerLabel: t.total,
           aria: t.total + " " + statusTotal + "; " + statusData.map(function (s) { return s.label + " " + s.count; }).join("; "),
         })));
-
-      children.push(h(ch.Card, { key: "priority", span: 6, title: t.priority, note: t.priorityNote },
+    }
+    if (sectionOn("priority")) {
+      dist.push(h(ch.Card, { key: "priority", span: 4, title: t.priority, note: t.priorityNote },
         h(ch.Histogram, { data: visibleBins(b.priority), lang: lang, color: ch.colors[0], onSelect: priorityPicker(props.onNavigate), selectHint: lang === "en" ? "click to list" : "点击查看任务" })));
+    }
+    if (sectionOn("difficulty")) {
       var missingBin = (b.difficulty || []).find(function (bin) { return bin.key === "unset"; });
       var dims = [["all", t.dimAll], ["done", t.dimDone], ["publish", t.dimPublish], ["claimed", t.dimClaimed], ["shutdown", t.dimShutdown]];
       var rangeBox = data.range || {};
       var diffNote = dimension === "all" ? t.difficultyNote
         : t.difficultyNoteRange.replace("{from}", String(rangeBox.from || "")).replace("{to}", String(rangeBox.to || ""));
-      children.push(h(ch.Card, { key: "difficulty", span: 6, title: t.difficulty, note: diffNote },
+      dist.push(h(ch.Card, { key: "difficulty", span: 4, title: t.difficulty, note: diffNote },
         h("div", { className: "wbt-dims", role: "tablist", "aria-label": t.difficultyDimension },
           dims.map(function (item) {
             return h("button", {
@@ -326,10 +358,17 @@ function TasksStatsBody(props) {
         h(ch.Histogram, { data: (b.difficulty || []).map(function (bin) { return bin.key === "unset" ? Object.assign({}, bin, { label: lang === "en" ? "Unset" : "未设置" }) : bin; }), lang: lang, color: ch.colors[4], onSelect: difficultyPicker(props.onNavigate, dimension, dims.length ? (data.range || null) : null), selectHint: lang === "en" ? "click to list" : "点击查看任务" }),
         h("p", null, t.difficultyMissing.replace("{n}", String(missingBin ? missingBin.count : 0)), " ",
           typeof props.onNavigate === "function" ? h("button", { type: "button", className: "wbt-btn ghost", onClick: function () { props.onNavigate("tasks", { difficultyMissing: true }); } }, t.difficultyMissingLink) : null)));
+    }
+    children.push(h(ch.Section, { key: "distribution", title: t.secDist, note: t.secDistNote }, dist));
 
-      children.push(h(ch.Card, { key: "aging", span: 6, title: t.aging, note: t.agingNote },
+    // ⑤ 风险：逾期账龄与逾期清单并排，方便一眼对上「多老了」和「是哪些」。
+    var risk = [];
+    if (sectionOn("aging")) {
+      risk.push(h(ch.Card, { key: "aging", span: 6, title: t.aging, note: t.agingNote },
         h(ch.Histogram, { data: data.aging || [], lang: lang, color: ch.colors[2] })));
-      children.push(h(ch.Card, { key: "overdue", span: 6, title: t.overdueList, note: t.overdueNote },
+    }
+    if (sectionOn("overdue")) {
+      risk.push(h(ch.Card, { key: "overdue", span: 6, title: t.overdueList, note: t.overdueNote },
         h(ch.DataTable, listProps(data, "overdue", lang, {
           lang: lang, empty: t.noOverdue,
           columns: [
@@ -339,8 +378,13 @@ function TasksStatsBody(props) {
             { key: "tableTitle", label: t.colTable },
           ],
         }))));
+    }
+    children.push(h(ch.Section, { key: "risk", title: t.secRisk, note: t.secRiskNote }, risk));
 
-      children.push(h(ch.Card, { key: "tables", span: 6, title: t.tables, note: t.tablesNote },
+    // ⑥ 排行：任务表与任务组并排，工作区整行（一行一句口径说明，窄屏也不挤）。
+    var rank = [];
+    if (sectionOn("tables")) {
+      rank.push(h(ch.Card, { key: "tables", span: 6, title: t.tables, note: t.tablesNote },
         h(ch.DataTable, {
           rows: (data.rankings && data.rankings.tables) || [], lang: lang,
           columns: [
@@ -351,7 +395,9 @@ function TasksStatsBody(props) {
             { key: "completion", label: t.colRate, num: true, render: function (r) { return ch.pct(r.completion); } },
           ],
         })));
-      children.push(h(ch.Card, { key: "groups", span: 6, title: t.groups, note: t.groupsNote },
+    }
+    if (sectionOn("groups")) {
+      rank.push(h(ch.Card, { key: "groups", span: 6, title: t.groups, note: t.groupsNote },
         h(ch.DataTable, {
           rows: (data.rankings && data.rankings.groups) || [], lang: lang,
           columns: [
@@ -362,13 +408,14 @@ function TasksStatsBody(props) {
             { key: "completion", label: t.colRate, num: true, render: function (r) { return ch.pct(r.completion); } },
           ],
         })));
-
+    }
+    if (sectionOn("workspaces")) {
       var wsRows = ((data.rankings && data.rankings.workspaces) || []).slice();
       var noneRow = data.rankings && data.rankings.noWorkspace;
       if (noneRow && (wsRows.length || noneRow.total > 0)) {
         wsRows.push(Object.assign({}, noneRow, { title: t.noWorkspaceRow }));
       }
-      children.push(h(ch.Card, { key: "workspaces", span: 6, title: t.workspaces, note: t.workspacesNote },
+      rank.push(h(ch.Card, { key: "workspaces", span: 12, title: t.workspaces, note: t.workspacesNote },
         h(ch.DataTable, {
           rows: wsRows, lang: lang, empty: t.noWorkspacesEmpty,
           columns: [
@@ -379,11 +426,17 @@ function TasksStatsBody(props) {
             { key: "completion", label: t.colRate, num: true, render: function (r) { return ch.pct(r.completion); } },
           ],
         })));
+    }
+    children.push(h(ch.Section, { key: "rank", title: t.secRank, note: t.secRankNote }, rank));
 
+    // ⑦ 时间线：区块自带卡片标题，不再套一层分区标题，避免同一句话出现两次。
+    if (sectionOn("timeline")) {
       children.push(h(TimelineSection, { key: "timeline", api: api, lang: lang, active: props.active, ch: ch }));
+    }
 
+    // ⑧ 明细：最近任务四维度共用一张整行卡。
+    if (sectionOn("recent")) {
       var recentCols = recentColumns(t, lang, props.onNavigate);
-      // 四个维度共用一张卡：tab 只切换清单键与空态文案，口径各自沿用原三张卡。
       var recentTabs = [
         ["publish", t.recentTabPublish, "recentPublish", t.noRecentPublish],
         ["done", t.recentTabDone, "recentDone", t.noRecentDone],
@@ -403,19 +456,11 @@ function TasksStatsBody(props) {
           })),
         h(ch.DataTable, listProps(data, recentTab[2], lang, { lang: lang, empty: recentTab[3], columns: recentCols }))));
     }
-    children.push(h(ch.Warnings, { key: "warn", items: data.warnings || [] }));
   }
 
-  children = children.filter(function (node) {
-    var k = node && node.key;
-    if (!k || k === "sk" || k === "err" || k === "warn" || k === "empty") return true;
-    if (k === "kpi") return cfg["stats.showKpi"] !== false;
-    return sectionOn(k);
-  });
+  if (data) children.push(h(ch.Warnings, { key: "warn", items: data.warnings || [] }));
 
   return h("div", { className: "wbt-stats" },
-    h(Today, { today: data && data.today, lang: lang }),
-    h(Heatmap, { api: api, lang: lang, active: props.active, onNavigate: props.onNavigate }),
     h(ch.RangeSwitch, {
       options: options, value: customFrom || customTo ? null : range,
       onChange: function (key) { setCustom(null); setRange(key); },

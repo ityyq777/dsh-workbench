@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-message",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "个人工作台消息插件：统一消息发送入口、收件箱、未读统计与提示音",
   "type": "module",
   "main": "lib/index.js",
@@ -16,8 +16,8 @@
       "id": "wb-addon-message",
       "title": "消息",
       "description": "统一消息入口 + 统计/收件箱/配置/数据四个视图：子插件与 agent 都能发消息，带未读计数与提示音",
-      "version": "0.1.0",
-      "minShell": "0.6.5",
+      "version": "0.1.1",
+      "minShell": "0.8.0",
       "tables": [
         "message"
       ],
@@ -49,7 +49,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.7.0"
+    "dsh-workbench-host": "^0.8.0"
   },
   "dsh": {
     "bundle": {

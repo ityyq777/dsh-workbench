@@ -3,6 +3,8 @@
 // 方块用 1fr 列 + aspect-ratio 铺满容器宽度，列间距统一由 --hm-gap 控制。
 module.exports = [
   ".wbt-heatmap{",
+  // 作为统计页「活动与趋势」分区的一员时占满一行；脱离栅格容器时该声明无副作用。
+  "grid-column:span 12;",
   "--hm-gap:3px;",
   "--hm-hue-done:var(--wb-ok,#18a058);",
   "--hm-hue-publish:var(--wbt-accent,var(--wb-accent,#11a89b));",

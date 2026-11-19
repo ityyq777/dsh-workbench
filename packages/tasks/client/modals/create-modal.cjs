@@ -20,6 +20,7 @@ module.exports = function createModal(deps) {
   var WorkspaceSelect = require("../workspace/workspace-select.cjs")(React).WorkspaceSelect;
   var difficultyField = require("../item/difficulty-field.cjs")(React);
   var ownership = require("./ownership.cjs"), fields = require("./ownership-fields.cjs")(React);
+  var DP = require("../../../lib/date-picker.cjs");
   var allTables = deps.allTables, tagNames = deps.tagNames, splitTags = deps.splitTags;
   var today = deps.today, addDays = deps.addDays, hostHasAddon = deps.hostHasAddon;
   function CreateModal(props) {
@@ -131,11 +132,11 @@ module.exports = function createModal(deps) {
             h("option", { value: "0" }, "已开启"), h("option", { value: "2" }, "已完成"), h("option", { value: "1" }, "已关闭"))),
           h("label", { className: "wbt-field" }, h("span", null, t.priority + "（1–10）"), h("input", { className: "wbt-input", type: "number", min: 1, max: 10, step: 1, disabled: !active, "aria-invalid": !!priorityError, "aria-describedby": priorityError ? "wbt-create-priority-error" : undefined, value: form.priority, onChange: function (e) { set("priority", e.target.value); } })),
           fields({ form: form, set: set, setMany: setMany, tree: props.tree, recommended: props.defaultTableId || (origin && origin.tableId) }),
-          h("label", { className: "wbt-field" }, h("span", null, t.publishDate), h("input", { className: "wbt-input", type: "date", value: form.publishDate, onChange: function (e) { set("publishDate", e.target.value); } })),
-          h("label", { className: "wbt-field" }, h("span", null, t.targetDate), h("input", { className: "wbt-input", type: "date", value: form.targetDate, onChange: function (e) { set("targetDate", e.target.value); } })),
-          (source !== "2" && form.status === "2") ? h("label", { className: "wbt-field" }, h("span", null, t.doneDate), h("input", { className: "wbt-input", type: "date", value: form.doneDate, onChange: function (e) { set("doneDate", e.target.value); } })) : null,
+          h("label", { className: "wbt-field" }, h("span", null, t.publishDate), h(DP.DatePicker, { React: React, h: h, prefix: "wbt", lang: props.lang, label: t.publishDate, value: form.publishDate, onChange: function (next) { set("publishDate", next); } })),
+          h("label", { className: "wbt-field" }, h("span", null, t.targetDate), h(DP.DatePicker, { React: React, h: h, prefix: "wbt", lang: props.lang, label: t.targetDate, value: form.targetDate, onChange: function (next) { set("targetDate", next); } })),
+          (source !== "2" && form.status === "2") ? h("label", { className: "wbt-field" }, h("span", null, t.doneDate), h(DP.DatePicker, { React: React, h: h, prefix: "wbt", lang: props.lang, label: t.doneDate, value: form.doneDate, onChange: function (next) { set("doneDate", next); } })) : null,
           difficultyField(t, form.difficulty, function (value) { set("difficulty", value); }, "wbt-create-difficulty"),
-          (source !== "2" && form.status === "1") ? h("label", { className: "wbt-field" }, h("span", null, t.shutdownDate), h("input", { className: "wbt-input", type: "date", value: form.shutdownDate, onChange: function (e) { set("shutdownDate", e.target.value); } })) : null
+          (source !== "2" && form.status === "1") ? h("label", { className: "wbt-field" }, h("span", null, t.shutdownDate), h(DP.DatePicker, { React: React, h: h, prefix: "wbt", lang: props.lang, label: t.shutdownDate, value: form.shutdownDate, onChange: function (next) { set("shutdownDate", next); } })) : null
         ),
         priorityError ? h("div", { id: "wbt-create-priority-error", className: "wbt-err", role: "alert" }, priorityError) : null,
         error ? h("div", { className: "wbt-err" }, error) : null,

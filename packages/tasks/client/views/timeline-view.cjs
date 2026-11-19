@@ -101,6 +101,12 @@ module.exports = function (deps) {
       if (node) { node.focus({ preventScroll: true }); node.scrollIntoView({ block: "nearest" }); }
     }
     function closeDetail() { setDetail(null); if (detailTrigger.current) detailTrigger.current.focus({ preventScroll: true }); }
+    // 成员行只给概要，预览要完整任务；拉失败就退回行数据，不让预览打不开。
+    function openPreview(member) {
+      api.call("tasks.get", { id: member.id }).then(function (r) {
+        setDetail(r && r.ok && r.result && r.result.task ? r.result.task : member);
+      }).catch(function () { setDetail(member); });
+    }
     function say(message) { setToast(String(message || "")); }
     function refreshDetail(id) {
       api.call("tasks.get", { id: id }).then(result).then(function (r) {
@@ -168,18 +174,6 @@ module.exports = function (deps) {
       editor ? h(controls.Editor, { api: api, t: t, item: editor.timelineKey ? editor : null, onClose: function () { setEditor(null); }, onSaved: function (line) { setEditor(null); setSingle(true); setDraft(""); setQuery(""); setPage(1); createdRef.current = Object.assign({}, line, { timelineKey: line.timelineId || line.timelineKey || line.id }); setActive(createdRef.current); reload(); } }) : null,
       adding && active ? h(AddMembers, { api: api, t: t, timelineId: activeKey, onClose: function () { setAdding(false); }, onSaved: function () { setAdding(false); createdRef.current = active; reload(); } }) : null,
       merge ? h(Merge, { api: api, t: t, items: selected, onClose: closeMerge, onMerged: function () { closeMerge(); setSelected([]); setMulti(false); reload(); } }) : null,
-      detail && !editTask ? h(TaskPreview, {
-        key: "preview-" + detail.id, t: t, task: detail, onClose: closeDetail,
-        cardProps: {
-          task: detail, t: t, lang: lang, keyword: "", bodyMode: cfg["ui.bodyMode"],
-          update: updateTask,
-          onEdit: function (task) { setEditTask(task); },
-          onDone: function (task) { setDoneTask(task); },
-          onRestart: function (task) { setCreateState({ source: "2", originTask: task }); },
-          onTimeline: function (task) { setTimelineTask(task); },
-          onDelete: removeTask,
-        },
-      }) : null,
       editTask ? h(deps.EditModal, {
         key: "edit-" + editTask.id, api: api, t: t, lang: lang, task: editTask, tree: tree,
         onClose: function () { setEditTask(null); },
@@ -192,12 +186,24 @@ module.exports = function (deps) {
         onError: function (e) { setDoneTask(null); say(String(e)); },
       }) : null,
       timelineTask ? h(deps.TimelineModal, {
-        key: "tl-" + timelineTask.id, t: t, api: api, task: timelineTask, onChanged: reload,
-        onClose: function () { setTimelineTask(null); },
-        onOpen: function (member) {
-          api.call("tasks.get", { id: member.id }).then(result).then(function (r) { setTimelineTask(null); setEditTask(r.task); }).catch(function (e) { say(String((e && e.message) || e)); });
+        key: "tl-" + timelineTask.id, t: t, api: api, task: timelineTask, onChanged: reload, refreshKey: refresh,
+        onClose: function () { setTimelineTask(null); setDetail(null); },
+        // 弹窗里的成员行同样只开预览：弹窗保持挂载，页码与滚动不丢。
+        onOpen: function (member, e) { detailTrigger.current = e && e.currentTarget; openPreview(member); },
+        onCreateTimeline: function (originTask) { setTimelineTask(null); setDetail(null); setCreateState({ source: "1", originTask: originTask, defaultTableId: originTask.tableId }); },
+      }) : null,
+      // 预览渲染在时间线弹窗之后，叠在它上面：Esc 只关预览，弹窗与分页原样保留。
+      detail && !editTask ? h(TaskPreview, {
+        key: "preview-" + detail.id, t: t, task: detail, onClose: closeDetail,
+        cardProps: {
+          task: detail, t: t, lang: lang, keyword: "", bodyMode: cfg["ui.bodyMode"],
+          update: updateTask,
+          onEdit: function (task) { closeDetail(); setEditTask(task); },
+          onDone: function (task) { closeDetail(); setDoneTask(task); },
+          onRestart: function (task) { closeDetail(); setCreateState({ source: "2", originTask: task }); },
+          onTimeline: function (task) { closeDetail(); setTimelineTask(task); },
+          onDelete: removeTask,
         },
-        onCreateTimeline: function (originTask) { setTimelineTask(null); setCreateState({ source: "1", originTask: originTask, defaultTableId: originTask.tableId }); },
       }) : null,
       createState ? h(deps.CreateModal, {
         key: (createState.source || "0") + "-" + ((createState.originTask && createState.originTask.id) || ""),

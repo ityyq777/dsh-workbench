@@ -43,10 +43,18 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var require_client_base_styles = __commonJS({
   "packages/addons/lib/client-base-styles.cjs"(exports2, module2) {
     "use strict";
+    var SECRET_FIELD = [
+      ".wb-secret-field{position:relative;display:flex;align-items:center;min-width:0}",
+      ".wb-secret-field input{flex:1 1 auto;min-width:0;padding-right:34px}",
+      ".wb-eye{position:absolute;right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:6px;padding:4px;color:var(--wb-muted,#6b7280);cursor:pointer}",
+      ".wb-eye:hover:not(:disabled){color:var(--wb-accent,#2563eb);background:color-mix(in srgb, var(--wb-accent,#2563eb) 12%, transparent)}",
+      ".wb-eye:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
+      ".wb-eye:disabled{opacity:.45;cursor:not-allowed}"
+    ];
     module2.exports = function baseStyles(prefix) {
       var p = String(prefix || "wb");
       var s = "." + p;
-      return [
+      return SECRET_FIELD.concat([
         s + "-wrap{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
         s + "-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}",
         s + "-title{font-size:16px;font-weight:650;margin:0}",
@@ -71,8 +79,9 @@ var require_client_base_styles = __commonJS({
         s + "-json{margin:0;padding:8px;background:#f8fafc;border-radius:8px;font-size:11px;max-height:240px;overflow:auto}",
         s + "-muted{color:var(--wb-muted,#6b7280)}" + s + "-link{color:var(--wb-accent,#2563eb);cursor:pointer;text-decoration:none}",
         s + "-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}"
-      ];
+      ]);
     };
+    module2.exports.secretFieldStyles = SECRET_FIELD;
   }
 });
 
@@ -80,17 +89,111 @@ var require_client_base_styles = __commonJS({
 var require_styles = __commonJS({
   "packages/addons/mail/client/ui/styles.cjs"(exports2, module2) {
     "use strict";
-    module2.exports = require_client_base_styles()("wbm").concat([
-      ".wbm-page{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
-      ".wbm-input{border:1px solid var(--wb-border,#d1d5db);border-radius:7px;padding:6px 8px;font:inherit;background:var(--wb-surface,#fff);color:inherit;min-width:120px}",
-      ".wbm-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}",
-      ".wbm-list{display:flex;flex-direction:column;gap:2px}",
-      ".wbm-list-row{display:flex;align-items:center;gap:10px;padding:8px;border:0;border-bottom:1px solid var(--wb-border,#eef0f3);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}",
-      ".wbm-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}",
-      ".wbm-time{font-size:11px;color:var(--wb-muted,#6b7280);white-space:nowrap}",
-      ".wbm-body{white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.6;margin:8px 0 0}",
-      ".wbm-icon-btn{border:0;background:transparent;color:var(--wb-muted,#6b7280);font-size:16px;cursor:pointer;padding:2px 6px}"
-    ]);
+    module2.exports = require_client_base_styles()("wbml").concat([
+      ".wbml-page{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
+      ".wbml-input{border:1px solid var(--wb-border,#d1d5db);border-radius:7px;padding:6px 8px;font:inherit;background:var(--wb-surface,#fff);color:inherit;min-width:120px}",
+      ".wbml-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}",
+      ".wbml-btn:disabled{opacity:1;background:color-mix(in srgb,var(--wb-muted,#6b7280) 14%,transparent);color:var(--wb-muted,#6b7280);border:1px solid var(--wb-border,#e5e7eb);cursor:not-allowed}",
+      "/* \u4E09\u680F\u5DE5\u4F5C\u533A\uFF1A\u8D26\u6237\u680F 300px + \u5217\u8868\u81EA\u9002\u5E94 (+ \u9605\u8BFB\u680F 360\u2013520px) */",
+      ".wbml-page.is-split{height:100%;overflow:hidden;min-height:0}",
+      ".wbml-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;flex:1;min-height:0;align-items:stretch}",
+      ".wbml-layout.has-detail{grid-template-columns:300px minmax(0,1fr) minmax(360px,520px)}",
+      ".wbml-rail{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}",
+      ".wbml-rail-card{display:flex;flex-direction:column;gap:10px}",
+      ".wbml-rail-title{font-size:12px;font-weight:600;color:var(--wb-muted,#6b7280)}",
+      ".wbml-rail-stats{display:flex;gap:16px;font-size:12px;color:var(--wb-muted,#6b7280)}",
+      ".wbml-rail-stats b{font-size:15px;font-weight:650;color:inherit;margin-right:2px}",
+      ".wbml-rail-tip{font-size:12px;line-height:1.6;color:var(--wb-muted,#6b7280);padding:0 2px}",
+      ".wbml-pane{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid var(--wb-border,#e5e7eb);border-radius:10px;background:var(--wb-surface,#fff);overflow:hidden}",
+      ".wbml-pane-head{position:sticky;top:0;z-index:2;display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--wb-border,#eef0f3);background:var(--wb-surface,#fff)}",
+      ".wbml-pane-head strong{font-size:13px}",
+      ".wbml-state-box{display:flex;flex-direction:column;min-height:0;overflow:auto}",
+      ".wbml-state{padding:32px 16px;text-align:center;font-size:13px;color:var(--wb-muted,#6b7280)}",
+      ".wbml-state-error{color:var(--wb-danger,#b91c1c)}",
+      ".wbml-list{display:flex;flex-direction:column;overflow:auto;min-height:0}",
+      '.wbml-list-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"who time" "line line";gap:1px 10px;padding:8px 12px 8px 15px;border:0;border-bottom:1px solid var(--wb-line,#eef0f3);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:56px;box-sizing:border-box}',
+      ".wbml-list-row:hover{background:var(--wb-surface,#f8fafc)}",
+      ".wbml-list-row.on{background:color-mix(in srgb,var(--wb-accent,#2563eb) 12%,transparent)}",
+      ".wbml-list-row.unread{font-weight:600}",
+      '.wbml-list-row.unread::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--wb-accent,#2563eb)}',
+      ".wbml-who{grid-area:who;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbml-line{grid-area:line;display:flex;align-items:baseline;gap:8px;min-width:0}",
+      ".wbml-subject{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:0}",
+      ".wbml-snippet{font-size:12px;color:var(--wb-muted,#6b7280);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 0;min-width:0}",
+      ".wbml-time{grid-area:time;font-size:11px;color:var(--wb-muted,#6b7280);white-space:nowrap}",
+      ".wbml-listpane{min-height:0}",
+      ".wbml-detailpane{min-height:0}",
+      ".wbml-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--wb-border,#eef0f3);background:var(--wb-surface,#fff)}",
+      ".wbml-detail-title{display:flex;flex-direction:column;gap:4px;min-width:0}",
+      ".wbml-detail-title strong{font-size:14px;line-height:1.45;overflow-wrap:anywhere}",
+      ".wbml-muted{font-size:12px;color:var(--wb-muted,#6b7280);overflow-wrap:anywhere}",
+      ".wbml-detail-meta{display:flex;flex-wrap:wrap;gap:14px;padding:8px 12px;border-bottom:1px solid var(--wb-line,#eef0f3);font-size:12px;color:var(--wb-muted,#6b7280)}",
+      ".wbml-body{flex:1;overflow:auto;min-height:0;white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.7;margin:0;padding:12px}",
+      /* 正文按需下载：加载/失败/附件与重拉入口 */
+      ".wbml-detail-body{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}",
+      ".wbml-body-wrap{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;padding:12px}",
+      ".wbml-body-wrap .wbml-body{flex:0 1 auto;overflow:visible;padding:0}",
+      ".wbml-body-fail{display:flex;flex-direction:column;gap:8px;padding:8px 0}",
+      ".wbml-body-fail-text{margin:0;font-size:13px;line-height:1.6;color:var(--wb-danger,#b91c1c)}",
+      ".wbml-body-note{margin:0;font-size:12px;line-height:1.6;color:var(--wb-muted,#6b7280)}",
+      ".wbml-body-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}",
+      ".wbml-attach{display:flex;flex-direction:column;gap:4px;border:1px dashed var(--wb-border,#d4d4d8);border-radius:8px;padding:8px 10px}",
+      ".wbml-attach-title{font-size:12px;color:var(--wb-muted,#6b7280)}",
+      ".wbml-attach-list{display:flex;flex-wrap:wrap;gap:6px}",
+      ".wbml-attach-item{font-size:12px;line-height:1.5;padding:2px 8px;border-radius:999px;background:var(--wb-surface,#f8fafc);border:1px solid var(--wb-border,#e5e7eb);color:inherit;overflow-wrap:anywhere}",
+      "@media (max-width:1180px){.wbml-layout.has-detail{grid-template-columns:256px minmax(0,1fr) minmax(320px,420px)}}",
+      "@media (max-width:900px){.wbml-page.is-split{height:auto;overflow:visible}.wbml-layout,.wbml-layout.has-detail{display:flex;flex-direction:column;gap:12px;align-items:stretch;flex:0 0 auto}.wbml-rail{flex-direction:row;align-items:stretch;overflow:visible;flex:0 0 auto}.wbml-rail-card{flex:1;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px}.wbml-rail-card .wbml-rail-title{flex-basis:100%}.wbml-rail-tip{display:none}.wbml-rail-stats{flex:1 0 auto}.wbml-pane{flex:0 0 auto;max-height:none}.wbml-listpane{max-height:62vh}.wbml-detailpane{max-height:70vh}}",
+      ".wbml-icon-btn{border:0;background:transparent;color:var(--wb-muted,#6b7280);font-size:16px;cursor:pointer;padding:2px 6px}",
+      /* 服务商选择器 */
+      ".wbml-chips{display:flex;flex-wrap:wrap;gap:6px}",
+      ".wbml-chip{border:1px solid var(--wb-border,#d1d5db);background:var(--wb-surface,#fff);color:inherit;border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}",
+      ".wbml-chip:hover{border-color:var(--wb-accent,#2563eb)}",
+      ".wbml-chip:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
+      ".wbml-chip.on{background:var(--wb-accent,#2563eb);border-color:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff)}",
+      /* 账户表单 */
+      ".wbml-acct-form{display:flex;flex-direction:column;gap:10px;border:1px solid var(--wb-border,#e5e7eb);border-radius:10px;background:var(--wb-surface,#fff);padding:12px}",
+      ".wbml-acct-head{display:flex;align-items:center;justify-content:space-between;gap:8px}",
+      ".wbml-acct-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}",
+      ".wbml-acct-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}",
+      ".wbml-check{display:flex;align-items:center;gap:6px;font-size:12px;padding-top:18px}",
+      ".wbml-hint-line{margin:0;font-size:11px;line-height:1.6;color:var(--wb-muted,#6b7280)}",
+      /* 保险箱门禁 */
+      ".wbml-gate-wrap{display:flex;flex-direction:column;gap:8px}",
+      ".wbml-gate{border:1px solid var(--wb-warn,#f59e0b);border-radius:9px;padding:10px;display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb, var(--wb-warn,#f59e0b) 8%, transparent)}",
+      ".wbml-gate-title{font-size:13px;font-weight:650}",
+      ".wbml-gate-text{margin:0;font-size:12px;line-height:1.6;color:var(--wb-muted,#6b7280)}",
+      ".wbml-gate-row{max-width:320px}",
+      ".wbml-gate > .wbml-btn{align-self:flex-start;padding:0 14px}",
+      /* 账户卡片 */
+      ".wbml-cards{display:flex;flex-direction:column;gap:8px}",
+      ".wbml-cards .wbml-card{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}",
+      ".wbml-card-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}",
+      ".wbml-card-title{font-size:13px;font-weight:650}",
+      ".wbml-card-sub{font-size:12px}",
+      ".wbml-card-meta{font-size:11px;color:var(--wb-muted,#6b7280)}",
+      ".wbml-card-actions{display:flex;gap:6px;flex-wrap:wrap}",
+      ".wbml-card-result{display:flex;align-items:center;gap:6px;flex:1 0 100%;font-size:12px;line-height:1.6}",
+      ".wbml-acct-form > .wbml-btn{align-self:flex-start}",
+      /* 基础 pill / danger 按钮用固定浅色，深色主题下自己按主题 token 重算一次 */
+      ".wbml-card-result .wbml-pill.ok{background:color-mix(in srgb,var(--wb-ok,#047857) 16%,transparent);color:var(--wb-ok,#047857)}",
+      ".wbml-card-result .wbml-pill.error{background:color-mix(in srgb,var(--wb-danger,#b91c1c) 16%,transparent);color:var(--wb-danger,#b91c1c)}",
+      ".wbml-card-actions .wbml-btn.danger{color:var(--wb-danger,#b91c1c);border-color:color-mix(in srgb,var(--wb-danger,#b91c1c) 45%,transparent)}",
+      /* 凭据选择器：触发器 + 下拉面板（面板里的列表复用共享 .wbck* 样式） */
+      ".wbml-picker{position:relative;display:flex;flex-direction:column;gap:6px}",
+      ".wbml-picker-trigger{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--wb-border,#d4d4d8);border-radius:8px;background:var(--wb-surface);color:inherit;cursor:pointer;text-align:left}",
+      ".wbml-picker-trigger:hover:enabled{border-color:var(--wb-accent)}",
+      ".wbml-picker-trigger:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+      ".wbml-picker-trigger.is-set{font-weight:560}",
+      ".wbml-picker-trigger.is-missing{border-color:var(--wb-warn,#b45309)}",
+      ".wbml-picker-trigger:disabled{opacity:.6;cursor:not-allowed}",
+      ".wbml-picker-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbml-picker-caret{flex:none;font-size:11px;color:var(--wb-muted,#6b7280)}",
+      ".wbml-picker-panel{margin-top:2px;padding:8px;max-height:320px;overflow:auto;border:1px solid var(--wb-border,#d4d4d8);border-radius:10px;background:var(--wb-card)}",
+      ".wbml-picker-foot{font-size:11px;color:var(--wb-muted,#6b7280);text-align:right;padding:4px 2px 0}",
+      ".wbml-picker-empty{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--wb-muted,#6b7280);padding:6px 2px 0}",
+      ".wbml-picker-warn{margin:0;font-size:12px;color:var(--wb-warn,#b45309)}",
+      ".wbml-picker-note{margin:0;font-size:12px;line-height:1.6;color:var(--wb-muted,#6b7280);border:1px dashed var(--wb-border,#d4d4d8);border-radius:8px;padding:8px 10px}"
+    ]).join("\n");
   }
 });
 
@@ -632,7 +735,7 @@ var require_client_common = __commonJS({
 var require_common = __commonJS({
   "packages/addons/mail/client/ui/common.cjs"(exports2, module2) {
     "use strict";
-    module2.exports = require_client_common()("wbm");
+    module2.exports = require_client_common()("wbml");
   }
 });
 
@@ -648,19 +751,33 @@ var require_messages = __commonJS({
       var list = C.useLoad(React, api, "mail.messageList", { accountId: accountId[0] || void 0, limit: 50 }, [accountId[0]]);
       var sel = React.useState(null);
       var msg = React.useState(null);
+      var bodyState = React.useState({ loading: false, error: "", data: null });
       var accs = accounts.data && accounts.data.items || [];
-      function open(id) {
-        C.call(api, "mail.messageGet", { id }).then(function(d) {
+      function loadBody(m, force) {
+        if (!m) return;
+        bodyState[1]({ loading: true, error: "", data: null });
+        C.call(api, "mail.messageBody", { id: m.id, force: !!force }).then(function(r) {
+          if (r && r.ok === false) bodyState[1]({ loading: false, error: r.message || "\u6B63\u6587\u4E0B\u8F7D\u5931\u8D25", data: r });
+          else bodyState[1]({ loading: false, error: "", data: r || null });
+        }).catch(function(e) {
+          bodyState[1]({ loading: false, error: C.errText(e), data: null });
+        });
+      }
+      function open(m) {
+        bodyState[1]({ loading: false, error: "", data: null });
+        C.call(api, "mail.messageGet", { id: m.id }).then(function(d) {
           sel[1](d);
+          loadBody(d);
         }).catch(function(e) {
           msg[1]({ kind: "error", text: C.errText(e) });
         });
+        if (isUnread(m)) C.call(api, "mail.messageMarkRead", { id: m.id }).then(function() {
+          list.refresh();
+        }).catch(function() {
+        });
       }
       function sync() {
-        if (!accountId[0]) {
-          msg[1]({ kind: "error", text: "\u5148\u5728\u5DE6\u4FA7\u9009\u62E9\u4E00\u4E2A\u8D26\u6237" });
-          return;
-        }
+        if (!accountId[0]) return;
         C.call(api, "mail.sync", { id: accountId[0], limit: 20 }).then(function(r) {
           msg[1]({ kind: "ok", text: "\u6293\u53D6 " + r.fetched + " \u5C01\uFF0C\u65B0\u589E " + r.inserted });
           list.refresh();
@@ -668,78 +785,167 @@ var require_messages = __commonJS({
           msg[1]({ kind: "error", text: C.errText(e) });
         });
       }
+      function isUnread(m) {
+        return !/\\Seen/.test(String(m && m.flags || ""));
+      }
+      function senderLabel(m) {
+        var name = m && m.fromName ? String(m.fromName).trim() : "";
+        var addr = m && m.from ? String(m.from).trim() : "";
+        if (name && name !== addr) return name;
+        return addr || "\u672A\u77E5\u53D1\u4EF6\u4EBA";
+      }
+      function senderDetail(m) {
+        var name = m && m.fromName ? String(m.fromName).trim() : "";
+        var addr = m && m.from ? String(m.from).trim() : "";
+        if (name && addr && name !== addr) return name + " <" + addr + ">";
+        return addr || name || "\u672A\u77E5\u53D1\u4EF6\u4EBA";
+      }
+      function accountName(id) {
+        if (!id) return "\u5168\u90E8\u8D26\u6237";
+        var hit = accs.filter(function(a) {
+          return a.id === id;
+        })[0];
+        return hit ? hit.name : "\u5168\u90E8\u8D26\u6237";
+      }
+      function sizeText(n) {
+        var v = Number(n) || 0;
+        if (v >= 1024 * 1024) return (v / (1024 * 1024)).toFixed(1) + " MB";
+        if (v >= 1024) return Math.round(v / 1024) + " KB";
+        return v + " B";
+      }
+      function attachmentsOf(current2, data) {
+        var rows = data && data.attachments || current2 && current2.attachments || [];
+        if (!rows.length) return null;
+        return h(
+          "div",
+          { className: "wbml-attach" },
+          h("span", { className: "wbml-attach-title" }, "\u6536\u4EF6\u7BB1\u91CC\u7684 " + rows.length + " \u4E2A\u9644\u4EF6\uFF08\u53EA\u5217\u6587\u4EF6\u540D\u4E0E\u5927\u5C0F\uFF0C\u4E0D\u4E0B\u8F7D\u5185\u5BB9\uFF09"),
+          h("div", { className: "wbml-attach-list" }, rows.map(function(a, i) {
+            return h("span", { key: a.id || a.filename + i, className: "wbml-attach-item", title: a.mime || "" }, String(a.filename || "\u672A\u547D\u540D\u9644\u4EF6") + (a.size ? " \xB7 " + sizeText(a.size) : ""));
+          }))
+        );
+      }
+      function bodyNode(current2) {
+        var st = bodyState[0];
+        if (st.loading) return h("div", { className: "wbml-state" }, "\u6B63\u6587\u4E0B\u8F7D\u4E2D\u2026");
+        if (st.error) {
+          return h(
+            "div",
+            { className: "wbml-body-fail" },
+            h("p", { className: "wbml-body-fail-text" }, "\u6B63\u6587\u4E0B\u8F7D\u5931\u8D25\uFF1A" + st.error),
+            h(
+              "div",
+              { className: "wbml-body-tools" },
+              h(C.Btn, { h, kind: "primary", onClick: function() {
+                loadBody(current2, true);
+              } }, "\u91CD\u8BD5")
+            )
+          );
+        }
+        var data = st.data || {};
+        var text = String(data.body || current2.body || "").trim();
+        var attach = attachmentsOf(current2, data);
+        if (!text) {
+          return h(
+            "div",
+            { className: "wbml-body-wrap" },
+            h("div", { className: "wbml-state" }, "\u8FD9\u5C01\u90AE\u4EF6\u6CA1\u6709\u53EF\u8BFB\u7684\u6B63\u6587\uFF1B\u53EF\u4EE5\u70B9\u300C\u91CD\u65B0\u4E0B\u8F7D\u6B63\u6587\u300D\u518D\u8BD5\u4E00\u6B21\u3002"),
+            attach
+          );
+        }
+        return h(
+          "div",
+          { className: "wbml-body-wrap" },
+          h("pre", { className: "wbml-body" }, text),
+          data.truncated ? h("p", { className: "wbml-body-note" }, "\u6B63\u6587\u8F83\u957F\uFF0C\u5DF2\u622A\u65AD\u663E\u793A\u3002") : null,
+          attach,
+          h(
+            "div",
+            { className: "wbml-body-tools" },
+            h(C.Btn, { h, onClick: function() {
+              loadBody(current2, true);
+            } }, "\u91CD\u65B0\u4E0B\u8F7D\u6B63\u6587")
+          )
+        );
+      }
       var items = list.data && list.data.items || [];
-      var unread = items.filter(function(m) {
-        return !m.seen;
-      }).length;
+      var unread = items.filter(isUnread).length;
       var current = sel[0];
+      var canSync = !!accountId[0];
+      var body = list.loading ? h("div", { className: "wbml-state" }, "\u52A0\u8F7D\u4E2D\u2026") : list.error ? h("div", { className: "wbml-state wbml-state-error" }, list.error) : items.length === 0 ? h("div", { className: "wbml-state" }, accs.length ? "\u6CA1\u6709\u672C\u5730\u90AE\u4EF6\uFF1B\u5728\u5DE6\u4FA7\u70B9\u300C\u540C\u6B65\u6536\u4EF6\u7BB1\u300D\u6293\u6700\u8FD1 20 \u5C01\u3002" : "\u8FD8\u6CA1\u6709\u8D26\u6237\uFF0C\u5148\u5230\u300C\u8D26\u6237\u300D\u9875\u6DFB\u52A0\u4E00\u4E2A\u3002") : h("div", { className: "wbml-list" }, items.map(function(m) {
+        var on = current && current.id === m.id;
+        return h(
+          "button",
+          {
+            key: m.id,
+            type: "button",
+            title: senderDetail(m) + " \xB7 " + (m.subject || "(\u65E0\u4E3B\u9898)"),
+            className: "wbml-list-row" + (on ? " on" : "") + (isUnread(m) ? " unread" : ""),
+            onClick: function() {
+              open(m);
+            }
+          },
+          h("span", { className: "wbml-who" }, senderLabel(m)),
+          h("span", { className: "wbml-time" }, C.fmtTime(m.dateAt, props.lang)),
+          h(
+            "div",
+            { className: "wbml-line" },
+            h("span", { className: "wbml-subject" }, m.subject || "(\u65E0\u4E3B\u9898)"),
+            m.preview ? h("span", { className: "wbml-snippet" }, m.preview) : null
+          )
+        );
+      }));
       return h(
         "div",
-        { className: "wbm-page" },
-        h("div", { className: "wbm-head" }, h("div", null, h("h2", null, "\u90AE\u4EF6"), h("p", { className: "wbm-sub" }, "\u672C\u5730\u526F\u672C\uFF1BIMAP \u53EA\u6293\u4FE1\u5934\uFF0C\u5BC6\u7801\u4FDD\u5B58\u5728\u4FDD\u9669\u7BB1\u3002")), h(
+        { className: "wbml-page is-split wb-fill" },
+        h("div", { className: "wbml-head" }, h("div", null, h("h2", null, "\u90AE\u4EF6"), h("p", { className: "wbml-sub" }, "\u672C\u5730\u526F\u672C\uFF1B\u4FE1\u5934\u968F\u540C\u6B65\u62C9\u53D6\uFF0C\u6B63\u6587\u70B9\u5F00\u65F6\u4E0B\u8F7D\uFF0C\u5BC6\u7801\u4FDD\u5B58\u5728\u4FDD\u9669\u7BB1\u3002")), h(
           "div",
-          { className: "wbm-row" },
+          { className: "wbml-row" },
           h(C.Btn, { h, onClick: list.refresh }, "\u5237\u65B0")
         )),
         h(C.Notice, { h, text: msg[0] && msg[0].text, kind: msg[0] && msg[0].kind }),
         accounts.error ? h(C.Notice, { h, kind: "error", text: accounts.error }) : null,
         h(
           "div",
-          { className: "wbm-layout" + (current ? " has-detail" : "") },
+          { className: "wbml-layout" + (current ? " has-detail" : "") },
           h(
             "aside",
-            { className: "wbm-rail" },
+            { className: "wbml-rail" },
             h(
               "div",
-              { className: "wbm-card wbm-rail-card" },
-              h("div", { className: "wbm-rail-title" }, "\u6536\u4EF6\u8D26\u6237"),
-              h("select", { className: "wbm-input", value: accountId[0], onChange: function(e) {
+              { className: "wbml-card wbml-rail-card" },
+              h("div", { className: "wbml-rail-title" }, "\u6536\u4EF6\u8D26\u6237"),
+              h("select", { className: "wbml-input", value: accountId[0], onChange: function(e) {
                 accountId[1](e.target.value);
                 sel[1](null);
               } }, h("option", { value: "" }, "\u5168\u90E8\u8D26\u6237"), accs.map(function(a) {
                 return h("option", { key: a.id, value: a.id }, a.name);
               })),
-              h("div", { className: "wbm-rail-stats" }, h("span", null, h("b", null, items.length), " \u5C01\u672C\u5730"), h("span", null, h("b", null, unread), " \u5C01\u672A\u8BFB")),
-              h(C.Btn, { h, kind: "primary", onClick: sync }, "\u540C\u6B65\u6536\u4EF6\u7BB1"),
-              h("p", { className: "wbm-hint" }, "\u53EA\u6293\u6700\u8FD1 20 \u5C01\u4FE1\u5934\uFF1B\u6B63\u6587\u6309\u9700\u4E0B\u8F7D\u3002")
+              h("div", { className: "wbml-rail-stats" }, h("span", null, h("b", null, items.length), "\u5C01\u672C\u5730"), h("span", null, h("b", null, unread), "\u5C01\u672A\u8BFB")),
+              h(C.Btn, { h, kind: "primary", disabled: !canSync, onClick: sync }, "\u540C\u6B65\u6536\u4EF6\u7BB1"),
+              h("p", { className: "wbml-hint" }, canSync ? "\u53EA\u6293\u6700\u8FD1 20 \u5C01\u4FE1\u5934\uFF1B\u6B63\u6587\u70B9\u5F00\u65F6\u6309\u9700\u4E0B\u8F7D\u3002" : "\u9009\u62E9\u5177\u4F53\u8D26\u6237\u540E\u53EF\u540C\u6B65\uFF1B\u300C\u5168\u90E8\u8D26\u6237\u300D\u53EA\u770B\u672C\u5730\u526F\u672C\u3002")
             ),
-            h("div", { className: "wbm-rail-tip" }, "\u63D0\u793A\uFF1A\u70B9\u5F00\u4E00\u5C01\u90AE\u4EF6\u4F1A\u5728\u53F3\u4FA7\u9605\u8BFB\uFF0C\u5217\u8868\u4E0D\u4F1A\u6D88\u5931\u3002")
+            h("div", { className: "wbml-rail-tip" }, "\u63D0\u793A\uFF1A\u70B9\u4E00\u5C01\u90AE\u4EF6\u4F1A\u5728\u53F3\u4FA7\u9605\u8BFB\uFF0C\u5217\u8868\u4E0D\u4F1A\u6D88\u5931\u3002")
           ),
           h(
             "section",
-            { className: "wbm-pane wbm-listpane" },
-            h("div", { className: "wbm-pane-head" }, h("strong", null, "\u90AE\u4EF6\u5217\u8868"), h("span", { className: "wbm-muted" }, items.length + " \u5C01")),
-            list.loading ? h(C.Empty, { h, text: "\u52A0\u8F7D\u4E2D\u2026" }) : list.error ? h(C.Notice, { h, kind: "error", text: list.error }) : items.length === 0 ? h(C.Empty, { h, text: "\u6CA1\u6709\u672C\u5730\u90AE\u4EF6\uFF1B\u5148\u5728\u8D26\u6237\u9875\u540C\u6B65\u3002" }) : h("div", { className: "wbm-list" }, items.map(function(m) {
-              return h(
-                "button",
-                { key: m.id, type: "button", className: "wbm-list-row" + (current && current.id === m.id ? " on" : "") + (m.seen ? "" : " unread"), onClick: function() {
-                  open(m.id);
-                } },
-                h("span", { className: "wbm-dot" }),
-                h(
-                  "div",
-                  { className: "wbm-main" },
-                  h("strong", { className: "wbm-subject" }, m.subject || "(\u65E0\u4E3B\u9898)"),
-                  h("span", { className: "wbm-muted" }, (m.from || "\u672A\u77E5\u53D1\u4EF6\u4EBA") + " \xB7 " + (m.mailbox || "INBOX")),
-                  m.preview ? h("span", { className: "wbm-snippet" }, m.preview) : null
-                ),
-                h("span", { className: "wbm-time" }, C.fmtTime(m.dateAt, props.lang))
-              );
-            }))
+            { className: "wbml-pane wbml-listpane" },
+            h("div", { className: "wbml-pane-head" }, h("strong", null, accountName(accountId[0])), h("span", { className: "wbml-muted" }, items.length + " \u5C01 \xB7 " + unread + " \u672A\u8BFB")),
+            h("div", { className: "wbml-state-box" }, body)
           ),
           current ? h(
             "section",
-            { className: "wbm-pane wbm-detailpane" },
+            { className: "wbml-pane wbml-detailpane" },
             h(
               "div",
-              { className: "wbm-detail-head" },
-              h("div", { className: "wbm-detail-title" }, h("strong", null, current.subject || "(\u65E0\u4E3B\u9898)"), h("span", { className: "wbm-muted" }, (current.from || "") + " \xB7 " + C.fmtTime(current.dateAt, props.lang))),
+              { className: "wbml-detail-head" },
+              h("div", { className: "wbml-detail-title" }, h("strong", null, current.subject || "(\u65E0\u4E3B\u9898)"), h("span", { className: "wbml-muted" }, senderDetail(current) + " \xB7 " + C.fmtTime(current.dateAt, props.lang))),
               h(C.Btn, { h, onClick: function() {
                 sel[1](null);
               } }, "\u5173\u95ED")
             ),
-            h("div", { className: "wbm-detail-meta" }, h("span", null, "\u6536\u4EF6\u4EBA\uFF1A", current.to || "\u2014"), h("span", null, "\u90AE\u7BB1\uFF1A", current.mailbox || "INBOX")),
-            h("pre", { className: "wbm-body" }, current.body || current.preview || "(\u6B63\u6587\u672A\u4E0B\u8F7D)")
+            h("div", { className: "wbml-detail-meta" }, h("span", null, "\u6536\u4EF6\u4EBA\uFF1A" + (current.to || "\u2014")), h("span", null, "\u6587\u4EF6\u5939\uFF1A" + (current.mailbox || "INBOX"))),
+            h("div", { className: "wbml-detail-body" }, bodyNode(current))
           ) : null
         )
       );
@@ -782,30 +988,1268 @@ var require_compose = __commonJS({
       }
       return h(
         "div",
-        { className: "wbm-page" },
+        { className: "wbml-page" },
         h("h2", null, "\u5199\u4FE1"),
         h(C.Notice, { h, text: msg[0] && msg[0].text, kind: msg[0] && msg[0].kind }),
         h(
           "div",
-          { className: "wbm-card" },
-          h(C.Field, { h, label: "\u53D1\u4EF6\u8D26\u6237" }, h("select", { className: "wbm-input", value: st[0].accountId, onChange: function(e) {
+          { className: "wbml-card" },
+          h(C.Field, { h, label: "\u53D1\u4EF6\u8D26\u6237" }, h("select", { className: "wbml-input", value: st[0].accountId, onChange: function(e) {
             set("accountId", e.target.value);
           } }, h("option", { value: "" }, "\u8BF7\u9009\u62E9"), accs.map(function(a) {
             return h("option", { key: a.id, value: a.id }, a.name + " <" + a.email + ">");
           }))),
-          h(C.Field, { h, label: "\u6536\u4EF6\u4EBA", hint: "\u591A\u4E2A\u90AE\u7BB1\u7528\u9017\u53F7\u5206\u9694" }, h("input", { className: "wbm-input", value: st[0].to, onChange: function(e) {
+          h(C.Field, { h, label: "\u6536\u4EF6\u4EBA", hint: "\u591A\u4E2A\u90AE\u7BB1\u7528\u9017\u53F7\u5206\u9694" }, h("input", { className: "wbml-input", value: st[0].to, onChange: function(e) {
             set("to", e.target.value);
           } })),
-          h(C.Field, { h, label: "\u4E3B\u9898" }, h("input", { className: "wbm-input", value: st[0].subject, onChange: function(e) {
+          h(C.Field, { h, label: "\u4E3B\u9898" }, h("input", { className: "wbml-input", value: st[0].subject, onChange: function(e) {
             set("subject", e.target.value);
           } })),
-          h(C.Field, { h, label: "\u6B63\u6587" }, h("textarea", { className: "wbm-input", rows: 10, value: st[0].text, onChange: function(e) {
+          h(C.Field, { h, label: "\u6B63\u6587" }, h("textarea", { className: "wbml-input", rows: 10, value: st[0].text, onChange: function(e) {
             set("text", e.target.value);
           } })),
-          h("div", { className: "wbm-actions" }, h(C.Btn, { h, kind: "primary", disabled: busy[0], onClick: send }, busy[0] ? "\u53D1\u9001\u4E2D\u2026" : "\u53D1\u9001"))
+          h("div", { className: "wbml-actions" }, h(C.Btn, { h, kind: "primary", disabled: busy[0], onClick: send }, busy[0] ? "\u53D1\u9001\u4E2D\u2026" : "\u53D1\u9001"))
         )
       );
     };
+  }
+});
+
+// packages/addons/mail/client/ui/provider-util.cjs
+var require_provider_util = __commonJS({
+  "packages/addons/mail/client/ui/provider-util.cjs"(exports2, module2) {
+    "use strict";
+    function domainOf(email) {
+      var raw = String(email || "").trim().toLowerCase();
+      var at = raw.lastIndexOf("@");
+      if (at < 0) return "";
+      return raw.slice(at + 1).replace(/\.+$/, "");
+    }
+    function localOf(email) {
+      var raw = String(email || "").trim();
+      var at = raw.lastIndexOf("@");
+      return at < 0 ? raw : raw.slice(0, at);
+    }
+    function list(table) {
+      return table && table.providers || [];
+    }
+    function providerById(table, id) {
+      var arr = list(table);
+      for (var i = 0; i < arr.length; i += 1) if (arr[i].id === id) return arr[i];
+      return null;
+    }
+    function detect(table, email) {
+      var domain = domainOf(email);
+      if (!domain) return null;
+      var best = null;
+      var arr = list(table);
+      for (var i = 0; i < arr.length; i += 1) {
+        var domains = arr[i].domains || [];
+        for (var j = 0; j < domains.length; j += 1) {
+          var d = domains[j];
+          if (domain !== d && domain.slice(-(d.length + 1)) !== "." + d) continue;
+          if (!best || d.length > best.domain.length) best = { id: arr[i].id, domain: d };
+        }
+      }
+      return best;
+    }
+    function hostOf(tpl, domain) {
+      return String(tpl || "").replace("{domain}", domain);
+    }
+    function presetFor(table, id, email) {
+      var p = providerById(table, id);
+      if (!p) return null;
+      var domain = domainOf(email) || p.domains && p.domains[0] || "";
+      return {
+        provider: p.id,
+        imapHost: hostOf(p.imapHost, domain),
+        imapPort: p.imapPort,
+        imapTls: p.imapTls,
+        smtpHost: hostOf(p.smtpHost, domain),
+        smtpPort: p.smtpPort,
+        smtpTls: p.smtpTls,
+        username: p.usernameMode === "local" ? localOf(email) : String(email || "").trim()
+      };
+    }
+    function labelOf(provider, lang) {
+      if (!provider) return "";
+      var l = provider.label || {};
+      return lang === "en" ? l.en || l.zh || provider.id : l.zh || l.en || provider.id;
+    }
+    function hintOf(provider, lang) {
+      if (!provider) return "";
+      var h = provider.hint || {};
+      return lang === "en" ? h.en || h.zh || "" : h.zh || h.en || "";
+    }
+    module2.exports = {
+      domainOf,
+      localOf,
+      providerById,
+      detect,
+      presetFor,
+      labelOf,
+      hintOf
+    };
+  }
+});
+
+// packages/addons/mail/client/ui/vault-gate.cjs
+var require_vault_gate = __commonJS({
+  "packages/addons/mail/client/ui/vault-gate.cjs"(exports2, module2) {
+    "use strict";
+    function t(lang, zh, en) {
+      return lang === "en" ? en : zh;
+    }
+    module2.exports = function VaultGate(props) {
+      var h = props.h;
+      var C = props.C;
+      var lang = props.lang;
+      var vault = props.vault || "loading";
+      if (vault === "ready" || vault === "loading") return null;
+      var SecretField = props.SecretField;
+      var busy = !!props.busy;
+      function secret(value, onChange, show, onToggle, id, autoComplete) {
+        return h(SecretField, {
+          h,
+          value,
+          onChange,
+          show,
+          onToggle,
+          id,
+          autoComplete,
+          disabled: busy,
+          showLabel: t(lang, "\u663E\u793A\u660E\u6587", "Show plain text"),
+          hideLabel: t(lang, "\u9690\u85CF\u660E\u6587", "Hide plain text")
+        });
+      }
+      var body;
+      if (vault === "missing") {
+        body = h(
+          "div",
+          { className: "wbml-gate" },
+          h("div", { className: "wbml-gate-title" }, t(lang, "\u4FDD\u9669\u7BB1\u63D2\u4EF6\u672A\u5B89\u88C5", "Vault plugin is not installed")),
+          h(
+            "p",
+            { className: "wbml-gate-text" },
+            t(
+              lang,
+              "\u90AE\u4EF6\u6388\u6743\u7801\u53EA\u80FD\u4FDD\u5B58\u5728\u4FDD\u9669\u7BB1\u91CC\u3002\u5148\u5B89\u88C5\u5E76\u521D\u59CB\u5316\u300C\u51ED\u636E\u4FDD\u9669\u7BB1\u300D\u63D2\u4EF6\uFF0C\u518D\u56DE\u5230\u672C\u9875\u9009\u62E9\u51ED\u636E\u3002",
+              "Mail credentials can only live in the vault. Install and initialise the Vault plugin, then come back and pick one."
+            )
+          ),
+          h(
+            "button",
+            { type: "button", className: "wbml-btn", onClick: props.onRetry },
+            t(lang, "\u91CD\u65B0\u68C0\u6D4B", "Check again")
+          )
+        );
+      } else if (vault === "init") {
+        body = h(
+          "div",
+          { className: "wbml-gate" },
+          h("div", { className: "wbml-gate-title" }, t(lang, "\u4FDD\u9669\u7BB1\u8FD8\u6CA1\u6709\u4E3B\u53E3\u4EE4", "The vault has no master password yet")),
+          h(
+            "p",
+            { className: "wbml-gate-text" },
+            t(
+              lang,
+              "\u8BBE\u7F6E\u4E00\u4E2A\u4E3B\u53E3\u4EE4\uFF08\u81F3\u5C11 12 \u4F4D\uFF09\uFF0C\u7528\u4E8E\u52A0\u5BC6\u8FD9\u53F0\u673A\u5668\u4E0A\u7684\u6240\u6709\u51ED\u636E\u3002\u8BBE\u7F6E\u540E\u4E0D\u80FD\u627E\u56DE\uFF0C\u8BF7\u8BB0\u7262\u3002",
+              "Set a master password (12+ characters) that encrypts every credential on this machine. It cannot be recovered, so keep it safe."
+            )
+          ),
+          h("div", { className: "wbml-gate-row" }, secret(props.pass, props.onPass, props.showPass, props.onTogglePass, "wbml-vault-pass", "new-password")),
+          h("div", { className: "wbml-gate-row" }, secret(props.pass2, props.onPass2, props.showPass2, props.onTogglePass2, "wbml-vault-pass2", "new-password")),
+          h(
+            "button",
+            { type: "button", className: "wbml-btn primary", disabled: busy, onClick: props.onSubmit },
+            busy ? t(lang, "\u5904\u7406\u4E2D\u2026", "Working\u2026") : t(lang, "\u521D\u59CB\u5316\u4FDD\u9669\u7BB1\u5E76\u7EE7\u7EED", "Initialize vault and continue")
+          )
+        );
+      } else {
+        body = h(
+          "div",
+          { className: "wbml-gate" },
+          h("div", { className: "wbml-gate-title" }, t(lang, "\u4FDD\u9669\u7BB1\u5DF2\u9501\u5B9A", "The vault is locked")),
+          h("p", { className: "wbml-gate-text" }, t(lang, "\u8F93\u5165\u4E3B\u53E3\u4EE4\u89E3\u9501\u540E\u5373\u53EF\u4FDD\u5B58\u8D26\u6237\u3002", "Unlock with your master password to save the account.")),
+          h("div", { className: "wbml-gate-row" }, secret(props.pass, props.onPass, props.showPass, props.onTogglePass, "wbml-vault-pass", "current-password")),
+          h(
+            "button",
+            { type: "button", className: "wbml-btn primary", disabled: busy, onClick: props.onSubmit },
+            busy ? t(lang, "\u89E3\u9501\u4E2D\u2026", "Unlocking\u2026") : t(lang, "\u89E3\u9501\u5E76\u7EE7\u7EED", "Unlock and continue")
+          )
+        );
+      }
+      return h("div", { className: "wbml-gate-wrap" }, body, props.error ? h(C.Notice, { h, text: props.error, kind: "warn" }) : null);
+    };
+  }
+});
+
+// packages/addons/lib/filter-checklist.cjs
+var require_filter_checklist = __commonJS({
+  "packages/addons/lib/filter-checklist.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h = React.createElement;
+    var NEAR = 24;
+    function nearBottom(el, threshold) {
+      if (!el) return false;
+      var gap = Number(threshold);
+      if (!isFinite(gap) || gap < 0) gap = NEAR;
+      return el.scrollTop + el.clientHeight >= el.scrollHeight - gap;
+    }
+    function FilterChecklist(props) {
+      var items = props.items || [];
+      var selected = props.selected || [];
+      var disabled = props.disabled === true;
+      var loading = props.loading === true;
+      var hasMore = props.hasMore === true;
+      var query = props.query || "";
+      var total = typeof props.total === "number" ? props.total : items.length;
+      var title = props.title || "\u5168\u90E8";
+      var selectedText = props.selectedText || "\u5DF2\u9009";
+      var clearText = props.clearText || "\u6E05\u7A7A";
+      var searchPlaceholder = props.searchPlaceholder || "\u641C\u7D22";
+      var emptyText = props.emptyText || "\u6682\u65E0\u6570\u636E";
+      var noMatchText = props.noMatchText || "\u6CA1\u6709\u5339\u914D\u9879";
+      var loadingText = props.loadingText || "\u52A0\u8F7D\u4E2D\u2026";
+      var noMoreText = typeof props.noMoreText === "string" ? props.noMoreText : "\u6CA1\u6709\u66F4\u591A";
+      var onToggle = props.onToggle || function() {
+      };
+      var onQuery = props.onQuery || function() {
+      };
+      var onLoadMore = props.onLoadMore;
+      var onClear = props.onClear || function() {
+      };
+      var single = props.mode === "single";
+      var onPick = typeof props.onPick === "function" ? props.onPick : onToggle;
+      function toggle(id) {
+        if (disabled) return;
+        onToggle(id);
+      }
+      function scroll(e) {
+        if (disabled || loading || !hasMore || !onLoadMore) return;
+        if (nearBottom(e.currentTarget)) onLoadMore();
+      }
+      var head = h(
+        "div",
+        { className: "wbck-head" },
+        h("span", { className: "wbck-grow" }, title + (total ? " \xB7 " + total : "")),
+        !single && selected.length ? h("span", { className: "wbck-sel" }, selectedText + " " + selected.length) : null,
+        !single && (selected.length || query) ? h("button", {
+          type: "button",
+          className: "wbck-clear",
+          title: clearText,
+          disabled,
+          onClick: function() {
+            if (disabled) return;
+            onClear();
+          }
+        }, clearText) : null
+      );
+      var body;
+      if (!items.length) {
+        body = h("div", { className: "wbck-note", role: "status" }, loading ? loadingText : query ? noMatchText : emptyText);
+      } else {
+        body = items.map(function(x) {
+          var on = selected.indexOf(String(x.id)) >= 0;
+          if (single) {
+            return h(
+              "button",
+              {
+                key: x.id,
+                type: "button",
+                role: "radio",
+                "aria-checked": on ? "true" : "false",
+                className: "wbck-opt" + (on ? " is-on" : ""),
+                disabled,
+                onClick: function() {
+                  if (disabled) return;
+                  onPick(x.id);
+                }
+              },
+              h("span", { className: "wbck-nm", title: x.name }, x.name),
+              x.meta ? h("span", { className: "wbck-meta" }, x.meta) : null
+            );
+          }
+          return h(
+            "label",
+            { key: x.id, className: "wbck-opt" + (on ? " is-on" : "") },
+            h("input", {
+              type: "checkbox",
+              checked: on,
+              disabled,
+              onChange: function() {
+                toggle(x.id);
+              }
+            }),
+            h("span", { className: "wbck-nm", title: x.name }, x.name),
+            x.meta ? h("span", { className: "wbck-meta" }, x.meta) : null
+          );
+        });
+        var more = loading ? loadingText : hasMore ? "" : noMoreText;
+        if (more) body = body.concat([h("div", { key: "__more", className: "wbck-more", role: "status" }, more)]);
+      }
+      return h(
+        "div",
+        { className: "wbck", "data-role": "checklist" },
+        h(
+          "div",
+          { className: "wbck-search" },
+          h("input", {
+            type: "search",
+            autoFocus: props.autoFocus !== false,
+            className: "wbck-input",
+            placeholder: searchPlaceholder,
+            "aria-label": searchPlaceholder,
+            value: query,
+            disabled,
+            onChange: function(e) {
+              onQuery(e.target.value);
+            }
+          })
+        ),
+        props.beforeHead || null,
+        head,
+        h("div", {
+          className: "wbck-list",
+          onScroll: scroll,
+          role: single ? "radiogroup" : void 0,
+          "aria-label": single ? props.groupLabel || searchPlaceholder : void 0,
+          "aria-busy": loading ? "true" : "false"
+        }, body)
+      );
+    }
+    module2.exports = FilterChecklist;
+    module2.exports.nearBottom = nearBottom;
+  }
+});
+
+// packages/addons/mail/client/ui/secret-picker.cjs
+var require_secret_picker = __commonJS({
+  "packages/addons/mail/client/ui/secret-picker.cjs"(exports2, module2) {
+    "use strict";
+    var FilterChecklist = require_filter_checklist();
+    var PAGE = 20;
+    var KIND_LABEL = {
+      password: "\u5BC6\u7801",
+      phone: "\u624B\u673A\u53F7",
+      id_card: "\u8EAB\u4EFD\u8BC1\u53F7",
+      token: "Token",
+      app_password: "\u5E94\u7528\u4E13\u7528\u5BC6\u7801",
+      api_key: "API Key",
+      other: "\u5176\u5B83"
+    };
+    var KIND_LABEL_EN = {
+      password: "Password",
+      phone: "Phone",
+      id_card: "ID card",
+      token: "Token",
+      app_password: "App password",
+      api_key: "API key",
+      other: "Other"
+    };
+    function t(lang, zh, en) {
+      return lang === "en" ? en : zh;
+    }
+    function kindText(lang, kind) {
+      var map = lang === "en" ? KIND_LABEL_EN : KIND_LABEL;
+      return map[kind] || kind || t(lang, "\u51ED\u636E", "Credential");
+    }
+    function metaOf(item) {
+      var m = item && item.meta;
+      if (!m || typeof m !== "object") return "";
+      var u = m.username || m.user || m.login || "";
+      return typeof u === "string" ? u : "";
+    }
+    module2.exports = function SecretPicker(props) {
+      var h = props.h;
+      var C = props.C;
+      var api = props.api;
+      var lang = props.lang || "zh";
+      var React = props.React || require("react");
+      var vault = props.vault || "ready";
+      var disabled = props.disabled === true;
+      var S = React.useState;
+      var openS = S(false);
+      var qS = S("");
+      var rowsS = S([]);
+      var allS = S([]);
+      var pageS = S(1);
+      var loadS = S(false);
+      var errS = S("");
+      var knownS = S({});
+      var boxRef = React.useRef ? React.useRef(null) : { current: null };
+      var open = openS[0];
+      var rows = rowsS[0];
+      var all = allS[0];
+      var value = String(props.value || "");
+      function call(query) {
+        return C.call(api, "vault.secretList", { q: query || "" }).then(function(r) {
+          var items = (r && Array.isArray(r.items) ? r.items : []).map(function(x) {
+            return { id: x.id, name: x.name, kind: x.kind, meta: x.meta };
+          });
+          return items;
+        });
+      }
+      function remember(items) {
+        knownS[1](function(prev) {
+          var next = Object.assign({}, prev);
+          items.forEach(function(x) {
+            next[x.id] = x;
+          });
+          return next;
+        });
+      }
+      React.useEffect(function() {
+        if (vault !== "ready") return;
+        var alive = true;
+        loadS[1](true);
+        call("").then(function(items) {
+          if (!alive) return;
+          allS[1](items);
+          remember(items);
+          loadS[1](false);
+        }).catch(function(e) {
+          if (!alive) return;
+          loadS[1](false);
+          errS[1](C.errText(e));
+        });
+        return function() {
+          alive = false;
+        };
+      }, [vault]);
+      React.useEffect(function() {
+        if (!open) return;
+        var alive = true;
+        loadS[1](true);
+        errS[1]("");
+        var timer = setTimeout(function() {
+          call(qS[0]).then(function(items) {
+            if (!alive) return;
+            rowsS[1](items);
+            pageS[1](1);
+            remember(items);
+            loadS[1](false);
+          }).catch(function(e) {
+            if (!alive) return;
+            rowsS[1]([]);
+            loadS[1](false);
+            errS[1](C.errText(e));
+          });
+        }, 180);
+        return function() {
+          alive = false;
+          clearTimeout(timer);
+        };
+      }, [open, qS[0]]);
+      React.useEffect(function() {
+        if (!open) return;
+        function onDown(e) {
+          var box = boxRef.current;
+          if (box && !box.contains(e.target)) openS[1](false);
+        }
+        function onKey(e) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            openS[1](false);
+          }
+        }
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return function() {
+          document.removeEventListener("mousedown", onDown);
+          document.removeEventListener("keydown", onKey);
+        };
+      }, [open]);
+      var known = knownS[0];
+      var picked = known[value] || null;
+      var missing = !!value && !picked && !loadS[0];
+      var label = !value ? t(lang, "\u9009\u62E9\u4FDD\u9669\u7BB1\u51ED\u636E", "Choose a vault credential") : picked ? picked.name + " \xB7 " + kindText(lang, picked.kind) : t(lang, "\u51ED\u636E " + value.slice(0, 8), "Credential " + value.slice(0, 8));
+      if (vault === "missing") {
+        return h(
+          "div",
+          { className: "wbml-picker" },
+          h(
+            "div",
+            { className: "wbml-picker-note", role: "status" },
+            t(
+              lang,
+              "\u6CA1\u6709\u68C0\u6D4B\u5230\u51ED\u636E\u4FDD\u9669\u7BB1\uFF0C\u65E0\u6CD5\u9009\u62E9\u51ED\u636E\u3002\u5B89\u88C5\u5E76\u521D\u59CB\u5316\u4FDD\u9669\u7BB1\u540E\u5237\u65B0\u672C\u9875\u3002",
+              "No vault plugin detected. Install and initialise the vault, then reload."
+            )
+          )
+        );
+      }
+      if (vault === "locked" || vault === "init" || vault === "loading") {
+        return h(
+          "div",
+          { className: "wbml-picker" },
+          h(
+            "div",
+            { className: "wbml-picker-note", role: "status" },
+            vault === "loading" ? t(lang, "\u6B63\u5728\u68C0\u67E5\u4FDD\u9669\u7BB1\u72B6\u6001\u2026", "Checking the vault\u2026") : t(
+              lang,
+              "\u4FDD\u9669\u7BB1\u5DF2\u9501\u5B9A\u6216\u672A\u521D\u59CB\u5316\uFF0C\u5148\u5728\u90A3\u91CC\u5EFA\u597D\u51ED\u636E\uFF1B\u89E3\u9501\u540E\u5373\u53EF\u5728\u8FD9\u91CC\u9009\u62E9\u3002",
+              "The vault is locked or uninitialised \u2014 create the credential there first, then unlock to pick it."
+            )
+          )
+        );
+      }
+      var shown = rows.slice(0, pageS[0] * PAGE);
+      var hasMore = pageS[0] * PAGE < rows.length;
+      var noRows = !loadS[0] && !rows.length;
+      function pick(id) {
+        var item = known[id] || null;
+        openS[1](false);
+        if (props.onChange) props.onChange(id, item);
+      }
+      function goVault() {
+        openS[1](false);
+        var host = typeof window !== "undefined" ? window.__WB_HOST__ : null;
+        if (host && typeof host.navigateAddon === "function") host.navigateAddon("wb-addon-vault");
+      }
+      return h(
+        "div",
+        { className: "wbml-picker", ref: boxRef },
+        h(
+          "button",
+          {
+            type: "button",
+            className: "wbml-picker-trigger" + (value && !missing ? " is-set" : "") + (missing ? " is-missing" : ""),
+            disabled,
+            "aria-haspopup": "listbox",
+            "aria-expanded": open ? "true" : "false",
+            onClick: function() {
+              openS[1](!open);
+            }
+          },
+          h("span", { className: "wbml-picker-label" }, label),
+          h("span", { className: "wbml-picker-caret", "aria-hidden": "true" }, "\u25BE")
+        ),
+        missing ? h(
+          "p",
+          { className: "wbml-picker-warn" },
+          t(lang, "\u539F\u51ED\u636E\u5DF2\u5931\u6548\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9", "The bound credential is gone \u2014 pick another one")
+        ) : null,
+        open ? h(
+          "div",
+          { className: "wbml-picker-panel", role: "dialog", "aria-label": t(lang, "\u9009\u62E9\u51ED\u636E", "Choose a credential") },
+          h(FilterChecklist, {
+            mode: "single",
+            items: shown.map(function(x) {
+              var sub = metaOf(x);
+              return { id: x.id, name: x.name, meta: kindText(lang, x.kind) + (sub ? " \xB7 " + sub : "") };
+            }),
+            selected: value ? [value] : [],
+            onPick: pick,
+            query: qS[0],
+            onQuery: function(v) {
+              qS[1](v);
+            },
+            title: t(lang, "\u4FDD\u9669\u7BB1\u51ED\u636E", "Vault credentials"),
+            total: rows.length,
+            searchPlaceholder: t(lang, "\u641C\u7D22\u51ED\u636E\u540D\u79F0\u6216\u5907\u6CE8", "Search by name or note"),
+            groupLabel: t(lang, "\u4FDD\u9669\u7BB1\u51ED\u636E", "Vault credentials"),
+            loading: loadS[0],
+            hasMore,
+            onLoadMore: function() {
+              pageS[1](pageS[0] + 1);
+            },
+            emptyText: t(lang, "\u8FD8\u6CA1\u6709\u51ED\u636E", "No credentials yet"),
+            noMatchText: t(lang, "\u6CA1\u6709\u5339\u914D\u7684\u51ED\u636E", "No matching credential"),
+            noMoreText: rows.length > PAGE ? t(lang, "\u6CA1\u6709\u66F4\u591A", "No more") : "",
+            loadingText: t(lang, "\u52A0\u8F7D\u4E2D\u2026", "Loading\u2026"),
+            disabled
+          }),
+          errS[0] ? h(C.Notice, { h, kind: "error", text: errS[0] }) : null,
+          rows.length ? h(
+            "div",
+            { className: "wbml-picker-foot" },
+            t(
+              lang,
+              "\u5DF2\u52A0\u8F7D " + shown.length + " / \u5171 " + rows.length,
+              "Loaded " + shown.length + " of " + rows.length
+            )
+          ) : null,
+          noRows && !qS[0] ? h(
+            "div",
+            { className: "wbml-picker-empty" },
+            h("span", null, t(lang, "\u8FD8\u6CA1\u6709\u51ED\u636E\uFF0C\u53BB\u4FDD\u9669\u7BB1\u65B0\u5EFA", "No credentials yet \u2014 create one in the vault")),
+            h(
+              "button",
+              { type: "button", className: "wbml-btn", onClick: goVault },
+              t(lang, "\u53BB\u4FDD\u9669\u7BB1", "Open vault")
+            )
+          ) : null
+        ) : null
+      );
+    };
+    module2.exports.PAGE = PAGE;
+    module2.exports.KIND_LABEL = KIND_LABEL;
+  }
+});
+
+// packages/addons/mail/lib/domain/probe-error.js
+var probe_error_exports = {};
+__export(probe_error_exports, {
+  ERROR_CLASSES: () => ERROR_CLASSES,
+  ERROR_TEXT: () => ERROR_TEXT,
+  classifyProbeError: () => classifyProbeError
+});
+function classifyProbeError(e) {
+  const code = String(e && e.code || "");
+  const msg = String(e && (e.message || e) || "");
+  const s = code + " " + msg;
+  if (/不支持\s*starttls/i.test(msg)) return "starttls";
+  if (TLS_CODE.has(code) || /certificate|证书|self[- ]signed|wrong version number|ssl/i.test(s)) return "tls";
+  if (DNS_CODE.has(code) || /getaddrinfo|enotfound|域名解析/i.test(s)) return "dns";
+  if (REFUSED_CODE.has(code) || /econnrefused|连接被拒绝|connection refused/i.test(s)) return "refused";
+  if (code === "ETIMEDOUT" || /超时|timed?\s?out/i.test(s)) return "timeout";
+  if (AUTH_RE.test(s)) return "auth";
+  return "unknown";
+}
+var ERROR_CLASSES, AUTH_RE, TLS_CODE, REFUSED_CODE, DNS_CODE, ERROR_TEXT;
+var init_probe_error = __esm({
+  "packages/addons/mail/lib/domain/probe-error.js"() {
+    ERROR_CLASSES = ["auth", "dns", "refused", "timeout", "tls", "starttls", "unknown"];
+    AUTH_RE = /authenticationfailed|invalid credentials|login failed|imap 登录失败|smtp (用户名|密码) 失败|\b535\b|\b5\.7\.8\b|\bauth(?:entication)? failed\b/i;
+    TLS_CODE = /* @__PURE__ */ new Set([
+      "ERR_TLS_CERT_ALTNAME_INVALID",
+      "DEPTH_ZERO_SELF_SIGNED_CERT",
+      "SELF_SIGNED_CERT_IN_CHAIN",
+      "CERT_HAS_EXPIRED",
+      "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+      "ERR_SSL_WRONG_VERSION_NUMBER",
+      "EPROTO",
+      "ERR_SSL_WRONG_SSL_VERSION"
+    ]);
+    REFUSED_CODE = /* @__PURE__ */ new Set(["ECONNREFUSED", "ECONNRESET", "EHOSTUNREACH", "ENETUNREACH", "EADDRNOTAVAIL"]);
+    DNS_CODE = /* @__PURE__ */ new Set(["ENOTFOUND", "EAI_AGAIN", "EAI_FAIL"]);
+    ERROR_TEXT = {
+      auth: {
+        zh: "\u8D26\u53F7\u6216\u6388\u6743\u7801\u4E0D\u5BF9\u3002QQ/\u7F51\u6613/Gmail/iCloud \u9700\u8981\u300C\u6388\u6743\u7801 / App \u4E13\u7528\u5BC6\u7801\u300D\uFF0C\u4E0D\u662F\u7F51\u9875\u767B\u5F55\u5BC6\u7801\u3002",
+        en: "Wrong account or password. QQ/NetEase/Gmail/iCloud need an app password, not your web login password."
+      },
+      dns: {
+        zh: "\u670D\u52A1\u5668\u5730\u5740\u89E3\u6790\u5931\u8D25\uFF0C\u68C0\u67E5\u4E3B\u673A\u540D\u662F\u5426\u5199\u9519\uFF08\u4F8B\u5982 imap.qq.com\uFF09\u3002",
+        en: "Host name could not be resolved; check the server address (for example imap.qq.com)."
+      },
+      refused: {
+        zh: "\u7AEF\u53E3\u6CA1\u6709\u54CD\u5E94\uFF0C\u68C0\u67E5\u7AEF\u53E3\u53F7\u4E0E\u670D\u52A1\u5668\u662F\u5426\u7981\u7528\u4E86\u8BE5\u534F\u8BAE\u3002",
+        en: "The port did not answer; check the port number and whether the server disables that protocol."
+      },
+      timeout: {
+        zh: "\u8FDE\u63A5\u8D85\u65F6\uFF0C\u53EF\u80FD\u662F\u7F51\u7EDC\u6216\u9632\u706B\u5899\u62E6\u622A\u4E86 993/465/587 \u7AEF\u53E3\u3002",
+        en: "Connection timed out; the network or firewall may block ports 993/465/587."
+      },
+      tls: {
+        zh: "TLS \u63E1\u624B\u5931\u8D25\uFF0C\u68C0\u67E5\u7AEF\u53E3\u4E0E\u52A0\u5BC6\u65B9\u5F0F\u662F\u5426\u5339\u914D\uFF08993 \u7528 SSL/TLS\uFF0C587 \u7528 STARTTLS\uFF09\u3002",
+        en: "TLS handshake failed; check that port and encryption match (993 uses SSL/TLS, 587 uses STARTTLS)."
+      },
+      starttls: {
+        zh: "\u670D\u52A1\u5668\u4E0D\u652F\u6301 STARTTLS\uFF0C\u8BF7\u6539\u7528 993/465 \u7684\u9690\u5F0F TLS \u7AEF\u53E3\u3002",
+        en: "The server does not support STARTTLS; use an implicit-TLS port such as 993 or 465."
+      },
+      unknown: {
+        zh: "\u8FDE\u63A5\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u670D\u52A1\u5668\u5730\u5740\u3001\u7AEF\u53E3\u4E0E\u6388\u6743\u7801\u3002",
+        en: "Connection failed; check the server address, port and app password."
+      }
+    };
+  }
+});
+
+// packages/addons/mail/client/ui/provider-chips.cjs
+var require_provider_chips = __commonJS({
+  "packages/addons/mail/client/ui/provider-chips.cjs"(exports2, module2) {
+    "use strict";
+    var util = require_provider_util();
+    module2.exports = function ProviderChips(props) {
+      var h = props.h;
+      var lang = props.lang;
+      var arr = props.providers && props.providers.providers || [];
+      return h(
+        "div",
+        { className: "wbml-chips", role: "radiogroup", "aria-label": lang === "en" ? "Mail provider" : "\u90AE\u7BB1\u670D\u52A1\u5546" },
+        arr.map(function(p) {
+          var on = p.id === props.value;
+          return h(
+            "button",
+            {
+              key: p.id,
+              type: "button",
+              role: "radio",
+              "aria-checked": on ? "true" : "false",
+              className: "wbml-chip" + (on ? " on" : ""),
+              onClick: function() {
+                props.onPick(p.id);
+              }
+            },
+            util.labelOf(p, lang)
+          );
+        })
+      );
+    };
+  }
+});
+
+// packages/addons/mail/client/ui/account-form.cjs
+var require_account_form = __commonJS({
+  "packages/addons/mail/client/ui/account-form.cjs"(exports2, module2) {
+    "use strict";
+    var util = require_provider_util();
+    var VaultGate = require_vault_gate();
+    var SecretPicker = require_secret_picker();
+    var probe = (init_probe_error(), __toCommonJS(probe_error_exports));
+    function t(lang, zh, en) {
+      return lang === "en" ? en : zh;
+    }
+    module2.exports = function AccountForm(props) {
+      var h = props.h;
+      var React = props.React;
+      var C = props.C;
+      var api = props.api;
+      var lang = props.lang;
+      var SecretField = props.SecretField;
+      var providers = props.providers || { providers: [] };
+      var editing = props.account || null;
+      var S = React.useState;
+      function initial() {
+        var base = util.presetFor(providers, "qq", "") || {
+          provider: "qq",
+          imapHost: "",
+          imapPort: 993,
+          imapTls: true,
+          smtpHost: "",
+          smtpPort: 465,
+          smtpTls: true,
+          username: ""
+        };
+        base.email = "";
+        base.name = "";
+        base.secretId = "";
+        base.advanced = false;
+        if (!editing) return base;
+        return Object.assign(base, {
+          provider: util.detect(providers, editing.email) ? util.detect(providers, editing.email).id : "other",
+          email: editing.email || "",
+          name: editing.name || "",
+          username: editing.username || editing.email || "",
+          imapHost: editing.imapHost || "",
+          imapPort: editing.imapPort || 993,
+          imapTls: editing.imapTls !== false,
+          smtpHost: editing.smtpHost || "",
+          smtpPort: editing.smtpPort || 465,
+          smtpTls: editing.smtpTls !== false,
+          secretId: editing.secretId || "",
+          advanced: true
+        });
+      }
+      var fs = S(initial);
+      var f = fs[0];
+      var setF = fs[1];
+      var touchedS = S(!!editing);
+      var vaultS = S("loading");
+      var passS = S("");
+      var pass2S = S("");
+      var showS = S({ pass: false, pass2: false });
+      var vaultErrS = S("");
+      var afterS = S("");
+      var probeS = S(null);
+      var busyS = S({ save: false, probe: false, vault: false });
+      var errS = S("");
+      var noticeS = S("");
+      var vault = vaultS[0];
+      var busy = busyS[0];
+      function upd(patch) {
+        setF(function(prev) {
+          return Object.assign({}, prev, patch);
+        });
+      }
+      function setBusy(key, on) {
+        setBusyState(function(prev) {
+          var next = Object.assign({}, prev);
+          next[key] = on;
+          return next;
+        });
+      }
+      var setBusyState = busyS[1];
+      function setProbe(value) {
+        probeS[1](value);
+      }
+      function setErr(value) {
+        errS[1](value);
+      }
+      function setNotice(value) {
+        noticeS[1](value);
+      }
+      function checkVault() {
+        return C.call(api, "vault.status").then(function(r2) {
+          var state = !r2 || !r2.initialized ? "init" : r2.locked ? "locked" : "ready";
+          vaultS[1](state);
+          return state;
+        }).catch(function() {
+          vaultS[1]("missing");
+          return "missing";
+        });
+      }
+      React.useEffect(function() {
+        checkVault();
+      }, []);
+      function applyPreset(id, email) {
+        var p = util.presetFor(providers, id, email);
+        if (!p) return;
+        upd({ provider: id, imapHost: p.imapHost, imapPort: p.imapPort, imapTls: p.imapTls, smtpHost: p.smtpHost, smtpPort: p.smtpPort, smtpTls: p.smtpTls, username: p.username, advanced: id === "other" });
+      }
+      function onPick(id) {
+        touchedS[1](true);
+        setProbe(null);
+        applyPreset(id, f.email);
+      }
+      function onEmailBlur() {
+        if (touchedS[0] || !f.email) return;
+        var hit = util.detect(providers, f.email);
+        if (hit) {
+          if (hit.id !== f.provider) applyPreset(hit.id, f.email);
+          else upd({ username: f.username || f.email });
+        } else {
+          upd({ provider: "other", advanced: true, username: f.username || f.email });
+        }
+      }
+      function validate() {
+        if (!/^\S+@\S+\.\S+$/.test(String(f.email || "").trim())) return t(lang, "\u8BF7\u586B\u5199\u6B63\u786E\u7684\u90AE\u7BB1\u5730\u5740", "Enter a valid email address");
+        if (!String(f.name || "").trim()) return t(lang, "\u8BF7\u586B\u5199\u8D26\u6237\u540D\u79F0", "Enter an account name");
+        if (!String(f.imapHost || "").trim()) return t(lang, "\u8BF7\u586B\u5199 IMAP \u670D\u52A1\u5668", "Enter the IMAP server");
+        if (!String(f.username || "").trim()) return t(lang, "\u8BF7\u586B\u5199\u767B\u5F55\u540D", "Enter the login name");
+        if (!String(f.secretId || "").trim()) {
+          return t(lang, "\u8BF7\u5148\u5728\u4FDD\u9669\u7BB1\u65B0\u5EFA\u5E76\u9009\u62E9\u51ED\u636E", "Create a credential in the vault and pick it here");
+        }
+        var ports = [f.imapPort, f.smtpPort];
+        for (var i = 0; i < ports.length; i += 1) {
+          var n = Number(ports[i]);
+          if (!(n >= 1 && n <= 65535)) return t(lang, "\u7AEF\u53E3\u9700\u5728 1\u201365535 \u4E4B\u95F4", "Port must be between 1 and 65535");
+        }
+        return "";
+      }
+      function persist() {
+        setErr("");
+        setBusy("save", true);
+        var payload = {
+          name: String(f.name || "").trim(),
+          email: String(f.email || "").trim(),
+          imapHost: String(f.imapHost || "").trim(),
+          imapPort: Number(f.imapPort),
+          imapTls: !!f.imapTls,
+          smtpHost: String(f.smtpHost || "").trim(),
+          smtpPort: Number(f.smtpPort),
+          smtpTls: !!f.smtpTls,
+          username: String(f.username || "").trim() || String(f.email || "").trim(),
+          secretId: String(f.secretId || "").trim()
+        };
+        var step = editing ? C.call(api, "mail.accountUpdate", Object.assign({ id: editing.id }, payload)) : C.call(api, "mail.accountCreate", payload);
+        step.then(function() {
+          setBusy("save", false);
+          setNotice(t(lang, "\u5DF2\u4FDD\u5B58", "Saved"));
+          if (props.onSaved) props.onSaved();
+        }).catch(function(e) {
+          setBusy("save", false);
+          setErr(C.errText(e));
+        });
+      }
+      function submit() {
+        var msg = validate();
+        if (msg) {
+          setErr(msg);
+          return;
+        }
+        setErr("");
+        if (vault !== "ready") {
+          afterS[1]("save");
+          setNotice("");
+          if (vault === "loading") checkVault();
+          return;
+        }
+        persist();
+      }
+      function onVaultSubmit() {
+        var p = passS[0];
+        if (!p) {
+          vaultErrS[1](t(lang, "\u8BF7\u8F93\u5165\u4E3B\u53E3\u4EE4", "Enter the master password"));
+          return;
+        }
+        if (vault === "init" && p !== pass2S[0]) {
+          vaultErrS[1](t(lang, "\u4E24\u6B21\u8F93\u5165\u7684\u4E3B\u53E3\u4EE4\u4E0D\u4E00\u81F4", "The two passwords do not match"));
+          return;
+        }
+        vaultErrS[1]("");
+        setBusy("vault", true);
+        var call = vault === "init" ? C.call(api, "vault.setup", { passphrase: p, mode: "A" }) : C.call(api, "vault.unlock", { passphrase: p });
+        call.then(function() {
+          setBusy("vault", false);
+          passS[1]("");
+          pass2S[1]("");
+          vaultS[1]("ready");
+          if (afterS[0] === "save") {
+            afterS[1]("");
+            persist();
+          }
+        }).catch(function(e) {
+          setBusy("vault", false);
+          vaultErrS[1](C.errText(e));
+        });
+      }
+      function runProbe() {
+        var msg = validate();
+        if (msg) {
+          setErr(msg);
+          return;
+        }
+        setErr("");
+        setBusy("probe", true);
+        C.call(api, "mail.accountProbe", {
+          email: f.email,
+          username: f.username,
+          imapHost: f.imapHost,
+          imapPort: Number(f.imapPort),
+          imapTls: !!f.imapTls,
+          smtpHost: f.smtpHost,
+          smtpPort: Number(f.smtpPort),
+          smtpTls: !!f.smtpTls,
+          secretId: f.secretId
+        }).then(function(r2) {
+          setBusy("probe", false);
+          setProbe(r2);
+        }).catch(function(e) {
+          setBusy("probe", false);
+          setErr(C.errText(e));
+        });
+      }
+      function field(label, input, hint) {
+        return h(C.Field, { h, label, hint }, input);
+      }
+      function textInput(key, opts) {
+        var o = opts || {};
+        return h("input", {
+          className: "wbml-input",
+          type: o.type || "text",
+          value: f[key],
+          placeholder: o.placeholder || "",
+          autoComplete: o.autoComplete || "off",
+          onChange: function(e) {
+            upd(key === "imapPort" || key === "smtpPort" ? { [key]: e.target.value } : { [key]: e.target.value });
+          }
+        });
+      }
+      function tlsRow(key, label) {
+        return h(
+          "label",
+          { className: "wbml-check" },
+          h("input", {
+            type: "checkbox",
+            checked: !!f[key],
+            onChange: function(e) {
+              upd({ [key]: e.target.checked });
+            }
+          }),
+          h("span", null, label)
+        );
+      }
+      var provider = util.providerById(providers, f.provider);
+      var probeText = "";
+      if (probeS[0]) {
+        var r = probeS[0];
+        if (r.ok) probeText = t(lang, "\u81EA\u68C0\u901A\u8FC7\uFF1AIMAP \u767B\u5F55\u6210\u529F" + (r.imap ? "\uFF0C\u5217\u51FA " + r.imap.mailboxes + " \u4E2A\u6587\u4EF6\u5939" : "") + (r.smtp ? "\uFF1BSMTP \u8BA4\u8BC1\u6210\u529F" : ""), "Check passed: IMAP login succeeded" + (r.smtp ? " and SMTP authenticated" : ""));
+        else {
+          var cls = r.errorClass || "unknown";
+          var tx = probe.ERROR_TEXT[cls] || probe.ERROR_TEXT.unknown;
+          probeText = (lang === "en" ? tx.en : tx.zh) + " " + t(lang, "\uFF08" + cls + "\uFF09", "(" + cls + ")");
+        }
+      }
+      return h(
+        "div",
+        { className: "wbml-acct-form" },
+        h(
+          "div",
+          { className: "wbml-acct-head" },
+          h("strong", null, editing ? t(lang, "\u7F16\u8F91\u8D26\u6237", "Edit account") : t(lang, "\u65B0\u589E\u8D26\u6237", "New account")),
+          h("button", { type: "button", className: "wbml-icon-btn", onClick: props.onCancel, title: t(lang, "\u5173\u95ED", "Close") }, "\xD7")
+        ),
+        h(require_provider_chips(), { h, lang, providers, value: f.provider, onPick }),
+        h(
+          "div",
+          { className: "wbml-acct-grid" },
+          field(t(lang, "\u90AE\u7BB1\u5730\u5740", "Email address"), h("input", {
+            className: "wbml-input",
+            type: "email",
+            value: f.email,
+            placeholder: "you@example.com",
+            autoComplete: "off",
+            onChange: function(e) {
+              upd({ email: e.target.value });
+            },
+            onBlur: onEmailBlur
+          })),
+          field(t(lang, "\u8D26\u6237\u540D\u79F0", "Account name"), textInput("name", { placeholder: t(lang, "\u4F8B\u5982 \u5DE5\u4F5C\u90AE\u7BB1", "e.g. Work mail") }))
+        ),
+        field(
+          t(lang, "\u4FDD\u9669\u7BB1\u51ED\u636E", "Vault credential"),
+          h(SecretPicker, {
+            h,
+            React,
+            C,
+            api,
+            lang,
+            vault,
+            value: f.secretId,
+            disabled: busy.save,
+            onChange: function(id, item) {
+              upd({ secretId: id, secretName: item ? item.name : "" });
+              setProbe(null);
+            }
+          }),
+          t(
+            lang,
+            "\u5148\u5728\u4FDD\u9669\u7BB1\u65B0\u5EFA\u4E00\u6761\u300C\u5E94\u7528\u4E13\u7528\u5BC6\u7801\u300D\uFF0C\u518D\u5728\u8FD9\u91CC\u9009\u7528\uFF1B\u90AE\u4EF6\u9875\u53EA\u4FDD\u5B58\u5B83\u7684 id\u3002",
+            "Create an app-password entry in the vault first, then pick it here \u2014 this page only stores its id."
+          )
+        ),
+        provider && util.hintOf(provider, lang) ? h("p", { className: "wbml-hint-line" }, util.hintOf(provider, lang)) : null,
+        !f.advanced && f.imapHost ? h("p", { className: "wbml-hint-line" }, "IMAP " + f.imapHost + ":" + f.imapPort + (f.imapTls ? " TLS" : "") + " \xB7 SMTP " + (f.smtpHost || "\u2014") + ":" + f.smtpPort + (f.smtpTls ? " TLS" : " STARTTLS")) : null,
+        !f.advanced ? h("button", { type: "button", className: "wbml-btn", onClick: function() {
+          upd({ advanced: true });
+        } }, t(lang, "\u5176\u4ED6\u8BBE\u7F6E\uFF08\u4E3B\u673A / \u7AEF\u53E3 / \u767B\u5F55\u540D\uFF09", "Advanced (hosts / ports / login name)")) : h(
+          "div",
+          { className: "wbml-acct-grid" },
+          field(t(lang, "\u767B\u5F55\u540D", "Login name"), textInput("username", { placeholder: t(lang, "\u9ED8\u8BA4\u4E0E\u90AE\u7BB1\u76F8\u540C", "Defaults to the email") })),
+          field(t(lang, "IMAP \u670D\u52A1\u5668", "IMAP server"), textInput("imapHost")),
+          field(t(lang, "IMAP \u7AEF\u53E3", "IMAP port"), textInput("imapPort", { type: "number" })),
+          field("", tlsRow("imapTls", t(lang, "IMAP \u9690\u5F0F TLS", "IMAP implicit TLS"))),
+          field(t(lang, "SMTP \u670D\u52A1\u5668", "SMTP server"), textInput("smtpHost")),
+          field(t(lang, "SMTP \u7AEF\u53E3", "SMTP port"), textInput("smtpPort", { type: "number" })),
+          field("", tlsRow("smtpTls", t(lang, "SMTP \u9690\u5F0F TLS\uFF08\u5173\u6389\u8D70 STARTTLS\uFF09", "SMTP implicit TLS (off = STARTTLS)")))
+        ),
+        h(VaultGate, {
+          h,
+          C,
+          lang,
+          SecretField,
+          vault,
+          pass: passS[0],
+          pass2: pass2S[0],
+          showPass: showS[0].pass,
+          showPass2: showS[0].pass2,
+          onPass: function(v) {
+            passS[1](v);
+          },
+          onPass2: function(v) {
+            pass2S[1](v);
+          },
+          onTogglePass: function() {
+            showS[1](Object.assign({}, showS[0], { pass: !showS[0].pass }));
+          },
+          onTogglePass2: function() {
+            showS[1](Object.assign({}, showS[0], { pass2: !showS[0].pass2 }));
+          },
+          onSubmit: onVaultSubmit,
+          busy: busy.vault,
+          error: vaultErrS[0],
+          onRetry: function() {
+            checkVault();
+          }
+        }),
+        probeS[0] ? h(C.Notice, { h, text: probeText, kind: probeS[0].ok ? "ok" : "warn" }) : null,
+        errS[0] ? h(C.Notice, { h, text: errS[0], kind: "warn" }) : null,
+        noticeS[0] ? h(C.Notice, { h, text: noticeS[0], kind: "ok" }) : null,
+        !f.secretId ? h("p", { className: "wbml-hint-line" }, t(lang, "\u8BF7\u5148\u5728\u4FDD\u9669\u7BB1\u65B0\u5EFA\u5E76\u9009\u62E9\u51ED\u636E\uFF0C\u672A\u9009\u65F6\u4E0D\u80FD\u4FDD\u5B58\u3002", "Pick a vault credential before saving.")) : null,
+        h(
+          "div",
+          { className: "wbml-acct-foot" },
+          h(C.Btn, { h, onClick: runProbe, disabled: busy.probe || busy.save || !f.secretId }, busy.probe ? t(lang, "\u81EA\u68C0\u4E2D\u2026", "Checking\u2026") : t(lang, "\u4FDD\u5B58\u524D\u81EA\u68C0", "Check connection")),
+          h(C.Btn, { h, kind: "primary", onClick: submit, disabled: busy.save || !f.secretId }, busy.save ? t(lang, "\u4FDD\u5B58\u4E2D\u2026", "Saving\u2026") : t(lang, "\u4FDD\u5B58", "Save")),
+          h(C.Btn, { h, onClick: props.onCancel }, t(lang, "\u53D6\u6D88", "Cancel"))
+        )
+      );
+    };
+  }
+});
+
+// packages/addons/mail/client/ui/account-card.cjs
+var require_account_card = __commonJS({
+  "packages/addons/mail/client/ui/account-card.cjs"(exports2, module2) {
+    "use strict";
+    var probe = (init_probe_error(), __toCommonJS(probe_error_exports));
+    function t(lang, zh, en) {
+      return lang === "en" ? en : zh;
+    }
+    function resultText(res, lang) {
+      if (!res) return "";
+      if (res.ok) return t(lang, "\u8FDE\u63A5\u6B63\u5E38\uFF0C\u5DF2\u5217\u51FA\u6587\u4EF6\u5939", "Connected; folders listed");
+      var cls = res.errorClass || "unknown";
+      var text = probe.ERROR_TEXT[cls] || probe.ERROR_TEXT.unknown;
+      return (lang === "en" ? text.en : text.zh) + (res.message ? "\uFF08" + res.message + "\uFF09" : "");
+    }
+    module2.exports = function AccountCard(props) {
+      var h = props.h;
+      var C = props.C;
+      var lang = props.lang;
+      var a = props.account || {};
+      var res = props.test || null;
+      var busy = !!props.busy;
+      var last = a.lastMessageAt ? C.fmtTime(a.lastMessageAt, lang) : t(lang, "\u8FD8\u6CA1\u6709\u672C\u5730\u6765\u4FE1", "No local mail yet");
+      return h(
+        "div",
+        { className: "wbml-card" },
+        h(
+          "div",
+          { className: "wbml-card-main" },
+          h("div", { className: "wbml-card-title" }, a.name || a.email),
+          h("div", { className: "wbml-card-sub" }, a.email, a.username && a.username !== a.email ? " \xB7 " + a.username : ""),
+          h("div", { className: "wbml-card-meta" }, (a.imapHost || "\u2014") + ":" + a.imapPort + " \xB7 " + (a.smtpHost || "\u2014") + ":" + a.smtpPort),
+          h("div", { className: "wbml-card-meta" }, t(lang, "\u6700\u8FD1\u6765\u4FE1\uFF1A", "Last mail: ") + last)
+        ),
+        h(
+          "div",
+          { className: "wbml-card-actions" },
+          h(C.Btn, { h, onClick: props.onEdit, disabled: busy }, t(lang, "\u7F16\u8F91", "Edit")),
+          h(C.Btn, { h, onClick: props.onTest, disabled: busy }, busy ? t(lang, "\u6D4B\u8BD5\u4E2D\u2026", "Testing\u2026") : t(lang, "\u6D4B\u8BD5", "Test")),
+          h(C.Btn, { h, kind: "danger", onClick: props.onDelete, disabled: busy }, t(lang, "\u5220\u9664", "Delete"))
+        ),
+        res ? h(
+          "div",
+          { className: "wbml-card-result " + (res.ok ? "ok" : "fail"), role: "status" },
+          h(C.Pill, { h, kind: res.ok ? "ok" : "error" }, res.ok ? t(lang, "\u901A\u8FC7", "OK") : t(lang, "\u5931\u8D25", "Failed")),
+          h("span", null, resultText(res, lang))
+        ) : null
+      );
+    };
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye.mjs
+var eye_exports = {};
+__export(eye_exports, {
+  __iconData: () => __iconData6,
+  default: () => Eye
+});
+var __iconData6, Eye;
+var init_eye = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye.mjs"() {
+    init_createLucideIcon();
+    __iconData6 = {
+      name: "eye",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
+            key: "1nclc0"
+          }
+        ],
+        ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+      ]
+    };
+    __iconData6.node;
+    Eye = createLucideIcon(__iconData6);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye-off.mjs
+var eye_off_exports = {};
+__export(eye_off_exports, {
+  __iconData: () => __iconData7,
+  default: () => EyeOff
+});
+var __iconData7, EyeOff;
+var init_eye_off = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye-off.mjs"() {
+    init_createLucideIcon();
+    __iconData7 = {
+      name: "eye-off",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49",
+            key: "ct8e1f"
+          }
+        ],
+        ["path", { d: "M14.084 14.158a3 3 0 0 1-4.242-4.242", key: "151rxh" }],
+        [
+          "path",
+          {
+            d: "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143",
+            key: "13bj9a"
+          }
+        ],
+        ["path", { d: "m2 2 20 20", key: "1ooewy" }]
+      ]
+    };
+    __iconData7.node;
+    EyeOff = createLucideIcon(__iconData7);
+  }
+});
+
+// packages/addons/lib/secret-field.cjs
+var require_secret_field = __commonJS({
+  "packages/addons/lib/secret-field.cjs"(exports2, module2) {
+    "use strict";
+    var Eye2 = (init_eye(), __toCommonJS(eye_exports)).default;
+    var EyeOff2 = (init_eye_off(), __toCommonJS(eye_off_exports)).default;
+    function SecretField(props) {
+      var h = props.h;
+      var show = Boolean(props.show);
+      var label = show ? props.hideLabel || "\u9690\u85CF\u660E\u6587" : props.showLabel || "\u663E\u793A\u660E\u6587";
+      var Ico = show ? EyeOff2 : Eye2;
+      function toggle(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var box = e.currentTarget && e.currentTarget.parentNode;
+        if (props.onToggle) props.onToggle();
+        var input = box && box.querySelector ? box.querySelector("input") : null;
+        if (!input || !input.focus) return;
+        input.focus();
+        var end = String(input.value == null ? "" : input.value).length;
+        if (input.setSelectionRange) {
+          try {
+            input.setSelectionRange(end, end);
+          } catch (err) {
+          }
+        }
+      }
+      return h(
+        "div",
+        { className: "wb-secret-field" + (props.className ? " " + props.className : "") },
+        h("input", {
+          type: show ? "text" : "password",
+          className: props.inputClassName || void 0,
+          id: props.id || void 0,
+          name: props.name || void 0,
+          autoComplete: props.autoComplete || "new-password",
+          autoFocus: props.autoFocus ? true : void 0,
+          spellCheck: false,
+          disabled: props.disabled ? true : void 0,
+          "aria-label": props.ariaLabel || void 0,
+          value: props.value == null ? "" : props.value,
+          placeholder: props.placeholder || void 0,
+          onChange: function(e) {
+            if (props.onChange) props.onChange(e.target.value);
+          },
+          onKeyDown: props.onKeyDown || void 0
+        }),
+        h("button", {
+          type: "button",
+          className: "wb-eye",
+          title: label,
+          "aria-label": label,
+          "aria-pressed": show ? "true" : "false",
+          tabIndex: props.disabled ? -1 : void 0,
+          onClick: toggle
+        }, h(Ico, { size: 15, strokeWidth: 2, "aria-hidden": "true" }))
+      );
+    }
+    module2.exports = SecretField;
   }
 });
 
@@ -813,76 +2257,111 @@ var require_compose = __commonJS({
 var require_accounts = __commonJS({
   "packages/addons/mail/client/views/accounts.cjs"(exports2, module2) {
     "use strict";
+    var AccountForm = require_account_form();
+    var AccountCard = require_account_card();
+    var SecretField = require_secret_field();
+    var providerCache = null;
     module2.exports = function Accounts(props) {
-      var h = props.h, React = props.React, api = props.api;
+      var h = props.h;
+      var React = props.React;
+      var api = props.api;
+      var lang = props.lang || "zh";
       var C = require_common();
       var load = C.useLoad(React, api, "mail.accountList", {}, []);
-      var form = React.useState({ open: false, name: "", email: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465, username: "", secretId: "" });
-      var msg = React.useState(null);
-      function set(k, v) {
-        form[1](Object.assign({}, form[0], { [k]: v }));
-      }
-      function add() {
-        C.call(api, "mail.accountCreate", form[0]).then(function() {
-          form[1]({ open: false, name: "", email: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465, username: "", secretId: "" });
-          load.refresh();
+      var tableS = React.useState(providerCache);
+      var openS = React.useState(null);
+      var testS = React.useState({});
+      var busyS = React.useState("");
+      var msgS = React.useState(null);
+      React.useEffect(function() {
+        if (tableS[0]) return;
+        C.call(api, "mail.providerList", {}).then(function(r) {
+          providerCache = r;
+          tableS[1](r);
         }).catch(function(e) {
-          msg[1]({ kind: "error", text: C.errText(e) });
+          msgS[1]({ kind: "warn", text: C.errText(e) });
+        });
+      }, []);
+      function refresh() {
+        load.refresh();
+      }
+      function close() {
+        openS[1](null);
+      }
+      function test(a) {
+        busyS[1](a.id);
+        C.call(api, "mail.accountTest", { id: a.id }).then(function(r) {
+          busyS[1]("");
+          testS[1](Object.assign({}, testS[0], { [a.id]: r }));
+        }).catch(function(e) {
+          busyS[1]("");
+          msgS[1]({ kind: "warn", text: C.errText(e) });
         });
       }
-      function test(id) {
-        C.call(api, "mail.accountTest", { id }).then(function(r) {
-          msg[1]({ kind: "ok", text: "\u8FDE\u63A5\u6210\u529F\uFF0C\u53D1\u73B0 " + r.mailboxes + " \u4E2A\u6587\u4EF6\u5939" });
+      function remove(a) {
+        var text = lang === "en" ? "Delete account \u201C" + (a.name || a.email) + "\u201D? The vault credential is kept." : "\u5220\u9664\u8D26\u6237\u300C" + (a.name || a.email) + "\u300D\uFF1F\u4FDD\u9669\u7BB1\u91CC\u7684\u51ED\u636E\u4F1A\u4FDD\u7559\u3002";
+        if (typeof window !== "undefined" && window.confirm && !window.confirm(text)) return;
+        C.call(api, "mail.accountDelete", { id: a.id }).then(function() {
+          refresh();
         }).catch(function(e) {
-          msg[1]({ kind: "error", text: C.errText(e) });
-        });
-      }
-      function del(id) {
-        C.call(api, "mail.accountDelete", { id }).then(function() {
-          load.refresh();
-        }).catch(function(e) {
-          msg[1]({ kind: "error", text: C.errText(e) });
+          msgS[1]({ kind: "warn", text: C.errText(e) });
         });
       }
       var items = load.data && load.data.items || [];
+      var editing = openS[0];
+      var providers = tableS[0] || { providers: [] };
+      var loading = load.loading || !tableS[0];
       return h(
         "div",
-        { className: "wbm-page" },
-        h("div", { className: "wbm-head" }, h("div", null, h("h2", null, "\u90AE\u7BB1\u8D26\u6237"), h("p", { className: "wbm-sub" }, "\u5BC6\u7801\u53EA\u5B58\u4FDD\u9669\u7BB1\uFF0C\u8D26\u6237\u4FDD\u5B58 secretId")), h(C.Btn, { h, kind: "primary", onClick: function() {
-          set("open", !form[0].open);
-        } }, "\u6DFB\u52A0\u8D26\u6237")),
-        h(C.Notice, { h, text: msg[0] && msg[0].text, kind: msg[0] && msg[0].kind }),
-        form[0].open ? h(
+        { className: "wbml-page" },
+        h(
           "div",
-          { className: "wbm-card" },
-          h(
-            "div",
-            { className: "wbm-row" },
-            h(C.Field, { h, label: "\u540D\u79F0" }, h("input", { className: "wbm-input", value: form[0].name, onChange: function(e) {
-              set("name", e.target.value);
-            } })),
-            h(C.Field, { h, label: "\u90AE\u7BB1" }, h("input", { className: "wbm-input", value: form[0].email, onChange: function(e) {
-              set("email", e.target.value);
-            } })),
-            h(C.Field, { h, label: "IMAP \u4E3B\u673A" }, h("input", { className: "wbm-input", value: form[0].imapHost, onChange: function(e) {
-              set("imapHost", e.target.value);
-            } })),
-            h(C.Field, { h, label: "SMTP \u4E3B\u673A" }, h("input", { className: "wbm-input", value: form[0].smtpHost, onChange: function(e) {
-              set("smtpHost", e.target.value);
-            } })),
-            h(C.Field, { h, label: "\u4FDD\u9669\u7BB1 secret id" }, h("input", { className: "wbm-input", value: form[0].secretId, onChange: function(e) {
-              set("secretId", e.target.value);
-            } }))
-          ),
-          h("div", { className: "wbm-actions" }, h(C.Btn, { h, kind: "primary", onClick: add }, "\u4FDD\u5B58"))
-        ) : null,
-        load.loading ? h(C.Empty, { h, text: "\u52A0\u8F7D\u4E2D\u2026" }) : items.length === 0 ? h(C.Empty, { h, text: "\u8FD8\u6CA1\u6709\u8D26\u6237" }) : h("div", { className: "wbm-list" }, items.map(function(a) {
-          return h("div", { key: a.id, className: "wbm-list-row" }, h("div", { className: "wbm-main" }, h("strong", null, a.name), h("span", { className: "wbm-muted" }, a.email + " \xB7 IMAP " + a.imapHost)), h(C.Btn, { h, onClick: function() {
-            test(a.id);
-          } }, "\u6D4B\u8BD5"), h("button", { type: "button", className: "wbm-icon-btn", onClick: function() {
-            del(a.id);
-          } }, "\xD7"));
-        }))
+          { className: "wbml-head" },
+          h("div", null, h("h2", null, lang === "en" ? "Mail accounts" : "\u90AE\u7BB1\u8D26\u6237"), h("p", { className: "wbml-sub" }, lang === "en" ? "Pick a provider, then choose an app-password credential from the vault; this page only stores its id." : "\u9009\u670D\u52A1\u5546\u3001\u518D\u4ECE\u4FDD\u9669\u7BB1\u6311\u4E00\u6761\u6388\u6743\u7801\u5373\u53EF\uFF0C\u90AE\u4EF6\u9875\u53EA\u4FDD\u5B58\u51ED\u636E id\u3002")),
+          h(C.Btn, { h, kind: "primary", onClick: function() {
+            openS[1]({});
+          } }, lang === "en" ? "Add account" : "\u6DFB\u52A0\u8D26\u6237")
+        ),
+        msgS[0] ? h(C.Notice, { h, text: msgS[0].text, kind: msgS[0].kind }) : null,
+        editing ? h(AccountForm, {
+          h,
+          React,
+          api,
+          C,
+          lang,
+          SecretField,
+          providers,
+          account: editing.id ? editing : null,
+          onCancel: close,
+          onSaved: function() {
+            close();
+            refresh();
+          }
+        }) : null,
+        loading ? h(C.Empty, { h, text: lang === "en" ? "Loading\u2026" : "\u52A0\u8F7D\u4E2D\u2026" }) : items.length === 0 ? h(C.Empty, { h, text: lang === "en" ? "No accounts yet" : "\u8FD8\u6CA1\u6709\u8D26\u6237\uFF0C\u70B9\u53F3\u4E0A\u89D2\u6DFB\u52A0\u3002" }) : h(
+          "div",
+          { className: "wbml-cards" },
+          items.map(function(a) {
+            return h(AccountCard, {
+              key: a.id,
+              h,
+              C,
+              lang,
+              account: a,
+              test: testS[0][a.id] || null,
+              busy: busyS[0] === a.id,
+              onEdit: function() {
+                openS[1](a);
+              },
+              onTest: function() {
+                test(a);
+              },
+              onDelete: function() {
+                remove(a);
+              }
+            });
+          })
+        )
       );
     };
   }
@@ -2054,7 +3533,7 @@ var require_data = __commonJS({
     var legacy = require_legacy_data()("mail", { paged: false });
     module2.exports = require_data_view()({
       domain: "mail",
-      prefix: "wbm",
+      prefix: "wbml",
       tables: ["mail_account", "mail_mailbox", "mail_message", "mail_attachment"],
       useConfig: function(api, fallback) {
         return { values: fallback, ready: true };
@@ -2130,8 +3609,21 @@ var require_action_schema_style = __commonJS({
         "." + P + " select:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:1px}",
         "." + P + "-list{display:flex;flex-direction:column;gap:8px}",
         "." + P + "-card{border:1px solid var(--wb-border,#e3e5e9);border-radius:10px;padding:10px 12px;background:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));display:flex;flex-direction:column;gap:8px;min-width:0}",
-        "." + P + "-cardhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-        "." + P + "-cardhead code{font-weight:640}",
+        "." + P + "-cardhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px}",
+        "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
+        "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
+        "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
+        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
+        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
+        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
+        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
+        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
+        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
+        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
+        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
+        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
         "." + P + " mark." + P + "-hit{background:color-mix(in oklab,var(--dsw-alias-brand-primary,#4f6ef7) 22%,transparent);color:inherit;border-radius:2px;padding:0;font:inherit;box-decoration-break:clone;-webkit-box-decoration-break:clone}",
@@ -2183,6 +3675,15 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
+        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
+        agentSwitch: "agent \u53EF\u7528",
+        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
+        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
+        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
+        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
+        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -2228,6 +3729,15 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
+        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
+        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
+        agentSwitch: "Agent callable",
+        agentLocked: "UI only \xB7 security",
+        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
+        agentSaving: "Saving\u2026",
+        agentOnToast: "Agent calls allowed",
+        agentOffToast: "Agent calls blocked",
+        agentFail: "Failed to change the agent switch",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -2340,7 +3850,9 @@ var require_action_schema_view = __commonJS({
     }
     module2.exports = function createActionSchemaView(options) {
       var raw = String(options.domain || "");
-      var DOMAIN = raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var SOURCE = options.source === "actions.list" ? "actions.list" : "actionSchema";
+      var DOMAIN = SOURCE === "actions.list" ? raw : raw.indexOf("wb-addon-") === 0 ? raw : "wb-addon-" + raw;
+      var LIST_DOMAIN = options.listDomain ? String(options.listDomain) : DOMAIN;
       var prefix = options.prefix;
       var P = prefix + "-as";
       var Icon2 = options.Icon || null;
@@ -2384,6 +3896,8 @@ var require_action_schema_view = __commonJS({
         var typePick = typeState[0], setTypePick = typeState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
+        var savingState = React.useState("");
+        var saving = savingState[0], setSaving = savingState[1];
         React.useEffect(function() {
           injectCss();
         }, []);
@@ -2392,9 +3906,10 @@ var require_action_schema_view = __commonJS({
           setLoading(true);
           setErr("");
           var pending;
-          var actionName = DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var actionName = SOURCE === "actions.list" ? "actions.list" : DOMAIN.replace(/^wb-addon-/, "") + ".actionSchema";
+          var callArgs = SOURCE === "actions.list" ? { detail: true, domain: LIST_DOMAIN } : void 0;
           if (api && typeof api.call === "function") {
-            pending = Promise.resolve(api.call(actionName)).then(function(r) {
+            pending = Promise.resolve(api.call(actionName, callArgs)).then(function(r) {
               if (r && r.ok === false) return r;
               return r && r.result || r;
             });
@@ -2433,6 +3948,39 @@ var require_action_schema_view = __commonJS({
           }
           plainCopy(text);
           done();
+        }
+        function setAgent(action, next) {
+          var name = action.name;
+          setSaving(name);
+          setToast("");
+          var fail = function(e) {
+            setSaving("");
+            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+          };
+          var done = function(r) {
+            setSaving("");
+            var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
+            if (r && r.ok === false) {
+              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              return;
+            }
+            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            setSnap(function(prev) {
+              if (!prev || !Array.isArray(prev.actions)) return prev;
+              return Object.assign({}, prev, {
+                actions: prev.actions.map(function(a) {
+                  if (!a || a.name !== name) return a;
+                  return Object.assign({}, a, { agentEnabled: value });
+                })
+              });
+            });
+            setToast(value ? t.agentOnToast : t.agentOffToast);
+          };
+          if (!api || typeof api.call !== "function") {
+            fail(new Error("no call api"));
+            return;
+          }
+          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -2482,6 +4030,35 @@ var require_action_schema_view = __commonJS({
             h("td", null, Highlight.hit(row.description, kw))
           );
         }
+        function agentSwitch(action) {
+          if (action.agentLocked === true) {
+            return h("span", {
+              className: P + "-badge " + P + "-locked",
+              title: t.agentLockedHint,
+              "data-agent-locked": action.name
+            }, t.agentLocked);
+          }
+          if (typeof action.agentEnabled !== "boolean") return null;
+          var busy = saving === action.name;
+          return h(
+            "button",
+            {
+              className: P + "-toggle",
+              "data-agent-row": action.name,
+              type: "button",
+              role: "switch",
+              "aria-checked": action.agentEnabled,
+              disabled: busy,
+              "data-agent-toggle": action.name,
+              "aria-label": t.agentSwitch + " \xB7 " + action.name,
+              onClick: function() {
+                setAgent(action, !action.agentEnabled);
+              }
+            },
+            h("span", { className: P + "-track", "aria-hidden": true }),
+            h("span", null, busy ? t.agentSaving : t.agentSwitch)
+          );
+        }
         function card(action) {
           var rows = paramRows(action);
           var examples = Array.isArray(action.examples) ? action.examples : [];
@@ -2491,12 +4068,16 @@ var require_action_schema_view = __commonJS({
             h(
               "div",
               { className: P + "-cardhead" },
-              h("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
-              // 域名在页头已展示一次，卡片内不再重复（所有条目必然同域，见 visible 过滤）。
-              h("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
-              rows.some(function(row) {
-                return row.required;
-              }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              h(
+                "div",
+                { className: P + "-cardmeta" },
+                h("code", { className: P + "-mono" }, Highlight.hit(action.name, kw)),
+                h("span", { className: P + "-badge" }, rows.length ? t.paramCount(rows.length) : t.noParams),
+                rows.some(function(row) {
+                  return row.required;
+                }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
+              ),
+              agentSwitch(action)
             ),
             action.description ? h("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h(
@@ -2573,6 +4154,7 @@ var require_action_schema_view = __commonJS({
             h("span", { className: P + "-badge" }, t.count(visible.length, all.length)),
             h("span", { className: P + "-none" }, t.hint)
           ),
+          h("p", { className: P + "-hintline" }, SOURCE === "actions.list" ? t.hostHint : t.switchHint),
           snap ? h(
             "div",
             { className: P + "-toolbar" },
@@ -2635,7 +4217,7 @@ var require_actions = __commonJS({
     "use strict";
     module2.exports = require_action_schema_view()({
       domain: "wb-addon-mail",
-      prefix: "wbm"
+      prefix: "wbml"
     }).ActionSchemaView;
   }
 });
@@ -2675,7 +4257,7 @@ var require_actions = __commonJS({
   }
   host.registerAddon({
     id: "wb-addon-mail",
-    version: "0.1.1",
+    version: "0.2.6",
     icon: (init_mail(), __toCommonJS(mail_exports)).default,
     views: [
       { id: "messages", icon: tab("mail"), title: { zh: "\u90AE\u4EF6", en: "Messages" }, component: withProps(require_messages(), "\u90AE\u4EF6") },

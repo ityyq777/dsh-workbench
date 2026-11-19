@@ -2,6 +2,7 @@
 // 每个业务包各存一份，避免 npm 安装后跨包相对引用失效。
 var React = require("react");
 var h = React.createElement;
+var DP = require("../../../lib/date-picker.cjs");
 
 // 统计页图标与列表页同源：lucide-react 按需引入，随 client.js 一起打包。
 var ICONS = {
@@ -33,8 +34,7 @@ function css(prefix) {
     ".@-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,#fff)}",
     ".@-seg button{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-size:12px;padding:6px 10px;cursor:pointer;white-space:nowrap}",
     ".@-seg button.@-on{background:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-label-primary-inverted,#fff)}",
-    ".@-range{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;padding:2px 6px;background:var(--dsw-alias-bg-layer-1,#fff)}",
-    ".@-range:focus-within{border-color:var(--dsw-alias-brand-primary,#4f6ef7)}",
+    ".@-range{display:inline-flex;align-items:center;gap:4px}",
     ".@-date{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-family:inherit;font-size:12px;padding:4px 2px;width:116px;outline:none}",
     ".@-date::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}",
     ".@-dash{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
@@ -99,6 +99,7 @@ function css(prefix) {
     "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}",
     "@media (max-width:600px){.@-stats{padding-bottom:16px}.@-hist{height:130px}.@-kpi-v{font-size:22px}}",
     "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}",
+    require("../../../lib/date-picker-styles.cjs")(prefix),
   ].join("\n").replace(/@-/g, prefix + "-");
 }
 
@@ -339,18 +340,13 @@ function makeCharts(prefix) {
         }, o.label);
       })),
       h("div", { className: prefix + "-range", role: "group", "aria-label": props.customAria || "自定义日期范围" },
-        h("input", {
-          type: "date", className: prefix + "-date", value: from,
-          max: props.today || undefined,
-          "aria-label": props.fromLabel || "起始日期", title: props.fromLabel || "起始日期",
-          onChange: function (e) { setDate("from", e.target.value); },
-        }),
-        h("span", { className: prefix + "-dash", "aria-hidden": "true" }, "–"),
-        h("input", {
-          type: "date", className: prefix + "-date", value: to,
-          min: from || undefined, max: props.today || undefined,
-          "aria-label": props.toLabel || "终止日期", title: props.toLabel || "终止日期",
-          onChange: function (e) { setDate("to", e.target.value); },
+        h(DP.RangePicker, {
+          React: React, h: h, prefix: prefix, lang: props.lang, label: props.customAria || "自定义日期范围",
+          value: { from: from, to: to }, max: props.today || undefined, clearable: false,
+          onChange: function (next) {
+            if (typeof props.onCustomChange !== "function") return;
+            props.onCustomChange({ from: next.from, to: next.to });
+          },
         }),
         (from || to) ? h("button", {
           type: "button", className: prefix + "-clear", "aria-label": props.clearLabel || "清除自定义范围",

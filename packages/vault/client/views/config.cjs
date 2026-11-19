@@ -71,6 +71,7 @@ module.exports = function ConfigView(props) {
     hint: askS[0].kind === "mode" ? "切换解锁模式需要验证主口令。" : "旧 device key 文件会被覆盖，之后用新 key 自动解锁。",
     value: askS[0].value, busy: askS[0].busy, error: askS[0].error,
     onChange: function (v) { askS[1](Object.assign({}, askS[0], { value: v })); },
+    show: askS[0].show, onToggle: function () { askS[1](Object.assign({}, askS[0], { show: !askS[0].show })); },
     onCancel: function () { if (!askS[0].busy) askS[1](null); },
     onConfirm: confirmAsk,
   }) : null;

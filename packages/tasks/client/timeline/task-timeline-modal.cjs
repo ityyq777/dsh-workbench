@@ -35,6 +35,10 @@ module.exports = function (React, statusInfo) {
       }).catch(function (e) { if (!cancelled) { setError(String(e.message || e)); setBusy(false); } });
       return function () { cancelled = true; };
     }, [p.api, p.task.id, revision]);
+    // 上层（预览里完成/编辑/删除/换时间线）改完任务后，只让成员列表重拉，弹窗本身不卸载。
+    React.useEffect(function () {
+      if (p.refreshKey) setRevision(function (n) { return n + 1; });
+    }, [p.refreshKey]);
     function change(action, args) {
       if (busy || pending.current) return; pending.current = true; setBusy(true); setError("");
       p.api.call(action, args).then(controls.result).then(function () {
@@ -75,7 +79,7 @@ module.exports = function (React, statusInfo) {
           h("button", { type: "button", className: "wbt-btn", disabled: busy, onClick: function () { setRemoving(null); } }, tr("取消")),
           h("button", { type: "button", className: "wbt-btn wbt-act-del", disabled: busy, onClick: function () { change("taskTimelines.detach", { taskId: removing.id }); } }, tr("确认移出")))) : null,
       h("div", { className: "wbt-timeline-member-scroll" }, members.length ? h(MemberRows, { rows: members.slice((page - 1) * 20, page * 20), lang: lang, disabled: busy, onOpen: p.onOpen, onRemove: setRemoving }) : h("p", { className: "wbt-empty" }, tr("暂无可显示成员"))),
-      h("div", { className: "wbt-timeline-pager" }, h("span", null, tr("按发布时间正序排列")),
+      h("div", { className: "wbt-timeline-pager" }, h("span", null, tr("按发布时间正序排列，点击任务打开预览")),
         h("button", { type: "button", className: "wbt-btn", disabled: busy || page <= 1, onClick: function () { setPage(page - 1); } }, tr("上一页")),
         h("span", null, page + " / " + pages),
         h("button", { type: "button", className: "wbt-btn", disabled: busy || page >= pages, onClick: function () { setPage(page + 1); } }, tr("下一页"))));

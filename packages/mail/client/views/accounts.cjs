@@ -1,25 +1,122 @@
 "use strict";
+/**
+ * 邮箱账户页：服务商预设 + 保险箱凭据选择 + 保存前自检 + 卡片式编辑。
+ * 设计见 docs/specs/51-邮箱账户接入流程设计.md。
+ */
+var AccountForm = require("../ui/account-form.cjs");
+var AccountCard = require("../ui/account-card.cjs");
+var SecretField = require("../../../lib/secret-field.cjs");
+
+var providerCache = null;
+
 module.exports = function Accounts(props) {
-  var h = props.h, React = props.React, api = props.api;
+  var h = props.h;
+  var React = props.React;
+  var api = props.api;
+  var lang = props.lang || "zh";
   var C = require("../ui/common.cjs");
   var load = C.useLoad(React, api, "mail.accountList", {}, []);
-  var form = React.useState({ open: false, name: "", email: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465, username: "", secretId: "" });
-  var msg = React.useState(null);
-  function set(k, v) { form[1](Object.assign({}, form[0], { [k]: v })); }
-  function add() { C.call(api, "mail.accountCreate", form[0]).then(function () { form[1]({ open: false, name: "", email: "", imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 465, username: "", secretId: "" }); load.refresh(); }).catch(function (e) { msg[1]({ kind: "error", text: C.errText(e) }); }); }
-  function test(id) { C.call(api, "mail.accountTest", { id: id }).then(function (r) { msg[1]({ kind: "ok", text: "连接成功，发现 " + r.mailboxes + " 个文件夹" }); }).catch(function (e) { msg[1]({ kind: "error", text: C.errText(e) }); }); }
-  function del(id) { C.call(api, "mail.accountDelete", { id: id }).then(function () { load.refresh(); }).catch(function (e) { msg[1]({ kind: "error", text: C.errText(e) }); }); }
+  var tableS = React.useState(providerCache);
+  var openS = React.useState(null); // null 关闭；{} 新建；account 编辑
+  var testS = React.useState({});
+  var busyS = React.useState("");
+  var msgS = React.useState(null);
+
+  React.useEffect(function () {
+    if (tableS[0]) return;
+    C.call(api, "mail.providerList", {})
+      .then(function (r) {
+        providerCache = r;
+        tableS[1](r);
+      })
+      .catch(function (e) {
+        msgS[1]({ kind: "warn", text: C.errText(e) });
+      });
+  }, []);
+
+  function refresh() {
+    load.refresh();
+  }
+  function close() {
+    openS[1](null);
+  }
+  function test(a) {
+    busyS[1](a.id);
+    C.call(api, "mail.accountTest", { id: a.id })
+      .then(function (r) {
+        busyS[1]("");
+        testS[1](Object.assign({}, testS[0], { [a.id]: r }));
+      })
+      .catch(function (e) {
+        busyS[1]("");
+        msgS[1]({ kind: "warn", text: C.errText(e) });
+      });
+  }
+  function remove(a) {
+    var text = lang === "en" ? "Delete account “" + (a.name || a.email) + "”? The vault credential is kept." : "删除账户「" + (a.name || a.email) + "」？保险箱里的凭据会保留。";
+    if (typeof window !== "undefined" && window.confirm && !window.confirm(text)) return;
+    C.call(api, "mail.accountDelete", { id: a.id })
+      .then(function () {
+        refresh();
+      })
+      .catch(function (e) {
+        msgS[1]({ kind: "warn", text: C.errText(e) });
+      });
+  }
+
   var items = (load.data && load.data.items) || [];
-  return h("div", { className: "wbm-page" }, h("div", { className: "wbm-head" }, h("div", null, h("h2", null, "邮箱账户"), h("p", { className: "wbm-sub" }, "密码只存保险箱，账户保存 secretId")), h(C.Btn, { h: h, kind: "primary", onClick: function () { set("open", !form[0].open); } }, "添加账户")),
-    h(C.Notice, { h: h, text: msg[0] && msg[0].text, kind: msg[0] && msg[0].kind }),
-    form[0].open ? h("div", { className: "wbm-card" }, h("div", { className: "wbm-row" },
-      h(C.Field, { h: h, label: "名称" }, h("input", { className: "wbm-input", value: form[0].name, onChange: function (e) { set("name", e.target.value); } })),
-      h(C.Field, { h: h, label: "邮箱" }, h("input", { className: "wbm-input", value: form[0].email, onChange: function (e) { set("email", e.target.value); } })),
-      h(C.Field, { h: h, label: "IMAP 主机" }, h("input", { className: "wbm-input", value: form[0].imapHost, onChange: function (e) { set("imapHost", e.target.value); } })),
-      h(C.Field, { h: h, label: "SMTP 主机" }, h("input", { className: "wbm-input", value: form[0].smtpHost, onChange: function (e) { set("smtpHost", e.target.value); } })),
-      h(C.Field, { h: h, label: "保险箱 secret id" }, h("input", { className: "wbm-input", value: form[0].secretId, onChange: function (e) { set("secretId", e.target.value); } }))),
-      h("div", { className: "wbm-actions" }, h(C.Btn, { h: h, kind: "primary", onClick: add }, "保存"))) : null,
-    load.loading ? h(C.Empty, { h: h, text: "加载中…" }) : items.length === 0 ? h(C.Empty, { h: h, text: "还没有账户" }) :
-      h("div", { className: "wbm-list" }, items.map(function (a) { return h("div", { key: a.id, className: "wbm-list-row" }, h("div", { className: "wbm-main" }, h("strong", null, a.name), h("span", { className: "wbm-muted" }, a.email + " · IMAP " + a.imapHost)), h(C.Btn, { h: h, onClick: function () { test(a.id); } }, "测试"), h("button", { type: "button", className: "wbm-icon-btn", onClick: function () { del(a.id); } }, "×")); }))
+  var editing = openS[0];
+  var providers = tableS[0] || { providers: [] };
+  var loading = load.loading || !tableS[0];
+
+  return h(
+    "div",
+    { className: "wbml-page" },
+    h(
+      "div",
+      { className: "wbml-head" },
+      h("div", null, h("h2", null, lang === "en" ? "Mail accounts" : "邮箱账户"), h("p", { className: "wbml-sub" }, lang === "en" ? "Pick a provider, then choose an app-password credential from the vault; this page only stores its id." : "选服务商、再从保险箱挑一条授权码即可，邮件页只保存凭据 id。")),
+      h(C.Btn, { h: h, kind: "primary", onClick: function () { openS[1]({}); } }, lang === "en" ? "Add account" : "添加账户"),
+    ),
+    msgS[0] ? h(C.Notice, { h: h, text: msgS[0].text, kind: msgS[0].kind }) : null,
+    editing
+      ? h(AccountForm, {
+          h: h,
+          React: React,
+          api: api,
+          C: C,
+          lang: lang,
+          SecretField: SecretField,
+          providers: providers,
+          account: editing.id ? editing : null,
+          onCancel: close,
+          onSaved: function () {
+            close();
+            refresh();
+          },
+        })
+      : null,
+    loading
+      ? h(C.Empty, { h: h, text: lang === "en" ? "Loading…" : "加载中…" })
+      : items.length === 0
+        ? h(C.Empty, { h: h, text: lang === "en" ? "No accounts yet" : "还没有账户，点右上角添加。" })
+        : h(
+            "div",
+            { className: "wbml-cards" },
+            items.map(function (a) {
+              return h(AccountCard, {
+                key: a.id,
+                h: h,
+                C: C,
+                lang: lang,
+                account: a,
+                test: testS[0][a.id] || null,
+                busy: busyS[0] === a.id,
+                onEdit: function () { openS[1](a); },
+                onTest: function () { test(a); },
+                onDelete: function () { remove(a); },
+              });
+            }),
+          ),
   );
 };
