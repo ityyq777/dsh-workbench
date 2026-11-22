@@ -12,7 +12,9 @@ const DDL = [
   `CREATE TABLE IF NOT EXISTS salary_record (
     id TEXT PRIMARY KEY,
     pay_date TEXT NOT NULL,
+    income_period TEXT,
     cycle TEXT NOT NULL DEFAULT 'monthly',
+    employment_type TEXT,
     ${MONEY_FIELDS.map((f) => f.column + " REAL NOT NULL DEFAULT 0").join(",\n    ")},
     note TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL,
@@ -26,11 +28,18 @@ const DDL = [
 
 export function ensureSchema(db) {
   for (const sql of DDL) db.exec(sql);
+  if (!db.prepare("PRAGMA table_info(salary_record)").all().some((col) => col.name === "income_period")) {
+    db.exec("ALTER TABLE salary_record ADD COLUMN income_period TEXT");
+  }
+  if (!db.prepare("PRAGMA table_info(salary_record)").all().some((col) => col.name === "employment_type")) {
+    db.exec("ALTER TABLE salary_record ADD COLUMN employment_type TEXT");
+  }
+  db.exec("CREATE INDEX IF NOT EXISTS idx_salary_income_period ON salary_record(income_period)");
 }
 
 export function salaryRow(r) {
   if (!r) return null;
-  const out = { id: r.id, payDate: r.pay_date, cycle: r.cycle };
+  const out = { id: r.id, payDate: r.pay_date, incomePeriod: r.income_period ?? null, cycle: r.cycle, employmentType: r.employment_type ?? null };
   for (const field of MONEY_FIELDS) out[field.key] = Number(r[field.column]) || 0;
   out.note = r.note || "";
   out.createdAt = r.created_at;
@@ -39,4 +48,4 @@ export function salaryRow(r) {
   return out;
 }
 
-export const COLUMNS = ["id", "pay_date", "cycle", ...MONEY_COLUMNS, "note", "created_at", "updated_at", "rev"];
+export const COLUMNS = ["id", "pay_date", "income_period", "cycle", "employment_type", ...MONEY_COLUMNS, "note", "created_at", "updated_at", "rev"];

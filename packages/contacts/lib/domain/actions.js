@@ -20,23 +20,29 @@ export function registerContactActions(api, engine) {
   });
   action("contacts.get", { description: "联系人详情（含字段与分组）", input: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, execute: (args) => engine.one(args.id) });
   action("contacts.create", {
-    agentEnabled: false,
+    origins: ["ui", "agent"],
+    originsDefault: ["ui"],
     description: "新建联系人；仅 UI",
     input: { type: "object", properties: { name: { type: "string" }, org: { type: "string" }, title: { type: "string" }, note: { type: "string" }, birthday: { type: "string" }, fields: { type: "array" }, groups: { type: "array" } }, required: ["name"] },
     execute: (args, ctx) => { deny(ctx.origin); return engine.create({ name: args.name, org: args.org, title: args.title, note: args.note, birthday: args.birthday, fields: args.fields, groups: args.groups }); },
   });
   action("contacts.update", {
-    agentEnabled: false,
+    origins: ["ui", "agent"],
+    originsDefault: ["ui"],
     description: "更新联系人；仅 UI",
     input: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, org: { type: "string" }, title: { type: "string" }, note: { type: "string" }, birthday: { type: "string" }, fields: { type: "array" }, groups: { type: "array" } }, required: ["id"] },
     execute: (args, ctx) => { deny(ctx.origin); return engine.update({ id: args.id, name: args.name, org: args.org, title: args.title, note: args.note, birthday: args.birthday, fields: args.fields, groups: args.groups }); },
   });
-  action("contacts.delete", { agentEnabled: false, description: "软删除联系人；仅 UI", input: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.remove(args.id); } });
+  action("contacts.delete", { origins: ["ui", "agent"],
+    originsDefault: ["ui"], description: "软删除联系人；仅 UI", input: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.remove(args.id); } });
   action("contacts.search", { description: "按姓名/组织/字段搜索联系人", input: { type: "object", properties: { q: { type: "string" }, limit: { type: "number" } }, required: ["q"] }, execute: (args) => engine.search(args.q, { limit: args.limit }) });
   action("contacts.groupList", { description: "分组列表与人数", input: { type: "object", properties: {} }, execute: () => ({ items: engine.groups() }) });
-  action("contacts.groupCreate", { agentEnabled: false, description: "新建分组；仅 UI", input: { type: "object", properties: { name: { type: "string" }, color: { type: "string" } }, required: ["name"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.createGroup({ name: args.name, color: args.color }); } });
-  action("contacts.groupDelete", { agentEnabled: false, description: "删除分组；仅 UI", input: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.deleteGroup(args.id); } });
-  action("contacts.importVcf", { agentEnabled: false, description: "导入 vCard 文本；仅 UI", input: { type: "object", properties: { text: { type: "string" } }, required: ["text"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.importVcf(args.text); } });
+  action("contacts.groupCreate", { origins: ["ui", "agent"],
+    originsDefault: ["ui"], description: "新建分组；仅 UI", input: { type: "object", properties: { name: { type: "string" }, color: { type: "string" } }, required: ["name"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.createGroup({ name: args.name, color: args.color }); } });
+  action("contacts.groupDelete", { origins: ["ui", "agent"],
+    originsDefault: ["ui"], description: "删除分组；仅 UI", input: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.deleteGroup(args.id); } });
+  action("contacts.importVcf", { origins: ["ui", "agent"],
+    originsDefault: ["ui"], description: "导入 vCard 文本；仅 UI", input: { type: "object", properties: { text: { type: "string" } }, required: ["text"] }, execute: (args, ctx) => { deny(ctx.origin); return engine.importVcf(args.text); } });
   action("contacts.exportVcf", { description: "导出 vCard 文本，可指定 id 列表", input: { type: "object", properties: { ids: { type: "array" } } }, execute: (args) => engine.exportVcf(args.ids) });
   action("contacts.dataTables", { description: "数据页白名单", input: { type: "object", properties: {} }, execute: () => ({ tables: Object.keys(TABLES), columns: TABLES }) });
   action("contacts.dataQuery", {

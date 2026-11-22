@@ -1,18 +1,13 @@
 /** 自动化规则：单触发 + 单动作 + 可选条件；不做循环与分支。 */
 import { newId, now, parseJson, ruleRow, runRow, metaGet, metaSet } from "../db/db.js";
 import { nextDailyAt, validTimeZone } from "./time.js";
+import { checkAction, normalizeAllowedList } from "./whitelist.js";
+import { createAgentBridge } from "./agent.js";
+import { createAgentRules } from "./agent-rules.js";
 
-export const ALLOWED_ACTIONS = [
-  "message.send",
-  "tasks.create",
-  "tags.create",
-  "sites.create",
-  "connector.sourceRun",
-];
-const DENIED = /^(vault|automation|audit)\.|\.(delete|backup)/i;
 const OPS = new Set(["eq", "neq", "contains", "gt", "lt"]);
 const SEGMENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const DEFAULT_CONFIG = { maxRules: 50, perHour: 60 };
+const DEFAULT_CONFIG = { maxRules: 50, perHour: 60, allowedActions: [] };
 
 function bad(message) {
   const error = new Error(message);
@@ -123,11 +118,10 @@ function normalizeCondition(input) {
   return { field: String(input.field), op: String(input.op), value: input.value };
 }
 
-function normalizeAction(name, args) {
+function normalizeAction(name, args, allowed) {
   const action = String(name || "").trim();
-  if (!action) throw bad("缺少 actionName");
-  if (DENIED.test(action)) throw bad("该 action 不允许被自动化调用：" + action);
-  if (!ALLOWED_ACTIONS.includes(action)) throw bad("action 不在白名单：" + action);
+  const problem = checkAction(action, allowed);
+  if (problem) throw bad(problem);
   const actionArgs = args == null ? {} : args;
   if (!plainObject(actionArgs)) throw bad("actionArgs 必须是对象");
   const json = JSON.stringify(actionArgs);
@@ -143,21 +137,31 @@ function nextAt(triggerType, config, from) {
   return null;
 }
 
-export function createAutomation({ db, host, log = () => {} }) {
+export function createAutomation({ db, host, log = () => {}, getSchedule = () => null }) {
   let timer = null;
   let ticking = false;
   let active = 0;
+  // 「交给 AI」执行方式：定时与投递交给宿主 schedule，本机只存表单与快照。
+  const agent = createAgentBridge({ getSchedule, log });
+  // 「交给 AI」规则的宿主登记与对账单独成模块，规则引擎只负责 action 模式。
+  const agentRules = createAgentRules({ db, agent, log, plainObject, bad, getRule, listRules });
 
   function config() {
     const raw = metaGet(db, "config");
     const parsed = raw ? parseJson(raw, {}) : {};
-    return Object.assign({}, DEFAULT_CONFIG, plainObject(parsed) ? parsed : {});
+    const next = Object.assign({}, DEFAULT_CONFIG, plainObject(parsed) ? parsed : {});
+    // 读取时静默清洗，保证老数据或手改配置不会让页面直接报错。
+    next.allowedActions = normalizeAllowedList(next.allowedActions, false);
+    return next;
   }
 
   function saveConfig(patch) {
     const next = Object.assign({}, config(), patch);
     next.maxRules = Math.max(1, Math.min(500, Number(next.maxRules) || DEFAULT_CONFIG.maxRules));
     next.perHour = Math.max(1, Math.min(600, Number(next.perHour) || DEFAULT_CONFIG.perHour));
+    if (patch && Object.prototype.hasOwnProperty.call(patch, "allowedActions")) {
+      next.allowedActions = normalizeAllowedList(patch.allowedActions, true);
+    }
     metaSet(db, "config", JSON.stringify(next));
     return next;
   }
@@ -175,13 +179,14 @@ export function createAutomation({ db, host, log = () => {} }) {
     });
   }
 
-  function createRule(input) {
+  async function createRule(input) {
     const data = plainObject(input) ? input : {};
     const name = String(data.name || "").trim().slice(0, 80);
     if (!name) throw bad("规则名称不能为空");
     if (listRules().length >= config().maxRules) throw bad("规则数量已达上限");
+    if (data.execMode === "agent") return agentRules.createAgentRule(data, name);
     const trigger = normalizeTrigger(data);
-    const action = normalizeAction(data.actionName, data.actionArgs);
+    const action = normalizeAction(data.actionName, data.actionArgs, config().allowedActions);
     const condition = normalizeCondition(data.condition);
     const id = newId("rule");
     const ts = now();
@@ -192,15 +197,17 @@ export function createAutomation({ db, host, log = () => {} }) {
     return getRule(id);
   }
 
-  function updateRule(input) {
+  async function updateRule(input) {
     const data = plainObject(input) ? input : {};
     const existing = getRule(data.id);
     if (!existing) throw bad("规则不存在");
-    const merged = Object.assign({}, existing, data);
-    const name = String(merged.name || "").trim().slice(0, 80);
+    if (data.execMode && data.execMode !== existing.execMode) throw bad("规则创建后不能切换执行方式，请新建一条规则");
+    const name = String((data.name == null ? existing.name : data.name) || "").trim().slice(0, 80);
     if (!name) throw bad("规则名称不能为空");
+    if (existing.execMode === "agent") return agentRules.updateAgentRule(existing, data, name);
+    const merged = Object.assign({}, existing, data);
     const trigger = normalizeTrigger({ triggerType: merged.triggerType, triggerConfig: merged.triggerConfig });
-    const action = normalizeAction(merged.actionName, merged.actionArgs);
+    const action = normalizeAction(merged.actionName, merged.actionArgs, config().allowedActions);
     const condition = normalizeCondition(merged.condition);
     const enabled = merged.enabled !== false;
     const ts = now();
@@ -211,9 +218,17 @@ export function createAutomation({ db, host, log = () => {} }) {
     return getRule(existing.id);
   }
 
-  function deleteRule(id) {
+  async function deleteRule(id) {
     const existing = getRule(id);
     if (!existing) throw bad("规则不存在");
+    if (existing.scheduleId) {
+      try {
+        await agent.remove(existing.scheduleId);
+      } catch (error) {
+        // 宿主任务删不掉（服务未加载/权限）时仍然删本地规则，避免页面卡住。
+        log("删除宿主任务失败：" + (error && error.message));
+      }
+    }
     db.prepare("UPDATE automation_rule SET enabled=0, deleted_at=?, next_run_at=NULL, updated_at=?, rev=rev+1 WHERE id=?").run(now(), now(), existing.id);
     return { id: existing.id, deleted: true };
   }
@@ -255,6 +270,13 @@ export function createAutomation({ db, host, log = () => {} }) {
       if (trigger === "schedule") setNext(rule);
       return { skipped: true, reason: "busy" };
     }
+    // 执行时复核：配置收紧后，老规则立即停跑而不是继续调用。
+    const allowedNow = config().allowedActions;
+    if (checkAction(rule.actionName, allowedNow)) {
+      record(rule, trigger, "skipped", "", "action 未启用：" + rule.actionName, now());
+      if (trigger === "schedule") setNext(rule);
+      return { skipped: true, reason: "disabled" };
+    }
     active += 1;
     const started = now();
     try {
@@ -277,6 +299,13 @@ export function createAutomation({ db, host, log = () => {} }) {
   async function runRule(id, trigger = "manual", payload) {
     const rule = getRule(id);
     if (!rule) throw bad("规则不存在");
+    if (rule.execMode === "agent") {
+      if (!rule.scheduleId) throw bad("规则还没有关联宿主任务，请删除后重建");
+      const out = await agent.run(rule.scheduleId);
+      if (out.status === "missing") throw bad("宿主任务已不存在（可能已在「自动化任务」里删除）");
+      if (out.status === "pending") return { skipped: true, reason: "busy" };
+      return { ok: true, delivered: true };
+    }
     return execute(rule, trigger, payload);
   }
 
@@ -301,14 +330,19 @@ export function createAutomation({ db, host, log = () => {} }) {
     const runs = db.prepare("SELECT status, COUNT(*) AS n FROM automation_run WHERE started_at>=? GROUP BY status").all(today);
     const map = {};
     for (const row of runs) map[row.status] = row.n;
-    return { total, enabled, today: map, config: config() };
+    const cfg = config();
+    const stale = db.prepare("SELECT action_name FROM automation_rule WHERE deleted_at IS NULL AND exec_mode='action'").all()
+      .filter((row) => checkAction(row.action_name, cfg.allowedActions)).length;
+    const agentRuleCount = db.prepare("SELECT COUNT(*) AS n FROM automation_rule WHERE deleted_at IS NULL AND exec_mode='agent'").get().n;
+    const agentEnabled = db.prepare("SELECT COUNT(*) AS n FROM automation_rule WHERE deleted_at IS NULL AND exec_mode='agent' AND enabled=1").get().n;
+    return { total, enabled, today: map, config: cfg, staleCount: stale, agentRules: agentRuleCount, agentEnabled };
   }
 
   async function tick() {
     if (ticking) return;
     ticking = true;
     try {
-      const due = db.prepare("SELECT * FROM automation_rule WHERE deleted_at IS NULL AND enabled=1 AND next_run_at IS NOT NULL AND next_run_at<=? ORDER BY next_run_at ASC LIMIT 3").all(now());
+      const due = db.prepare("SELECT * FROM automation_rule WHERE deleted_at IS NULL AND enabled=1 AND exec_mode='action' AND next_run_at IS NOT NULL AND next_run_at<=? ORDER BY next_run_at ASC LIMIT 3").all(now());
       for (const row of due) await execute(ruleRow(row), "schedule", { at: now() });
     } finally {
       ticking = false;
@@ -338,23 +372,65 @@ export function createAutomation({ db, host, log = () => {} }) {
   }
 
   function exportData() {
-    return { rules: listRules().map((rule) => ({ ...rule, lastRun: undefined })) };
+    return {
+      rules: listRules().map((rule) => {
+        // 宿主任务 id 只在本机有效，导出时去掉，导入时按表单重建。
+        const { scheduleId, lastRun, rev, ...rest } = rule;
+        return rest;
+      }),
+    };
   }
 
-  function importData(payload) {
-    const rules = payload && Array.isArray(payload.rules) ? payload.rules : [];
-    let imported = 0;
-    for (const item of rules.slice(0, 500)) {
-      if (!item || !item.id || getRule(item.id)) continue;
+  async function importData(payload) {
+    let data = payload;
+    if (typeof payload === "string") {
       try {
-        createRule(item);
-        imported += 1;
+        data = JSON.parse(payload);
       } catch {
-        /* 跳过非法规则 */
+        return { ok: false, imported: 0, skipped: 0, failed: 0, message: "备份内容不是合法 JSON" };
       }
     }
-    return { imported };
+    const rules = data && Array.isArray(data.rules) ? data.rules : [];
+    let imported = 0;
+    let skipped = 0;
+    let failed = 0;
+    for (const item of rules.slice(0, 500)) {
+      if (!item || !item.id || getRule(item.id)) {
+        skipped += 1;
+        continue;
+      }
+      try {
+        // AI 规则会在这里重新向宿主登记一次任务（宿主任务 id 不可迁移）。
+        await createRule(item);
+        imported += 1;
+      } catch (error) {
+        failed += 1;
+        log("导入规则失败 " + item.id + "：" + (error && error.message));
+      }
+    }
+    return { ok: failed === 0, imported, skipped, failed, message: failed ? failed + " 条规则导入失败" : "" };
   }
 
-  return { config, saveConfig, getRule, listRules, createRule, updateRule, deleteRule, runRule, runList, runGet, stats, tick, onEvent, start, stop, exportData, importData };
+  return {
+    config,
+    saveConfig,
+    getRule,
+    listRules,
+    createRule,
+    updateRule,
+    deleteRule,
+    runRule,
+    runList,
+    runGet,
+    stats,
+    tick,
+    onEvent,
+    start,
+    stop,
+    exportData,
+    importData,
+    listRulesLive: () => agentRules.listRulesLive(),
+    agentStatus: () => agentRules.agentStatus(),
+    agentHistory: (scheduleId, limit, before) => agentRules.agentHistory(scheduleId, limit, before),
+  };
 }

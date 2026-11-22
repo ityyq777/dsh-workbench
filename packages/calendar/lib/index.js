@@ -24,7 +24,8 @@ export function apply(ctx) {
     id: "wb-addon-calendar",
     title: "日历",
     description: "本地日历、事件、参与人、提醒；RRULE 只存原文，提醒复用消息插件",
-    version: "0.1.2",
+    version: "0.1.7",
+    category: "work",
     tables: ["calendar", "calendar_event", "calendar_attendee", "calendar_reminder"],
     sync: { tables: [] },
     views: [

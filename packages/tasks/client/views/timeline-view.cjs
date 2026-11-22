@@ -1,15 +1,15 @@
-// Timeline navigation keeps its list mounted while independently paging members.
+// The directory is paged; each selected timeline loads its full member list.
 "use strict";
 module.exports = function (deps) {
   var React = deps.React, h = React.createElement, COPY = deps.COPY;
   var controls = require("../timeline/timeline-controls.cjs")(React), AddMembers = require("../timeline/timeline-add-members.cjs")(React);
   var Merge = require("../timeline/timeline-merge.cjs")(React);
-  var CSS = require("../timeline/timeline-styles.cjs");
   var MemberRows = require("../timeline/timeline-member-rows.cjs")(React, deps.statusInfo);
   var TaskPreview = require("../modals/task-preview.cjs")(React, deps.TaskItem);
   var receipts = require("../modals/ownership.cjs");
   var splitTitle = require("../timeline/timeline-title.cjs");
   var Highlight = require("../ui/highlight.cjs")(React);
+  var SW = require("../../../lib/switch.cjs");
   function result(r) { if (!r || !r.ok) throw new Error(r && r.error || "Request failed"); return r.result; }
   function pageData(r) { return { records: r.records || [], total: Number(r.total) || 0 }; }
   function Pager(p) {
@@ -29,8 +29,7 @@ module.exports = function (deps) {
     var busyS = React.useState(true), busy = busyS[0], setBusy = busyS[1];
     var errorS = React.useState(""), error = errorS[0], setError = errorS[1];
     var activeS = React.useState(null), active = activeS[0], setActive = activeS[1];
-    var memberPageS = React.useState(1), memberPage = memberPageS[0], setMemberPage = memberPageS[1];
-    var membersS = React.useState({ records: [], total: 0 }), members = membersS[0], setMembers = membersS[1];
+    var membersS = React.useState(null), loaded = membersS[0], setMembers = membersS[1];
     var memberBusyS = React.useState(false), memberBusy = memberBusyS[0], setMemberBusy = memberBusyS[1];
     var memberErrorS = React.useState(""), memberError = memberErrorS[0], setMemberError = memberErrorS[1];
     var refreshS = React.useState(0), refresh = refreshS[0], setRefresh = refreshS[1];
@@ -42,6 +41,7 @@ module.exports = function (deps) {
     var listRef = React.useRef(null), mergeButton = React.useRef(null), detailTrigger = React.useRef(null);
     var createdRef = React.useRef(null);
     var activeKey = active && active.timelineKey;
+    var members = loaded && loaded.key === activeKey ? loaded.rows : [];
     var heading = splitTitle(active && active.title);
     var editorS = React.useState(null), editor = editorS[0], setEditor = editorS[1];
     var addS = React.useState(false), adding = addS[0], setAdding = addS[1];
@@ -64,17 +64,15 @@ module.exports = function (deps) {
       }).catch(function (e) { if (!cancelled) { setBusy(false); setError(String(e.message || e)); } });
       return function () { cancelled = true; };
     }, [api, query, single, page, refresh]);
-    React.useEffect(function () { setMemberPage(1); }, [activeKey]);
     React.useEffect(function () {
-      var cancelled = false; setMemberError(""); setMembers({ records: [], total: 0 });
+      var cancelled = false; setMemberError(""); setMembers(null);
       if (!activeKey) { setMemberBusy(false); return; }
       setMemberBusy(true);
-      api.call("tasks.timeline", { timelineKey: activeKey, pageNumber: memberPage, pageSize: 20 }).then(result).then(function (r) {
-        if (cancelled) return; var next = pageData(r); setMembers(next); setMemberBusy(false);
-        if (memberPage > 1 && !next.records.length) setMemberPage(Math.max(1, Math.ceil(next.total / 20)));
+      api.call("tasks.timeline", { timelineKey: activeKey }).then(result).then(function (rows) {
+        if (!cancelled) { setMembers({ key: activeKey, rows: rows }); setMemberBusy(false); }
       }).catch(function (e) { if (!cancelled) { setMemberBusy(false); setMemberError(String(e.message || e)); } });
       return function () { cancelled = true; };
-    }, [api, activeKey, memberPage, refresh]);
+    }, [api, activeKey, refresh]);
     React.useEffect(function () {
       if (!editTask && !createState) return; var cancelled = false;
       api.call("taskNodes.tree", {}).then(result).then(function (r) { if (!cancelled) setTree(Array.isArray(r) ? r : []); }).catch(function () {});
@@ -84,7 +82,7 @@ module.exports = function (deps) {
     function reload() { setRefresh(function (n) { return n + 1; }); }
     function choose(item, toggle) {
       if (busy) return;
-      setActive(item); setMemberPage(1);
+      setActive(item);
       if (toggle && item.taskCount > 0) setSelected(function (old) { return old.some(function (x) { return x.timelineKey === item.timelineKey; }) ? old.filter(function (x) { return x.timelineKey !== item.timelineKey; }) : old.concat(item); });
     }
     function keyboard(e, index) {
@@ -126,13 +124,13 @@ module.exports = function (deps) {
     }
     function savedTask(result) { if (result) say(receipts.receipt(result)); }
     function closeMerge() { setMerge(false); if (mergeButton.current) mergeButton.current.focus({ preventScroll: true }); }
-    return h("div", { className: "wbt-root wbt-timeline-view" }, h("style", null, CSS),
+    return h("div", { className: "wbt-root wbt-timeline-view" },
       h("div", { className: "wbt-timeline-toolbar" },
         h("div", { className: "wbt-timeline-toolbar-main" },
           h("form", { className: "wbt-timeline-search", onSubmit: function (e) { e.preventDefault(); setPage(1); setQuery(draft.trim()); } },
             h("input", { className: "wbt-input", value: draft, "aria-label": t.timelineSearch, placeholder: t.timelineSearch, onChange: function (e) { setDraft(e.target.value); } }),
             h("button", { className: "wbt-btn", type: "submit" }, t.timelineSearchButton)),
-          h("label", { className: "wbt-timeline-single" }, h("input", { type: "checkbox", "aria-label": t.timelineSingletons, checked: single, onChange: function (e) { setSingle(e.target.checked); setPage(1); } }), t.timelineSingletons)),
+          h(SW.Switch, { h: h, checked: !!single, label: t.timelineSingletons, onChange: function (next) { setSingle(next); setPage(1); } })),
         h("div", { className: "wbt-timeline-toolbar-actions" },
           h("button", { className: "wbt-btn primary", onClick: function () { setEditor({}); } }, tr("新建时间线")),
           h("button", { className: "wbt-btn", onClick: function () { setMulti(!multi); setSelected([]); }, "aria-pressed": multi }, multi ? t.cancelSelect : t.select),
@@ -166,11 +164,11 @@ module.exports = function (deps) {
               h("button", { className: "wbt-btn", disabled: writing, onClick: function () { setWriting(true); api.call("taskTimelines.delete", { timelineId: activeKey }).then(result).then(function () { setDeleting(false); setSelected([]); reload(); }).catch(function (e) { setMemberError(String(e.message || e)); }).finally(function () { setWriting(false); }); } }, tr("确认删除时间线"))) : null) : null,
 
           memberError ? h("p", { role: "alert", className: "wbt-err" }, t.error + memberError) : null,
-          memberBusy ? h("p", { role: "status" }, t.loading) : h(MemberRows, { rows: members.records, lang: lang, disabled: writing,
+          memberBusy ? h("p", { role: "status" }, t.loading) : h(MemberRows, { rows: members, lang: lang, disabled: writing,
              onOpen: function (task, e) { detailTrigger.current = e.currentTarget; setDetail(task); },
              onRemove: function (task) { setWriting(true); api.call("taskTimelines.detach", { taskId: task.id }).then(result).then(function () { createdRef.current = active; reload(); }).catch(function (e) { setMemberError(String(e.message || e)); }).finally(function () { setWriting(false); }); } }),
-           !memberBusy && !memberError && !members.records.length ? h("p", { className: "wbt-empty" }, active ? tr("暂无可显示成员") : t.timelineEmpty) : null,
-          active ? h("div", { className: "wbt-timeline-member-footer" }, h("span", null, t.timelineOrder), h(Pager, { t: t, label: t.timelineMembers, busy: memberBusy, page: memberPage, total: members.total, set: setMemberPage })) : null)),
+           !memberBusy && !memberError && !members.length ? h("p", { className: "wbt-empty" }, active ? tr("暂无可显示成员") : t.timelineEmpty) : null,
+          active ? h("div", { className: "wbt-timeline-member-footer" }, h("span", null, t.timelineOrder), loaded && loaded.key === activeKey ? h("span", null, t.total + " " + members.length) : null) : null)),
       editor ? h(controls.Editor, { api: api, t: t, item: editor.timelineKey ? editor : null, onClose: function () { setEditor(null); }, onSaved: function (line) { setEditor(null); setSingle(true); setDraft(""); setQuery(""); setPage(1); createdRef.current = Object.assign({}, line, { timelineKey: line.timelineId || line.timelineKey || line.id }); setActive(createdRef.current); reload(); } }) : null,
       adding && active ? h(AddMembers, { api: api, t: t, timelineId: activeKey, onClose: function () { setAdding(false); }, onSaved: function () { setAdding(false); createdRef.current = active; reload(); } }) : null,
       merge ? h(Merge, { api: api, t: t, items: selected, onClose: closeMerge, onMerged: function () { closeMerge(); setSelected([]); setMulti(false); reload(); } }) : null,

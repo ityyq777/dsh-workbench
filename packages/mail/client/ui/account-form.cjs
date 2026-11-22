@@ -1,16 +1,24 @@
 "use strict";
 /**
- * 账户表单：服务商选择 → 自动填主机 → 选保险箱凭据 → 保存前自检 → 落库。
+ * 账户表单：选账号集合（账号自动带出）→ 服务商主机按账号的域名带出 → 选集合内凭据 → 保存前自检 → 落库。
  *
- * 授权码不在本页填写（0.2.2 起）：用户在「凭据保险箱」自己新建一条
- * （类型 app_password），这里只负责把它的 secret_id 绑定到账户。
+ * 0.6.0 起邮箱地址不再手填：用户在「凭据保险箱 / 集合与账号」里建一个账号集合并填上账号，
+ * 这里只负责选集合、把集合的 account 绑定成账户邮箱，再从同一个集合里挑一条授权码。
  * 所以保存链路里没有 vault.secretCreate / secretUpdate / secretDelete，
  * 表单也不再持有任何明文密码，自检同样只传 secretId。
  */
 var util = require("./provider-util.cjs");
 var VaultGate = require("./vault-gate.cjs");
+var SetPicker = require("./set-picker.cjs");
 var SecretPicker = require("./secret-picker.cjs");
 var probe = require("../../lib/domain/probe-error.js");
+// 布尔项统一使用共享开关控件。
+var SW = require("../../../lib/switch.cjs");
+// 端口这类数字项统一使用共享数字输入控件（输入自由、失焦校验、非法红字不提交）。
+var NF = require("../../../lib/number-field.cjs");
+
+/** 端口的合法范围；只作提示与校验，不夹取键入值。 */
+var PORT = { min: 1, max: 65535, integer: true };
 
 function t(lang, zh, en) {
   return lang === "en" ? en : zh;
@@ -27,6 +35,15 @@ module.exports = function AccountForm(props) {
   var editing = props.account || null;
   var S = React.useState;
 
+  function domainsOf(id) {
+    var p = util.providerById(providers, id);
+    return (p && p.domains) || [];
+  }
+  function compose(local, domain) {
+    var l = String(local || "").trim();
+    return l ? l + "@" + domain : "";
+  }
+
   function initial() {
     var base = util.presetFor(providers, "qq", "") || {
       provider: "qq",
@@ -36,18 +53,23 @@ module.exports = function AccountForm(props) {
       smtpHost: "",
       smtpPort: 465,
       smtpTls: true,
-      username: "",
     };
     base.email = "";
     base.name = "";
+    base.accountSetId = "";
     base.secretId = "";
     base.advanced = false;
+    // 预设服务商的域名由预设提供，用户只填 @ 前面的本地部分；"other" 才填整条地址。
+    var baseDoms = domainsOf("qq");
+    base.domain = baseDoms.length ? baseDoms[0] : "";
     if (!editing) return base;
+    var hitProvider = util.detect(providers, editing.email);
     return Object.assign(base, {
-      provider: util.detect(providers, editing.email) ? util.detect(providers, editing.email).id : "other",
+      provider: hitProvider ? hitProvider.id : "other",
+      domain: util.domainOf(editing.email) || base.domain,
       email: editing.email || "",
       name: editing.name || "",
-      username: editing.username || editing.email || "",
+      accountSetId: editing.accountSetId || "",
       imapHost: editing.imapHost || "",
       imapPort: editing.imapPort || 993,
       imapTls: editing.imapTls !== false,
@@ -73,6 +95,8 @@ module.exports = function AccountForm(props) {
   var busyS = S({ save: false, probe: false, vault: false });
   var errS = S("");
   var noticeS = S("");
+  // 端口数字框的草稿合法性：非法草稿不会写进 form，所以要单独记一份来禁用保存。
+  var portS = S({ imap: true, smtp: true });
 
   var vault = vaultS[0];
   var busy = busyS[0];
@@ -100,6 +124,16 @@ module.exports = function AccountForm(props) {
   function setNotice(value) {
     noticeS[1](value);
   }
+  function setPortOk(key, ok) {
+    var field = key === "imapPort" ? "imap" : "smtp";
+    if (portS[0][field] === ok) return;
+    var next = Object.assign({}, portS[0]);
+    next[field] = ok;
+    portS[1](next);
+  }
+  function portOk() {
+    return portS[0].imap !== false && portS[0].smtp !== false;
+  }
 
   function checkVault() {
     return C.call(api, "vault.status")
@@ -119,9 +153,16 @@ module.exports = function AccountForm(props) {
   }, []);
 
   function applyPreset(id, email) {
-    var p = util.presetFor(providers, id, email);
+    var doms = domainsOf(id);
+    var local = util.localOf(email);
+    var dom = util.domainOf(email);
+    if (id !== "other" && doms.length && doms.indexOf(dom) < 0) dom = doms[0];
+    var next = id === "other" ? String(email || "") : compose(local, dom);
+    var p = util.presetFor(providers, id, next);
     if (!p) return;
-    upd({ provider: id, imapHost: p.imapHost, imapPort: p.imapPort, imapTls: p.imapTls, smtpHost: p.smtpHost, smtpPort: p.smtpPort, smtpTls: p.smtpTls, username: p.username, advanced: id === "other" });
+    upd({ provider: id, email: next, domain: id === "other" ? "" : dom, imapHost: p.imapHost, imapPort: p.imapPort, imapTls: p.imapTls, smtpHost: p.smtpHost, smtpPort: p.smtpPort, smtpTls: p.smtpTls, advanced: id === "other" });
+    // 切换预设会整体换掉主机与端口，之前的非法草稿状态一并清掉。
+    portS[1]({ imap: true, smtp: true });
   }
 
   function onPick(id) {
@@ -130,22 +171,39 @@ module.exports = function AccountForm(props) {
     applyPreset(id, f.email);
   }
 
-  function onEmailBlur() {
-    if (touchedS[0] || !f.email) return;
-    var hit = util.detect(providers, f.email);
-    if (hit) {
-      if (hit.id !== f.provider) applyPreset(hit.id, f.email);
-      else upd({ username: f.username || f.email });
-    } else {
-      upd({ provider: "other", advanced: true, username: f.username || f.email });
+  // 选中账号集合：邮箱地址由集合账号带出，服务商主机按域名推导；换集合时清掉旧凭据。
+  function onPickSet(id, set) {
+    var address = String((set && set.account) || "").trim();
+    touchedS[1](true);
+    setProbe(null);
+    var patch = { accountSetId: id, secretId: "", secretName: "" };
+    if (address) {
+      var hit = util.detect(providers, address);
+      var p = hit ? util.presetFor(providers, hit.id, address) : null;
+      patch.email = address;
+      if (p) {
+        patch.provider = hit.id;
+        patch.imapHost = p.imapHost;
+        patch.imapPort = p.imapPort;
+        patch.imapTls = p.imapTls;
+        patch.smtpHost = p.smtpHost;
+        patch.smtpPort = p.smtpPort;
+        patch.smtpTls = p.smtpTls;
+        patch.advanced = false;
+      } else {
+        patch.provider = "other";
+        patch.advanced = true;
+      }
+      portS[1]({ imap: true, smtp: true });
     }
+    upd(patch);
   }
 
   function validate() {
-    if (!/^\S+@\S+\.\S+$/.test(String(f.email || "").trim())) return t(lang, "请填写正确的邮箱地址", "Enter a valid email address");
+    if (!String(f.accountSetId || "").trim()) return t(lang, "请先选择账号集合（保险箱「集合与账号」）", "Pick an account set in the vault first");
+    if (!/^\S+@\S+\.\S+$/.test(String(f.email || "").trim())) return t(lang, "所选账号集合没有可用的邮箱账号，请先到保险箱填写", "The selected account set has no usable email account");
     if (!String(f.name || "").trim()) return t(lang, "请填写账户名称", "Enter an account name");
     if (!String(f.imapHost || "").trim()) return t(lang, "请填写 IMAP 服务器", "Enter the IMAP server");
-    if (!String(f.username || "").trim()) return t(lang, "请填写登录名", "Enter the login name");
     if (!String(f.secretId || "").trim()) {
       return t(lang, "请先在保险箱新建并选择凭据", "Create a credential in the vault and pick it here");
     }
@@ -163,13 +221,14 @@ module.exports = function AccountForm(props) {
     var payload = {
       name: String(f.name || "").trim(),
       email: String(f.email || "").trim(),
+      accountSetId: String(f.accountSetId || "").trim(),
       imapHost: String(f.imapHost || "").trim(),
       imapPort: Number(f.imapPort),
       imapTls: !!f.imapTls,
       smtpHost: String(f.smtpHost || "").trim(),
       smtpPort: Number(f.smtpPort),
       smtpTls: !!f.smtpTls,
-      username: String(f.username || "").trim() || String(f.email || "").trim(),
+      username: String(f.email || "").trim(),
       secretId: String(f.secretId || "").trim(),
     };
     var step = editing
@@ -188,6 +247,11 @@ module.exports = function AccountForm(props) {
   }
 
   function submit() {
+    // 端口框里可能还是非法草稿（没提交进 form），这里再挡一次，避免把旧端口存下去。
+    if (!portOk()) {
+      setErr(t(lang, "端口需在 1–65535 之间", "Port must be between 1 and 65535"));
+      return;
+    }
     var msg = validate();
     if (msg) {
       setErr(msg);
@@ -234,6 +298,10 @@ module.exports = function AccountForm(props) {
   }
 
   function runProbe() {
+    if (!portOk()) {
+      setErr(t(lang, "端口需在 1–65535 之间", "Port must be between 1 and 65535"));
+      return;
+    }
     var msg = validate();
     if (msg) {
       setErr(msg);
@@ -243,7 +311,7 @@ module.exports = function AccountForm(props) {
     setBusy("probe", true);
     C.call(api, "mail.accountProbe", {
       email: f.email,
-      username: f.username,
+      username: f.email,
       imapHost: f.imapHost,
       imapPort: Number(f.imapPort),
       imapTls: !!f.imapTls,
@@ -274,23 +342,37 @@ module.exports = function AccountForm(props) {
       placeholder: o.placeholder || "",
       autoComplete: o.autoComplete || "off",
       onChange: function (e) {
-        upd(key === "imapPort" || key === "smtpPort" ? { [key]: e.target.value } : { [key]: e.target.value });
+        upd({ [key]: e.target.value });
       },
     });
   }
+  function portField(key, label) {
+    return h(NF.NumberField, {
+      h: h,
+      lang: lang,
+      value: f[key],
+      min: PORT.min,
+      max: PORT.max,
+      integer: PORT.integer,
+      wide: true,
+      ariaLabel: label,
+      hint: t(lang, "1–65535", "1–65535"),
+      onCommit: function (next) { upd({ [key]: next }); },
+      // 键入过程中就判断草稿合法性，非法时立刻禁用保存/自检。
+      onDraft: function (raw) { setPortOk(key, NF.validateNumber(raw, { min: PORT.min, max: PORT.max, integer: PORT.integer, lang: lang }).ok); },
+      onValidChange: function (ok) { setPortOk(key, ok); },
+    });
+  }
   function tlsRow(key, label) {
-    return h(
-      "label",
-      { className: "wbml-check" },
-      h("input", {
-        type: "checkbox",
-        checked: !!f[key],
-        onChange: function (e) {
-          upd({ [key]: e.target.checked });
-        },
-      }),
-      h("span", null, label),
-    );
+    // 开关文本即字段名，改动仍写回同一个键。
+    return h(SW.Switch, {
+      h: h,
+      checked: !!f[key],
+      label: label,
+      onChange: function (next) {
+        upd({ [key]: next });
+      },
+    });
   }
 
   var provider = util.providerById(providers, f.provider);
@@ -315,46 +397,71 @@ module.exports = function AccountForm(props) {
       h("button", { type: "button", className: "wbml-icon-btn", onClick: props.onCancel, title: t(lang, "关闭", "Close") }, "×"),
     ),
     h(require("./provider-chips.cjs"), { h: h, lang: lang, providers: providers, value: f.provider, onPick: onPick }),
+    !f.accountSetId && editing
+      ? h("p", { className: "wbml-hint-line" }, t(lang, "这个账户是旧版账户，还没有绑定账号集合；保存前请先选择一个。", "This legacy account has no account set yet — pick one before saving."))
+      : null,
     h("div", { className: "wbml-acct-grid" },
-      field(t(lang, "邮箱地址", "Email address"), h("input", {
-        className: "wbml-input", type: "email", value: f.email, placeholder: "you@example.com", autoComplete: "off",
-        onChange: function (e) { upd({ email: e.target.value }); },
-        onBlur: onEmailBlur,
-      })),
-      field(t(lang, "账户名称", "Account name"), textInput("name", { placeholder: t(lang, "例如 工作邮箱", "e.g. Work mail") })),
-    ),
-    field(
-      t(lang, "保险箱凭据", "Vault credential"),
-      h(SecretPicker, {
+      field(t(lang, "账号集合", "Account set"), h(SetPicker, {
         h: h,
-        React: React,
         C: C,
         api: api,
+        React: React,
         lang: lang,
         vault: vault,
-        value: f.secretId,
+        value: f.accountSetId,
         disabled: busy.save,
-        onChange: function (id, item) {
-          upd({ secretId: id, secretName: item ? item.name : "" });
-          setProbe(null);
-        },
-      }),
-      t(lang, "先在保险箱新建一条「应用专用密码」，再在这里选用；邮件页只保存它的 id。",
-        "Create an app-password entry in the vault first, then pick it here — this page only stores its id."),
+        onChange: onPickSet,
+      }), t(lang, "先选一个账号集合；邮箱地址由它上面的账号自动带出。", "Pick an account set; the email address comes from its account.")),
+      field(t(lang, "账户名称", "Account name"), textInput("name", { placeholder: t(lang, "例如 工作邮箱", "e.g. Work mail") })),
     ),
+    field(t(lang, "邮箱账号（自动带出）", "Email account (auto)"),
+      h("input", {
+        className: "wbml-input",
+        type: "text",
+        value: f.email,
+        readOnly: true,
+        placeholder: t(lang, "选择账号集合后自动填入", "Filled after picking an account set"),
+      }),
+      f.accountSetId
+        ? t(lang, "账号来自所选集合，要改地址请去保险箱改集合账号。", "The address comes from the selected set — change the set account in the vault.")
+        : null),
+    f.accountSetId
+      ? field(
+          t(lang, "授权码（集合内凭据）", "App password (in this set)"),
+          h(SecretPicker, {
+            h: h,
+            React: React,
+            C: C,
+            api: api,
+            lang: lang,
+            vault: vault,
+            accountSetId: f.accountSetId,
+            value: f.secretId,
+            disabled: busy.save || !f.accountSetId,
+            onChange: function (id, item) {
+              upd({ secretId: id, secretName: item ? item.name : "" });
+              setProbe(null);
+            },
+          }),
+          t(lang, "只列这个账号集合里的凭据；先把授权码放进这个集合。",
+            "Only credentials in this set are listed here."),
+        )
+      : field(
+          t(lang, "授权码（集合内凭据）", "App password (in this set)"),
+          h("p", { className: "wbml-hint-line" }, t(lang, "请先选择账号集合，再从集合里选授权码。", "Pick an account set first, then choose a credential.")),
+        ),
     provider && util.hintOf(provider, lang) ? h("p", { className: "wbml-hint-line" }, util.hintOf(provider, lang)) : null,
     !f.advanced && f.imapHost
       ? h("p", { className: "wbml-hint-line" }, "IMAP " + f.imapHost + ":" + f.imapPort + (f.imapTls ? " TLS" : "") + " · SMTP " + (f.smtpHost || "—") + ":" + f.smtpPort + (f.smtpTls ? " TLS" : " STARTTLS"))
       : null,
     !f.advanced
-      ? h("button", { type: "button", className: "wbml-btn", onClick: function () { upd({ advanced: true }); } }, t(lang, "其他设置（主机 / 端口 / 登录名）", "Advanced (hosts / ports / login name)"))
+      ? h("button", { type: "button", className: "wbml-btn", onClick: function () { upd({ advanced: true }); } }, t(lang, "其他设置（主机 / 端口）", "Advanced (hosts / ports)"))
       : h("div", { className: "wbml-acct-grid" },
-          field(t(lang, "登录名", "Login name"), textInput("username", { placeholder: t(lang, "默认与邮箱相同", "Defaults to the email") })),
           field(t(lang, "IMAP 服务器", "IMAP server"), textInput("imapHost")),
-          field(t(lang, "IMAP 端口", "IMAP port"), textInput("imapPort", { type: "number" })),
+          field(t(lang, "IMAP 端口", "IMAP port"), portField("imapPort", t(lang, "IMAP 端口", "IMAP port"))),
           field("", tlsRow("imapTls", t(lang, "IMAP 隐式 TLS", "IMAP implicit TLS"))),
           field(t(lang, "SMTP 服务器", "SMTP server"), textInput("smtpHost")),
-          field(t(lang, "SMTP 端口", "SMTP port"), textInput("smtpPort", { type: "number" })),
+          field(t(lang, "SMTP 端口", "SMTP port"), portField("smtpPort", t(lang, "SMTP 端口", "SMTP port"))),
           field("", tlsRow("smtpTls", t(lang, "SMTP 隐式 TLS（关掉走 STARTTLS）", "SMTP implicit TLS (off = STARTTLS)"))),
         ),
     h(VaultGate, {
@@ -373,14 +480,16 @@ module.exports = function AccountForm(props) {
     probeS[0] ? h(C.Notice, { h: h, text: probeText, kind: probeS[0].ok ? "ok" : "warn" }) : null,
     errS[0] ? h(C.Notice, { h: h, text: errS[0], kind: "warn" }) : null,
     noticeS[0] ? h(C.Notice, { h: h, text: noticeS[0], kind: "ok" }) : null,
-    !f.secretId
-      ? h("p", { className: "wbml-hint-line" }, t(lang, "请先在保险箱新建并选择凭据，未选时不能保存。", "Pick a vault credential before saving."))
-      : null,
+    !f.accountSetId
+      ? h("p", { className: "wbml-hint-line" }, t(lang, "请先选择账号集合，未选时不能保存。", "Pick an account set before saving."))
+      : !f.secretId
+        ? h("p", { className: "wbml-hint-line" }, t(lang, "请从所选集合里选一条授权码，未选时不能保存。", "Pick a credential from the selected set before saving."))
+        : null,
     h(
       "div",
       { className: "wbml-acct-foot" },
-      h(C.Btn, { h: h, onClick: runProbe, disabled: busy.probe || busy.save || !f.secretId }, busy.probe ? t(lang, "自检中…", "Checking…") : t(lang, "保存前自检", "Check connection")),
-      h(C.Btn, { h: h, kind: "primary", onClick: submit, disabled: busy.save || !f.secretId }, busy.save ? t(lang, "保存中…", "Saving…") : t(lang, "保存", "Save")),
+      h(C.Btn, { h: h, onClick: runProbe, disabled: busy.probe || busy.save || !f.accountSetId || !f.secretId || !portOk() }, busy.probe ? t(lang, "自检中…", "Checking…") : t(lang, "保存前自检", "Check connection")),
+      h(C.Btn, { h: h, kind: "primary", onClick: submit, disabled: busy.save || !f.accountSetId || !f.secretId || !portOk() }, busy.save ? t(lang, "保存中…", "Saving…") : t(lang, "保存", "Save")),
       h(C.Btn, { h: h, onClick: props.onCancel }, t(lang, "取消", "Cancel")),
     ),
   );

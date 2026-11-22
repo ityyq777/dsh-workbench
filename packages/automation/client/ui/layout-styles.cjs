@@ -3,6 +3,7 @@
  * 自动化插件版式层：只补 client-base-styles.cjs 没有的容器/卡片/模态/骨架类。
  * 颜色一律取主题 token（--wb-* / --dsw-alias-*），插件内不写字面色值。
  */
+// 共享开关控件的样式（wbctl-*）由 ./styles.cjs 统一追加，见该文件。
 module.exports = [
   // 页面分区
   ".wba-panel{border:1px solid var(--wb-border);border-radius:12px;padding:16px;background:var(--wb-surface);display:flex;flex-direction:column;gap:12px}",
@@ -79,17 +80,31 @@ module.exports = [
   ".wba-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-line);align-self:flex-start}",
   ".wba-seg button{border:0;background:transparent;color:inherit;border-radius:6px;padding:4px 12px;font-size:12px;font-family:inherit;cursor:pointer}",
   ".wba-seg button[aria-pressed=true]{background:var(--wb-surface);box-shadow:0 0 0 1px var(--wb-border);font-weight:600}",
-  ".wba-switch{display:inline-flex;align-items:center;gap:8px;font-size:12px;cursor:pointer}",
   ".wba-block{display:flex;flex-direction:column;gap:6px;min-width:0}",
   ".wba-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}",
   ".wba-grow{flex:1;min-width:0}",
   ".wba-svg{display:inline-block;vertical-align:middle;flex:none}",
   ".wba-w-120{width:120px;flex:none}",
+  /* 共享数字输入框在触发配置里的宽度：与原来的 120px 输入框对齐。 */
+  ".wba-num{flex:none}.wba-num .wbctl-num-input{width:120px}",
   ".wba-w-96{width:96px;flex:none}",
   ".wba-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.55}",
   ".wba-clickable{cursor:pointer}",
   ".wba-check{display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}",
   ".wba-check input{accent-color:var(--wb-accent);margin:0}",
+  // 设置页：纵向堆叠的卡片与 action 多选
+  ".wba-stack{display:flex;flex-direction:column;gap:12px}",
+  ".wba-notice.warn{background:var(--wb-surface);color:var(--wb-warn);border:1px solid var(--wb-warn)}",
+  ".wba-hist{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto}",
+  ".wba-hist-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--wb-line);border-radius:8px;background:var(--wb-surface)}",
+  ".wba-hist-row .wba-pre{max-height:120px}",
+  ".wba-empty-inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 0}",
+  ".wba-picker{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;border:1px solid var(--wb-border);border-radius:8px;padding:8px;background:var(--wb-surface)}",
+  ".wba-picker-group{display:flex;flex-direction:column;gap:2px}",
+  ".wba-picker-domain{margin:4px 0 2px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--wb-muted)}",
+  ".wba-picker-row{padding:3px 4px;border-radius:6px;gap:8px;min-width:0}",
+  ".wba-picker-row:hover{background:var(--wb-card)}",
+  ".wba-picker-row .wba-hint{flex:1;min-width:0}",
   // 文本与焦点
   ".wba-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}",
   ".wba-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--wb-muted)}",

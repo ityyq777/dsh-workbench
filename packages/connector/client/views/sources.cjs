@@ -1,5 +1,11 @@
 "use strict";
+var React = require("react");
 var C = require("../ui/common.cjs");
+// 数字项统一使用共享数字输入控件（输入自由、失焦校验、非法红字不提交）。
+var NF = require("../../../lib/number-field.cjs");
+
+/** 抓取间隔：0 表示只手动，其余至少 60 秒、最多 7 天；只作提示与校验，不夹取键入值。 */
+var SCHEDULE = { min: 0, max: 7 * 24 * 3600, integer: true };
 
 function defaults(driver) {
   var out = {};
@@ -12,13 +18,62 @@ function SourceForm(props) {
   var h = props.h, C = props.C, f = props.form, d = props.driver;
   var drivers = props.drivers, secrets = props.secrets;
   var setField = props.setField, setConfig = props.setConfig, save = props.save;
+  var errS = React.useState("");
+  // 哪些数字项当前是非法草稿（非法值不会写进 form，所以要单独记一份来禁用保存）。
+  var badS = React.useState({});
   function driver(id) { return drivers.filter(function (x) { return x.id === id; })[0] || null; }
+  function webhook() { return f.driver === "webhook"; }
+  function markBad(key) {
+    return function (ok) {
+      var bad = !ok;
+      if (!!badS[0][key] === bad) return;
+      var next = Object.assign({}, badS[0]);
+      next[key] = bad;
+      badS[1](next);
+    };
+  }
+  function anyBad() {
+    return Object.keys(badS[0]).some(function (k) { return badS[0][k]; });
+  }
+  // 保存前再校验一次整体规则：数字框本身只保证「是个数」，业务边界仍要在这里拦住。
+  function submit() {
+    if (props.busy || !f.name.trim()) return;
+    if (anyBad()) {
+      errS[1]("请先修正标红的数字");
+      return;
+    }
+    var n = Number(webhook() ? 0 : f.scheduleSec);
+    if (!webhook() && n !== 0 && n < 60) {
+      errS[1]("抓取间隔至少 60 秒；0 表示只手动");
+      return;
+    }
+    errS[1]("");
+    save();
+  }
   return h("div", { className: "wbc-card" },
         h("div", { className: "wbc-head" }, h("strong", null, f.id ? "编辑来源" : "新建来源"), h(C.Btn, { h: h, onClick: function () { props.onCancel(); } }, "取消")),
         h("div", { className: "wbc-form" },
           h(C.Field, { h: h, label: "名称" }, h("input", { value: f.name, maxLength: 80, onChange: function (e) { setField("name", e.target.value); }, placeholder: "例如：少数派 RSS" })),
-          h(C.Field, { h: h, label: "类型" }, h("select", { value: f.driver, onChange: function (e) { var nd = driver(e.target.value); setField("driver", e.target.value); setField("config", defaults(nd)); } }, drivers.map(function (x) { return h("option", { key: x.id, value: x.id }, x.title); }))),
-          h(C.Field, { h: h, label: "抓取间隔（秒）", hint: f.driver === "webhook" ? "Webhook 固定为推送，0" : "最少 60；0 表示只手动" }, h("input", { type: "number", min: 0, value: f.scheduleSec, onChange: function (e) { setField("scheduleSec", e.target.value); } })),
+          h(C.Field, { h: h, label: "类型" }, h("select", { value: f.driver, onChange: function (e) {
+            var nd = driver(e.target.value);
+            setField("driver", e.target.value);
+            setField("config", defaults(nd));
+            // Webhook 只等外部推送，间隔固定 0（与后端 ensureSchedule 一致）。
+            if (e.target.value === "webhook") setField("scheduleSec", 0);
+          } }, drivers.map(function (x) { return h("option", { key: x.id, value: x.id }, x.title); }))),
+          h(C.Field, { h: h, label: "抓取间隔（秒）", hint: webhook() ? "Webhook 固定为推送，0" : "0 表示只手动；其余 60–604800 秒" }, h(NF.NumberField, {
+            h: h,
+            value: webhook() ? 0 : f.scheduleSec,
+            min: SCHEDULE.min,
+            max: SCHEDULE.max,
+            integer: SCHEDULE.integer,
+            disabled: webhook(),
+            ariaLabel: "抓取间隔（秒）",
+            hint: false,
+            onCommit: function (next) { setField("scheduleSec", next === null ? 0 : next); },
+            onDraft: markBad("scheduleSec"),
+            onValidChange: markBad("scheduleSec"),
+          })),
           h(C.Field, { h: h, label: "新内容投递" }, h("select", { value: f.sink, onChange: function (e) { setField("sink", e.target.value); } }, h("option", { value: "message" }, "消息域"), h("option", { value: "none" }, "只入库不投递"))),
           h(C.Field, { h: h, label: "启用" }, h("select", { value: f.enabled ? "1" : "0", onChange: function (e) { setField("enabled", e.target.value === "1"); } }, h("option", { value: "1" }, "启用"), h("option", { value: "0" }, "停用"))),
           h(C.Field, { h: h, label: "凭据" }, h("select", { value: f.secretId || "", onChange: function (e) { setField("secretId", e.target.value); } }, h("option", { value: "" }, "不绑定"), secrets.map(function (x) { return h("option", { key: x.id, value: x.id }, x.name + " (" + x.kind + ")"); })))
@@ -27,9 +82,22 @@ function SourceForm(props) {
           var val = f.config[cf.name] === undefined ? "" : f.config[cf.name];
           if (cf.type === "select") return h(C.Field, { h: h, key: cf.name, label: cf.label || cf.name, hint: cf.placeholder || "" }, h("select", { value: val || (cf.default || ""), onChange: function (e) { setConfig(cf.name, e.target.value); } }, (cf.options || []).map(function (op) { return h("option", { key: op, value: op }, op); })));
           if (cf.type === "boolean") return h(C.Field, { h: h, key: cf.name, label: cf.label || cf.name }, h("select", { value: val ? "1" : "0", onChange: function (e) { setConfig(cf.name, e.target.value === "1", "boolean"); } }, h("option", { value: "1" }, "是"), h("option", { value: "0" }, "否")));
-          return h(C.Field, { h: h, key: cf.name, label: cf.label || cf.name, hint: cf.placeholder || "" }, h("input", { type: cf.type === "number" ? "number" : "text", value: val, onChange: function (e) { setConfig(cf.name, e.target.value, cf.type); } }));
+          if (cf.type === "number") return h(C.Field, { h: h, key: cf.name, label: cf.label || cf.name, hint: cf.placeholder || "" }, h(NF.NumberField, {
+            h: h,
+            value: val,
+            min: cf.min,
+            max: cf.max,
+            integer: true,
+            ariaLabel: cf.label || cf.name,
+            hint: false,
+            onCommit: function (next) { setConfig(cf.name, next === null ? "" : next, "number"); },
+            onDraft: markBad("cfg:" + cf.name),
+            onValidChange: markBad("cfg:" + cf.name),
+          }));
+          return h(C.Field, { h: h, key: cf.name, label: cf.label || cf.name, hint: cf.placeholder || "" }, h("input", { type: "text", value: val, onChange: function (e) { setConfig(cf.name, e.target.value, cf.type); } }));
         })) : null,
-        h("div", { className: "wbc-row", style: { marginTop: "10px" } }, h(C.Btn, { h: h, kind: "primary", onClick: save, disabled: props.busy || !f.name.trim() }, props.busy ? "保存中…" : "保存"))
+        errS[0] ? h("p", { className: "wbc-sub wbc-form-err" }, errS[0]) : null,
+        h("div", { className: "wbc-row", style: { marginTop: "10px" } }, h(C.Btn, { h: h, kind: "primary", onClick: submit, disabled: props.busy || !f.name.trim() || anyBad() }, props.busy ? "保存中…" : "保存"))
       );
 }
 
@@ -62,7 +130,7 @@ module.exports = function SourcesView(props) {
   function save() {
     var f = formS[0]; if (!f) return;
     busyS[1](true); msgS[1]("");
-    var payload = { name: f.name.trim(), driver: f.driver, config: f.config, scheduleSec: Number(f.scheduleSec) || 0, sink: f.sink, enabled: f.enabled, secretId: f.secretId };
+    var payload = { name: f.name.trim(), driver: f.driver, config: f.config, scheduleSec: f.driver === "webhook" ? 0 : Number(f.scheduleSec) || 0, sink: f.sink, enabled: f.enabled, secretId: f.secretId };
     var p = f.id ? C.call(api, "connector.sourceUpdate", Object.assign({ id: f.id }, payload)) : C.call(api, "connector.sourceCreate", payload);
     p.then(function () { busyS[1](false); formS[1](null); s.refresh(); }).catch(function (e) { busyS[1](false); msgS[1](C.errText(e)); });
   }

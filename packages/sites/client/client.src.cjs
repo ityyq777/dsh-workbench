@@ -2,6 +2,8 @@
 var React = require("react");
 var h = React.createElement;
 var TagFilter = require("./ui/tagfilter.cjs");
+var createOverlay = require("../../lib/overlay.cjs");
+var staged = require("../../lib/staged-dialog.cjs");
 
 (function () {
   var host = window.__WB_HOST__;
@@ -82,14 +84,34 @@ var TagFilter = require("./ui/tagfilter.cjs");
     return out;
   }
 
-  function Modal(props) {
-    return h("div", {
-      className: "wbs-mask",
-      onMouseDown: function (e) {
-        if (e.target === e.currentTarget && props.onClose) props.onClose();
-      },
-    }, h("div", { className: "wbs-modal" + (props.small ? " small" : "") }, props.children));
-  }
+  // 对话框外壳（遮罩点击关闭、Esc、Tab 焦点循环、关闭后焦点归位）来自 lib/overlay.cjs。
+  var Modal = createOverlay({
+    tag: "div",
+    maskClass: "wbs-mask",
+    dialogClass: "wbs-modal",
+    dialogClassOf: function (props) {
+      return props.small ? " small" : "";
+    },
+  });
+
+  // 站点表单外壳：宽表单 + 步骤条都走共享实现（lib/staged-dialog.cjs、lib/stepper.cjs），
+  // 这里只声明三步的字段与校验，不再自己画步骤点。
+  var SiteFormDialog = staged.createStagedDialog({
+    React: React,
+    tag: "div",
+    displayName: "SiteFormDialog",
+    maskClass: "wbs-mask",
+    dialogClass: "wbs-modal",
+    header: function (p) {
+      return h("div", { className: "wbs-modal-title" },
+        h(Icon, { name: p.mode === "edit" ? "edit" : "plus", size: 15 }),
+        p.title,
+        h("button", { type: "button", className: "wbs-mini wbs-modal-x", title: p.cancelLabel, disabled: !!p.submitting, onClick: p.onClose }, h(Icon, { name: "x", size: 15 })),
+      );
+    },
+    closeOnEscape: function (p) { return !p.submitting; },
+    closeOnMask: function (p) { return !p.submitting; },
+  });
 
   function SiteFormModal(props) {
     var api = props.api;
@@ -98,8 +120,6 @@ var TagFilter = require("./ui/tagfilter.cjs");
     var site = props.site;
     var current = props.current || { id: "0", path: [] };
     var tagOn = !!props.tagOn;
-    var maxStep = tagOn ? 2 : 1;
-    var [step, setStep] = useState(0);
     var [name, setName] = useState(site ? site.siteName : "");
     var [desc, setDesc] = useState(site ? site.description : "");
     var [links, setLinks] = useState(function () {
@@ -187,27 +207,9 @@ var TagFilter = require("./ui/tagfilter.cjs");
       else if (defaultIdx > index) setDefaultIdx(defaultIdx - 1);
     }
 
-    function validate(toStep) {
-      if (toStep >= 1 && !String(name).trim()) {
-        setError(text(lang, "requiredName"));
-        return false;
-      }
-      if (toStep >= 2 && !dirIds.length) {
-        setError(text(lang, "requiredDirs"));
-        return false;
-      }
-      setError("");
-      return true;
-    }
-
-    function next() {
-      if (step >= maxStep) return;
-      if (!validate(step + 1)) return;
-      setStep(step + 1);
-    }
-
     function save() {
-      if (!validate(2)) return;
+      if (!String(name).trim()) { setError(text(lang, "requiredName")); return; }
+      if (!dirIds.length) { setError(text(lang, "requiredDirs")); return; }
       setSaving(true);
       setError("");
       var siteLinks = links.filter(function (l) {
@@ -237,127 +239,137 @@ var TagFilter = require("./ui/tagfilter.cjs");
       });
     }
 
-    var steps = tagOn
-      ? [text(lang, "step1"), text(lang, "step2"), text(lang, "step3")]
-      : [text(lang, "step1"), text(lang, "step2")];
     var title = mode === "edit" ? text(lang, "editTitle") : text(lang, "createTitle");
 
-    return h(Modal, { onClose: saving ? null : props.onClose },
-      h("div", { className: "wbs-modal-title" },
-        h(Icon, { name: mode === "edit" ? "edit" : "plus", size: 15 }),
-        title,
-        h("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h(Icon, { name: "x", size: 15 })),
-      ),
-      h("div", { className: "wbs-steps" }, steps.map(function (s, i) {
-        return h("span", { key: i, className: "wbs-step" + (i === step ? " on" : "") }, (i + 1) + " · " + s);
-      })),
-
-      step === 0 ? h("div", null,
-        h("label", { className: "wbs-label" }, text(lang, "siteName")),
-        h("input", {
-          className: "wbs-input",
-          value: name,
-          autoFocus: true,
-          placeholder: text(lang, "siteNamePh"),
-          onChange: function (e) { setName(e.target.value); },
-        }),
-        h("label", { className: "wbs-label" }, text(lang, "desc")),
-        h("textarea", {
-          className: "wbs-textarea",
-          value: desc,
-          placeholder: text(lang, "descPh"),
-          onChange: function (e) { setDesc(e.target.value); },
-        }),
-        h("label", { className: "wbs-label" }, text(lang, "linkList")),
-        links.map(function (l, i) {
-          return h("div", { className: "wbs-linkrow", key: i },
-            h("input", {
-              className: "wbs-input",
-              value: l.description,
-              placeholder: text(lang, "linkDesc"),
-              onChange: function (e) { updateLink(i, "description", e.target.value); },
-            }),
-            h("input", {
-              className: "wbs-input",
-              value: l.link,
-              placeholder: text(lang, "linkUrl"),
-              onChange: function (e) { updateLink(i, "link", e.target.value); },
-            }),
-            h("label", { className: "wbs-radio", title: text(lang, "setDefault") },
-              h("input", {
-                type: "radio",
-                name: "wbs-default-link",
-                checked: defaultIdx === i,
-                onChange: function () { setDefaultIdx(i); },
+    var steps = [
+      {
+        key: "basic", label: text(lang, "step1"), render: function (hh) {
+          return hh("div", { className: "wbctl-form" },
+            hh("div", { className: "wbs-field" },
+              hh("label", { className: "wbs-label" }, text(lang, "siteName")),
+              hh("input", {
+                className: "wbs-input",
+                value: name,
+                placeholder: text(lang, "siteNamePh"),
+                onChange: function (e) { setName(e.target.value); },
+              })),
+            hh("div", { className: "wbs-field" },
+              hh("label", { className: "wbs-label" }, text(lang, "desc")),
+              hh("textarea", {
+                className: "wbs-textarea",
+                rows: 3,
+                value: desc,
+                placeholder: text(lang, "descPh"),
+                onChange: function (e) { setDesc(e.target.value); },
+              })),
+            hh("div", { className: "wbs-field full" },
+              hh("label", { className: "wbs-label" }, text(lang, "linkList")),
+              links.map(function (l, i) {
+                return hh("div", { className: "wbs-linkrow", key: i },
+                  hh("input", {
+                    className: "wbs-input",
+                    value: l.description,
+                    placeholder: text(lang, "linkDesc"),
+                    onChange: function (e) { updateLink(i, "description", e.target.value); },
+                  }),
+                  hh("input", {
+                    className: "wbs-input",
+                    value: l.link,
+                    placeholder: text(lang, "linkUrl"),
+                    onChange: function (e) { updateLink(i, "link", e.target.value); },
+                  }),
+                  hh("label", { className: "wbs-radio", title: text(lang, "setDefault") },
+                    hh("input", {
+                      type: "radio",
+                      name: "wbs-default-link",
+                      checked: defaultIdx === i,
+                      onChange: function () { setDefaultIdx(i); },
+                    }),
+                    text(lang, "default"),
+                  ),
+                  hh("button", { type: "button", className: "wbs-mini", title: text(lang, "removeLink"), onClick: function () { removeLink(i); } }, hh(Icon, { name: "x", size: 13 })),
+                );
               }),
-              text(lang, "default"),
+              hh("button", { type: "button", className: "wbs-btn sm", onClick: addLink }, hh(Icon, { name: "plus", size: 13 }), text(lang, "addLink")),
+            ));
+        },
+        validate: function () { return String(name).trim() ? "" : text(lang, "requiredName"); },
+      },
+      {
+        key: "dirs", label: text(lang, "step2"), render: function (hh) {
+          return hh("div", { className: "wbs-field" },
+            hh("div", { className: "wbs-label" }, text(lang, "chooseDirs")),
+            !flatDirs.length ? hh("div", { className: "wbs-note" }, text(lang, "noDirs")) : hh("div", { className: "wbs-dirlist" },
+              flatDirs.map(function (item) {
+                var id = String(item.node.id);
+                return hh("label", {
+                  key: id,
+                  className: "wbs-dircheck",
+                  style: { paddingLeft: 6 + item.depth * 16 },
+                },
+                  hh("input", {
+                    type: "checkbox",
+                    checked: dirIds.indexOf(id) >= 0,
+                    onChange: function () { toggleDir(id); },
+                  }),
+                  hh("span", null, item.node.name),
+                );
+              }),
             ),
-            h("button", { type: "button", className: "wbs-mini", title: text(lang, "removeLink"), onClick: function () { removeLink(i); } }, h(Icon, { name: "x", size: 13 })),
+            hh("div", { className: "wbs-note", style: { marginTop: 8 } }, "站点可同时挂在多个目录下；列表会按目录子树过滤。"),
           );
-        }),
-        h("button", { type: "button", className: "wbs-btn sm", onClick: addLink }, h(Icon, { name: "plus", size: 13 }), text(lang, "addLink")),
-      ) : null,
-
-      step === 1 ? h("div", null,
-        h("div", { className: "wbs-label" }, text(lang, "chooseDirs")),
-        !flatDirs.length ? h("div", { className: "wbs-note" }, text(lang, "noDirs")) : h("div", { className: "wbs-dirlist" },
-          flatDirs.map(function (item) {
-            var id = String(item.node.id);
-            return h("label", {
-              key: id,
-              className: "wbs-dircheck",
-              style: { paddingLeft: 6 + item.depth * 16 },
-            },
-              h("input", {
-                type: "checkbox",
-                checked: dirIds.indexOf(id) >= 0,
-                onChange: function () { toggleDir(id); },
+        },
+        validate: function () { return dirIds.length ? "" : text(lang, "requiredDirs"); },
+      },
+      tagOn ? {
+        key: "tags", label: text(lang, "step3"), optional: true, render: function (hh) {
+          return hh("div", { className: "wbs-field" },
+            hh("div", { className: "wbs-label" }, text(lang, "chooseTags")),
+            tags.length ? hh("div", { className: "wbs-chips" }, tags.map(function (t) {
+              return hh("span", { className: "wbs-chip", key: t.id }, t.name,
+                hh("button", { type: "button", onClick: function () { toggleTag(t); }, title: "移除" }, hh(Icon, { name: "x", size: 12 })));
+            })) : hh("div", { className: "wbs-note" }, "暂未选择标签"),
+            hh("div", { className: "wbs-tagsearch", style: { marginTop: 10 } },
+              hh("input", {
+                className: "wbs-input",
+                value: tagQuery,
+                placeholder: text(lang, "tagSearch"),
+                onChange: function (e) { setTagQuery(e.target.value); },
               }),
-              h("span", null, item.node.name),
-            );
-          }),
-        ),
-        h("div", { className: "wbs-note", style: { marginTop: 8 } }, "站点可同时挂在多个目录下；列表会按目录子树过滤。"),
-      ) : null,
-
-      tagOn && step === 2 ? h("div", null,
-        h("div", { className: "wbs-label" }, text(lang, "chooseTags")),
-        tags.length ? h("div", { className: "wbs-chips" }, tags.map(function (t) {
-          return h("span", { className: "wbs-chip", key: t.id }, t.name,
-            h("button", { type: "button", onClick: function () { toggleTag(t); }, title: "移除" }, h(Icon, { name: "x", size: 12 })));
-        })) : h("div", { className: "wbs-note" }, "暂未选择标签"),
-        h("div", { className: "wbs-tagsearch", style: { marginTop: 10 } },
-          h("input", {
-            className: "wbs-input",
-            value: tagQuery,
-            placeholder: text(lang, "tagSearch"),
-            onChange: function (e) { setTagQuery(e.target.value); },
-          }),
-        ),
-        h("div", { className: "wbs-tagresults" }, tagResults.length ? tagResults.map(function (t) {
-          var on = tags.some(function (x) { return x.id === t.id; });
-          return h("button", {
-            key: t.id,
-            type: "button",
-            className: "wbs-tagresult" + (on ? " on" : ""),
-            onClick: function () { toggleTag(t); },
-          },
-            h(Icon, { name: on ? "check" : "plus", size: 12 }),
-            h("span", null, t.name),
+            ),
+            hh("div", { className: "wbs-tagresults" }, tagResults.length ? tagResults.map(function (t) {
+              var on = tags.some(function (x) { return x.id === t.id; });
+              return hh("button", {
+                key: t.id,
+                type: "button",
+                className: "wbs-tagresult" + (on ? " on" : ""),
+                onClick: function () { toggleTag(t); },
+              },
+                hh(Icon, { name: on ? "check" : "plus", size: 12 }),
+                hh("span", null, t.name),
+              );
+            }) : hh("div", { className: "wbs-note", style: { padding: 6 } }, text(lang, "noTags"))),
+            hh("div", { className: "wbs-note", style: { marginTop: 8 } }, "标签由标签子插件提供，可多选。"),
           );
-        }) : h("div", { className: "wbs-note", style: { padding: 6 } }, text(lang, "noTags"))),
-        h("div", { className: "wbs-note", style: { marginTop: 8 } }, "标签由标签子插件提供，可多选。"),
-      ) : null,
+        },
+      } : null,
+    ].filter(Boolean);
 
-      h("div", { className: "wbs-formfoot" },
-        h("div", { className: "wbs-formerr" }, error || ""),
-        step > 0 ? h("button", { type: "button", className: "wbs-btn", disabled: saving, onClick: function () { setStep(step - 1); } }, h(Icon, { name: "chevron-left", size: 13 }), text(lang, "back")) : null,
-        h("button", { type: "button", className: "wbs-btn", disabled: saving, onClick: props.onClose }, text(lang, "cancel")),
-        step < maxStep
-          ? h("button", { type: "button", className: "wbs-btn primary", onClick: next }, text(lang, "nextStep"), h(Icon, { name: "chevron-right", size: 13 }))
-          : h("button", { type: "button", className: "wbs-btn primary", disabled: saving, onClick: save }, h(Icon, { name: "check", size: 13 }), saving ? text(lang, "saving") : text(lang, "save")),
-      ),
-    );
+    return h(SiteFormDialog, {
+      title: title,
+      mode: mode,
+      cancelLabel: text(lang, "cancel"),
+      steps: steps,
+      submitting: saving,
+      error: error,
+      onClose: props.onClose,
+      onSubmit: save,
+      submitText: text(lang, "save"),
+      cancelText: text(lang, "cancel"),
+      nextText: text(lang, "nextStep"),
+      backText: text(lang, "back"),
+      stepsLabel: text(lang, "createTitle"),
+    });
   }
 
   function DirModal(props) {
@@ -390,7 +402,7 @@ var TagFilter = require("./ui/tagfilter.cjs");
       });
     }
 
-    return h(Modal, { small: true, onClose: saving ? null : props.onClose },
+    return h(Modal, { small: true, "aria-label": title, onClose: saving ? null : props.onClose },
       h("div", { className: "wbs-modal-title" },
         h(Icon, { name: isDelete ? "trash" : dlg.mode === "rename" ? "edit" : "folder-plus", size: 15 }),
         title,
@@ -443,7 +455,7 @@ var TagFilter = require("./ui/tagfilter.cjs");
       });
     }
 
-    return h(Modal, { small: true, onClose: saving ? null : props.onClose },
+    return h(Modal, { small: true, "aria-label": text(lang, "deleteTitle"), onClose: saving ? null : props.onClose },
       h("div", { className: "wbs-modal-title" },
         h(Icon, { name: "trash", size: 15 }),
         text(lang, "deleteTitle"),
@@ -980,8 +992,8 @@ var TagFilter = require("./ui/tagfilter.cjs");
 
   host.registerAddon({
     id: "wb-addon-sites",
-    version: "1.12.4",
-    icon: require("lucide-react/icons/globe").default,
+    version: "1.12.11",
+    icon: icons.ICONS["globe"],
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "统计", en: "Stats" }, component: statsView.SitesStatsView },
       { id: "sites", icon: tabIcon("globe"), title: { zh: "记录", en: "Records" }, component: SitesView },

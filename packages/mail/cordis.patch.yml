@@ -1,5 +1,7 @@
 - insert:
     - id: workbench
-      name: dsh-workbench
+      name: dsh-workbench-host
+    - id: workbench-vault
+      name: dsh-workbench-vault
     - id: workbench-mail
       name: dsh-workbench-mail

@@ -21,6 +21,18 @@ module.exports = function Accounts(props) {
   var testS = React.useState({});
   var busyS = React.useState("");
   var msgS = React.useState(null);
+  var setNameS = React.useState({});
+
+  // 账户只存集合 id，卡片上的集合名要现查一次；读不到就退化成「未绑定/已失效」，不挡页面。
+  React.useEffect(function () {
+    C.call(api, "vault.setList", { type: "account", q: "" })
+      .then(function (r) {
+        var map = {};
+        ((r && r.items) || []).forEach(function (x) { map[x.id] = x.name; });
+        setNameS[1](map);
+      })
+      .catch(function () { setNameS[1]({}); });
+  }, []);
 
   React.useEffect(function () {
     if (tableS[0]) return;
@@ -75,7 +87,7 @@ module.exports = function Accounts(props) {
     h(
       "div",
       { className: "wbml-head" },
-      h("div", null, h("h2", null, lang === "en" ? "Mail accounts" : "邮箱账户"), h("p", { className: "wbml-sub" }, lang === "en" ? "Pick a provider, then choose an app-password credential from the vault; this page only stores its id." : "选服务商、再从保险箱挑一条授权码即可，邮件页只保存凭据 id。")),
+      h("div", null, h("h2", null, lang === "en" ? "Mail accounts" : "邮箱账户"), h("p", { className: "wbml-sub" }, lang === "en" ? "Pick a provider, then choose an app-password credential from the vault; this page only stores its id." : "先选保险箱里的账号集合，账号自动带出，再从集合里挑一条授权码；邮件页只保存凭据 id。")),
       h(C.Btn, { h: h, kind: "primary", onClick: function () { openS[1]({}); } }, lang === "en" ? "Add account" : "添加账户"),
     ),
     msgS[0] ? h(C.Notice, { h: h, text: msgS[0].text, kind: msgS[0].kind }) : null,
@@ -110,6 +122,7 @@ module.exports = function Accounts(props) {
                 C: C,
                 lang: lang,
                 account: a,
+                accountSetName: setNameS[0][a.accountSetId] || "",
                 test: testS[0][a.id] || null,
                 busy: busyS[0] === a.id,
                 onEdit: function () { openS[1](a); },

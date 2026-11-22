@@ -1,4 +1,6 @@
 "use strict";
+var GLYPHS = require("./ui/icons.cjs").ICONS;
+
 // 连接器客户端：概览 / 来源 / 内容 / 运行记录 / 设置 / 数据 / Action 七个视图。
 (function () {
   var root = typeof window !== "undefined" ? window : null;
@@ -13,13 +15,13 @@
   var CSS = require("./ui/styles.cjs");
 
   var ICONS = {
-    activity: require("lucide-react/icons/activity").default,
-    rss: require("lucide-react/icons/rss").default,
-    inbox: require("lucide-react/icons/inbox").default,
-    history: require("lucide-react/icons/history").default,
-    sliders: require("lucide-react/icons/sliders-horizontal").default,
-    database: require("lucide-react/icons/database").default,
-    list: require("lucide-react/icons/list").default,
+    activity: GLYPHS["activity"],
+    rss: GLYPHS["rss"],
+    inbox: GLYPHS["inbox"],
+    history: GLYPHS["history"],
+    sliders: GLYPHS["sliders-horizontal"],
+    database: GLYPHS["database"],
+    list: GLYPHS["list"],
   };
 
   function Icon(props) {
@@ -44,8 +46,8 @@
 
   host.registerAddon({
     id: "wb-addon-connector",
-    version: "0.1.3",
-    icon: require("lucide-react/icons/rss").default,
+    version: "0.1.7",
+    icon: GLYPHS["rss"],
     views: [
       { id: "stats", icon: tabIcon("activity"), title: { zh: "概览", en: "Overview" }, component: withProps(require("./views/stats.cjs"), "概览") },
       { id: "sources", icon: tabIcon("rss"), title: { zh: "来源", en: "Sources" }, component: withProps(require("./views/sources.cjs"), "来源") },

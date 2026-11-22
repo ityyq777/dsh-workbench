@@ -3,6 +3,8 @@
  * 收件箱视图：分页列表 + 未读过滤 + 级别/关键词筛选 + 单条/全部标记已读。
  * 只通过本插件注册的 message.list / message.markRead 取数与写库。
  */
+// 「仅未读」筛选使用共享开关控件。
+var SW = require("../../../lib/switch.cjs");
 module.exports = function (deps) {
   var React = deps.React;
   var h = React.createElement;
@@ -170,12 +172,12 @@ module.exports = function (deps) {
       h(
         "div",
         { className: "wbm-toolbar" },
-        h(
-          "label",
-          { className: "wbm-check" },
-          h("input", { type: "checkbox", checked: unreadOnly, onChange: function (e) { setUnreadOnly(e.target.checked); setPage(1); } }),
-          h("span", null, t.unreadOnly),
-        ),
+        h(SW.Switch, {
+          h: h,
+          checked: unreadOnly,
+          label: t.unreadOnly,
+          onChange: function (next) { setUnreadOnly(next); setPage(1); },
+        }),
         h(
           "select",
           { className: "wbm-select", value: level, "aria-label": t.levelAll, onChange: function (e) { setLevel(e.target.value); setPage(1); } },

@@ -268,7 +268,7 @@ module.exports = function createAccountsModal(deps) {
       );
     }
 
-    return h(Modal, { onClose: props.onClose },
+    return h(Modal, { "aria-label": text(lang, "accountsTitle", { name: site.siteName }), onClose: props.onClose },
       h("div", { className: "wbs-modal-title" },
         h(Icon, { name: "key", size: 15 }),
         text(lang, "accountsTitle", { name: site.siteName }),

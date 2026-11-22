@@ -32,7 +32,6 @@ export function ensureSchema(db) {
       deleted_at INTEGER,
       rev INTEGER NOT NULL DEFAULT 1
     );
-    CREATE INDEX IF NOT EXISTS idx_automation_rule_due ON automation_rule(enabled, next_run_at);
     CREATE TABLE IF NOT EXISTS automation_run (
       id TEXT PRIMARY KEY,
       rule_id TEXT NOT NULL,
@@ -49,6 +48,30 @@ export function ensureSchema(db) {
       value TEXT NOT NULL
     );
   `);
+  ensureRuleColumns(db);
+  db.exec(
+    "CREATE INDEX IF NOT EXISTS idx_automation_rule_due ON automation_rule(enabled, next_run_at);" +
+      "CREATE INDEX IF NOT EXISTS idx_automation_rule_schedule ON automation_rule(schedule_id);",
+  );
+}
+
+/**
+ * 存量库补列：老版本只有 action 执行方式，新增的三列都能用默认值安全补上。
+ * 不用 `ALTER TABLE ... IF NOT EXISTS`（SQLite 不支持），先查 PRAGMA 再补。
+ */
+const RULE_COLUMNS = [
+  ["exec_mode", "TEXT NOT NULL DEFAULT 'action'"],
+  ["agent_json", "TEXT NOT NULL DEFAULT ''"],
+  ["schedule_id", "TEXT"],
+];
+
+function ensureRuleColumns(db) {
+  const rows = db.prepare("PRAGMA table_info(automation_rule)").all();
+  const have = new Set(rows.map((row) => row.name));
+  for (const [name, ddl] of RULE_COLUMNS) {
+    if (have.has(name)) continue;
+    db.exec("ALTER TABLE automation_rule ADD COLUMN " + name + " " + ddl);
+  }
 }
 
 export function parseJson(raw, fallback) {
@@ -80,6 +103,9 @@ export function ruleRow(row) {
     id: row.id,
     name: row.name,
     enabled: Boolean(row.enabled),
+    execMode: row.exec_mode === "agent" ? "agent" : "action",
+    agent: parseJson(row.agent_json, null),
+    scheduleId: row.schedule_id || "",
     triggerType: row.trigger_type,
     triggerConfig: parseJson(row.trigger_config, {}),
     condition: parseJson(row.condition, null),

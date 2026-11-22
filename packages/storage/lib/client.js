@@ -683,6 +683,406 @@ var require_visual_tokens = __commonJS({
   }
 });
 
+// packages/addons/lib/stepper.cjs
+var require_stepper = __commonJS({
+  "packages/addons/lib/stepper.cjs"(exports2, module2) {
+    "use strict";
+    function stepState(index, current, maxVisited) {
+      if (index === current) return "current";
+      if (index < current) return "done";
+      if (index <= maxVisited) return "visited";
+      return "todo";
+    }
+    function Steps(props) {
+      var h2 = props.h;
+      var steps = props.steps || [];
+      var current = props.current || 0;
+      var maxVisited = props.maxVisited === void 0 ? current : props.maxVisited;
+      var invalid = props.invalid || {};
+      var disabled = !!props.disabled;
+      var label = props.label || "\u6B65\u9AA4";
+      return h2(
+        "nav",
+        { className: "wbctl-steps" + (props.className ? " " + props.className : ""), "aria-label": label },
+        h2(
+          "ol",
+          { className: "wbctl-step-list" },
+          steps.map(function(step, index) {
+            var state = stepState(index, current, maxVisited);
+            var canJump = !disabled && typeof props.onJump === "function" && state !== "current" && state !== "todo";
+            var isInvalid = !!invalid[index] || !!invalid[step.key];
+            return h2(
+              "li",
+              { key: step.key || index, className: "wbctl-step-item" },
+              h2(
+                "button",
+                {
+                  type: "button",
+                  className: "wbctl-step",
+                  "data-state": state,
+                  "data-invalid": isInvalid ? "true" : null,
+                  "aria-current": state === "current" ? "step" : void 0,
+                  "aria-label": index + 1 + " \xB7 " + step.label + (state === "done" ? "\uFF08\u5DF2\u5B8C\u6210\uFF09" : ""),
+                  disabled: disabled || state === "todo",
+                  title: step.hint || "",
+                  onClick: function() {
+                    if (canJump) props.onJump(index);
+                  }
+                },
+                h2("span", { className: "wbctl-step-index", "aria-hidden": "true" }, state === "done" ? "\u2713" : String(index + 1)),
+                h2("span", { className: "wbctl-step-label" }, step.label),
+                step.hint ? h2("span", { className: "wbctl-step-hint" }, step.hint) : null,
+                step.optional ? h2("span", { className: "wbctl-step-opt" }, "\u53EF\u9009") : null
+              )
+            );
+          })
+        )
+      );
+    }
+    var STYLES = [
+      ".wbctl-steps{display:block;min-width:0}",
+      ".wbctl-step-list{display:flex;align-items:stretch;gap:6px;list-style:none;margin:0 0 14px;padding:0;min-width:0}",
+      ".wbctl-step-item{display:flex;flex:1 1 0;min-width:0}",
+      ".wbctl-step{display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;padding:7px 9px;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;background:transparent;color:var(--wb-muted,inherit);font:inherit;font-size:12px;line-height:1.35;text-align:left;cursor:default;transition:background .14s ease,border-color .14s ease,color .14s ease}",
+      ".wbctl-step[data-state=done],.wbctl-step[data-state=visited]{color:inherit;cursor:pointer}",
+      ".wbctl-step[data-state=done]{border-color:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 36%,var(--wb-border))}",
+      ".wbctl-step[data-state=current]{border-color:color-mix(in oklab,var(--wb-accent,#2563eb) 58%,var(--wb-border));background:color-mix(in oklab,var(--wb-accent,#2563eb) 8%,transparent);color:inherit;font-weight:600}",
+      ".wbctl-step[data-state=visited]:hover,.wbctl-step[data-state=done]:hover{background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-step[data-invalid=true]{border-color:var(--wb-danger,#d33)}",
+      ".wbctl-step:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-step:disabled{cursor:default;opacity:.72}",
+      ".wbctl-step-index{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;border-radius:50%;font-size:11px;font-variant-numeric:tabular-nums;background:color-mix(in oklab,currentColor 15%,transparent)}",
+      ".wbctl-step[data-state=current] .wbctl-step-index{background:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff)}",
+      ".wbctl-step[data-state=done] .wbctl-step-index{background:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 20%,transparent);color:var(--wb-ok,var(--wb-accent,#2563eb))}",
+      ".wbctl-step-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbctl-step-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:400;opacity:.62}",
+      ".wbctl-step-opt{flex:none;font-size:10px;font-weight:400;opacity:.55}",
+      "@media (max-width:760px){.wbctl-step{padding:6px 7px;font-size:11.5px}.wbctl-step-hint,.wbctl-step-opt{display:none}.wbctl-step-index{width:18px;height:18px;font-size:10px}}",
+      "@media (max-width:520px){.wbctl-step-list{gap:4px}.wbctl-step-label{white-space:normal}.wbctl-step{gap:5px}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-step{transition:none}}"
+    ];
+    module2.exports = { Steps, stepState, styles: STYLES };
+  }
+});
+
+// packages/addons/lib/overlay.cjs
+var require_overlay = __commonJS({
+  "packages/addons/lib/overlay.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var FOCUSABLE = "button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]";
+    module2.exports = function createOverlay(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h2 = React.createElement;
+      var tag = opts.tag || "section";
+      var maskClass = opts.maskClass;
+      var dialogClass = opts.dialogClass;
+      var dialogClassOf = opts.dialogClassOf || function() {
+        return "";
+      };
+      var ariaLabelOf = opts.ariaLabelOf || function(props) {
+        return props["aria-label"] || props.title;
+      };
+      var ariaLabelledByOf = opts.ariaLabelledByOf || function() {
+        return null;
+      };
+      var header = opts.header || null;
+      var closeOnEscape = opts.closeOnEscape || function() {
+        return true;
+      };
+      var closeOnMask = opts.closeOnMask || function() {
+        return true;
+      };
+      var extraKeyDown = opts.onKeyDown || null;
+      var autoFocusDialog = opts.autoFocusDialog !== false;
+      var focusableSelector = opts.focusableSelector || FOCUSABLE;
+      function Modal(props) {
+        var R = props.React || React;
+        var ref = R.useRef(null);
+        R.useEffect(function() {
+          var previous = typeof document !== "undefined" ? document.activeElement : null;
+          var focusIt = props.autoFocus !== void 0 ? props.autoFocus : autoFocusDialog;
+          if (focusIt && ref.current) ref.current.focus();
+          return function() {
+            if (previous && previous.isConnected) previous.focus();
+          };
+        }, []);
+        function onKeyDown(e) {
+          if (extraKeyDown && extraKeyDown(e, props, ref)) return;
+          if (e.key === "Escape") {
+            if (!(props.closeOnEscape !== void 0 ? props.closeOnEscape : closeOnEscape(props))) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (props.onClose) props.onClose();
+            return;
+          }
+          if (e.key !== "Tab" || !ref.current) return;
+          var els = ref.current.querySelectorAll(focusableSelector);
+          if (!els.length) {
+            e.preventDefault();
+            return;
+          }
+          var first = els[0];
+          var last = els[els.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+            e.preventDefault();
+            last.focus();
+          }
+          if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+        var labelledBy = ariaLabelledByOf(props);
+        return h2(
+          "div",
+          {
+            className: maskClass,
+            onMouseDown: function(e) {
+              var allowed = props.closeOnMask !== void 0 ? props.closeOnMask : closeOnMask(props);
+              if (e.target === e.currentTarget && props.onClose && allowed) props.onClose();
+            }
+          },
+          h2(
+            tag,
+            {
+              className: dialogClass + dialogClassOf(props),
+              role: "dialog",
+              "aria-modal": true,
+              "aria-label": labelledBy ? null : ariaLabelOf(props),
+              "aria-labelledby": labelledBy || null,
+              ref,
+              tabIndex: -1,
+              onKeyDown
+            },
+            header ? header(props) : null,
+            props.children
+          )
+        );
+      }
+      return Modal;
+    };
+  }
+});
+
+// packages/addons/lib/staged-dialog.cjs
+var require_staged_dialog = __commonJS({
+  "packages/addons/lib/staged-dialog.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var overlayFactory = require_overlay();
+    var stepper = require_stepper();
+    function validateStep(step) {
+      if (!step || typeof step.validate !== "function") return "";
+      var message = step.validate();
+      return message ? String(message) : "";
+    }
+    function firstFailing(steps) {
+      var list = steps || [];
+      for (var i = 0; i < list.length; i += 1) {
+        var message = validateStep(list[i]);
+        if (message) return { index: i, key: list[i] && list[i].key, message };
+      }
+      return null;
+    }
+    function createStagedDialog(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h2 = React.createElement;
+      var dialogClass = ((opts.dialogClass || "") + " wbctl-dialog").trim();
+      var Overlay = overlayFactory(
+        Object.assign({}, opts, {
+          React,
+          dialogClass,
+          // 首焦点由外壳送进对话框，字段由 focusStep 负责，避免打开瞬间落进第一个输入框。
+          autoFocusDialog: opts.autoFocusDialog !== false
+        })
+      );
+      function StagedDialog(props) {
+        var R = props.React || React;
+        var steps = props.steps || [];
+        var count = steps.length;
+        var busy = !!props.submitting || !!props.busy;
+        var indexState = R.useState(props.initialStep || 0);
+        var rawIndex = indexState[0];
+        var setIndex = indexState[1];
+        var index = count === 0 ? 0 : Math.min(Math.max(rawIndex, 0), count - 1);
+        var visitedState = R.useState(props.initialStep || 0);
+        var maxVisited = count === 0 ? 0 : Math.min(Math.max(visitedState[0], index), count - 1);
+        var setMaxVisited = visitedState[1];
+        var errorState = R.useState("");
+        var stepError = errorState[0];
+        var setStepError = errorState[1];
+        var invalidState = R.useState({});
+        var invalid = invalidState[0];
+        var setInvalid = invalidState[1];
+        var bodyRef = R.useRef(null);
+        var mounted = R.useRef(true);
+        function runValidate(step) {
+          return validateStep(step);
+        }
+        function markInvalid(i, bad) {
+          setInvalid(function(prev) {
+            var next2 = Object.assign({}, prev);
+            if (bad) next2[i] = true;
+            else delete next2[i];
+            return next2;
+          });
+        }
+        function focusBody() {
+          var el = bodyRef.current;
+          if (el && typeof el.focus === "function") el.focus();
+        }
+        R.useEffect(
+          function() {
+            if (!mounted.current) return;
+            focusBody();
+          },
+          [index]
+        );
+        R.useEffect(function() {
+          mounted.current = true;
+          return function() {
+            mounted.current = false;
+          };
+        }, []);
+        function goTo(i) {
+          if (busy || i < 0 || i >= count) return;
+          setIndex(i);
+          if (i > maxVisited) setMaxVisited(i);
+          setStepError("");
+        }
+        function fail(i, message) {
+          markInvalid(i, true);
+          goTo(i);
+          setStepError(message);
+          focusBody();
+        }
+        function next() {
+          if (busy) return;
+          var message = runValidate(steps[index]);
+          if (message) {
+            fail(index, message);
+            return;
+          }
+          markInvalid(index, false);
+          goTo(Math.min(index + 1, count - 1));
+        }
+        function back() {
+          if (busy || index === 0) return;
+          goTo(index - 1);
+        }
+        function jump(i) {
+          if (busy || i > maxVisited) return;
+          goTo(i);
+        }
+        function submit() {
+          if (busy) return;
+          var bad = firstFailing(steps);
+          if (bad) {
+            fail(bad.index, bad.message);
+            return;
+          }
+          for (var i = 0; i < count; i++) markInvalid(i, false);
+          setStepError("");
+          if (typeof props.onSubmit === "function") props.onSubmit();
+        }
+        function cancel() {
+          if (busy) return;
+          if (typeof props.onClose === "function") props.onClose();
+        }
+        var current = steps[index];
+        var isLast = index >= count - 1;
+        var saveText = props.submitText || "\u4FDD\u5B58";
+        var shownError = stepError || props.error || "";
+        return h2(
+          Overlay,
+          props,
+          count > 1 ? h2(stepper.Steps, {
+            h: h2,
+            steps: steps.map(function(step) {
+              return { key: step.key, label: step.label, hint: step.hint, optional: step.optional };
+            }),
+            current: index,
+            maxVisited,
+            onJump: jump,
+            invalid,
+            disabled: busy,
+            label: props.stepsLabel || "\u521B\u5EFA\u6B65\u9AA4"
+          }) : null,
+          h2(
+            "div",
+            {
+              className: "wbctl-dialog-body" + (props.bodyClassName ? " " + props.bodyClassName : ""),
+              ref: bodyRef,
+              tabIndex: -1
+            },
+            current ? current.render(h2, props) : null
+          ),
+          props.footerExtra || null,
+          shownError ? h2("div", { className: "wbctl-dialog-err", role: "alert" }, shownError) : null,
+          h2(
+            "div",
+            { className: "wbctl-dialog-foot" },
+            count > 1 ? h2("span", { className: "wbctl-dialog-progress" }, index + 1 + " / " + count) : null,
+            props.footerNote ? h2("span", { className: "wbctl-dialog-note" }, props.footerNote) : null,
+            h2("span", { className: "wbctl-dialog-spacer" }),
+            index > 0 ? h2(
+              "button",
+              { type: "button", className: "wbctl-btn", onClick: back, disabled: busy },
+              props.backText || "\u4E0A\u4E00\u6B65"
+            ) : null,
+            h2("button", { type: "button", className: "wbctl-btn", onClick: cancel, disabled: busy }, props.cancelText || "\u53D6\u6D88"),
+            h2(
+              "button",
+              {
+                type: "button",
+                className: "wbctl-btn wbctl-btn-p",
+                onClick: isLast ? submit : next,
+                // submitDisabled 只作用于末步的保存：插件据此把「结构性不合法」（JSON 语法、无可选 action）
+                // 提前反映成禁用态，避免用户点到保存才被弹回第一步。
+                disabled: busy || isLast && !!props.submitDisabled
+              },
+              busy ? saveText + "\u4E2D\u2026" : isLast ? saveText : props.nextText || "\u4E0B\u4E00\u6B65"
+            )
+          )
+        );
+      }
+      StagedDialog.displayName = opts.displayName || "StagedDialog";
+      return StagedDialog;
+    }
+    var STYLES = [
+      // 宽表单：内容多时给足横向空间，窄屏留 16px 边距后铺满。
+      ".wbctl-dialog{width:min(880px,calc(100vw - 32px));max-height:min(92vh,760px);display:flex;flex-direction:column;overflow:hidden}",
+      ".wbctl-dialog-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 10px;outline:none}",
+      ".wbctl-dialog-body:focus-visible{outline:none}",
+      ".wbctl-dialog-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:10px;margin-top:10px;border-top:1px solid var(--wb-line,var(--wb-border))}",
+      ".wbctl-dialog-progress{font-size:11.5px;color:var(--wb-muted,#666);font-variant-numeric:tabular-nums}",
+      ".wbctl-dialog-note{font-size:11.5px;color:var(--wb-muted,#666);min-width:0}",
+      ".wbctl-dialog-spacer{flex:1 1 auto}",
+      ".wbctl-dialog-err{margin-top:8px;padding:7px 10px;border-radius:8px;border:1px solid color-mix(in oklab,var(--wb-danger,#d33) 45%,transparent);background:color-mix(in oklab,var(--wb-danger,#d33) 8%,transparent);color:var(--wb-danger,#d33);font-size:12px}",
+      ".wbctl-btn{padding:6px 14px;border:1px solid var(--wb-border,#d0d5dd);border-radius:8px;background:var(--wb-card,#fff);color:inherit;font:inherit;font-size:12.5px;cursor:pointer}",
+      ".wbctl-btn:hover:not(:disabled){background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-btn:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-btn:disabled{opacity:.55;cursor:default}",
+      ".wbctl-btn.wbctl-btn-p{background:var(--wb-accent,#2563eb);border-color:transparent;color:var(--wb-on-accent,#fff)}",
+      ".wbctl-btn.wbctl-btn-p:hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent,#2563eb) 86%,#000)}",
+      // 确认步：键值对清单，各插件共用，避免再各写一套只读摘要。\n  ".wbctl-review{display:flex;flex-direction:column;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;overflow:hidden}",\n  ".wbctl-review-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 12px;font-size:12.5px;background:var(--wb-surface,transparent)}",\n  ".wbctl-review-row+.wbctl-review-row{border-top:1px solid var(--wb-line,var(--wb-border))}",\n  ".wbctl-review-k{color:var(--wb-muted,inherit);font-size:11.5px;line-height:1.6}",\n  ".wbctl-review-v{min-width:0;word-break:break-word;line-height:1.6}",\n  ".wbctl-note{margin:10px 0 0;font-size:11.5px;color:var(--wb-muted,inherit)}",\n  // 两列字段布局：内容多的弹窗不再单列拉长，窄屏回落单列。
+      ".wbctl-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}",
+      ".wbctl-form>.full{grid-column:1/-1}",
+      "@media (max-width:760px){.wbctl-dialog{width:calc(100vw - 16px);max-height:94vh}.wbctl-form{grid-template-columns:1fr}.wbctl-form>.full{grid-column:auto}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-btn{transition:none}}"
+    ];
+    module2.exports = {
+      createStagedDialog,
+      validateStep,
+      firstFailing,
+      styles: STYLES
+    };
+  }
+});
+
 // packages/addons/lib/filter-checklist-styles.cjs
 var require_filter_checklist_styles = __commonJS({
   "packages/addons/lib/filter-checklist-styles.cjs"(exports2, module2) {
@@ -750,7 +1150,43 @@ var require_styles = __commonJS({
 @container storage (max-width:480px){.wbi-toolbar{gap:8px}.wbi-toolbar input[type=search]{flex-basis:100%;min-width:0}.wbi-toolbar select{flex:1;min-width:0}.wbi-root>.wbi-row>.wbi-icon-text .wbi-btn-label,.wbi-toolbar>.wbi-icon-text .wbi-btn-label,.wbi-cfg-head>.wbi-icon-text .wbi-btn-label{display:none}.wbi-root>.wbi-row>.wbi-icon-text,.wbi-toolbar>.wbi-icon-text,.wbi-cfg-head>.wbi-icon-text{width:32px;height:32px;padding:0}}
 .wbi-tagfilter{position:relative;display:flex;align-items:center;gap:5px;min-width:0}.wbi-tagfilter .wbi-btn.wbi-tagon{border:1px solid var(--accent);color:var(--accent);background:color-mix(in oklab,var(--accent) 12%,transparent)}.wbi-tagmenu{position:absolute;z-index:60;top:calc(100% + 6px);left:0;width:260px;max-width:min(260px,calc(100vw - 40px));max-height:320px;overflow:auto;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);box-shadow:0 10px 34px #0004}.wbi-tagmenu-head{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:2px 4px 7px}.wbi-tagsearch{padding:0 0 6px}.wbi-tagsearch input{width:100%;box-sizing:border-box;font-size:12.5px;padding:6px 9px}.wbi-tagsel{border-bottom:1px dashed var(--line);margin-bottom:6px;padding-bottom:5px}.wbi-tagsel-list{display:flex;flex-wrap:wrap;gap:4px;padding:0 2px 2px}.wbi-tagselitem{display:inline-flex;align-items:center;gap:4px;max-width:100%;border:1px solid color-mix(in oklab,var(--accent) 40%,transparent);background:color-mix(in oklab,var(--accent) 10%,transparent);color:var(--accent);border-radius:999px;padding:2px 7px;font-size:11.5px;cursor:pointer;font-family:inherit}.wbi-tagselitem .wbi-tagnm{max-width:150px}.wbi-tagnm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.wbi-tagx{opacity:.7;font-size:12px;line-height:1}.wbi-taglist{max-height:236px;overflow:auto;overscroll-behavior:contain}.wbi-tagopt{display:flex;align-items:center;gap:7px;padding:6px;border-radius:6px;cursor:pointer;font-size:12.5px}.wbi-tagopt:hover{background:color-mix(in oklab,currentColor 7%,transparent)}.wbi-tagopt input{margin:0;accent-color:var(--accent)}.wbi-tagmore{font-size:11px;opacity:.5;text-align:center;padding:6px 0 2px}.wbi-note{color:var(--muted);font-size:12px;padding:6px 4px}.wbi-mini{appearance:none;border:0;background:transparent;color:inherit;border-radius:4px;cursor:pointer;font-size:11.5px;line-height:1;padding:3px 5px;font-family:inherit;opacity:.7}.wbi-mini:hover{opacity:1}@container storage (max-width:480px){.wbi-toolbar{position:relative}.wbi-tagfilter{position:static}.wbi-tagmenu{left:8px;right:8px;width:auto;max-width:none;top:calc(100% + 6px)}}
 @media(prefers-reduced-motion:reduce){.wbi-root *,.wbi-root *::after{transition:none!important;animation:none!important}.wbi-card:hover{transform:none}}
-` + require_filter_checklist_styles().join("\n");
+` + require_stepper().styles.join("\n") + require_staged_dialog().styles.join("\n") + require_filter_checklist_styles().join("\n");
+  }
+});
+
+// packages/addons/lib/icons.cjs
+var require_icons = __commonJS({
+  "packages/addons/lib/icons.cjs"(exports2, module2) {
+    "use strict";
+    var h2 = require("react").createElement;
+    function create(prefix, glyphs, options) {
+      var opts = options || {};
+      var ICONS = Object.assign({}, glyphs);
+      function Icon3(props) {
+        var C = ICONS[props.name] || (opts.fallback ? ICONS[opts.fallback] : null);
+        if (!C) return null;
+        var size = typeof opts.sizeOf === "function" ? opts.sizeOf(props) : props.size || 14;
+        var cls = prefix + "-svg" + (opts.classNameAppend && props.className ? " " + props.className : "");
+        var attrs = {
+          size,
+          strokeWidth: props.strokeWidth || 2,
+          "aria-hidden": "true",
+          className: cls
+        };
+        if (opts.focusable) attrs.focusable = false;
+        return h2(C, attrs);
+      }
+      var set = { ICONS, Icon: Icon3 };
+      if (opts.tabIcon) {
+        set.tabIcon = function(name) {
+          return function TabIcon() {
+            return h2(Icon3, { name, size: 14 });
+          };
+        };
+      }
+      return set;
+    }
+    module2.exports = { create };
   }
 });
 
@@ -1419,10 +1855,15 @@ var init_rotate_ccw = __esm({
 });
 
 // packages/addons/storage/client/ui/icons.cjs
-var require_icons = __commonJS({
+var require_icons2 = __commonJS({
   "packages/addons/storage/client/ui/icons.cjs"(exports2, module2) {
-    var React = require("react");
-    var ICONS = {
+    "use strict";
+    var icons2 = require_icons();
+    function sizeOf(props) {
+      if (props.name === "empty" && props.size === 48) return 48;
+      return [11, 14, 16].indexOf(props.size) >= 0 ? props.size : 14;
+    }
+    var set = icons2.create("wbi", {
       box: (init_box(), __toCommonJS(box_exports)).default,
       plus: (init_plus(), __toCommonJS(plus_exports)).default,
       search: (init_search(), __toCommonJS(search_exports)).default,
@@ -1448,18 +1889,72 @@ var require_icons = __commonJS({
       close: (init_x(), __toCommonJS(x_exports)).default,
       table: (init_table(), __toCommonJS(table_exports)).default,
       reset: (init_rotate_ccw(), __toCommonJS(rotate_ccw_exports)).default
+    }, { fallback: "box", focusable: true, sizeOf });
+    module2.exports = { ICONS: set.ICONS, Icon: set.Icon };
+  }
+});
+
+// packages/addons/lib/button.cjs
+var require_button = __commonJS({
+  "packages/addons/lib/button.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h2 = React.createElement;
+    module2.exports = function createButton(options) {
+      var opts = options || {};
+      var prefix = opts.prefix;
+      var Icon3 = opts.Icon;
+      function Button(props) {
+        var attrs = Object.assign({ type: "button", className: prefix + "-btn" }, props);
+        delete attrs.icon;
+        delete attrs.iconOnly;
+        if (props.icon) {
+          attrs["aria-label"] = props["aria-label"] || props.children;
+          attrs.title = props.title || attrs["aria-label"];
+          attrs.className += props.iconOnly ? " " + prefix + "-icon-only" : " " + prefix + "-icon-text";
+        }
+        return h2(
+          "button",
+          attrs,
+          props.icon ? h2(Icon3, { name: props.icon }) : null,
+          props.iconOnly ? null : props.icon ? h2("span", { className: prefix + "-btn-label" }, props.children) : props.children
+        );
+      }
+      return Button;
     };
-    function Icon3(props) {
-      var size = props.name === "empty" && props.size === 48 ? 48 : [11, 14, 16].includes(props.size) ? props.size : 14;
-      return React.createElement(ICONS[props.name] || ICONS.box, {
-        size,
-        strokeWidth: 2,
-        "aria-hidden": true,
-        focusable: false,
-        className: "wbi-svg"
-      });
-    }
-    module2.exports = { ICONS, Icon: Icon3 };
+  }
+});
+
+// packages/addons/lib/skeleton.cjs
+var require_skeleton = __commonJS({
+  "packages/addons/lib/skeleton.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h2 = React.createElement;
+    module2.exports = function createSkeleton(options) {
+      var opts = options || {};
+      var prefix = opts.prefix;
+      var text = opts.text || function(lang) {
+        return lang === "en" ? "Loading\u2026" : "\u8BFB\u53D6\u4E2D\u2026";
+      };
+      return function Skeleton(props) {
+        var label = props.label || text(props.lang);
+        return h2(
+          "div",
+          { className: prefix + "-root " + prefix + "-grid " + prefix + "-skeleton", role: "status", "aria-label": label, "aria-busy": true },
+          h2("span", { className: prefix + "-sr" }, label),
+          [0, 1, 2].map(function(i) {
+            return h2(
+              "div",
+              { key: i, className: prefix + "-card " + prefix + "-skeleton-card", "aria-hidden": true },
+              h2("div", { className: prefix + "-sk" }),
+              h2("div", { className: prefix + "-sk" }),
+              h2("div", { className: prefix + "-sk" })
+            );
+          })
+        );
+      };
+    };
   }
 });
 
@@ -1468,7 +1963,7 @@ var require_ui = __commonJS({
   "packages/addons/storage/client/ui/ui.cjs"(exports2, module2) {
     var React = require("react");
     var h2 = React.createElement;
-    var Icon3 = require_icons().Icon;
+    var Icon3 = require_icons2().Icon;
     function call(api, name, args) {
       return api.call(name, args || {}).then(function(r) {
         if (!r || r.ok !== true) throw new Error(r && r.error || "\u8BF7\u6C42\u5931\u8D25");
@@ -1478,39 +1973,16 @@ var require_ui = __commonJS({
     function tr(lang, zh, en) {
       return lang === "en" ? en : zh;
     }
-    function Button(props) {
-      var attrs = Object.assign({ type: "button", className: "wbi-btn" }, props);
-      delete attrs.icon;
-      delete attrs.iconOnly;
-      if (props.icon) {
-        attrs["aria-label"] = props["aria-label"] || props.children;
-        attrs.title = props.title || attrs["aria-label"];
-        attrs.className += props.iconOnly ? " wbi-icon-only" : " wbi-icon-text";
+    var createButton = require_button();
+    var createSkeleton = require_skeleton();
+    var createOverlay = require_overlay();
+    var Button = createButton({ prefix: "wbi", Icon: Icon3 });
+    var Skeleton = createSkeleton({
+      prefix: "wbi",
+      text: function(lang) {
+        return tr(lang, "\u8BFB\u53D6\u4E2D\u2026", "Loading\u2026");
       }
-      return h2(
-        "button",
-        attrs,
-        props.icon ? h2(Icon3, { name: props.icon }) : null,
-        props.iconOnly ? null : props.icon ? h2("span", { className: "wbi-btn-label" }, props.children) : props.children
-      );
-    }
-    function Skeleton(props) {
-      var label = props.label || tr(props.lang, "\u8BFB\u53D6\u4E2D\u2026", "Loading\u2026");
-      return h2(
-        "div",
-        { className: "wbi-root wbi-grid wbi-skeleton", role: "status", "aria-label": label, "aria-busy": true },
-        h2("span", { className: "wbi-sr" }, label),
-        [0, 1, 2].map(function(i) {
-          return h2(
-            "div",
-            { key: i, className: "wbi-card wbi-skeleton-card", "aria-hidden": true },
-            h2("div", { className: "wbi-sk" }),
-            h2("div", { className: "wbi-sk" }),
-            h2("div", { className: "wbi-sk" })
-          );
-        })
-      );
-    }
+    });
     function ErrorBox(props) {
       return props.error ? h2("div", { className: "wbi-error", role: "alert" }, String(props.error.message || props.error)) : null;
     }
@@ -1522,70 +1994,23 @@ var require_ui = __commonJS({
         return "";
       }
     }
-    function Modal(props) {
-      var ref = React.useRef(null);
-      React.useEffect(function() {
-        var previous = document.activeElement;
-        if (ref.current) ref.current.focus();
-        return function() {
-          if (previous && previous.isConnected) previous.focus();
-        };
-      }, []);
-      function key(e) {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          e.stopPropagation();
-          if (props.onClose) props.onClose();
-          return;
-        }
-        if (e.key !== "Tab") return;
-        var els = ref.current.querySelectorAll(
-          "button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]"
+    var Modal = createOverlay({
+      tag: "section",
+      maskClass: "wbi-mask",
+      dialogClass: "wbi-modal",
+      ariaLabelOf: function(props) {
+        return props.title;
+      },
+      header: function(props) {
+        return h2(
+          "header",
+          { className: "wbi-row" },
+          h2("h2", null, props.title),
+          h2("span", { className: "wbi-grow" }),
+          h2(Button, { icon: "close", iconOnly: true, onClick: props.onClose, disabled: !props.onClose, "aria-label": "\u5173\u95ED / Close" }, "\xD7")
         );
-        if (!els.length) {
-          e.preventDefault();
-          return;
-        }
-        var first = els[0], last = els[els.length - 1];
-        if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
-          e.preventDefault();
-          last.focus();
-        }
-        if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
       }
-      return h2(
-        "div",
-        {
-          className: "wbi-mask",
-          onMouseDown: function(e) {
-            if (e.target === e.currentTarget && props.onClose) props.onClose();
-          }
-        },
-        h2(
-          "section",
-          {
-            className: "wbi-modal",
-            role: "dialog",
-            "aria-modal": true,
-            "aria-label": props.title,
-            ref,
-            tabIndex: -1,
-            onKeyDown: key
-          },
-          h2(
-            "header",
-            { className: "wbi-row" },
-            h2("h2", null, props.title),
-            h2("span", { className: "wbi-grow" }),
-            h2(Button, { icon: "close", iconOnly: true, onClick: props.onClose, disabled: !props.onClose, "aria-label": "\u5173\u95ED / Close" }, "\xD7")
-          ),
-          props.children
-        )
-      );
-    }
+    });
     module2.exports = { Icon: Icon3, Skeleton, h: h2, call, tr, Button, ErrorBox, Modal, safeImage };
   }
 });
@@ -1700,8 +2125,38 @@ var require_editor = __commonJS({
   "packages/addons/storage/client/modals/editor.cjs"(exports2, module2) {
     var React = require("react");
     var ui = require_ui();
+    var staged = require_staged_dialog();
     var h2 = ui.h;
     var tr = ui.tr;
+    var StagedModal = staged.createStagedDialog({
+      React,
+      tag: "section",
+      displayName: "StorageEditorDialog",
+      maskClass: "wbi-mask",
+      dialogClass: "wbi-modal",
+      ariaLabelOf: function(props) {
+        return props.title;
+      },
+      header: function(props) {
+        return h2(
+          "header",
+          { className: "wbi-row" },
+          h2("h2", null, props.title),
+          h2("span", { className: "wbi-grow" }),
+          h2(
+            ui.Button,
+            { icon: "close", iconOnly: true, onClick: props.onClose, disabled: !!props.submitting || !props.onClose, "aria-label": "\u5173\u95ED / Close" },
+            "\xD7"
+          )
+        );
+      },
+      closeOnEscape: function(props) {
+        return !props.submitting;
+      },
+      closeOnMask: function(props) {
+        return !props.submitting;
+      }
+    });
     function Editor(props) {
       var item = props.item || {}, lang = props.lang;
       var state = React.useState(function() {
@@ -1827,8 +2282,7 @@ var require_editor = __commonJS({
           })
         );
       }
-      function save(e) {
-        e.preventDefault();
+      function save() {
         if (busy[0]) return;
         var images = form.images.split(/\r?\n/).map(function(s) {
           return s.trim();
@@ -1872,34 +2326,60 @@ var require_editor = __commonJS({
         if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) load(query[0], (page[0] || 1) + 1, true);
       }
       var tagsNote = loading[0] ? tr(lang, "\u52A0\u8F7D\u4E2D\u2026", "Loading\u2026") : !candidates.size ? query[0] ? tr(lang, "\u6CA1\u6709\u5339\u914D\u7684\u6807\u7B7E", "No matching tags") : tr(lang, "\u6682\u65E0\u6807\u7B7E\uFF0C\u53EF\u5728\u6807\u7B7E\u63D2\u4EF6\u4E2D\u521B\u5EFA", "No tags. Create them in the Tags plugin.") : hasMore[0] ? "" : tr(lang, "\u6CA1\u6709\u66F4\u591A", "No more");
-      return h2(
-        ui.Modal,
+      var steps = [
         {
-          title: item.id ? tr(lang, "\u7F16\u8F91\u7269\u54C1", "Edit item") : tr(lang, "\u65B0\u589E\u7269\u54C1", "New item"),
-          onClose: busy[0] ? null : props.onClose
+          key: "basic",
+          label: tr(lang, "\u57FA\u672C\u4FE1\u606F", "Basics"),
+          render: function(hh) {
+            return hh(
+              "div",
+              { className: "wbctl-form" },
+              field("name", "\u540D\u79F0 *", "Name *", true),
+              field("brand", "\u54C1\u724C", "Brand"),
+              field("unit", "\u5355\u4F4D", "Unit"),
+              field("stock", "\u5E93\u5B58\uFF08\u53EF\u586B\u5199 1~2 \u7B49\u6587\u5B57\uFF09", "Stock (text such as 1\u20132)", true)
+            );
+          },
+          validate: function() {
+            return form.name.trim() ? "" : tr(lang, "\u8BF7\u586B\u5199\u7269\u54C1\u540D\u79F0", "Enter an item name");
+          }
         },
-        h2(ui.ErrorBox, { error: err[0] }),
-        h2(
-          "form",
-          { onSubmit: save },
-          h2(
-            "div",
-            { className: "wbi-form" },
-            field("name", "\u540D\u79F0 *", "Name *", true),
-            field("brand", "\u54C1\u724C", "Brand"),
-            field("unit", "\u5355\u4F4D", "Unit"),
-            field("stock", "\u5E93\u5B58\uFF08\u53EF\u586B\u5199 1~2 \u7B49\u6587\u5B57\uFF09", "Stock (text such as 1\u20132)", true),
-            field("location", "\u5B58\u653E\u4F4D\u7F6E", "Location"),
-            field("remark", "\u5907\u6CE8", "Notes", true, true),
-            field("images", "\u56FE\u7247 URL\uFF08\u6BCF\u884C\u4E00\u4E2A\uFF09", "Image URLs (one per line)", true, true),
-            h2(
+        {
+          key: "place",
+          label: tr(lang, "\u5B58\u653E\u4E0E\u56FE\u7247", "Place & images"),
+          render: function(hh) {
+            return hh(
+              "div",
+              { className: "wbctl-form" },
+              field("location", "\u5B58\u653E\u4F4D\u7F6E", "Location", true),
+              field("remark", "\u5907\u6CE8", "Notes", true, true),
+              field("images", "\u56FE\u7247 URL\uFF08\u6BCF\u884C\u4E00\u4E2A\uFF09", "Image URLs (one per line)", true, true)
+            );
+          },
+          validate: function() {
+            var images = form.images.split(/\r?\n/).map(function(s) {
+              return s.trim();
+            }).filter(Boolean);
+            return images.some(function(s) {
+              return !ui.safeImage(s);
+            }) ? tr(lang, "\u56FE\u7247\u5730\u5740\u5FC5\u987B\u662F\u5B8C\u6574\u7684 HTTP(S) URL", "Images must use full HTTP(S) URLs") : "";
+          }
+        }
+      ];
+      if (props.tagsEnabled) {
+        steps.push({
+          key: "tags",
+          label: tr(lang, "\u6807\u7B7E", "Tags"),
+          optional: true,
+          render: function(hh) {
+            return hh(
               "div",
               { className: "wbi-field wbi-wide" },
-              h2("span", null, tr(lang, "\u6807\u7B7E", "Tags")),
-              props.tagsEnabled ? h2(
+              hh("span", null, tr(lang, "\u6807\u7B7E", "Tags")),
+              hh(
                 React.Fragment,
                 null,
-                h2("input", {
+                hh("input", {
                   type: "search",
                   placeholder: tr(lang, "\u641C\u7D22\u5DF2\u6709\u6807\u7B7E", "Search existing tags"),
                   "aria-label": tr(lang, "\u641C\u7D22\u5DF2\u6709\u6807\u7B7E", "Search existing tags"),
@@ -1909,14 +2389,14 @@ var require_editor = __commonJS({
                     query[1](e.target.value);
                   }
                 }),
-                h2(
+                hh(
                   "div",
                   { className: "wbi-tagoptions", onScroll: onListScroll },
                   Array.from(candidates.values()).map(function(t) {
-                    return h2(
+                    return hh(
                       "label",
                       { key: t.id },
-                      h2("input", {
+                      hh("input", {
                         type: "checkbox",
                         checked: form.tagIds.includes(t.id),
                         disabled: busy[0],
@@ -1941,26 +2421,28 @@ var require_editor = __commonJS({
                     );
                   })
                 ),
-                h2("div", { className: "wbi-tagmore" }, tagsNote)
-              ) : h2(
-                "span",
-                { className: "wbi-muted" },
-                tr(lang, "\u6807\u7B7E\u63D2\u4EF6\u4E0D\u53EF\u7528\uFF0C\u4FDD\u5B58\u65F6\u4FDD\u7559\u539F\u6709\u5173\u8054", "Tags unavailable; existing links are preserved.")
+                hh("div", { className: "wbi-tagmore" }, tagsNote)
               )
-            )
-          ),
-          h2(
-            "div",
-            { className: "wbi-formfoot" },
-            h2(ui.Button, { onClick: props.onClose, disabled: busy[0] }, tr(lang, "\u53D6\u6D88", "Cancel")),
-            h2(
-              ui.Button,
-              { type: "submit", disabled: busy[0], className: "wbi-btn wbi-primary" },
-              busy[0] ? tr(lang, "\u4FDD\u5B58\u4E2D\u2026", "Saving\u2026") : tr(lang, "\u4FDD\u5B58", "Save")
-            )
-          )
-        )
-      );
+            );
+          }
+        });
+      }
+      return h2(StagedModal, {
+        title: item.id ? tr(lang, "\u7F16\u8F91\u7269\u54C1", "Edit item") : tr(lang, "\u65B0\u589E\u7269\u54C1", "New item"),
+        // 打开时的起始步：正常从基本信息开始，测试可直达标签步。
+        initialStep: props.initialStep,
+        steps,
+        submitting: busy[0],
+        error: err[0] ? String(err[0].message || err[0]) : "",
+        onClose: props.onClose,
+        onSubmit: function() {
+          save();
+        },
+        submitText: tr(lang, "\u4FDD\u5B58", "Save"),
+        cancelText: tr(lang, "\u53D6\u6D88", "Cancel"),
+        nextText: tr(lang, "\u4E0B\u4E00\u6B65", "Next"),
+        backText: tr(lang, "\u4E0A\u4E00\u6B65", "Back")
+      });
     }
     module2.exports = { Editor };
   }
@@ -2301,190 +2783,466 @@ var require_filter_checklist = __commonJS({
   }
 });
 
-// packages/addons/storage/client/ui/tagfilter.cjs
-var require_tagfilter = __commonJS({
-  "packages/addons/storage/client/ui/tagfilter.cjs"(exports2, module2) {
+// packages/addons/lib/search-picker.cjs
+var require_search_picker = __commonJS({
+  "packages/addons/lib/search-picker.cjs"(exports2, module2) {
+    "use strict";
     var React = require("react");
-    var ui = require_ui();
-    var FilterChecklist = require_filter_checklist();
     var h2 = React.createElement;
-    var tr = ui.tr;
-    module2.exports = function TagFilter(props) {
-      var api = props.api, lang = props.lang, enabled = props.enabled !== false, ids = props.ids || [], onChange = props.onChange;
-      var openS = React.useState(false), open = openS[0], setOpen = openS[1];
-      var queryS = React.useState(""), query = queryS[0], setQuery = queryS[1];
-      var optsS = React.useState({ tags: [], total: 0, pageNumber: 0, hasMore: false }), opts = optsS[0], setOpts = optsS[1];
-      var loadingS = React.useState(false), loading = loadingS[0], setLoading = loadingS[1];
-      var namesS = React.useState({}), names = namesS[0], setNames = namesS[1];
-      var seq = React.useRef(0);
-      var load = React.useCallback(
-        function(text, pageNumber, append) {
-          var mine = ++seq.current;
-          setLoading(true);
-          return api.call("storageTags.search", { text: text || "", pageNumber, pageSize: 20 }).then(function(r) {
-            if (mine !== seq.current) return;
-            setLoading(false);
-            if (!r || !r.ok) return;
-            var out = r.result || {}, records = out.records || [], current = out.current || pageNumber, pages = out.pages || 0;
-            setOpts(function(prev) {
-              var list = append ? (prev.tags || []).slice() : [];
-              var seen = {};
-              list.forEach(function(x) {
-                seen[String(x.id)] = true;
-              });
-              records.forEach(function(x) {
-                if (!seen[String(x.id)]) list.push(x);
-              });
-              return { tags: list, total: out.total || 0, pageNumber: current, hasMore: current < pages };
+    var FilterChecklist = require_filter_checklist();
+    var DEFAULT_TEXTS = {
+      all: "\u5168\u90E8",
+      selected: "\u5DF2\u9009",
+      clear: "\u6E05\u7A7A",
+      searchPlaceholder: "\u641C\u7D22",
+      empty: "\u6682\u65E0\u6570\u636E",
+      noMatch: "\u6CA1\u6709\u5339\u914D\u9879",
+      loading: "\u52A0\u8F7D\u4E2D\u2026",
+      noMore: "\u6CA1\u6709\u66F4\u591A"
+    };
+    function asText(x) {
+      return String(x == null ? "" : x).toLowerCase();
+    }
+    function filterLocal(items, query) {
+      var q = String(query || "").trim();
+      if (!q) return items;
+      var needle = asText(q);
+      return items.filter(function(x) {
+        return asText(x.name).indexOf(needle) >= 0 || asText(x.meta).indexOf(needle) >= 0;
+      });
+    }
+    function useRemoteSource(conf) {
+      var RT = conf.React || React;
+      var open = conf.open;
+      var query = conf.query;
+      var fetchPage = conf.fetchPage;
+      var pageSize = conf.pageSize;
+      var debounce = conf.debounce;
+      var dedupe = conf.dedupe;
+      var mapPage = conf.mapPage;
+      var reloadKey = conf.reloadKey;
+      var rowsS = RT.useState([]);
+      var totalS = RT.useState(0);
+      var pageS = RT.useState(0);
+      var moreS = RT.useState(false);
+      var loadS = RT.useState(false);
+      var seq = RT.useRef ? RT.useRef(0) : { current: 0 };
+      function load(q, pageNumber, append) {
+        var mine = ++seq.current;
+        loadS[1](true);
+        return Promise.resolve(fetchPage(q, pageNumber)).then(function(raw) {
+          if (mine !== seq.current) return;
+          loadS[1](false);
+          var next = mapPage ? mapPage(raw, pageNumber) : raw || {};
+          var list = next.rows || [];
+          rowsS[1](function(prev) {
+            if (!append) return list;
+            var joined = dedupe === false ? prev.concat(list) : prev.concat(list);
+            if (dedupe === false) return joined;
+            var seen = {};
+            return joined.filter(function(x) {
+              var key = String(x.id);
+              if (seen[key]) return false;
+              seen[key] = true;
+              return true;
             });
-            setNames(function(prev) {
-              var next = Object.assign({}, prev);
-              records.forEach(function(x) {
-                next[String(x.id)] = x.name;
-              });
-              return next;
-            });
-          }).catch(function() {
-            if (mine === seq.current) setLoading(false);
           });
-        },
-        [api]
-      );
-      React.useEffect(
+          totalS[1](typeof next.total === "number" ? next.total : list.length);
+          pageS[1](next.page || pageNumber);
+          moreS[1](!!next.hasMore);
+        }).catch(function() {
+          if (mine === seq.current) loadS[1](false);
+        });
+      }
+      RT.useEffect(
         function() {
           if (!open) return void 0;
           var timer = setTimeout(
             function() {
               load(query, 1, false);
             },
-            query ? 200 : 0
+            query ? debounce : 0
           );
           return function() {
             clearTimeout(timer);
           };
         },
-        [open, query, load, props.reloadKey]
+        [open, query, reloadKey]
       );
-      React.useEffect(
-        function() {
-          if (!open || !ids.length) return;
-          var wanted = ids.filter(function(id) {
-            return !names[String(id)];
-          });
-          if (!wanted.length) return;
-          api.call("storageTags.byIds", { ids: wanted }).then(function(r) {
-            if (!r || !r.ok) return;
-            var next = {};
-            (r.result && r.result.records || []).forEach(function(x) {
-              next[String(x.id)] = x.name;
-            });
-            if (!Object.keys(next).length) return;
-            setNames(function(prev) {
-              return Object.assign({}, prev, next);
-            });
-          }).catch(function() {
-          });
-        },
-        [open, ids.join(",")]
-      );
-      React.useEffect(
-        function() {
-          if (!open) return void 0;
-          function onKey(e) {
-            if (e.key === "Escape") setOpen(false);
-          }
-          document.addEventListener("keydown", onKey);
-          return function() {
-            document.removeEventListener("keydown", onKey);
-          };
-        },
-        [open]
-      );
+      return {
+        rows: rowsS[0],
+        total: totalS[0],
+        page: pageS[0],
+        hasMore: moreS[0],
+        loading: loadS[0],
+        loadQuery: load,
+        reset: function() {
+          seq.current += 1;
+          rowsS[1]([]);
+          totalS[1](0);
+          pageS[1](0);
+          moreS[1](false);
+          loadS[1](false);
+        }
+      };
+    }
+    function SearchPicker(props) {
+      var RT = props.React || React;
+      var texts = Object.assign({}, DEFAULT_TEXTS, props.texts || {});
+      var classes = props.classes || {};
+      var mode = props.mode === "single" ? "single" : "multi";
+      var disabled = props.disabled === true;
+      var selected = (props.selected || []).map(String);
+      var items = props.items || null;
+      var fetchPage = props.fetchPage || null;
+      var pageSize = props.pageSize || 20;
+      var debounce = props.debounce === void 0 ? 200 : props.debounce;
+      var allItems = items || [];
+      var openS = RT.useState(false);
+      var open = openS[0];
+      var queryS = RT.useState("");
+      var query = queryS[0];
+      var boxRef = RT.useRef ? RT.useRef(null) : { current: null };
+      var remote = fetchPage ? useRemoteSource({
+        React: RT,
+        open,
+        query,
+        fetchPage,
+        pageSize,
+        debounce,
+        dedupe: props.dedupe,
+        mapPage: props.mapPage,
+        reloadKey: props.reloadKey
+      }) : null;
+      var rows = remote ? remote.rows : filterLocal(allItems, query);
+      var loading = remote ? remote.loading : false;
+      var total = remote ? remote.total : rows.length;
+      var hasMore = remote ? remote.hasMore : false;
+      RT.useEffect(function() {
+        if (!open || typeof document === "undefined") return void 0;
+        function onDown(e) {
+          var box = boxRef.current;
+          if (box && !box.contains(e.target)) openS[1](false);
+        }
+        function onKey(e) {
+          if (e.key === "Escape") openS[1](false);
+        }
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return function() {
+          document.removeEventListener("mousedown", onDown);
+          document.removeEventListener("keydown", onKey);
+        };
+      }, [open]);
+      function commit(next) {
+        if (props.onChange) props.onChange(next);
+      }
       function toggle(id) {
-        var key = String(id), next = ids.slice(), i = next.indexOf(key);
+        if (disabled) return;
+        var key = String(id);
+        if (mode === "single") {
+          openS[1](false);
+          if (props.onPick) props.onPick(key, rowOf(key));
+          commit([key]);
+          return;
+        }
+        var next = selected.slice();
+        var i = next.indexOf(key);
         if (i >= 0) next.splice(i, 1);
         else next.push(key);
-        onChange(next);
+        commit(next);
       }
-      if (!enabled) return null;
+      function rowOf(id) {
+        var hit = rows.filter(function(x) {
+          return String(x.id) === String(id);
+        })[0];
+        if (hit) return hit;
+        return (allItems || []).filter(function(x) {
+          return String(x.id) === String(id);
+        })[0] || null;
+      }
+      var label = props.label || texts.all;
+      var caret = props.caret === void 0 ? "\u25BE" : props.caret;
+      var count = selected.length;
+      var chips = props.renderSelected ? props.renderSelected({ ids: selected, toggle, nameOf: props.nameOf || rowOf, texts }) : null;
       return h2(
         "div",
-        { className: "wbi-tagfilter" },
+        { className: classes.root, ref: boxRef },
         h2(
           "button",
           {
             type: "button",
-            className: "wbi-btn" + (ids.length ? " wbi-tagon" : ""),
+            className: classes.btn + (count ? " " + (classes.btnOn || "is-on") : ""),
+            "aria-haspopup": "dialog",
             "aria-expanded": open ? "true" : "false",
+            disabled,
             onClick: function(e) {
-              e.stopPropagation();
-              setOpen(!open);
+              if (props.stopPropagation) e.stopPropagation();
+              openS[1](!open);
             }
           },
-          h2(ui.Icon, { name: "tag", size: 13 }),
-          tr(lang, "\u6807\u7B7E\u7B5B\u9009", "Tag filter") + (ids.length ? " \xB7 " + ids.length : ""),
-          "\u25BE"
+          props.icon ? props.icon : null,
+          label + (count ? " \xB7 " + count : ""),
+          typeof caret === "function" ? caret : caret
         ),
+        chips,
         open ? h2(
           "div",
-          { className: "wbi-tagmenu", role: "menu", onClick: function(e) {
-            e.stopPropagation();
-          } },
+          {
+            className: classes.menu,
+            role: props.menuRole,
+            style: props.menuStyle,
+            onClick: props.stopPropagation ? function(e) {
+              e.stopPropagation();
+            } : void 0
+          },
           h2(FilterChecklist, {
-            beforeHead: ids.length ? h2(
-              "div",
-              { className: "wbi-tagsel" },
-              h2("div", { className: "wbi-tagmenu-head" }, h2("span", null, tr(lang, "\u5DF2\u9009", "Selected") + " " + ids.length)),
-              h2(
-                "div",
-                { className: "wbi-tagsel-list" },
-                ids.map(function(id) {
-                  return h2(
-                    "button",
-                    {
-                      key: id,
-                      type: "button",
-                      className: "wbi-tagselitem",
-                      title: tr(lang, "\u79FB\u9664", "Remove"),
-                      onClick: function() {
-                        toggle(id);
-                      }
-                    },
-                    h2("span", { className: "wbi-tagnm" }, names[String(id)] || "#" + id),
-                    h2("span", { className: "wbi-tagx" }, "\xD7")
-                  );
-                })
-              )
-            ) : null,
-            items: opts.tags.map(function(x) {
-              return { id: x.id, name: x.name };
-            }),
-            selected: ids,
+            mode,
+            items: rows,
+            selected,
             onToggle: toggle,
+            onPick: toggle,
             query,
-            onQuery: setQuery,
-            title: tr(lang, "\u5168\u90E8\u6807\u7B7E", "All tags"),
-            total: opts.total,
-            selectedText: tr(lang, "\u5DF2\u9009", "Selected"),
-            clearText: tr(lang, "\u6E05\u7A7A", "Clear"),
+            onQuery: queryS[1],
+            title: props.title || label,
+            total,
+            selectedText: texts.selected,
+            clearText: texts.clear,
             onClear: function() {
-              onChange([]);
-              setQuery("");
+              commit([]);
+              queryS[1]("");
             },
-            searchPlaceholder: tr(lang, "\u641C\u7D22\u6807\u7B7E\u540D\u79F0", "Search tag names"),
+            searchPlaceholder: texts.searchPlaceholder,
             loading,
-            hasMore: opts.hasMore,
-            onLoadMore: function() {
-              load(query, (opts.pageNumber || 1) + 1, true);
-            },
-            emptyText: tr(lang, "\u6682\u65E0\u6807\u7B7E", "No tags yet"),
-            noMatchText: tr(lang, "\u6CA1\u6709\u5339\u914D\u7684\u6807\u7B7E", "No matching tags"),
-            loadingText: tr(lang, "\u52A0\u8F7D\u4E2D\u2026", "Loading\u2026"),
-            noMoreText: tr(lang, "\u6CA1\u6709\u66F4\u591A", "No more")
-          })
+            hasMore,
+            onLoadMore: remote ? function() {
+              remote.loadQuery(query, (remote.page || 1) + 1, true);
+            } : void 0,
+            emptyText: texts.empty,
+            noMatchText: texts.noMatch,
+            loadingText: texts.loading,
+            noMoreText: texts.noMore,
+            groupLabel: props.title || label,
+            autoFocus: props.autoFocus,
+            beforeHead: props.beforeHead || null
+          }),
+          props.footer || null
         ) : null
       );
+    }
+    module2.exports = SearchPicker;
+    module2.exports.filterLocal = filterLocal;
+    module2.exports.DEFAULT_TEXTS = DEFAULT_TEXTS;
+  }
+});
+
+// packages/addons/lib/tag-filter.cjs
+var require_tag_filter = __commonJS({
+  "packages/addons/lib/tag-filter.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h2 = React.createElement;
+    var SearchPicker = require_search_picker();
+    module2.exports = function createTagFilter(options) {
+      var conf = options || {};
+      var classes = conf.classes || {};
+      var pageSize = conf.pageSize || 20;
+      var debounce = conf.debounce === void 0 ? 200 : conf.debounce;
+      var dedupe = conf.dedupe !== false;
+      var mapPage = conf.mapPage || function(out, pageNumber) {
+        return {
+          rows: out.records || [],
+          total: out.total || 0,
+          page: out.current || pageNumber,
+          hasMore: !!out.hasNext
+        };
+      };
+      var items = conf.items || function(rows) {
+        return rows.map(function(x) {
+          return { id: x.id, name: x.name };
+        });
+      };
+      var text = conf.text || function() {
+        return {};
+      };
+      var icon = conf.icon || function() {
+        return null;
+      };
+      var caret = conf.caret === void 0 ? "\u25BE" : conf.caret;
+      var enabled = conf.enabled || function() {
+        return true;
+      };
+      var renderSelected = conf.renderSelected || null;
+      return function TagFilter(props) {
+        var api = props.api;
+        var ids = props.ids || [];
+        var onChange = props.onChange || function() {
+        };
+        var tx = text(props);
+        var namesS = React.useState({});
+        var names = namesS[0];
+        function mergeNames(rows) {
+          if (!rows || !rows.length) return;
+          namesS[1](function(prev) {
+            var next = Object.assign({}, prev);
+            var changed = false;
+            rows.forEach(function(x) {
+              if (next[String(x.id)] !== x.name) {
+                next[String(x.id)] = x.name;
+                changed = true;
+              }
+            });
+            return changed ? next : prev;
+          });
+        }
+        React.useEffect(
+          function() {
+            if (!ids.length || !conf.names) return;
+            var wanted = ids.filter(function(id) {
+              return !names[String(id)];
+            });
+            if (!wanted.length) return;
+            var args = conf.names.args ? conf.names.args(wanted) : { ids: wanted };
+            api.call(conf.names.action, args).then(function(r) {
+              if (!r || !r.ok) return;
+              mergeNames(r.result && r.result.records || []);
+            }).catch(function() {
+            });
+          },
+          [ids.join(",")]
+        );
+        function fetchPage(q, pageNumber) {
+          return api.call(conf.action, { text: q || "", pageNumber, pageSize }).then(function(r) {
+            if (!r || !r.ok) return { rows: [], total: 0, page: pageNumber, hasMore: false };
+            var next = mapPage(r.result || {}, pageNumber);
+            mergeNames(next.rows);
+            return { rows: items(next.rows), total: next.total, page: next.page, hasMore: next.hasMore };
+          });
+        }
+        function nameOf(id) {
+          return names[String(id)] || String(id).slice(0, 6);
+        }
+        if (!enabled(props)) return null;
+        return h2(SearchPicker, {
+          h: h2,
+          React,
+          mode: "multi",
+          label: tx.label,
+          title: tx.all,
+          fetchPage,
+          pageSize,
+          debounce,
+          dedupe,
+          classes,
+          menuRole: conf.menuRole,
+          menuStyle: conf.menuStyle,
+          stopPropagation: conf.stopPropagation,
+          reloadKey: props.reloadKey,
+          texts: {
+            all: tx.all,
+            selected: tx.selected,
+            clear: tx.clear,
+            searchPlaceholder: tx.searchPlaceholder,
+            empty: tx.empty,
+            noMatch: tx.noMatch,
+            loading: tx.loading,
+            noMore: tx.noMore
+          },
+          icon: icon(props, "tag", 13),
+          caret: typeof caret === "function" ? caret(props) : caret,
+          selected: ids,
+          onChange,
+          nameOf,
+          renderSelected: renderSelected ? function(ctx) {
+            return renderSelected({
+              ids: ctx.ids,
+              names,
+              toggle: ctx.toggle,
+              text: tx,
+              classes,
+              h: h2
+            });
+          } : null
+        });
+      };
     };
+  }
+});
+
+// packages/addons/storage/client/ui/tagfilter.cjs
+var require_tagfilter = __commonJS({
+  "packages/addons/storage/client/ui/tagfilter.cjs"(exports2, module2) {
+    var React = require("react");
+    var h2 = React.createElement;
+    var ui = require_ui();
+    var createTagFilter = require_tag_filter();
+    module2.exports = createTagFilter({
+      action: "storageTags.search",
+      stopPropagation: true,
+      classes: { root: "wbi-tagfilter", btn: "wbi-btn", btnOn: "wbi-tagon", menu: "wbi-tagmenu" },
+      menuRole: "menu",
+      enabled: function(props) {
+        return props.enabled !== false;
+      },
+      // 已选标签可能不在当前页甚至不在当前搜索词里，按 id 补名字。
+      names: { action: "storageTags.byIds" },
+      text: function(props) {
+        var lang = props.lang;
+        return {
+          label: ui.tr(lang, "\u6807\u7B7E\u7B5B\u9009", "Tag filter"),
+          selected: ui.tr(lang, "\u5DF2\u9009", "Selected"),
+          all: ui.tr(lang, "\u5168\u90E8\u6807\u7B7E", "All tags"),
+          clear: ui.tr(lang, "\u6E05\u7A7A", "Clear"),
+          searchPlaceholder: ui.tr(lang, "\u641C\u7D22\u6807\u7B7E\u540D\u79F0", "Search tag names"),
+          empty: ui.tr(lang, "\u6682\u65E0\u6807\u7B7E", "No tags yet"),
+          noMatch: ui.tr(lang, "\u6CA1\u6709\u5339\u914D\u7684\u6807\u7B7E", "No matching tags"),
+          loading: ui.tr(lang, "\u52A0\u8F7D\u4E2D\u2026", "Loading\u2026"),
+          noMore: ui.tr(lang, "\u6CA1\u6709\u66F4\u591A", "No more"),
+          remove: ui.tr(lang, "\u79FB\u9664", "Remove")
+        };
+      },
+      icon: function(props, name, size) {
+        return h2(ui.Icon, { name, size });
+      },
+      caret: "\u25BE",
+      mapPage: function(out, pageNumber) {
+        var pages = out.pages || 0;
+        var current = out.current || pageNumber;
+        return { rows: out.records || [], total: out.total || 0, page: current, hasMore: current < pages };
+      },
+      renderSelected: function(ctx) {
+        if (!ctx.ids.length) return null;
+        return h2(
+          "div",
+          { className: "wbi-tagsel" },
+          h2(
+            "div",
+            { className: "wbi-tagmenu-head" },
+            h2("span", null, ctx.text.selected + " " + ctx.ids.length)
+          ),
+          h2(
+            "div",
+            { className: "wbi-tagsel-list" },
+            ctx.ids.map(function(id) {
+              return h2(
+                "button",
+                {
+                  key: id,
+                  type: "button",
+                  className: "wbi-tagselitem",
+                  title: ctx.text.remove,
+                  onClick: function() {
+                    ctx.toggle(id);
+                  }
+                },
+                h2("span", { className: "wbi-tagnm" }, ctx.names[String(id)] || "#" + id),
+                h2("span", { className: "wbi-tagx" }, "\xD7")
+              );
+            })
+          )
+        );
+      }
+    });
   }
 });
 
@@ -3033,6 +3791,255 @@ var require_config_copy = __commonJS({
   }
 });
 
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
+    ];
+    function Switch(props) {
+      var h2 = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h2(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h2(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h2("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h2("span", { className: "wbctl-switch-text" }, text) : null
+      );
+    }
+    module2.exports = { Switch, styles: SWITCH_STYLES };
+  }
+});
+
+// packages/addons/lib/number-field.cjs
+var require_number_field = __commonJS({
+  "packages/addons/lib/number-field.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var NUM = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    var TEXT = {
+      zh: {
+        required: "\u8BF7\u586B\u5199\u6570\u5B57",
+        invalid: "\u8BF7\u8F93\u5165\u6570\u5B57",
+        integer: "\u9700\u8981\u662F\u6574\u6570",
+        min: "\u4E0D\u80FD\u5C0F\u4E8E {min}",
+        max: "\u4E0D\u80FD\u5927\u4E8E {max}",
+        range: "\u9700\u8981\u5728 {min}\u2013{max} \u4E4B\u95F4",
+        step: "\u9700\u8981\u662F {step} \u7684\u500D\u6570",
+        unit: "\u5355\u4F4D"
+      },
+      en: {
+        required: "Please enter a number",
+        invalid: "Please enter a number",
+        integer: "Must be a whole number",
+        min: "Must be at least {min}",
+        max: "Must be at most {max}",
+        range: "Must be between {min} and {max}",
+        step: "Must be a multiple of {step}",
+        unit: "unit"
+      }
+    };
+    function messages(lang) {
+      return lang === "en" ? TEXT.en : TEXT.zh;
+    }
+    function fill(text, vars) {
+      return String(text).replace(/\{(\w+)\}/g, function(m, key) {
+        return vars && vars[key] !== void 0 ? String(vars[key]) : m;
+      });
+    }
+    function validateNumber(raw, opts) {
+      var o = opts || {};
+      var M = messages(o.lang);
+      var text = raw === null || raw === void 0 ? "" : String(raw).trim();
+      if (text === "") {
+        return o.allowEmpty ? { ok: true, value: null, error: "" } : { ok: false, value: null, error: M.required };
+      }
+      if (!NUM.test(text)) return { ok: false, value: null, error: M.invalid };
+      var n = Number(text);
+      if (!isFinite(n)) return { ok: false, value: null, error: M.invalid };
+      if (o.integer && Math.round(n) !== n) return { ok: false, value: null, error: M.integer };
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      if (hasMin && hasMax && n >= o.min && n <= o.max) {
+      } else if (hasMin && hasMax) {
+        return { ok: false, value: null, error: fill(M.range, { min: o.min, max: o.max }) };
+      } else if (hasMin && n < o.min) {
+        return { ok: false, value: null, error: fill(M.min, { min: o.min }) };
+      } else if (hasMax && n > o.max) {
+        return { ok: false, value: null, error: fill(M.max, { max: o.max }) };
+      }
+      if (o.step && Number(o.step) > 0) {
+        var q = n / Number(o.step);
+        if (Math.abs(q - Math.round(q)) > 1e-9) {
+          return { ok: false, value: null, error: fill(M.step, { step: o.step }) };
+        }
+      }
+      return { ok: true, value: n, error: "" };
+    }
+    function rangeHint(opts, lang) {
+      var o = opts || {};
+      var M = messages(lang);
+      var en = lang === "en";
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      var parts = [];
+      if (hasMin && hasMax) parts.push(String(o.min) + "\u2013" + String(o.max));
+      else if (hasMin) parts.push((en ? "\u2265 " : "\u2265 ") + String(o.min));
+      else if (hasMax) parts.push((en ? "\u2264 " : "\u2264 ") + String(o.max));
+      if (o.integer) parts.push(en ? "whole numbers" : "\u6574\u6570");
+      else if (o.step && Number(o.step) > 0) parts.push((en ? "step " : "\u6B65\u957F ") + String(o.step));
+      return parts.join(en ? ", " : "\uFF0C");
+    }
+    function NumberField(props) {
+      var h2 = props.h || React.createElement;
+      var lang = props.lang;
+      var M = messages(lang);
+      var text = props.value === null || props.value === void 0 ? "" : String(props.value);
+      var draftS = React.useState(text);
+      var draft = draftS[0];
+      var setDraft = draftS[1];
+      var focusS = React.useState(false);
+      var focused = focusS[0];
+      var setFocused = focusS[1];
+      var errS = React.useState("");
+      var err = errS[0];
+      var setErr = errS[1];
+      var lastRef = React.useRef(text);
+      var skipBlurRef = React.useRef(false);
+      React.useEffect(
+        function() {
+          if (focused) return;
+          if (lastRef.current === text) return;
+          lastRef.current = text;
+          setDraft(text);
+          setErr("");
+        },
+        [text, focused]
+      );
+      function commit(raw) {
+        var r = validateNumber(raw, props);
+        if (!r.ok) {
+          setErr(r.error);
+          if (typeof props.onValidChange === "function") props.onValidChange(false, r.error);
+          return false;
+        }
+        setErr("");
+        if (typeof props.onValidChange === "function") props.onValidChange(true, "");
+        var cur = props.value === null || props.value === void 0 ? null : Number(props.value);
+        if (r.value !== cur) {
+          lastRef.current = r.value === null ? "" : String(r.value);
+          if (typeof props.onCommit === "function") props.onCommit(r.value);
+        }
+        return true;
+      }
+      var hint = props.hint !== void 0 ? props.hint : rangeHint(props, lang);
+      var shown = props.hint === false ? "" : hint;
+      return h2(
+        "span",
+        { className: "wbctl-num" + (props.wide ? " is-wide" : "") + (props.className ? " " + props.className : "") },
+        h2(
+          "span",
+          { className: "wbctl-num-box" },
+          h2("input", {
+            className: "wbctl-num-input" + (err ? " is-invalid" : ""),
+            type: "text",
+            inputMode: props.integer || Number(props.step) === 1 ? "numeric" : "decimal",
+            value: draft,
+            disabled: !!props.disabled,
+            placeholder: props.placeholder,
+            title: props.title,
+            "aria-label": props.ariaLabel,
+            "aria-invalid": err ? "true" : void 0,
+            onFocus: function() {
+              setFocused(true);
+            },
+            onChange: function(e) {
+              setDraft(e.target.value);
+              if (err) setErr("");
+              if (typeof props.onDraft === "function") props.onDraft(e.target.value);
+            },
+            onBlur: function() {
+              setFocused(false);
+              if (skipBlurRef.current) {
+                skipBlurRef.current = false;
+                return;
+              }
+              commit(draft);
+            },
+            onKeyDown: function(e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.target && e.target.blur) e.target.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                skipBlurRef.current = true;
+                setDraft(text);
+                setErr("");
+                if (e.target && e.target.blur) e.target.blur();
+              }
+            }
+          }),
+          props.unit ? h2("span", { className: "wbctl-num-unit" }, props.unit) : null
+        ),
+        err ? h2("span", { className: "wbctl-num-err", role: "alert" }, err) : shown ? h2("span", { className: "wbctl-num-hint" }, shown) : null
+      );
+    }
+    var NUMBER_STYLES = [
+      ".wbctl-num{display:inline-flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}",
+      ".wbctl-num.is-wide{display:flex;width:100%}",
+      ".wbctl-num-box{display:inline-flex;align-items:center;gap:6px;min-width:0}",
+      ".wbctl-num-input{box-sizing:border-box;width:96px;min-width:0;padding:6px 9px;border:1px solid var(--wb-line,rgba(127,127,127,.35));border-radius:6px;background:var(--wb-surface,var(--wb-card,transparent));color:inherit;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,outline-color .14s ease}",
+      ".wbctl-num-input:hover:not(:disabled){border-color:var(--wb-border,var(--wb-line))}",
+      ".wbctl-num-input:focus{outline:2px solid color-mix(in oklab,var(--wb-accent,#2563eb) 55%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbctl-num-input.is-invalid{border-color:var(--wb-danger,#dc2626)}",
+      ".wbctl-num-input.is-invalid:focus{outline-color:color-mix(in oklab,var(--wb-danger,#dc2626) 55%,transparent)}",
+      ".wbctl-num-input:disabled{opacity:.5;cursor:not-allowed}",
+      ".wbctl-num-unit{color:var(--wb-muted,inherit);font-size:12px;white-space:nowrap}",
+      ".wbctl-num-hint{color:var(--wb-muted,inherit);font-size:11px;line-height:1.4}",
+      ".wbctl-num-err{color:var(--wb-danger,#dc2626);font-size:11px;line-height:1.4}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-num-input{transition:none}}"
+    ];
+    module2.exports = {
+      NumberField,
+      validateNumber,
+      rangeHint,
+      messages,
+      styles: NUMBER_STYLES
+    };
+  }
+});
+
 // packages/addons/storage/client/views/config.cjs
 var require_config = __commonJS({
   "packages/addons/storage/client/views/config.cjs"(exports2, module2) {
@@ -3042,6 +4049,8 @@ var require_config = __commonJS({
     var DOMAIN = "storage";
     var PREFIX = "wbi";
     var COPY = require_config_copy();
+    var SW = require_switch();
+    var NF = require_number_field();
     var CSS = [
       ".__P__-cfg{--cfg-line:var(--wb-line,var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent)));--cfg-surface:var(--wb-surface,var(--dsw-alias-bg-layer-1,transparent));--cfg-muted:var(--dsw-alias-label-secondary,color-mix(in oklab,currentColor 62%,transparent));--cfg-faint:var(--dsw-alias-label-tertiary,color-mix(in oklab,currentColor 42%,transparent));--cfg-hover:var(--dsw-alias-interactive-bg-hover,color-mix(in oklab,currentColor 5%,transparent));display:flex;flex-direction:column;gap:16px;width:100%;min-width:0;padding-bottom:6px;color:inherit;font-size:13.5px}",
       ".__P__-cfg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}",
@@ -3068,13 +4077,6 @@ var require_config = __commonJS({
       ".__P__-cfg-select:focus,.__P__-cfg-input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
       ".__P__-cfg-select{min-width:152px;padding-right:10px}",
       ".__P__-cfg-input{width:132px}",
-      ".__P__-cfg-switch{position:relative;display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--cfg-muted);user-select:none}",
-      ".__P__-cfg-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-      ".__P__-cfg-track{position:relative;width:38px;height:22px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-      ".__P__-cfg-track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track::after{transform:translateX(16px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-      ".__P__-cfg-switch input:focus-visible+.__P__-cfg-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
       ".__P__-cfg-multi{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%}",
       ".__P__-cfg-multi label{position:relative;display:inline-flex;align-items:center;padding:5px 11px;border:1px solid var(--cfg-line);border-radius:999px;font-size:12px;color:var(--cfg-muted);cursor:pointer;line-height:1.4;transition:color .12s ease,border-color .12s ease,background .12s ease}",
       ".__P__-cfg-multi label:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
@@ -3099,8 +4101,8 @@ var require_config = __commonJS({
       ".__P__-cfg-empty{border:1px dashed var(--cfg-line);border-radius:14px;padding:40px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
       ".__P__-cfg-error{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:10px 13px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12.5px;line-height:1.5}",
       "@media (max-width:820px){.__P__-cfg-row{grid-template-columns:1fr;gap:10px;padding:13px 16px}.__P__-cfg-control{justify-content:flex-start}.__P__-cfg-multi{justify-content:flex-start}.__P__-cfg-gtitle{padding:11px 16px}}",
-      "@media (prefers-reduced-motion:reduce){.__P__-cfg-track,.__P__-cfg-track::after,.__P__-cfg-sk{animation:none;transition:none}}"
-    ].join("\n").split("__P__").join(PREFIX);
+      "@media (prefers-reduced-motion:reduce){.__P__-cfg-sk{animation:none;transition:none}}"
+    ].concat(SW.styles).concat(NF.styles).join("\n").split("__P__").join(PREFIX);
     function injectCss() {
       if (typeof document === "undefined") return;
       var old = document.getElementById("wb-addon-" + DOMAIN + "-config-css");
@@ -3186,8 +4188,6 @@ var require_config = __commonJS({
       var notice = noticeS[0], setNotice = noticeS[1];
       var savingS = React.useState("");
       var savingId = savingS[0], setSavingId = savingS[1];
-      var draftsS = React.useState({});
-      var drafts = draftsS[0], setDrafts = draftsS[1];
       var busyS = React.useState(false);
       var busy = busyS[0], setBusy = busyS[1];
       React.useEffect(function() {
@@ -3283,38 +4283,20 @@ var require_config = __commonJS({
           setNotice({ id: "", text: String(e && e.message || e), error: true });
         });
       }
-      function commitDraft(item) {
-        var raw = drafts[item.id];
-        if (raw === void 0) return;
-        var next = String(raw).trim();
-        setDrafts(function(prev) {
-          var copy = Object.assign({}, prev);
-          delete copy[item.id];
-          return copy;
-        });
-        if (next === "") return;
-        var value = Number(next);
-        if (!Number.isFinite(value)) return;
-        if (sameValue(value, state.values[item.id])) return;
-        save(item.id, value);
-      }
       function renderControl(item) {
         var value = state.values[item.id];
         var label = lang === "en" ? item.en : item.zh;
         if (item.type === "bool") {
-          return h2(
-            "label",
-            { className: PREFIX + "-cfg-switch" },
-            h2("input", {
-              type: "checkbox",
-              checked: value === true,
-              onChange: function(e) {
-                save(item.id, e.target.checked);
-              }
-            }),
-            h2("span", { className: PREFIX + "-cfg-track", "aria-hidden": "true" }),
-            h2("span", { className: PREFIX + "-cfg-switchstate" }, value === true ? t.on : t.off)
-          );
+          return h2(SW.Switch, {
+            h: h2,
+            checked: value === true,
+            showState: true,
+            onText: t.on,
+            offText: t.off,
+            onChange: function(next) {
+              save(item.id, next);
+            }
+          });
         }
         if (item.type === "enum") {
           return h2(
@@ -3335,30 +4317,16 @@ var require_config = __commonJS({
           );
         }
         if (item.type === "int") {
-          var draft = drafts[item.id] !== void 0 ? drafts[item.id] : String(value);
-          return h2("input", {
-            className: PREFIX + "-cfg-input",
-            type: "number",
-            value: draft,
+          return h2(NF.NumberField, {
+            h: h2,
+            lang,
+            value: value === void 0 ? "" : value,
             min: item.min,
             max: item.max,
-            "aria-label": label,
-            onChange: function(e) {
-              var v = e.target.value;
-              setDrafts(function(prev) {
-                var c = Object.assign({}, prev);
-                c[item.id] = v;
-                return c;
-              });
-            },
-            onBlur: function() {
-              commitDraft(item);
-            },
-            onKeyDown: function(e) {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                commitDraft(item);
-              }
+            integer: true,
+            ariaLabel: label,
+            onCommit: function(next) {
+              save(item.id, next);
             }
           });
         }
@@ -3724,13 +4692,6 @@ var require_data_style = __commonJS({
         "." + P + "-search input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
         "." + P + "-select{border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;outline:none}",
         "." + P + "-select:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
-        "." + P + "-switch{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--cfg-muted);user-select:none;padding:4px 2px}",
-        "." + P + "-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-        "." + P + "-track{position:relative;width:34px;height:20px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-        "." + P + "-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-        "." + P + "-switch input:checked+." + P + "-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-        "." + P + "-switch input:checked+." + P + "-track::after{transform:translateX(14px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-        "." + P + "-switch input:focus-visible+." + P + "-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
         "." + P + "-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cfg-line);background:transparent;color:var(--cfg-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}",
         "." + P + "-btn:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
         "." + P + "-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
@@ -3759,8 +4720,8 @@ var require_data_style = __commonJS({
         "." + P + "-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;font-size:11.5px;color:var(--cfg-muted)}",
         "." + P + "-grow{flex:1}",
         "." + P + "-pageinfo{font-variant-numeric:tabular-nums}",
-        "." + P + "-jump{width:56px;border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:7px;padding:4px 7px;font:inherit;font-size:11.5px;text-align:right;outline:none}",
-        "." + P + "-jump:focus{border-color:var(--dsw-alias-brand-primary,currentColor)}",
+        "." + P + "-jump .wbctl-num-input{width:56px;padding:4px 7px;font-size:11.5px;text-align:right}",
+        "." + P + "-jump .wbctl-num-hint{display:none}",
         "." + P + "-empty{border:1px dashed var(--cfg-line);border-radius:11px;padding:44px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
         "." + P + "-err{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:9px 12px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12px;line-height:1.5}",
         "." + P + "-skwrap{display:flex;flex-direction:column;gap:1px;padding:2px}",
@@ -3798,7 +4759,7 @@ var require_data_style = __commonJS({
         "." + P + "-images img{width:36px;height:36px;object-fit:cover;border-radius:5px}",
         "." + P + "-gallery{display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}",
         "." + P + "-gallery img{width:100%;height:auto;object-fit:contain;border-radius:8px}"
-      ].join("\n");
+      ].concat(require_switch().styles).concat(require_number_field().styles).join("\n");
       if (DOMAIN === "storage") {
         var buttons = "." + P + " :is(button)";
         CSS += buttons + "{border:none;background:var(--wb-btn-bg);min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm)}" + buttons + ":enabled:hover{background:var(--wb-btn-hover-bg)}" + buttons + ":enabled:active{background:var(--wb-btn-active-bg)}" + buttons + ":disabled{background:var(--wb-btn-bg);color:var(--cfg-muted)}" + buttons + ":focus-visible{outline:var(--wb-btn-focus);outline-offset:var(--wb-btn-focus-offset)}." + P + "-fcell:has(button) input{padding-right:34px}";
@@ -3826,8 +4787,10 @@ var require_data_view = __commonJS({
   "packages/addons/lib/data-view.cjs"(exports2, module2) {
     "use strict";
     var React = require("react");
+    var NF = require_number_field();
     var h2 = React.createElement;
     var COPY = require_data_copy();
+    var SW = require_switch();
     module2.exports = function createDataView(options) {
       var DOMAIN = options.domain;
       function icon(name) {
@@ -4381,17 +5344,18 @@ var require_data_view = __commonJS({
             h2("button", { type: "button", className: P + "-btn", disabled: !data || page >= pages, onClick: function() {
               setPage(Math.min(pages, page + 1));
             } }, t.next + " \u203A"),
-            h2("input", {
+            h2(NF.NumberField, {
+              h: h2,
+              lang,
               className: P + "-jump",
-              type: "number",
+              value: page,
               min: 1,
               max: pages,
-              "aria-label": t.jump,
-              onKeyDown: function(e) {
-                if (e.key === "Enter") {
-                  var n = Math.floor(Number(e.target.value));
-                  if (n >= 1) setPage(Math.min(pages, n));
-                }
+              integer: true,
+              ariaLabel: t.jump,
+              hint: false,
+              onCommit: function(next) {
+                if (next !== null) setPage(next);
               }
             }),
             data && data.queryMs !== void 0 ? h2("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
@@ -4488,25 +5452,23 @@ var require_data_view = __commonJS({
                     }
                   })
                 ),
-                h2(
-                  "label",
-                  { className: P + "-switch" },
-                  h2("input", { type: "checkbox", checked: includeDeleted, onChange: function(e) {
-                    setIncludeDeleted(e.target.checked);
+                h2(SW.Switch, {
+                  h: h2,
+                  checked: includeDeleted,
+                  label: t.includeDeleted,
+                  onChange: function(next) {
+                    setIncludeDeleted(next);
                     setPage(1);
-                  } }),
-                  h2("span", { className: P + "-track" }),
-                  h2("span", null, t.includeDeleted)
-                ),
-                h2(
-                  "label",
-                  { className: P + "-switch" },
-                  h2("input", { type: "checkbox", checked: showSystem, onChange: function(e) {
-                    setShowSystem(e.target.checked);
-                  } }),
-                  h2("span", { className: P + "-track" }),
-                  h2("span", null, t.showSystem)
-                ),
+                  }
+                }),
+                h2(SW.Switch, {
+                  h: h2,
+                  checked: showSystem,
+                  label: t.showSystem,
+                  onChange: function(next) {
+                    setShowSystem(next);
+                  }
+                }),
                 h2("span", { className: P + "-grow" }),
                 h2(
                   "label",
@@ -4653,7 +5615,7 @@ var require_data = __commonJS({
     "use strict";
     module2.exports = require_data_view()({
       domain: "storage",
-      Icon: require_icons().Icon,
+      Icon: require_icons2().Icon,
       Skeleton: require_ui().Skeleton,
       prefix: "wbi",
       tables: ["storage"],
@@ -4688,16 +5650,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -4750,15 +5709,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -4772,6 +5736,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -4804,15 +5770,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -4826,6 +5799,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -4969,6 +5944,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React.useState("");
@@ -5024,38 +6001,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -5090,6 +6082,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -5105,33 +6098,45 @@ var require_action_schema_view = __commonJS({
             h2("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h2("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h2("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h2(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h2("span", { className: P + "-track", "aria-hidden": true }),
-            h2("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h2("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h2(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h2("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h2("span", null, originText[origin])
+              );
+            }),
+            busy ? h2("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -5152,7 +6157,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h2("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h2("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h2(
@@ -5275,6 +6280,21 @@ var require_action_schema_view = __commonJS({
                   return h2("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h2(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h2(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h2("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h2("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -5313,11 +6333,11 @@ if (host) {
     style.textContent = require_styles();
     document.head.appendChild(style);
   }
-  h = require("react").createElement, Icon2 = require_icons().Icon;
+  h = require("react").createElement, icons = require_icons2(), Icon2 = icons.Icon, GLYPHS = icons.ICONS;
   host.registerAddon({
     id: "wb-addon-storage",
-    version: "1.5.6",
-    icon: (init_package(), __toCommonJS(package_exports)).default,
+    version: "1.5.13",
+    icon: GLYPHS["stock"],
     views: [
       { id: "stats", icon: tabIcon2("chart"), title: { zh: "\u7EDF\u8BA1", en: "Statistics" }, component: require_stats().Stats },
       { id: "storage", icon: tabIcon2("list"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: require_records().Records },
@@ -5330,7 +6350,9 @@ if (host) {
 var styleId;
 var style;
 var h;
+var icons;
 var Icon2;
+var GLYPHS;
 var tabIcon;
 module.exports = { name: "dsh-workbench-storage", inject: [], apply: function() {
 } };

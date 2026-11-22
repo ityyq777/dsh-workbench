@@ -2,23 +2,24 @@ import { actionErrorText } from "./action-output.js";
 import { renderActionHelp, renderActionList, renderAuditList, renderAuditRecord, renderAuditStats } from "./action-render.js";
 import { createTaskTargets } from "./task-targets.js";
 import { createCapabilities } from "./capabilities.js";
-import { AGENT_LOCKED_ACTIONS, createAgentAccess } from "./agent-access.js";
+import { createOriginAccess } from "./origin-access.js";
 import { BUILTIN_ACTIONS } from "./builtin-actions.js";
-export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock, emit, db, search }) {
+export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock, emit, db, search, extraMetaActions, }) {
     /** 宿主内置的元 action 归属域（不参与备份，也不是业务插件）。 */
     const META_DOMAIN = "wb-shell";
-    /** agent 可调用开关：声明默认值 + 本机 meta 覆盖（只在本机生效，不进备份/同步）。 */
-    const agentAccess = createAgentAccess(db);
+    /** 允许来源开关（多选）：声明默认值 + 本机 meta 覆盖，同样只在本机生效。 */
+    // 权限设置自身钉死为 ui：它改的是别人的权限数组，自己不能被改宽。
+    const originAccess = createOriginAccess(db, { pinned: { "actions.setActionOrigins": ["ui"] } });
     /** 权限开关拦下的错误：都要进审计，且即使 action 属于「默认不记」的类别也不例外。 */
     function isPolicyDenied(error) {
         const code = String(error?.code ?? "");
-        return code === "ACTION_AGENT_DISABLED" || code === "ACTION_UI_ONLY";
+        return code === "ACTION_AGENT_DISABLED" || code === "ACTION_UI_ONLY" || code === "ACTION_ORIGIN_DENIED";
     }
-    /** 被本机关闭的 action，agent 硬调时的结构化错误。 */
-    function agentDisabledError(action) {
-        const error = new Error("该 action 已被本机设置禁止 agent 调用（界面仍可执行）：" + action);
-        error.code = "ACTION_AGENT_DISABLED";
-        error.details = { action };
+    /** 来源不在允许集合里时的结构化错误：调用方据此知道自己是被权限挡下的，而不是参数错。 */
+    function originDeniedError(action, origin, allowed) {
+        const error = new Error("该 action 不允许 " + origin + " 来源调用（允许：" + (allowed.length ? allowed.join("/") : "无") + "）：" + action);
+        error.code = "ACTION_ORIGIN_DENIED";
+        error.details = { action, origin, allowed };
         return error;
     }
     /** 开关只能从界面改：agent 调用一律拒绝，保证它没法给自己解锁。 */
@@ -27,25 +28,28 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
         error.code = "ACTION_UI_ONLY";
         return error;
     }
-    /** agent 视角下某个 action 是否可见/可调（ui 恒为 true，不受开关影响）。 */
+    /** agent 视角下某个 action 是否可见/可调：来源数组里必须有 agent（ui 恒看全量）。 */
     function agentVisible(name, def) {
-        return agentAccess.effective(name, def);
+        return originAccess.allows(name, def, "agent");
     }
-    /** 分发前拦截：agent 调不到被关闭的 action；未知 action 仍走原来的报错。 */
-    function assertAgentAllowed(action, origin) {
-        if (origin !== "agent")
-            return;
-        if (AGENT_LOCKED_ACTIONS.has(action))
-            throw agentDisabledError(action);
+    /** 分发前拦截：来源不在该 action 的允许集合里就拒绝（未知 action 仍走原来的报错）。 */
+    function assertOriginAllowed(action, origin) {
         const found = findActionDef(action);
-        if (found && !agentVisible(action, found.def))
-            throw agentDisabledError(action);
+        if (!found)
+            return;
+        const allowed = originAccess.effective(action, found.def);
+        if (!allowed.includes(origin))
+            throw originDeniedError(action, origin, allowed);
     }
     /**
      * 宿主元 action：与业务域共用同一套 schema 发现（actions.list/help）与分发、审计链路，
      * 但不需要注册成插件域，统一归在 wb-shell 下。
      */
     const META_ACTIONS = new Map();
+    // 由宿主外面造好的内置 action（例如 host.agentRun 需要拿会话服务）在这里并入同一张表。
+    for (const [name, def] of extraMetaActions ?? []) {
+        META_ACTIONS.set(name, def);
+    }
     META_ACTIONS.set("audit.list", {
         description: "查询本机审计日志：谁在何时通过哪个入口（agent/ui/sync）调了哪个 action、成功与否、耗时与目标。只读 action 默认不记；参数里的密码/token/保险箱值一律脱敏为 ***。",
         input: {
@@ -110,30 +114,31 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
         execute: (args) => audit.prune(args.retentionDays),
         render: (result) => "已清理 " + result.deleted + " 条审计（保留 " + result.retentionDays + " 天，截止 " + new Date(result.cutoff).toISOString() + "）",
     });
-    META_ACTIONS.set("actions.setAgentAccess", {
-        description: "（仅界面）打开/关闭某个 action 的 agent 可调用开关。开关只存本机 meta，不参与备份与云同步；" +
-            "关闭后 agent 在 actions.list / actions.help / capabilities.* / *.actionSchema 中都看不到该 action，" +
-            "硬调会得到 ACTION_AGENT_DISABLED；界面（origin=ui）的调用完全不受影响。agent 永远不能调用本 action。",
-        // 开关自身永久对 agent 关闭：否则「先解锁开关、再解锁一切」就绕过了整套限制。
-        agentEnabled: false,
+    META_ACTIONS.set("actions.setActionOrigins", {
+        description: "（仅界面）设置某个 action 允许的调用来源（多选：ui / plugin / agent / sync）。" +
+            "只存本机 meta，不参与备份与云同步。agent 永远不能调用本 action：它的来源被钉死为 ui，界面也改不动。",
+        // 开关自身永久只给界面：否则「先解锁开关、再解锁一切」就绕过了整套限制。
+        origins: ["ui"],
         input: {
             type: "object",
             properties: {
-                action: { type: "string", description: "要调整的 action 名，如 tasks.update / mail.messageBody" },
-                agentEnabled: { type: "boolean", description: "true=允许 agent 调用；false=只允许界面调用" },
+                action: { type: "string", description: "要调整的 action 名，如 tasks.create / host.agentRun" },
+                origins: {
+                    type: "array",
+                    description: "允许的来源；空数组无效。取值 ui / plugin / agent / sync，顺序与重复项会被归一",
+                    items: { type: "string", enum: ["ui", "plugin", "agent", "sync"] },
+                },
                 domain: { type: "string", description: "可选：所属业务域 id（wb-addon-tasks 或 tasks），传了就校验归属" },
             },
-            required: ["action", "agentEnabled"],
+            required: ["action", "origins"],
         },
-        examples: [{ action: "tasks.update", agentEnabled: false }],
+        examples: [{ action: "host.agentRun", origins: ["plugin"] }],
         execute: (args, ctx) => {
             if (ctx.origin !== "ui")
                 throw uiOnlyError();
             const name = String(args.action ?? "").trim();
             if (!name)
                 throw new Error("缺少 action");
-            if (typeof args.agentEnabled !== "boolean")
-                throw new Error("agentEnabled 必须是布尔值 true / false");
             const found = findActionDef(name);
             if (!found)
                 throw new Error("没有该 action：" + name);
@@ -141,31 +146,40 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
             if (domain && domain !== found.domainId && domain !== found.domainId.replace(/^wb-addon-/, "")) {
                 throw new Error("action " + name + " 属于 " + found.domainId + "，不是 " + domain);
             }
-            const changed = agentAccess.set(name, found.def, args.agentEnabled);
+            let changed;
+            try {
+                changed = originAccess.set(name, found.def, args.origins);
+            }
+            catch (error) {
+                // 用户只能在 action 声明的范围内配置；越界是契约错误，给独立错误码便于调用方区分。
+                const rejected = new Error(error instanceof Error ? error.message : String(error));
+                rejected.code = "ACTION_ORIGIN_UNSUPPORTED";
+                throw rejected;
+            }
             const out = {
                 action: name,
                 domain: found.domainId,
-                agentEnabled: changed.agentEnabled,
+                origins: changed.origins,
                 source: changed.source,
-                declared: agentAccess.declaredValue(name, found.def),
-                locked: agentAccess.locked(name, found.def),
+                declared: originAccess.declaredValue(found.def),
             };
-            // 开关本身是安全相关操作：actions.* 默认不进审计，这里显式留一条。
+            // 与 agent 开关同样属于安全相关操作：显式留一条审计。
             audit.record({
-                action: "actions.setAgentAccess",
+                action: "actions.setActionOrigins",
                 domain: META_DOMAIN,
                 actor: ctx.origin,
                 ok: true,
-                args: { action: name, agentEnabled: args.agentEnabled },
+                args: { action: name, origins: args.origins },
                 result: out,
                 durationMs: 0,
                 force: true,
             });
             return out;
         },
-        render: (result) => (result.agentEnabled ? "已允许" : "已禁止") +
-            " agent 调用 " +
+        render: (result) => "已把 " +
             result.action +
+            " 的允许来源设为 " +
+            (result.origins.length ? result.origins.join("/") : "无") +
             "（来源：" +
             (result.source === "meta" ? "本机覆盖" : "action 定义的默认值") +
             "）",
@@ -197,6 +211,17 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
         const required = input && Array.isArray(input.required) ? input.required : [];
         return { props, required: required.filter((key) => Object.prototype.hasOwnProperty.call(props, key)) };
     }
+    /** 来源开关的展示信息：生效集合 + 值来自本机覆盖还是 action 声明。 */
+    function actionOrigins(name, def) {
+        const own = originAccess.override(name);
+        return {
+            // origins 是生效值（用户配置 ∩ 声明），originsDeclared 是声明上界，originsDefault 是默认值。
+            origins: originAccess.effective(name, def),
+            originsDeclared: originAccess.declaredValue(def),
+            originsDefault: originAccess.defaultEnabled(name, def),
+            originsSource: own.failed ? "invalid" : own.value === null ? "declared" : "meta",
+        };
+    }
     function actionEntry(name, domainId, def) {
         const { props, required } = actionParams(def);
         return {
@@ -206,9 +231,8 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
             required,
             params: Object.keys(props),
             input: def.input ?? { type: "object", properties: {} },
-            // UI 的 Action 页据此区分三种状态：允许 / 默认关闭（可开）/ 永远关闭（agentLocked 安全锁定）。
-            agentEnabled: agentAccess.effective(name, def),
-            agentLocked: agentAccess.locked(name, def),
+            // UI 的 Action 页据此渲染来源多选：origins 是生效集合，originsSource 说明值来自哪一层。
+            ...actionOrigins(name, def),
         };
     }
     /** actions.list：把已注册 action 的“真实入参”暴露给 agent，避免按顶层通用 schema 猜字段。 */
@@ -217,23 +241,24 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
         const matchDomain = (domainId) => !raw || domainId === raw || domainId === "wb-addon-" + raw;
         const matchAction = (name, domainId) => !raw || matchDomain(domainId) || name === raw || name.split(".")[0] === raw;
         const all = [];
+        // agent 视图只列出它真能调用的 action：被本机关闭的、来源白名单不含 agent 的都不出现（ui 仍看全量）。
+        const agentHidden = (name, def) => !agentVisible(name, def) || !originAccess.allows(name, def, "agent");
         for (const rec of domains.values()) {
             for (const [name, def] of rec.actions) {
-                // agent 视图只列出它真能调用的 action；被本机关闭的不出现（ui 仍看全量）。
-                if (origin === "agent" && !agentVisible(name, def))
+                if (origin === "agent" && agentHidden(name, def))
                     continue;
                 if (matchAction(name, rec.def.id))
                     all.push(actionEntry(name, rec.def.id, def));
             }
         }
         for (const [name, def] of META_ACTIONS) {
-            if (origin === "agent" && !agentVisible(name, def))
+            if (origin === "agent" && agentHidden(name, def))
                 continue;
             if (matchAction(name, META_DOMAIN))
                 all.push(actionEntry(name, META_DOMAIN, def));
         }
         for (const [name, def] of BUILTIN_ACTIONS) {
-            if (origin === "agent" && !agentVisible(name, def))
+            if (origin === "agent" && agentHidden(name, def))
                 continue;
             if (matchAction(name, META_DOMAIN))
                 all.push(actionEntry(name, META_DOMAIN, def));
@@ -275,8 +300,8 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
                     description: a.description,
                     required: a.required,
                     params: a.params,
-                    agentEnabled: a.agentEnabled,
-                    agentLocked: a.agentLocked,
+                    origins: a.origins,
+                    originsSource: a.originsSource,
                 })),
         };
     }
@@ -287,8 +312,8 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
             throw new Error("缺少 action；先用 actions.list 查看可用 action");
         const found = findActionDef(name);
         // help 也是 agent 的发现入口：关掉的 action 连参数都不给它看，和调用保持同一套错误。
-        if (origin === "agent" && (AGENT_LOCKED_ACTIONS.has(name) || (found && !agentVisible(name, found.def)))) {
-            throw agentDisabledError(name);
+        if (origin === "agent" && found && !agentVisible(name, found.def)) {
+            throw originDeniedError(name, origin, originAccess.effective(name, found.def));
         }
         if (!found)
             throw new Error("没有该 action：" + name + "；先用 actions.list 查看可用 action");
@@ -371,7 +396,8 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
     async function invokeAction(action, args, origin) {
         // 入口一处拦截：agent 调不到被本机关闭的 action（含永久锁死的开关自身）；
         // ui/sync/plugin 的语义完全不变。拦截失败同样会进 invoke() 的审计。
-        assertAgentAllowed(action, origin);
+        // 来源白名单：只有 origins 里列出的来源能调（agent 的来源同时决定它能否看见该 action）。
+        assertOriginAllowed(action, origin);
         if (action === "capabilities.list") {
             const result = await capabilityListMeta(args, origin);
             return { result, text: renderCapabilityList(result), domainId: META_DOMAIN };
@@ -418,8 +444,8 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
         throw new Error("没有业务插件注册 action：" + action);
     }
     /**
-     * 插件自己的 `<域>.actionSchema` 结果由宿主补齐 agent 开关状态：
-     * ui 看全量并带 agentEnabled（Action 页据此渲染开关），agent 只看到自己仍能调用的。
+     * 插件自己的 `<域>.actionSchema` 结果由宿主补齐来源权限：
+     * ui 看全量并带 origins（Action 页据此渲染多选），agent 只看到自己仍能调用的。
      */
     function decorateSchemaResult(action, result, origin) {
         if (!/\.actionSchema$/.test(action))
@@ -433,11 +459,7 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
             const def = name && rec ? (rec.actions.get(name) ?? META_ACTIONS.get(name)) : name ? META_ACTIONS.get(name) : null;
             if (!name || !def)
                 return entry;
-            return {
-                ...entry,
-                agentEnabled: agentAccess.effective(name, def),
-                agentLocked: agentAccess.locked(name, def),
-            };
+            return { ...entry, ...actionOrigins(name, def) };
         });
         // 插件自己列的 schema 常常漏掉 actionSchema 自身等条目：宿主补全，UI 才能逐个配置开关。
         if (origin !== "agent" && rec) {
@@ -450,7 +472,9 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
         }
         return {
             ...result,
-            actions: origin === "agent" ? actions.filter((entry) => entry.agentEnabled !== false) : actions,
+            actions: origin === "agent"
+                ? actions.filter((entry) => !Array.isArray(entry.origins) || entry.origins.includes("agent"))
+                : actions,
         };
     }
     function installTool(ctx) {
@@ -542,7 +566,7 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
      */
     function schemaSnapshot(domain) {
         const wanted = String(domain ?? "").trim();
-        // 只读快照给 Action 页调试用：界面要看到全量 action 及每个的 agent 开关状态。
+        // 只读快照给 Action 页调试用：界面要看到全量 action 及每个的允许来源。
         const meta = listActionsMeta({ detail: true, ...(wanted ? { domain: wanted } : {}) }, "ui");
         const actions = meta.actions.map((entry) => {
             const found = findActionDef(entry.name);
@@ -550,8 +574,6 @@ export function createActions({ domains, SHELL_VERSION, publicInfo, audit, clock
             return {
                 ...entry,
                 examples,
-                agentEnabled: entry.agentEnabled ?? (found ? agentVisible(entry.name, found.def) : true),
-                agentLocked: found ? agentAccess.locked(entry.name, found.def) : false,
             };
         });
         return { shellVersion: meta.shellVersion, domains: meta.domains, actions };

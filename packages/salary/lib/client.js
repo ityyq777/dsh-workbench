@@ -39,331 +39,39 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// packages/addons/lib/client-base-styles.cjs
-var require_client_base_styles = __commonJS({
-  "packages/addons/lib/client-base-styles.cjs"(exports2, module2) {
+// packages/addons/lib/icons.cjs
+var require_icons = __commonJS({
+  "packages/addons/lib/icons.cjs"(exports2, module2) {
     "use strict";
-    var SECRET_FIELD = [
-      ".wb-secret-field{position:relative;display:flex;align-items:center;min-width:0}",
-      ".wb-secret-field input{flex:1 1 auto;min-width:0;padding-right:34px}",
-      ".wb-eye{position:absolute;right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:6px;padding:4px;color:var(--wb-muted,#6b7280);cursor:pointer}",
-      ".wb-eye:hover:not(:disabled){color:var(--wb-accent,#2563eb);background:color-mix(in srgb, var(--wb-accent,#2563eb) 12%, transparent)}",
-      ".wb-eye:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
-      ".wb-eye:disabled{opacity:.45;cursor:not-allowed}"
-    ];
-    module2.exports = function baseStyles(prefix) {
-      var p = String(prefix || "wb");
-      var s = "." + p;
-      return SECRET_FIELD.concat([
-        s + "-wrap{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
-        s + "-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}",
-        s + "-title{font-size:16px;font-weight:650;margin:0}",
-        s + "-sub{font-size:12px;color:var(--wb-muted,#6b7280);margin:2px 0 0}",
-        s + "-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}",
-        s + "-card{border:1px solid var(--wb-border,#e5e7eb);border-radius:10px;background:var(--wb-surface,#fff);padding:12px}",
-        s + "-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}",
-        s + "-kpi{font-size:22px;font-weight:700;line-height:1.2}" + s + "-kpi-label{font-size:12px;color:var(--wb-muted,#6b7280)}",
-        s + "-table{width:100%;border-collapse:collapse;font-size:12px}" + s + "-table th," + s + "-table td{padding:7px 8px;border-bottom:1px solid var(--wb-border,#eef0f3);text-align:left;vertical-align:top}",
-        s + "-table th{font-weight:600;color:var(--wb-muted,#6b7280);white-space:nowrap}",
-        s + "-btn{border:1px solid var(--wb-border,#d1d5db);background:var(--wb-surface,#fff);color:inherit;border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}",
-        s + "-btn:hover:not(:disabled){border-color:var(--wb-accent,#2563eb)}" + s + "-btn:disabled{opacity:.5;cursor:default}",
-        s + "-btn.primary{background:var(--wb-accent,#2563eb);border-color:var(--wb-accent,#2563eb);color:#fff}",
-        s + "-btn.danger{color:#b91c1c;border-color:#fecaca}",
-        s + "-field{display:flex;flex-direction:column;gap:4px;font-size:12px}" + s + "-label{font-weight:600}",
-        s + "-field input," + s + "-field select," + s + "-field textarea{border:1px solid var(--wb-border,#d1d5db);border-radius:7px;padding:6px 8px;font:inherit;background:var(--wb-surface,#fff);color:inherit;min-width:0}",
-        s + "-hint{color:var(--wb-muted,#6b7280);font-size:11px}" + s + "-notice{padding:8px 10px;border-radius:8px;font-size:12px;background:#eff6ff;color:#1e40af}",
-        s + "-notice.error{background:#fef2f2;color:#b91c1c}" + s + "-notice.ok{background:#ecfdf5;color:#047857}",
-        s + "-empty{padding:18px;text-align:center;color:var(--wb-muted,#6b7280);font-size:12px;border:1px dashed var(--wb-border,#e5e7eb);border-radius:8px}",
-        s + "-pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;background:#f3f4f6;color:#374151}",
-        s + "-pill.ok{background:#ecfdf5;color:#047857}" + s + "-pill.error{background:#fef2f2;color:#b91c1c}" + s + "-pill.warn{background:#fffbeb;color:#b45309}",
-        s + "-json{margin:0;padding:8px;background:#f8fafc;border-radius:8px;font-size:11px;max-height:240px;overflow:auto}",
-        s + "-muted{color:var(--wb-muted,#6b7280)}" + s + "-link{color:var(--wb-accent,#2563eb);cursor:pointer;text-decoration:none}",
-        s + "-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}"
-      ]);
-    };
-    module2.exports.secretFieldStyles = SECRET_FIELD;
-  }
-});
-
-// packages/addons/lib/date-picker-styles.cjs
-var require_date_picker_styles = __commonJS({
-  "packages/addons/lib/date-picker-styles.cjs"(exports2, module2) {
-    "use strict";
-    module2.exports = function datePickerStyles(prefix) {
-      var p = String(prefix || "wb");
-      return [
-        ".{p}-dp,.{p}-dr{position:relative;min-width:0}",
-        ".{p}-dp-field{display:flex;align-items:center;gap:6px;min-width:0}",
-        ".{p}-dp-trigger{display:flex;align-items:center;gap:8px;min-width:0;width:100%;padding:8px 10px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:var(--wb-text,inherit);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s}",
-        ".{p}-dp-trigger:hover{border-color:var(--wb-accent)}",
-        ".{p}-dp-trigger:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
-        ".{p}-dp-trigger[disabled]{opacity:.55;cursor:not-allowed}",
-        ".{p}-dp-glyph{width:13px;height:13px;flex:none;border:1.5px solid currentColor;border-radius:3px;position:relative;opacity:.72}",
-        '.{p}-dp-glyph::before{content:"";position:absolute;left:-1.5px;right:-1.5px;top:3px;border-top:1.5px solid currentColor}',
-        '.{p}-dp-glyph::after{content:"";position:absolute;left:3px;top:-3px;width:1.5px;height:3px;background:currentColor;box-shadow:4px 0 currentColor}',
-        ".{p}-dp-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}",
-        ".{p}-dp-value.is-empty{color:var(--wb-muted)}",
-        ".{p}-dp-clear{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--wb-muted) 14%,transparent);color:var(--wb-muted);font:inherit;line-height:1;cursor:pointer}",
-        ".{p}-dp-clear:hover{color:var(--wb-danger);background:color-mix(in srgb,var(--wb-danger) 16%,transparent)}",
-        ".{p}-dp-pop{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:272px;padding:10px;border:1px solid var(--wb-border);border-radius:12px;background:var(--wb-card);box-shadow:0 16px 40px color-mix(in srgb,var(--wb-text,var(--wb-border)) 18%,transparent);animation:{p}-dp-in .14s ease-out}",
-        ".{p}-dp-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}",
-        ".{p}-dp-title{flex:1;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}",
-        ".{p}-dp-nav{width:26px;height:26px;padding:0;border:1px solid var(--wb-border);border-radius:7px;background:transparent;color:inherit;font:inherit;line-height:1;cursor:pointer}",
-        ".{p}-dp-nav:hover{border-color:var(--wb-accent);color:var(--wb-accent)}",
-        ".{p}-dp-weekdays,.{p}-dp-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}",
-        ".{p}-dp-weekdays{margin-bottom:4px;font-size:11px;color:var(--wb-muted);text-align:center}",
-        ".{p}-dp-day{min-width:0;height:30px;padding:0;border:0;border-radius:7px;background:transparent;color:inherit;font:inherit;font-variant-numeric:tabular-nums;cursor:pointer}",
-        ".{p}-dp-day:hover{background:color-mix(in srgb,var(--wb-accent) 12%,transparent)}",
-        ".{p}-dp-day.is-between{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);border-radius:0}",
-        ".{p}-dp-day.is-today{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--wb-accent) 55%,transparent)}",
-        ".{p}-dp-day.is-on{background:var(--wb-accent);color:var(--wb-on-accent,inherit);font-weight:600}",
-        ".{p}-dp-day:disabled{opacity:.35;cursor:not-allowed}",
-        ".{p}-dp-day:focus-visible{outline:2px solid var(--wb-accent);outline-offset:-2px}",
-        ".{p}-dp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--wb-line)}",
-        ".{p}-dp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}",
-        ".{p}-dp-link{padding:4px 8px;border:0;border-radius:6px;background:color-mix(in srgb,var(--wb-muted) 12%,transparent);color:inherit;font:inherit;font-size:12px;cursor:pointer}",
-        ".{p}-dp-link:hover{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);color:var(--wb-accent)}",
-        ".{p}-dp-hint{margin:6px 0 0;font-size:11px;color:var(--wb-muted)}",
-        ".{p}-dp-pop.is-months{width:248px}",
-        ".{p}-dp-months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:6px}",
-        ".{p}-dp-months .{p}-dp-day{height:34px}",
-        "@keyframes {p}-dp-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}"
-      ].join("\n").replace(/\{p\}/g, p);
-    };
-  }
-});
-
-// packages/addons/salary/client/ui/styles.cjs
-var require_styles = __commonJS({
-  "packages/addons/salary/client/ui/styles.cjs"(exports2, module2) {
-    "use strict";
-    var BASE = require_client_base_styles()("wbsal");
-    var PAGE = [
-      /* 页面骨架 */
-      ".wbsal-page{display:flex;flex-direction:column;gap:18px;padding:22px 24px 48px;box-sizing:border-box;width:100%;min-height:100%}",
-      ".wbsal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}",
-      ".wbsal-head-main{display:flex;flex-direction:column;gap:4px;min-width:0}",
-      ".wbsal-eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-head h2,.wbsal-page h2{font-size:21px;font-weight:650;margin:0;letter-spacing:-.01em;color:var(--wb-text,inherit)}",
-      ".wbsal-sub{margin:0;font-size:12.5px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-      ".wbsal-toolbar{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;background:var(--wb-surface,#fff)}",
-      ".wbsal-toolbar .wbsal-field{gap:5px}",
-      ".wbsal-toolbar-count{margin-left:auto;font-size:12px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-toolbar-count b{font-variant-numeric:tabular-nums;color:var(--wb-text,inherit)}",
-      ".wbsal-toolbar-plain{background:transparent;border:0;padding:0;justify-content:flex-end}",
-      ".wbsal-toolbar-end{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}",
-      ".wbsal-toolbar-end .wbsal-toolbar-count{margin-left:0}",
-      /* KPI */
-      ".wbsal-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:12px}",
-      ".wbsal-card{border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;padding:14px 16px;background:var(--wb-card,#fff);box-sizing:border-box;min-width:0}",
-      ".wbsal-kpi{display:flex;flex-direction:column;gap:2px}",
-      ".wbsal-kpi-head{display:flex;align-items:center;gap:7px;margin-bottom:6px}",
-      ".wbsal-kpi-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 12%,transparent);color:var(--wb-accent,#2563eb);flex:0 0 auto}",
-      ".wbsal-kpi span{display:block;font-size:12px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-kpi strong{display:block;font-size:24px;font-weight:680;font-variant-numeric:tabular-nums;line-height:1.15;letter-spacing:-.01em;color:var(--wb-text,inherit)}",
-      ".wbsal-kpi em{display:block;font-size:11.5px;font-style:normal;color:var(--wb-muted,#8b94a6);margin-top:4px}",
-      ".wbsal-kpi em b{font-weight:600;color:var(--wb-ok,#15803d);font-variant-numeric:tabular-nums}",
-      ".wbsal-kpi em b.neg{color:var(--wb-danger,#b91c1c)}",
-      /* 按钮与输入 */
-      ".wbsal-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--wb-border,#d1d5db);background:var(--wb-surface,#fff);color:var(--wb-text,inherit);border-radius:9px;padding:6px 12px;font-size:12.5px;line-height:1.4;cursor:pointer;transition:border-color .12s,background .12s,color .12s}",
-      ".wbsal-btn:hover:not(:disabled){border-color:var(--wb-accent,#2563eb);color:var(--wb-accent,#2563eb)}",
-      ".wbsal-btn:disabled{opacity:.5;cursor:default}",
-      ".wbsal-btn.primary{background:var(--wb-accent,#2563eb);border-color:var(--wb-accent,#2563eb);color:#fff}",
-      ".wbsal-btn.primary:hover:not(:disabled){filter:brightness(1.06);color:#fff}",
-      ".wbsal-btn.danger{color:var(--wb-danger,#b91c1c);border-color:color-mix(in srgb,var(--wb-danger,#b91c1c) 35%,transparent)}",
-      ".wbsal-btn.danger:hover:not(:disabled){background:color-mix(in srgb,var(--wb-danger,#b91c1c) 10%,transparent);color:var(--wb-danger,#b91c1c)}",
-      ".wbsal-btn.ghost{border-color:transparent;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 11%,transparent);color:var(--wb-text,inherit)}",
-      ".wbsal-btn.ghost:hover:not(:disabled){background:color-mix(in srgb,var(--wb-accent,#2563eb) 12%,transparent);color:var(--wb-accent,#2563eb)}",
-      ".wbsal-input{border:1px solid var(--wb-border,#d1d5db);border-radius:8px;padding:7px 9px;font:inherit;font-size:12.5px;background:var(--wb-surface,#fff);color:var(--wb-text,inherit);min-width:88px;box-sizing:border-box}",
-      ".wbsal-input:focus{outline:2px solid color-mix(in srgb,var(--wb-accent,#2563eb) 45%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
-      ".wbsal-field{display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:0}",
-      ".wbsal-label{font-size:11.5px;font-weight:600;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-hint{font-size:11px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-muted{font-size:12px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-danger{color:var(--wb-danger,#b91c1c);font-size:12px}",
-      /* 月份分组 + 记录表 */
-      ".wbsal-months{display:flex;flex-direction:column;gap:10px}",
-      ".wbsal-month{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:2px 2px 0}",
-      ".wbsal-month-title{display:flex;align-items:baseline;gap:8px}",
-      ".wbsal-month-title strong{font-size:13.5px;font-weight:650;color:var(--wb-text,inherit)}",
-      ".wbsal-month-title span{font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-month-total{font-size:12px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-month-total b{font-size:13px;color:var(--wb-text,inherit);font-variant-numeric:tabular-nums;margin-left:4px}",
-      ".wbsal-table-wrap{border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;background:var(--wb-card,#fff);overflow:hidden}",
-      ".wbsal-table{width:100%;border-collapse:collapse;font-size:12.5px}",
-      ".wbsal-table th,.wbsal-table td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--wb-line,#eef0f4);font-variant-numeric:tabular-nums;white-space:nowrap}",
-      ".wbsal-table th{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--wb-muted,#8b94a6);background:var(--wb-surface,#fff);padding-top:9px;padding-bottom:9px}",
-      ".wbsal-table th:first-child,.wbsal-table td:first-child,.wbsal-table th.left,.wbsal-table td.left{text-align:left}",
-      ".wbsal-table tbody tr:last-child td{border-bottom:0}",
-      ".wbsal-record td{height:44px}",
-      ".wbsal-record-row{cursor:pointer;transition:background .12s}",
-      ".wbsal-record-row:hover td{background:color-mix(in srgb,var(--wb-accent,#2563eb) 5%,transparent)}",
-      ".wbsal-record-row.open td{background:color-mix(in srgb,var(--wb-accent,#2563eb) 7%,transparent)}",
-      ".wbsal-date{display:flex;align-items:baseline;gap:7px}",
-      ".wbsal-date b{font-weight:600;font-variant-numeric:tabular-nums}",
-      ".wbsal-date span{font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-net{font-weight:680;font-size:13px;color:var(--wb-text,inherit)}",
-      ".wbsal-opt{color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-caret{display:inline-block;width:14px;color:var(--wb-muted,#8b94a6);transition:transform .15s}",
-      ".wbsal-record-row.open .wbsal-caret{transform:rotate(90deg)}",
-      ".wbsal-detail-cell{padding:0 14px 16px !important;background:color-mix(in srgb,var(--wb-accent,#2563eb) 4%,transparent)}",
-      ".wbsal-detail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 24px}",
-      ".wbsal-detail-block{display:flex;flex-direction:column;gap:6px;min-width:0}",
-      ".wbsal-group-title{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--wb-muted,#8b94a6);text-transform:uppercase}",
-      ".wbsal-fields{display:flex;flex-direction:column;gap:5px;font-size:12px}",
-      ".wbsal-fields div{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:4px;border-bottom:1px dashed var(--wb-line,#eef0f4)}",
-      ".wbsal-fields div:last-child{border-bottom:0}",
-      ".wbsal-fields span{color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-fields b{font-weight:600;font-variant-numeric:tabular-nums}",
-      ".wbsal-field-sum b{font-size:13.5px}",
-      ".wbsal-detail-foot{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;border-top:1px solid var(--wb-line,#eef0f4);padding-top:10px}",
-      ".wbsal-detail-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-      ".wbsal-confirm{display:inline-flex;align-items:center;gap:8px;padding:3px 8px 3px 10px;border-radius:999px;background:color-mix(in srgb,var(--wb-danger,#b91c1c) 10%,transparent)}",
-      /* 表单 */
-      ".wbsal-form{display:flex;flex-direction:column;gap:16px}",
-      ".wbsal-mask{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:38px 18px;overflow:auto;background:transparent;backdrop-filter:brightness(.62) blur(3px);-webkit-backdrop-filter:brightness(.62) blur(3px)}",
-      "@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.wbsal-mask{background:color-mix(in oklab,currentColor 34%,transparent)}}",
-      ".wbsal-modal{width:min(960px,100%);margin:auto 0;animation:wbsal-pop .16s ease-out}",
-      "@keyframes wbsal-pop{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}",
-      ".wbsal-form-modal{margin-top:0;max-height:calc(100vh - 76px);overflow:auto;box-shadow:0 24px 64px color-mix(in oklab,currentColor 22%,transparent)}",
-      ".wbsal-form-modal .wbsal-form-head{position:sticky;top:-14px;z-index:1;margin:-14px -16px 0;padding:14px 16px;background:var(--wb-card,#fff);border-bottom:1px solid var(--wb-line,#eef0f4)}",
-      ".wbsal-form-head{display:flex;align-items:center;justify-content:space-between;gap:10px}",
-      ".wbsal-form-head h3{font-size:14px;font-weight:650;margin:0}",
-      ".wbsal-form-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}",
-      ".wbsal-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 12px}",
-      ".wbsal-form-group{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--wb-line,#eef0f4)}",
-      ".wbsal-form-group:first-of-type{border-top:0;padding-top:0}",
-      ".wbsal-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}",
-      ".wbsal-group-head span{font-size:11px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;padding:14px;border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 5%,transparent)}",
-      ".wbsal-summary div span{display:block;font-size:11px;color:var(--wb-muted,#8b94a6);margin-bottom:3px}",
-      ".wbsal-summary div b{font-size:15px;font-variant-numeric:tabular-nums;font-weight:650}",
-      ".wbsal-summary .wbsal-lock{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-      ".wbsal-form-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}",
-      /* 统计 */
-      ".wbsal-seg{display:inline-flex;align-items:center;gap:6px;padding:4px;border:1px solid var(--wb-border,#e2e6ec);border-radius:10px;background:var(--wb-surface,#fff)}",
-      ".wbsal-seg .wbsal-btn{border-color:transparent;background:transparent}",
-      ".wbsal-seg .wbsal-btn.primary{background:var(--wb-accent,#2563eb);color:#fff}",
-      ".wbsal-seg-year{font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;min-width:64px;text-align:center}",
-      ".wbsal-section{display:flex;flex-direction:column;gap:12px}",
-      ".wbsal-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}",
-      ".wbsal-section-head h3{font-size:13.5px;font-weight:650;margin:0}",
-      ".wbsal-section-head span{font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-section-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}",
-      // 图表口径切换：与任务插件统计页一致的分段式小控件，选中态用 aria-pressed 表达。
-      ".wbsal-metric{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--wb-border,#e2e6ec);border-radius:8px;background:var(--wb-surface,#fff)}",
-      ".wbsal-metric button{appearance:none;border:0;background:transparent;color:var(--wb-muted,#8b94a6);font:inherit;font-size:11.5px;padding:4px 8px;border-radius:6px;cursor:pointer;white-space:nowrap}",
-      ".wbsal-metric button:hover{background:color-mix(in srgb,var(--wb-muted) 12%,transparent);color:var(--wb-text,#20242c)}",
-      ".wbsal-metric button.on,.wbsal-metric button[aria-pressed=true]{background:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff);font-weight:600}",
-      ".wbsal-metric button:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
-      ".wbsal-chart{display:flex;align-items:flex-end;gap:8px;height:210px;padding:8px 2px 0;border-bottom:1px solid var(--wb-line,#eef0f4)}",
-      ".wbsal-bar{flex:1 1 0;min-width:14px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}",
-      ".wbsal-bar-value{font-size:10.5px;line-height:1;color:var(--wb-muted,#8b94a6);font-variant-numeric:tabular-nums;white-space:nowrap}",
-      ".wbsal-bar-fill{width:72%;max-width:42px;border-radius:6px 6px 2px 2px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 38%,transparent);transition:background .12s}",
-      ".wbsal-bar-fill.top{background:var(--wb-accent,#2563eb)}",
-      ".wbsal-bar:hover .wbsal-bar-fill{background:color-mix(in srgb,var(--wb-accent,#2563eb) 70%,transparent)}",
-      ".wbsal-axis{display:flex;gap:8px;padding-top:7px}",
-      ".wbsal-axis span{flex:1 1 0;text-align:center;font-size:10.5px;color:var(--wb-muted,#8b94a6);font-variant-numeric:tabular-nums}",
-      ".wbsal-chart-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-legend{display:inline-flex;align-items:center;gap:6px}",
-      ".wbsal-legend i{width:8px;height:8px;border-radius:2px;background:var(--wb-accent,#2563eb);display:inline-block}",
-      ".wbsal-legend i.soft{background:color-mix(in srgb,var(--wb-accent,#2563eb) 38%,transparent)}",
-      ".wbsal-series{display:flex;align-items:center;gap:6px;flex-wrap:wrap}",
-      ".wbsal-series button{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--wb-border,#e2e6ee);border-radius:999px;background:var(--wb-surface,#fff);color:var(--wb-fg,inherit);font-size:12px;line-height:1;cursor:pointer;transition:opacity .12s,border-color .12s,background .12s}",
-      ".wbsal-series button:hover{border-color:color-mix(in srgb,var(--wb-accent,#2563eb) 45%,var(--wb-border,#e2e6ee))}",
-      ".wbsal-series button.off{opacity:.45;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-series button.off i{filter:grayscale(1)}",
-      ".wbsal-series i{width:14px;height:3px;border-radius:2px;display:inline-block;background:var(--wb-muted,#8b94a6)}",
-      ".wbsal-series i.s1,.wbsal-line-dot.s1{background:var(--wb-accent,#2563eb)}",
-      ".wbsal-series i.s2,.wbsal-line-dot.s2{background:var(--wb-ok,#16a34a)}",
-      ".wbsal-series i.s3,.wbsal-line-dot.s3{background:var(--wb-warn,#d97706)}",
-      ".wbsal-series i.s4,.wbsal-line-dot.s4{background:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
-      ".wbsal-series i.s5,.wbsal-line-dot.s5{background:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
-      ".wbsal-series i.s6,.wbsal-line-dot.s6{background:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
-      ".wbsal-series i.sum,.wbsal-line-dot.sum{background:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))}",
-      ".wbsal-line.sum{stroke:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb));stroke-dasharray:7 4}",
-      ".wbsal-line-dot.sum{fill:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))}",
-      ".wbsal-linechart{width:100%;padding:10px 2px 0;position:relative}",
-      ".wbsal-hit{fill:transparent;cursor:crosshair}",
-      ".wbsal-hit-area{fill:transparent}",
-      ".wbsal-crosshair{stroke:color-mix(in srgb,var(--wb-accent,#2563eb) 55%,transparent);stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}",
-      ".wbsal-line-dot.is-hot{stroke:var(--wb-card,#fff);stroke-width:2}",
-      ".wbsal-tip{position:absolute;top:6px;transform:translateX(-50%);z-index:3;pointer-events:none;min-width:170px;padding:9px 11px;border:1px solid var(--wb-border,#e2e6ee);border-radius:10px;background:var(--wb-card,#fff);box-shadow:0 8px 22px rgba(15,23,42,.16)}",
-      ".wbsal-tip.is-right{transform:translateX(-100%)}",
-      ".wbsal-tip strong{display:block;font-size:12px;color:var(--wb-muted,#8b94a6);font-weight:600;margin-bottom:6px}",
-      ".wbsal-tip-row{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.7}",
-      ".wbsal-tip-row i{width:14px;height:3px;border-radius:2px;background:var(--wb-muted,#8b94a6);flex:0 0 auto}",
-      ".wbsal-tip-row span{color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-tip-row b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:650}",
-      ".wbsal-tip-row i.s1{background:var(--wb-accent,#2563eb)}",
-      ".wbsal-tip-row i.s2{background:var(--wb-ok,#16a34a)}",
-      ".wbsal-tip-row i.s3{background:var(--wb-warn,#d97706)}",
-      ".wbsal-tip-row i.s4{background:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
-      ".wbsal-tip-row i.s5{background:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
-      ".wbsal-tip-row i.s6{background:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
-      ".wbsal-tip-row i.sum{background:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))}",
-      ".wbsal-tip em{display:block;margin-top:5px;font-size:11px;font-style:normal;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-chart-hint{margin-top:8px;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 10%,transparent);color:var(--wb-muted,#8b94a6);font-size:12px}",
-      ".wbsal-social-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap}",
-      ".wbsal-linechart svg{display:block;width:100%;height:auto;overflow:visible}",
-      ".wbsal-linechart text{fill:var(--wb-muted,#8b94a6);font-size:11px;font-variant-numeric:tabular-nums}",
-      ".wbsal-line-gridline{stroke:var(--wb-line,#eef0f4);stroke-width:1;vector-effect:non-scaling-stroke}",
-      ".wbsal-line{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}",
-      ".wbsal-line.s1{stroke:var(--wb-accent,#2563eb)}",
-      ".wbsal-line.s2{stroke:var(--wb-ok,#16a34a)}",
-      ".wbsal-line.s3{stroke:var(--wb-warn,#d97706)}",
-      ".wbsal-line.s4{stroke:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
-      ".wbsal-line.s5{stroke:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
-      ".wbsal-line.s6{stroke:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
-      ".wbsal-line-dot{stroke:none}",
-      ".wbsal-line-dot.s1{fill:var(--wb-accent,#2563eb)}",
-      ".wbsal-line-dot.s2{fill:var(--wb-ok,#16a34a)}",
-      ".wbsal-line-dot.s3{fill:var(--wb-warn,#d97706)}",
-      ".wbsal-line-dot.s4{fill:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
-      ".wbsal-line-dot.s5{fill:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
-      ".wbsal-line-dot.s6{fill:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
-      ".wbsal-comp{display:flex;flex-direction:column;gap:7px}",
-      ".wbsal-comp-row{display:grid;grid-template-columns:92px minmax(60px,1fr) 132px;gap:10px;align-items:center;font-size:12px}",
-      ".wbsal-comp-row span:first-child{color:var(--wb-text,inherit)}",
-      ".wbsal-comp-track{height:7px;border-radius:999px;background:var(--wb-line,#eef0f4);overflow:hidden}",
-      ".wbsal-comp-fill{height:100%;border-radius:999px;background:var(--wb-accent,#2563eb)}",
-      ".wbsal-comp-fill.deduction{background:var(--wb-warn,#b45309)}",
-      ".wbsal-comp-value{text-align:right;font-variant-numeric:tabular-nums;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-comp-value b{color:var(--wb-text,inherit);font-weight:600}",
-      ".wbsal-comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}",
-      ".wbsal-table th.num,.wbsal-table td.num{text-align:right}",
-      ".wbsal-table tbody tr:hover td{background:color-mix(in srgb,var(--wb-accent,#2563eb) 4%,transparent)}",
-      /* 空态 */
-      ".wbsal-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:44px 16px;border:1px dashed var(--wb-border,#e2e6ec);border-radius:12px;color:var(--wb-muted,#8b94a6);font-size:12.5px;text-align:center}",
-      ".wbsal-empty-actions{display:flex;gap:8px;justify-content:center;margin-top:2px}",
-      ".wbsal-inline-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}",
-      /* 五险一金 */
-      ".wbsal-social{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px}",
-      ".wbsal-social-item{border:1px solid var(--wb-line,#eef0f4);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 5%,transparent)}",
-      ".wbsal-social-item span{font-size:11px;color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-social-item b{font-size:15px;font-weight:650;font-variant-numeric:tabular-nums}",
-      ".wbsal-social-item em{font-size:11px;font-style:normal;color:var(--wb-muted,#8b94a6)}",
-      /* 共享组件在深色主题下的覆盖：base 里 notice/pill/json 写死了浅色，这里改成 token */
-      ".wbsal-notice{padding:9px 11px;border-radius:9px;font-size:12px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 10%,transparent);color:var(--wb-text,inherit);border:1px solid color-mix(in srgb,var(--wb-accent,#2563eb) 18%,transparent)}",
-      ".wbsal-notice.ok{background:color-mix(in srgb,var(--wb-ok,#15803d) 12%,transparent);color:var(--wb-ok,#15803d);border-color:color-mix(in srgb,var(--wb-ok,#15803d) 22%,transparent)}",
-      ".wbsal-notice.error{background:color-mix(in srgb,var(--wb-danger,#b91c1c) 12%,transparent);color:var(--wb-danger,#b91c1c);border-color:color-mix(in srgb,var(--wb-danger,#b91c1c) 22%,transparent)}",
-      ".wbsal-pill{display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600;line-height:1.7;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 14%,transparent);color:var(--wb-muted,#8b94a6)}",
-      ".wbsal-pill.ok{background:color-mix(in srgb,var(--wb-ok,#15803d) 13%,transparent);color:var(--wb-ok,#15803d)}",
-      ".wbsal-pill.warn{background:color-mix(in srgb,var(--wb-warn,#b45309) 15%,transparent);color:var(--wb-warn,#b45309)}",
-      ".wbsal-pill.error{background:color-mix(in srgb,var(--wb-danger,#b91c1c) 13%,transparent);color:var(--wb-danger,#b91c1c)}",
-      ".wbsal-json{margin:0;padding:10px;border-radius:9px;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 8%,transparent);font-size:11.5px;line-height:1.6;max-height:240px;overflow:auto;color:var(--wb-text,inherit)}",
-      /* 说明页 */
-      ".wbsal-card h3{margin:0 0 10px;font-size:14px;font-weight:600;letter-spacing:-0.01em}",
-      ".wbsal-page > .wbsal-card + .wbsal-card{margin-top:14px}",
-      ".wbsal-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}",
-      /* 响应式 */
-      "@media (max-width:1100px){.wbsal-detail{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-      "@media (max-width:900px){.wbsal-table th.hide-md,.wbsal-table td.hide-md{display:none}}",
-      "@media (max-width:760px){.wbsal-detail{grid-template-columns:minmax(0,1fr)}.wbsal-page{padding:16px 14px 36px}.wbsal-table th,.wbsal-table td{padding:9px 10px}.wbsal-opt,.wbsal-table th.opt{display:none}.wbsal-comp-row{grid-template-columns:80px minmax(50px,1fr) 112px}.wbsal-chart{height:170px}}"
-    ];
-    var DATE = require_date_picker_styles()("wbsal");
-    module2.exports = BASE.concat(PAGE, [DATE]).join("\n");
+    var h = require("react").createElement;
+    function create(prefix, glyphs, options) {
+      var opts = options || {};
+      var ICONS = Object.assign({}, glyphs);
+      function Icon2(props) {
+        var C = ICONS[props.name] || (opts.fallback ? ICONS[opts.fallback] : null);
+        if (!C) return null;
+        var size = typeof opts.sizeOf === "function" ? opts.sizeOf(props) : props.size || 14;
+        var cls = prefix + "-svg" + (opts.classNameAppend && props.className ? " " + props.className : "");
+        var attrs = {
+          size,
+          strokeWidth: props.strokeWidth || 2,
+          "aria-hidden": "true",
+          className: cls
+        };
+        if (opts.focusable) attrs.focusable = false;
+        return h(C, attrs);
+      }
+      var set = { ICONS, Icon: Icon2 };
+      if (opts.tabIcon) {
+        set.tabIcon = function(name) {
+          return function TabIcon() {
+            return h(Icon2, { name, size: 14 });
+          };
+        };
+      }
+      return set;
+    }
+    module2.exports = { create };
   }
 });
 
@@ -655,17 +363,94 @@ var init_createLucideIcon = __esm({
   }
 });
 
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs
+var chart_column_exports = {};
+__export(chart_column_exports, {
+  __iconData: () => __iconData,
+  default: () => ChartColumn
+});
+var __iconData, ChartColumn;
+var init_chart_column = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs"() {
+    init_createLucideIcon();
+    __iconData = {
+      name: "chart-column",
+      size: 24,
+      node: [
+        ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
+        ["path", { d: "M18 17V9", key: "2bz60n" }],
+        ["path", { d: "M13 17V5", key: "1frdt8" }],
+        ["path", { d: "M8 17v-3", key: "17ska0" }]
+      ],
+      aliases: ["bar-chart-3"]
+    };
+    __iconData.node;
+    ChartColumn = createLucideIcon(__iconData);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs
+var database_exports = {};
+__export(database_exports, {
+  __iconData: () => __iconData2,
+  default: () => Database
+});
+var __iconData2, Database;
+var init_database = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs"() {
+    init_createLucideIcon();
+    __iconData2 = {
+      name: "database",
+      size: 24,
+      node: [
+        ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
+        ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
+        ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
+      ]
+    };
+    __iconData2.node;
+    Database = createLucideIcon(__iconData2);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs
+var list_exports = {};
+__export(list_exports, {
+  __iconData: () => __iconData3,
+  default: () => List
+});
+var __iconData3, List;
+var init_list = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs"() {
+    init_createLucideIcon();
+    __iconData3 = {
+      name: "list",
+      size: 24,
+      node: [
+        ["path", { d: "M3 5h.01", key: "18ugdj" }],
+        ["path", { d: "M3 12h.01", key: "nlz23k" }],
+        ["path", { d: "M3 19h.01", key: "noohij" }],
+        ["path", { d: "M8 5h13", key: "1pao27" }],
+        ["path", { d: "M8 12h13", key: "1za7za" }],
+        ["path", { d: "M8 19h13", key: "m83p4d" }]
+      ]
+    };
+    __iconData3.node;
+    List = createLucideIcon(__iconData3);
+  }
+});
+
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/wallet.mjs
 var wallet_exports = {};
 __export(wallet_exports, {
-  __iconData: () => __iconData,
+  __iconData: () => __iconData4,
   default: () => Wallet
 });
-var __iconData, Wallet;
+var __iconData4, Wallet;
 var init_wallet = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/wallet.mjs"() {
     init_createLucideIcon();
-    __iconData = {
+    __iconData4 = {
       name: "wallet",
       size: 24,
       node: [
@@ -679,85 +464,1010 @@ var init_wallet = __esm({
         ["path", { d: "M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4", key: "xoc0q4" }]
       ]
     };
-    __iconData.node;
-    Wallet = createLucideIcon(__iconData);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs
-var chart_column_exports = {};
-__export(chart_column_exports, {
-  __iconData: () => __iconData2,
-  default: () => ChartColumn
-});
-var __iconData2, ChartColumn;
-var init_chart_column = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs"() {
-    init_createLucideIcon();
-    __iconData2 = {
-      name: "chart-column",
-      size: 24,
-      node: [
-        ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
-        ["path", { d: "M18 17V9", key: "2bz60n" }],
-        ["path", { d: "M13 17V5", key: "1frdt8" }],
-        ["path", { d: "M8 17v-3", key: "17ska0" }]
-      ],
-      aliases: ["bar-chart-3"]
-    };
-    __iconData2.node;
-    ChartColumn = createLucideIcon(__iconData2);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs
-var database_exports = {};
-__export(database_exports, {
-  __iconData: () => __iconData3,
-  default: () => Database
-});
-var __iconData3, Database;
-var init_database = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs"() {
-    init_createLucideIcon();
-    __iconData3 = {
-      name: "database",
-      size: 24,
-      node: [
-        ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
-        ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
-        ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
-      ]
-    };
-    __iconData3.node;
-    Database = createLucideIcon(__iconData3);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs
-var list_exports = {};
-__export(list_exports, {
-  __iconData: () => __iconData4,
-  default: () => List
-});
-var __iconData4, List;
-var init_list = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs"() {
-    init_createLucideIcon();
-    __iconData4 = {
-      name: "list",
-      size: 24,
-      node: [
-        ["path", { d: "M3 5h.01", key: "18ugdj" }],
-        ["path", { d: "M3 12h.01", key: "nlz23k" }],
-        ["path", { d: "M3 19h.01", key: "noohij" }],
-        ["path", { d: "M8 5h13", key: "1pao27" }],
-        ["path", { d: "M8 12h13", key: "1za7za" }],
-        ["path", { d: "M8 19h13", key: "m83p4d" }]
-      ]
-    };
     __iconData4.node;
-    List = createLucideIcon(__iconData4);
+    Wallet = createLucideIcon(__iconData4);
+  }
+});
+
+// packages/addons/salary/client/ui/icons.cjs
+var require_icons2 = __commonJS({
+  "packages/addons/salary/client/ui/icons.cjs"(exports2, module2) {
+    "use strict";
+    var icons = require_icons();
+    var set = icons.create("wbsal", {
+      "chart-column": (init_chart_column(), __toCommonJS(chart_column_exports)).default,
+      "database": (init_database(), __toCommonJS(database_exports)).default,
+      "list": (init_list(), __toCommonJS(list_exports)).default,
+      "wallet": (init_wallet(), __toCommonJS(wallet_exports)).default
+    });
+    module2.exports = { ICONS: set.ICONS, Icon: set.Icon };
+  }
+});
+
+// packages/addons/lib/client-base-styles.cjs
+var require_client_base_styles = __commonJS({
+  "packages/addons/lib/client-base-styles.cjs"(exports2, module2) {
+    "use strict";
+    var SECRET_FIELD = [
+      ".wb-secret-field{position:relative;display:flex;align-items:center;min-width:0}",
+      ".wb-secret-field input{flex:1 1 auto;min-width:0;padding-right:34px}",
+      ".wb-eye{position:absolute;right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:6px;padding:4px;color:var(--wb-muted,#6b7280);cursor:pointer}",
+      ".wb-eye:hover:not(:disabled){color:var(--wb-accent,#2563eb);background:color-mix(in srgb, var(--wb-accent,#2563eb) 12%, transparent)}",
+      ".wb-eye:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
+      ".wb-eye:disabled{opacity:.45;cursor:not-allowed}"
+    ];
+    module2.exports = function baseStyles(prefix) {
+      var p = String(prefix || "wb");
+      var s = "." + p;
+      return SECRET_FIELD.concat([
+        s + "-wrap{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
+        s + "-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}",
+        s + "-title{font-size:16px;font-weight:650;margin:0}",
+        s + "-sub{font-size:12px;color:var(--wb-muted,#6b7280);margin:2px 0 0}",
+        s + "-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}",
+        s + "-card{border:1px solid var(--wb-border,#e5e7eb);border-radius:10px;background:var(--wb-surface,#fff);padding:12px}",
+        s + "-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}",
+        s + "-kpi{font-size:22px;font-weight:700;line-height:1.2}" + s + "-kpi-label{font-size:12px;color:var(--wb-muted,#6b7280)}",
+        s + "-table{width:100%;border-collapse:collapse;font-size:12px}" + s + "-table th," + s + "-table td{padding:7px 8px;border-bottom:1px solid var(--wb-border,#eef0f3);text-align:left;vertical-align:top}",
+        s + "-table th{font-weight:600;color:var(--wb-muted,#6b7280);white-space:nowrap}",
+        s + "-btn{border:1px solid var(--wb-border,#d1d5db);background:var(--wb-surface,#fff);color:inherit;border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}",
+        s + "-btn:hover:not(:disabled){border-color:var(--wb-accent,#2563eb)}" + s + "-btn:disabled{opacity:.5;cursor:default}",
+        s + "-btn.primary{background:var(--wb-accent,#2563eb);border-color:var(--wb-accent,#2563eb);color:#fff}",
+        s + "-btn.danger{color:#b91c1c;border-color:#fecaca}",
+        s + "-field{display:flex;flex-direction:column;gap:4px;font-size:12px}" + s + "-label{font-weight:600}",
+        s + "-field input," + s + "-field select," + s + "-field textarea{border:1px solid var(--wb-border,#d1d5db);border-radius:7px;padding:6px 8px;font:inherit;background:var(--wb-surface,#fff);color:inherit;min-width:0}",
+        s + "-hint{color:var(--wb-muted,#6b7280);font-size:11px}" + s + "-notice{padding:8px 10px;border-radius:8px;font-size:12px;background:#eff6ff;color:#1e40af}",
+        s + "-notice.error{background:#fef2f2;color:#b91c1c}" + s + "-notice.ok{background:#ecfdf5;color:#047857}",
+        s + "-empty{padding:18px;text-align:center;color:var(--wb-muted,#6b7280);font-size:12px;border:1px dashed var(--wb-border,#e5e7eb);border-radius:8px}",
+        s + "-pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;background:#f3f4f6;color:#374151}",
+        s + "-pill.ok{background:#ecfdf5;color:#047857}" + s + "-pill.error{background:#fef2f2;color:#b91c1c}" + s + "-pill.warn{background:#fffbeb;color:#b45309}",
+        s + "-json{margin:0;padding:8px;background:#f8fafc;border-radius:8px;font-size:11px;max-height:240px;overflow:auto}",
+        s + "-muted{color:var(--wb-muted,#6b7280)}" + s + "-link{color:var(--wb-accent,#2563eb);cursor:pointer;text-decoration:none}",
+        s + "-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}"
+      ]);
+    };
+    module2.exports.secretFieldStyles = SECRET_FIELD;
+  }
+});
+
+// packages/addons/lib/date-picker-styles.cjs
+var require_date_picker_styles = __commonJS({
+  "packages/addons/lib/date-picker-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function datePickerStyles(prefix) {
+      var p = String(prefix || "wb");
+      return [
+        ".{p}-dp,.{p}-dr{position:relative;min-width:0}",
+        ".{p}-dp-field{display:flex;align-items:center;gap:6px;min-width:0}",
+        ".{p}-dp-trigger{display:flex;align-items:center;gap:8px;min-width:0;width:100%;padding:8px 10px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:var(--wb-text,inherit);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s}",
+        ".{p}-dp-trigger:hover{border-color:var(--wb-accent)}",
+        ".{p}-dp-trigger:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+        ".{p}-dp-trigger[disabled]{opacity:.55;cursor:not-allowed}",
+        ".{p}-dp-glyph{width:13px;height:13px;flex:none;border:1.5px solid currentColor;border-radius:3px;position:relative;opacity:.72}",
+        '.{p}-dp-glyph::before{content:"";position:absolute;left:-1.5px;right:-1.5px;top:3px;border-top:1.5px solid currentColor}',
+        '.{p}-dp-glyph::after{content:"";position:absolute;left:3px;top:-3px;width:1.5px;height:3px;background:currentColor;box-shadow:4px 0 currentColor}',
+        ".{p}-dp-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}",
+        ".{p}-dp-value.is-empty{color:var(--wb-muted)}",
+        ".{p}-dp-clear{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--wb-muted) 14%,transparent);color:var(--wb-muted);font:inherit;line-height:1;cursor:pointer}",
+        ".{p}-dp-clear:hover{color:var(--wb-danger);background:color-mix(in srgb,var(--wb-danger) 16%,transparent)}",
+        ".{p}-dp-pop{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:272px;padding:10px;border:1px solid var(--wb-border);border-radius:12px;background:var(--wb-card);box-shadow:0 16px 40px color-mix(in srgb,var(--wb-text,var(--wb-border)) 18%,transparent);animation:{p}-dp-in .14s ease-out}",
+        ".{p}-dp-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}",
+        ".{p}-dp-title{flex:1;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}",
+        ".{p}-dp-nav{width:26px;height:26px;padding:0;border:1px solid var(--wb-border);border-radius:7px;background:transparent;color:inherit;font:inherit;line-height:1;cursor:pointer}",
+        ".{p}-dp-nav:hover{border-color:var(--wb-accent);color:var(--wb-accent)}",
+        ".{p}-dp-weekdays,.{p}-dp-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}",
+        ".{p}-dp-weekdays{margin-bottom:4px;font-size:11px;color:var(--wb-muted);text-align:center}",
+        ".{p}-dp-day{min-width:0;height:30px;padding:0;border:0;border-radius:7px;background:transparent;color:inherit;font:inherit;font-variant-numeric:tabular-nums;cursor:pointer}",
+        ".{p}-dp-day:hover{background:color-mix(in srgb,var(--wb-accent) 12%,transparent)}",
+        ".{p}-dp-day.is-between{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);border-radius:0}",
+        ".{p}-dp-day.is-today{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--wb-accent) 55%,transparent)}",
+        ".{p}-dp-day.is-on{background:var(--wb-accent);color:var(--wb-on-accent,inherit);font-weight:600}",
+        ".{p}-dp-day:disabled{opacity:.35;cursor:not-allowed}",
+        ".{p}-dp-day:focus-visible{outline:2px solid var(--wb-accent);outline-offset:-2px}",
+        ".{p}-dp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--wb-line)}",
+        ".{p}-dp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}",
+        ".{p}-dp-link{padding:4px 8px;border:0;border-radius:6px;background:color-mix(in srgb,var(--wb-muted) 12%,transparent);color:inherit;font:inherit;font-size:12px;cursor:pointer}",
+        ".{p}-dp-link:hover{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);color:var(--wb-accent)}",
+        ".{p}-dp-hint{margin:6px 0 0;font-size:11px;color:var(--wb-muted)}",
+        ".{p}-dp-pop.is-months{width:248px}",
+        ".{p}-dp-months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:6px}",
+        ".{p}-dp-months .{p}-dp-day{height:34px}",
+        "@keyframes {p}-dp-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}"
+      ].join("\n").replace(/\{p\}/g, p);
+    };
+  }
+});
+
+// packages/addons/lib/stepper.cjs
+var require_stepper = __commonJS({
+  "packages/addons/lib/stepper.cjs"(exports2, module2) {
+    "use strict";
+    function stepState(index, current, maxVisited) {
+      if (index === current) return "current";
+      if (index < current) return "done";
+      if (index <= maxVisited) return "visited";
+      return "todo";
+    }
+    function Steps(props) {
+      var h = props.h;
+      var steps = props.steps || [];
+      var current = props.current || 0;
+      var maxVisited = props.maxVisited === void 0 ? current : props.maxVisited;
+      var invalid = props.invalid || {};
+      var disabled = !!props.disabled;
+      var label = props.label || "\u6B65\u9AA4";
+      return h(
+        "nav",
+        { className: "wbctl-steps" + (props.className ? " " + props.className : ""), "aria-label": label },
+        h(
+          "ol",
+          { className: "wbctl-step-list" },
+          steps.map(function(step, index) {
+            var state = stepState(index, current, maxVisited);
+            var canJump = !disabled && typeof props.onJump === "function" && state !== "current" && state !== "todo";
+            var isInvalid = !!invalid[index] || !!invalid[step.key];
+            return h(
+              "li",
+              { key: step.key || index, className: "wbctl-step-item" },
+              h(
+                "button",
+                {
+                  type: "button",
+                  className: "wbctl-step",
+                  "data-state": state,
+                  "data-invalid": isInvalid ? "true" : null,
+                  "aria-current": state === "current" ? "step" : void 0,
+                  "aria-label": index + 1 + " \xB7 " + step.label + (state === "done" ? "\uFF08\u5DF2\u5B8C\u6210\uFF09" : ""),
+                  disabled: disabled || state === "todo",
+                  title: step.hint || "",
+                  onClick: function() {
+                    if (canJump) props.onJump(index);
+                  }
+                },
+                h("span", { className: "wbctl-step-index", "aria-hidden": "true" }, state === "done" ? "\u2713" : String(index + 1)),
+                h("span", { className: "wbctl-step-label" }, step.label),
+                step.hint ? h("span", { className: "wbctl-step-hint" }, step.hint) : null,
+                step.optional ? h("span", { className: "wbctl-step-opt" }, "\u53EF\u9009") : null
+              )
+            );
+          })
+        )
+      );
+    }
+    var STYLES = [
+      ".wbctl-steps{display:block;min-width:0}",
+      ".wbctl-step-list{display:flex;align-items:stretch;gap:6px;list-style:none;margin:0 0 14px;padding:0;min-width:0}",
+      ".wbctl-step-item{display:flex;flex:1 1 0;min-width:0}",
+      ".wbctl-step{display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;padding:7px 9px;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;background:transparent;color:var(--wb-muted,inherit);font:inherit;font-size:12px;line-height:1.35;text-align:left;cursor:default;transition:background .14s ease,border-color .14s ease,color .14s ease}",
+      ".wbctl-step[data-state=done],.wbctl-step[data-state=visited]{color:inherit;cursor:pointer}",
+      ".wbctl-step[data-state=done]{border-color:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 36%,var(--wb-border))}",
+      ".wbctl-step[data-state=current]{border-color:color-mix(in oklab,var(--wb-accent,#2563eb) 58%,var(--wb-border));background:color-mix(in oklab,var(--wb-accent,#2563eb) 8%,transparent);color:inherit;font-weight:600}",
+      ".wbctl-step[data-state=visited]:hover,.wbctl-step[data-state=done]:hover{background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-step[data-invalid=true]{border-color:var(--wb-danger,#d33)}",
+      ".wbctl-step:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-step:disabled{cursor:default;opacity:.72}",
+      ".wbctl-step-index{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;border-radius:50%;font-size:11px;font-variant-numeric:tabular-nums;background:color-mix(in oklab,currentColor 15%,transparent)}",
+      ".wbctl-step[data-state=current] .wbctl-step-index{background:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff)}",
+      ".wbctl-step[data-state=done] .wbctl-step-index{background:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 20%,transparent);color:var(--wb-ok,var(--wb-accent,#2563eb))}",
+      ".wbctl-step-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbctl-step-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:400;opacity:.62}",
+      ".wbctl-step-opt{flex:none;font-size:10px;font-weight:400;opacity:.55}",
+      "@media (max-width:760px){.wbctl-step{padding:6px 7px;font-size:11.5px}.wbctl-step-hint,.wbctl-step-opt{display:none}.wbctl-step-index{width:18px;height:18px;font-size:10px}}",
+      "@media (max-width:520px){.wbctl-step-list{gap:4px}.wbctl-step-label{white-space:normal}.wbctl-step{gap:5px}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-step{transition:none}}"
+    ];
+    module2.exports = { Steps, stepState, styles: STYLES };
+  }
+});
+
+// packages/addons/lib/overlay.cjs
+var require_overlay = __commonJS({
+  "packages/addons/lib/overlay.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var FOCUSABLE = "button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]";
+    module2.exports = function createOverlay(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h = React.createElement;
+      var tag = opts.tag || "section";
+      var maskClass = opts.maskClass;
+      var dialogClass = opts.dialogClass;
+      var dialogClassOf = opts.dialogClassOf || function() {
+        return "";
+      };
+      var ariaLabelOf = opts.ariaLabelOf || function(props) {
+        return props["aria-label"] || props.title;
+      };
+      var ariaLabelledByOf = opts.ariaLabelledByOf || function() {
+        return null;
+      };
+      var header = opts.header || null;
+      var closeOnEscape = opts.closeOnEscape || function() {
+        return true;
+      };
+      var closeOnMask = opts.closeOnMask || function() {
+        return true;
+      };
+      var extraKeyDown = opts.onKeyDown || null;
+      var autoFocusDialog = opts.autoFocusDialog !== false;
+      var focusableSelector = opts.focusableSelector || FOCUSABLE;
+      function Modal(props) {
+        var R = props.React || React;
+        var ref = R.useRef(null);
+        R.useEffect(function() {
+          var previous = typeof document !== "undefined" ? document.activeElement : null;
+          var focusIt = props.autoFocus !== void 0 ? props.autoFocus : autoFocusDialog;
+          if (focusIt && ref.current) ref.current.focus();
+          return function() {
+            if (previous && previous.isConnected) previous.focus();
+          };
+        }, []);
+        function onKeyDown(e) {
+          if (extraKeyDown && extraKeyDown(e, props, ref)) return;
+          if (e.key === "Escape") {
+            if (!(props.closeOnEscape !== void 0 ? props.closeOnEscape : closeOnEscape(props))) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (props.onClose) props.onClose();
+            return;
+          }
+          if (e.key !== "Tab" || !ref.current) return;
+          var els = ref.current.querySelectorAll(focusableSelector);
+          if (!els.length) {
+            e.preventDefault();
+            return;
+          }
+          var first = els[0];
+          var last = els[els.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+            e.preventDefault();
+            last.focus();
+          }
+          if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+        var labelledBy = ariaLabelledByOf(props);
+        return h(
+          "div",
+          {
+            className: maskClass,
+            onMouseDown: function(e) {
+              var allowed = props.closeOnMask !== void 0 ? props.closeOnMask : closeOnMask(props);
+              if (e.target === e.currentTarget && props.onClose && allowed) props.onClose();
+            }
+          },
+          h(
+            tag,
+            {
+              className: dialogClass + dialogClassOf(props),
+              role: "dialog",
+              "aria-modal": true,
+              "aria-label": labelledBy ? null : ariaLabelOf(props),
+              "aria-labelledby": labelledBy || null,
+              ref,
+              tabIndex: -1,
+              onKeyDown
+            },
+            header ? header(props) : null,
+            props.children
+          )
+        );
+      }
+      return Modal;
+    };
+  }
+});
+
+// packages/addons/lib/staged-dialog.cjs
+var require_staged_dialog = __commonJS({
+  "packages/addons/lib/staged-dialog.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var overlayFactory = require_overlay();
+    var stepper = require_stepper();
+    function validateStep(step) {
+      if (!step || typeof step.validate !== "function") return "";
+      var message = step.validate();
+      return message ? String(message) : "";
+    }
+    function firstFailing(steps) {
+      var list = steps || [];
+      for (var i = 0; i < list.length; i += 1) {
+        var message = validateStep(list[i]);
+        if (message) return { index: i, key: list[i] && list[i].key, message };
+      }
+      return null;
+    }
+    function createStagedDialog(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h = React.createElement;
+      var dialogClass = ((opts.dialogClass || "") + " wbctl-dialog").trim();
+      var Overlay = overlayFactory(
+        Object.assign({}, opts, {
+          React,
+          dialogClass,
+          // 首焦点由外壳送进对话框，字段由 focusStep 负责，避免打开瞬间落进第一个输入框。
+          autoFocusDialog: opts.autoFocusDialog !== false
+        })
+      );
+      function StagedDialog(props) {
+        var R = props.React || React;
+        var steps = props.steps || [];
+        var count = steps.length;
+        var busy = !!props.submitting || !!props.busy;
+        var indexState = R.useState(props.initialStep || 0);
+        var rawIndex = indexState[0];
+        var setIndex = indexState[1];
+        var index = count === 0 ? 0 : Math.min(Math.max(rawIndex, 0), count - 1);
+        var visitedState = R.useState(props.initialStep || 0);
+        var maxVisited = count === 0 ? 0 : Math.min(Math.max(visitedState[0], index), count - 1);
+        var setMaxVisited = visitedState[1];
+        var errorState = R.useState("");
+        var stepError = errorState[0];
+        var setStepError = errorState[1];
+        var invalidState = R.useState({});
+        var invalid = invalidState[0];
+        var setInvalid = invalidState[1];
+        var bodyRef = R.useRef(null);
+        var mounted = R.useRef(true);
+        function runValidate(step) {
+          return validateStep(step);
+        }
+        function markInvalid(i, bad) {
+          setInvalid(function(prev) {
+            var next2 = Object.assign({}, prev);
+            if (bad) next2[i] = true;
+            else delete next2[i];
+            return next2;
+          });
+        }
+        function focusBody() {
+          var el = bodyRef.current;
+          if (el && typeof el.focus === "function") el.focus();
+        }
+        R.useEffect(
+          function() {
+            if (!mounted.current) return;
+            focusBody();
+          },
+          [index]
+        );
+        R.useEffect(function() {
+          mounted.current = true;
+          return function() {
+            mounted.current = false;
+          };
+        }, []);
+        function goTo(i) {
+          if (busy || i < 0 || i >= count) return;
+          setIndex(i);
+          if (i > maxVisited) setMaxVisited(i);
+          setStepError("");
+        }
+        function fail(i, message) {
+          markInvalid(i, true);
+          goTo(i);
+          setStepError(message);
+          focusBody();
+        }
+        function next() {
+          if (busy) return;
+          var message = runValidate(steps[index]);
+          if (message) {
+            fail(index, message);
+            return;
+          }
+          markInvalid(index, false);
+          goTo(Math.min(index + 1, count - 1));
+        }
+        function back() {
+          if (busy || index === 0) return;
+          goTo(index - 1);
+        }
+        function jump(i) {
+          if (busy || i > maxVisited) return;
+          goTo(i);
+        }
+        function submit() {
+          if (busy) return;
+          var bad = firstFailing(steps);
+          if (bad) {
+            fail(bad.index, bad.message);
+            return;
+          }
+          for (var i = 0; i < count; i++) markInvalid(i, false);
+          setStepError("");
+          if (typeof props.onSubmit === "function") props.onSubmit();
+        }
+        function cancel() {
+          if (busy) return;
+          if (typeof props.onClose === "function") props.onClose();
+        }
+        var current = steps[index];
+        var isLast = index >= count - 1;
+        var saveText = props.submitText || "\u4FDD\u5B58";
+        var shownError = stepError || props.error || "";
+        return h(
+          Overlay,
+          props,
+          count > 1 ? h(stepper.Steps, {
+            h,
+            steps: steps.map(function(step) {
+              return { key: step.key, label: step.label, hint: step.hint, optional: step.optional };
+            }),
+            current: index,
+            maxVisited,
+            onJump: jump,
+            invalid,
+            disabled: busy,
+            label: props.stepsLabel || "\u521B\u5EFA\u6B65\u9AA4"
+          }) : null,
+          h(
+            "div",
+            {
+              className: "wbctl-dialog-body" + (props.bodyClassName ? " " + props.bodyClassName : ""),
+              ref: bodyRef,
+              tabIndex: -1
+            },
+            current ? current.render(h, props) : null
+          ),
+          props.footerExtra || null,
+          shownError ? h("div", { className: "wbctl-dialog-err", role: "alert" }, shownError) : null,
+          h(
+            "div",
+            { className: "wbctl-dialog-foot" },
+            count > 1 ? h("span", { className: "wbctl-dialog-progress" }, index + 1 + " / " + count) : null,
+            props.footerNote ? h("span", { className: "wbctl-dialog-note" }, props.footerNote) : null,
+            h("span", { className: "wbctl-dialog-spacer" }),
+            index > 0 ? h(
+              "button",
+              { type: "button", className: "wbctl-btn", onClick: back, disabled: busy },
+              props.backText || "\u4E0A\u4E00\u6B65"
+            ) : null,
+            h("button", { type: "button", className: "wbctl-btn", onClick: cancel, disabled: busy }, props.cancelText || "\u53D6\u6D88"),
+            h(
+              "button",
+              {
+                type: "button",
+                className: "wbctl-btn wbctl-btn-p",
+                onClick: isLast ? submit : next,
+                // submitDisabled 只作用于末步的保存：插件据此把「结构性不合法」（JSON 语法、无可选 action）
+                // 提前反映成禁用态，避免用户点到保存才被弹回第一步。
+                disabled: busy || isLast && !!props.submitDisabled
+              },
+              busy ? saveText + "\u4E2D\u2026" : isLast ? saveText : props.nextText || "\u4E0B\u4E00\u6B65"
+            )
+          )
+        );
+      }
+      StagedDialog.displayName = opts.displayName || "StagedDialog";
+      return StagedDialog;
+    }
+    var STYLES = [
+      // 宽表单：内容多时给足横向空间，窄屏留 16px 边距后铺满。
+      ".wbctl-dialog{width:min(880px,calc(100vw - 32px));max-height:min(92vh,760px);display:flex;flex-direction:column;overflow:hidden}",
+      ".wbctl-dialog-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 10px;outline:none}",
+      ".wbctl-dialog-body:focus-visible{outline:none}",
+      ".wbctl-dialog-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:10px;margin-top:10px;border-top:1px solid var(--wb-line,var(--wb-border))}",
+      ".wbctl-dialog-progress{font-size:11.5px;color:var(--wb-muted,#666);font-variant-numeric:tabular-nums}",
+      ".wbctl-dialog-note{font-size:11.5px;color:var(--wb-muted,#666);min-width:0}",
+      ".wbctl-dialog-spacer{flex:1 1 auto}",
+      ".wbctl-dialog-err{margin-top:8px;padding:7px 10px;border-radius:8px;border:1px solid color-mix(in oklab,var(--wb-danger,#d33) 45%,transparent);background:color-mix(in oklab,var(--wb-danger,#d33) 8%,transparent);color:var(--wb-danger,#d33);font-size:12px}",
+      ".wbctl-btn{padding:6px 14px;border:1px solid var(--wb-border,#d0d5dd);border-radius:8px;background:var(--wb-card,#fff);color:inherit;font:inherit;font-size:12.5px;cursor:pointer}",
+      ".wbctl-btn:hover:not(:disabled){background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-btn:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-btn:disabled{opacity:.55;cursor:default}",
+      ".wbctl-btn.wbctl-btn-p{background:var(--wb-accent,#2563eb);border-color:transparent;color:var(--wb-on-accent,#fff)}",
+      ".wbctl-btn.wbctl-btn-p:hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent,#2563eb) 86%,#000)}",
+      // 确认步：键值对清单，各插件共用，避免再各写一套只读摘要。\n  ".wbctl-review{display:flex;flex-direction:column;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;overflow:hidden}",\n  ".wbctl-review-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 12px;font-size:12.5px;background:var(--wb-surface,transparent)}",\n  ".wbctl-review-row+.wbctl-review-row{border-top:1px solid var(--wb-line,var(--wb-border))}",\n  ".wbctl-review-k{color:var(--wb-muted,inherit);font-size:11.5px;line-height:1.6}",\n  ".wbctl-review-v{min-width:0;word-break:break-word;line-height:1.6}",\n  ".wbctl-note{margin:10px 0 0;font-size:11.5px;color:var(--wb-muted,inherit)}",\n  // 两列字段布局：内容多的弹窗不再单列拉长，窄屏回落单列。
+      ".wbctl-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}",
+      ".wbctl-form>.full{grid-column:1/-1}",
+      "@media (max-width:760px){.wbctl-dialog{width:calc(100vw - 16px);max-height:94vh}.wbctl-form{grid-template-columns:1fr}.wbctl-form>.full{grid-column:auto}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-btn{transition:none}}"
+    ];
+    module2.exports = {
+      createStagedDialog,
+      validateStep,
+      firstFailing,
+      styles: STYLES
+    };
+  }
+});
+
+// packages/addons/lib/number-field.cjs
+var require_number_field = __commonJS({
+  "packages/addons/lib/number-field.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var NUM = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    var TEXT = {
+      zh: {
+        required: "\u8BF7\u586B\u5199\u6570\u5B57",
+        invalid: "\u8BF7\u8F93\u5165\u6570\u5B57",
+        integer: "\u9700\u8981\u662F\u6574\u6570",
+        min: "\u4E0D\u80FD\u5C0F\u4E8E {min}",
+        max: "\u4E0D\u80FD\u5927\u4E8E {max}",
+        range: "\u9700\u8981\u5728 {min}\u2013{max} \u4E4B\u95F4",
+        step: "\u9700\u8981\u662F {step} \u7684\u500D\u6570",
+        unit: "\u5355\u4F4D"
+      },
+      en: {
+        required: "Please enter a number",
+        invalid: "Please enter a number",
+        integer: "Must be a whole number",
+        min: "Must be at least {min}",
+        max: "Must be at most {max}",
+        range: "Must be between {min} and {max}",
+        step: "Must be a multiple of {step}",
+        unit: "unit"
+      }
+    };
+    function messages(lang) {
+      return lang === "en" ? TEXT.en : TEXT.zh;
+    }
+    function fill(text, vars) {
+      return String(text).replace(/\{(\w+)\}/g, function(m, key) {
+        return vars && vars[key] !== void 0 ? String(vars[key]) : m;
+      });
+    }
+    function validateNumber(raw, opts) {
+      var o = opts || {};
+      var M = messages(o.lang);
+      var text = raw === null || raw === void 0 ? "" : String(raw).trim();
+      if (text === "") {
+        return o.allowEmpty ? { ok: true, value: null, error: "" } : { ok: false, value: null, error: M.required };
+      }
+      if (!NUM.test(text)) return { ok: false, value: null, error: M.invalid };
+      var n = Number(text);
+      if (!isFinite(n)) return { ok: false, value: null, error: M.invalid };
+      if (o.integer && Math.round(n) !== n) return { ok: false, value: null, error: M.integer };
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      if (hasMin && hasMax && n >= o.min && n <= o.max) {
+      } else if (hasMin && hasMax) {
+        return { ok: false, value: null, error: fill(M.range, { min: o.min, max: o.max }) };
+      } else if (hasMin && n < o.min) {
+        return { ok: false, value: null, error: fill(M.min, { min: o.min }) };
+      } else if (hasMax && n > o.max) {
+        return { ok: false, value: null, error: fill(M.max, { max: o.max }) };
+      }
+      if (o.step && Number(o.step) > 0) {
+        var q = n / Number(o.step);
+        if (Math.abs(q - Math.round(q)) > 1e-9) {
+          return { ok: false, value: null, error: fill(M.step, { step: o.step }) };
+        }
+      }
+      return { ok: true, value: n, error: "" };
+    }
+    function rangeHint(opts, lang) {
+      var o = opts || {};
+      var M = messages(lang);
+      var en = lang === "en";
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      var parts = [];
+      if (hasMin && hasMax) parts.push(String(o.min) + "\u2013" + String(o.max));
+      else if (hasMin) parts.push((en ? "\u2265 " : "\u2265 ") + String(o.min));
+      else if (hasMax) parts.push((en ? "\u2264 " : "\u2264 ") + String(o.max));
+      if (o.integer) parts.push(en ? "whole numbers" : "\u6574\u6570");
+      else if (o.step && Number(o.step) > 0) parts.push((en ? "step " : "\u6B65\u957F ") + String(o.step));
+      return parts.join(en ? ", " : "\uFF0C");
+    }
+    function NumberField(props) {
+      var h = props.h || React.createElement;
+      var lang = props.lang;
+      var M = messages(lang);
+      var text = props.value === null || props.value === void 0 ? "" : String(props.value);
+      var draftS = React.useState(text);
+      var draft = draftS[0];
+      var setDraft = draftS[1];
+      var focusS = React.useState(false);
+      var focused = focusS[0];
+      var setFocused = focusS[1];
+      var errS = React.useState("");
+      var err = errS[0];
+      var setErr = errS[1];
+      var lastRef = React.useRef(text);
+      var skipBlurRef = React.useRef(false);
+      React.useEffect(
+        function() {
+          if (focused) return;
+          if (lastRef.current === text) return;
+          lastRef.current = text;
+          setDraft(text);
+          setErr("");
+        },
+        [text, focused]
+      );
+      function commit(raw) {
+        var r = validateNumber(raw, props);
+        if (!r.ok) {
+          setErr(r.error);
+          if (typeof props.onValidChange === "function") props.onValidChange(false, r.error);
+          return false;
+        }
+        setErr("");
+        if (typeof props.onValidChange === "function") props.onValidChange(true, "");
+        var cur = props.value === null || props.value === void 0 ? null : Number(props.value);
+        if (r.value !== cur) {
+          lastRef.current = r.value === null ? "" : String(r.value);
+          if (typeof props.onCommit === "function") props.onCommit(r.value);
+        }
+        return true;
+      }
+      var hint = props.hint !== void 0 ? props.hint : rangeHint(props, lang);
+      var shown = props.hint === false ? "" : hint;
+      return h(
+        "span",
+        { className: "wbctl-num" + (props.wide ? " is-wide" : "") + (props.className ? " " + props.className : "") },
+        h(
+          "span",
+          { className: "wbctl-num-box" },
+          h("input", {
+            className: "wbctl-num-input" + (err ? " is-invalid" : ""),
+            type: "text",
+            inputMode: props.integer || Number(props.step) === 1 ? "numeric" : "decimal",
+            value: draft,
+            disabled: !!props.disabled,
+            placeholder: props.placeholder,
+            title: props.title,
+            "aria-label": props.ariaLabel,
+            "aria-invalid": err ? "true" : void 0,
+            onFocus: function() {
+              setFocused(true);
+            },
+            onChange: function(e) {
+              setDraft(e.target.value);
+              if (err) setErr("");
+              if (typeof props.onDraft === "function") props.onDraft(e.target.value);
+            },
+            onBlur: function() {
+              setFocused(false);
+              if (skipBlurRef.current) {
+                skipBlurRef.current = false;
+                return;
+              }
+              commit(draft);
+            },
+            onKeyDown: function(e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.target && e.target.blur) e.target.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                skipBlurRef.current = true;
+                setDraft(text);
+                setErr("");
+                if (e.target && e.target.blur) e.target.blur();
+              }
+            }
+          }),
+          props.unit ? h("span", { className: "wbctl-num-unit" }, props.unit) : null
+        ),
+        err ? h("span", { className: "wbctl-num-err", role: "alert" }, err) : shown ? h("span", { className: "wbctl-num-hint" }, shown) : null
+      );
+    }
+    var NUMBER_STYLES = [
+      ".wbctl-num{display:inline-flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}",
+      ".wbctl-num.is-wide{display:flex;width:100%}",
+      ".wbctl-num-box{display:inline-flex;align-items:center;gap:6px;min-width:0}",
+      ".wbctl-num-input{box-sizing:border-box;width:96px;min-width:0;padding:6px 9px;border:1px solid var(--wb-line,rgba(127,127,127,.35));border-radius:6px;background:var(--wb-surface,var(--wb-card,transparent));color:inherit;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,outline-color .14s ease}",
+      ".wbctl-num-input:hover:not(:disabled){border-color:var(--wb-border,var(--wb-line))}",
+      ".wbctl-num-input:focus{outline:2px solid color-mix(in oklab,var(--wb-accent,#2563eb) 55%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbctl-num-input.is-invalid{border-color:var(--wb-danger,#dc2626)}",
+      ".wbctl-num-input.is-invalid:focus{outline-color:color-mix(in oklab,var(--wb-danger,#dc2626) 55%,transparent)}",
+      ".wbctl-num-input:disabled{opacity:.5;cursor:not-allowed}",
+      ".wbctl-num-unit{color:var(--wb-muted,inherit);font-size:12px;white-space:nowrap}",
+      ".wbctl-num-hint{color:var(--wb-muted,inherit);font-size:11px;line-height:1.4}",
+      ".wbctl-num-err{color:var(--wb-danger,#dc2626);font-size:11px;line-height:1.4}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-num-input{transition:none}}"
+    ];
+    module2.exports = {
+      NumberField,
+      validateNumber,
+      rangeHint,
+      messages,
+      styles: NUMBER_STYLES
+    };
+  }
+});
+
+// packages/addons/salary/client/ui/styles.cjs
+var require_styles = __commonJS({
+  "packages/addons/salary/client/ui/styles.cjs"(exports2, module2) {
+    "use strict";
+    var BASE = require_client_base_styles()("wbsal");
+    var PAGE = [
+      /* 页面骨架 */
+      ".wbsal-page{display:flex;flex-direction:column;gap:18px;padding:22px 24px 48px;box-sizing:border-box;width:100%;min-height:100%}",
+      ".wbsal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}",
+      ".wbsal-head-main{display:flex;flex-direction:column;gap:4px;min-width:0}",
+      ".wbsal-eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-head h2,.wbsal-page h2{font-size:21px;font-weight:650;margin:0;letter-spacing:-.01em;color:var(--wb-text,inherit)}",
+      ".wbsal-sub{margin:0;font-size:12.5px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+      ".wbsal-toolbar{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;background:var(--wb-surface,#fff)}",
+      ".wbsal-toolbar .wbsal-field{gap:5px}",
+      ".wbsal-toolbar-count{margin-left:auto;font-size:12px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-toolbar-count b{font-variant-numeric:tabular-nums;color:var(--wb-text,inherit)}",
+      ".wbsal-toolbar-plain{background:transparent;border:0;padding:0;justify-content:flex-end}",
+      ".wbsal-toolbar-end{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}",
+      ".wbsal-toolbar-end .wbsal-toolbar-count{margin-left:0}",
+      /* KPI */
+      ".wbsal-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:12px}",
+      ".wbsal-card{border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;padding:14px 16px;background:var(--wb-card,#fff);box-sizing:border-box;min-width:0}",
+      ".wbsal-kpi{display:flex;flex-direction:column;gap:2px}",
+      ".wbsal-kpi-head{display:flex;align-items:center;gap:7px;margin-bottom:6px}",
+      ".wbsal-kpi-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 12%,transparent);color:var(--wb-accent,#2563eb);flex:0 0 auto}",
+      ".wbsal-kpi span{display:block;font-size:12px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-kpi strong{display:block;font-size:24px;font-weight:680;font-variant-numeric:tabular-nums;line-height:1.15;letter-spacing:-.01em;color:var(--wb-text,inherit)}",
+      ".wbsal-kpi em{display:block;font-size:11.5px;font-style:normal;color:var(--wb-muted,#8b94a6);margin-top:4px}",
+      ".wbsal-kpi em b{font-weight:600;color:var(--wb-ok,#15803d);font-variant-numeric:tabular-nums}",
+      ".wbsal-kpi em b.neg{color:var(--wb-danger,#b91c1c)}",
+      /* 按钮与输入 */
+      ".wbsal-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--wb-border,#d1d5db);background:var(--wb-surface,#fff);color:var(--wb-text,inherit);border-radius:9px;padding:6px 12px;font-size:12.5px;line-height:1.4;cursor:pointer;transition:border-color .12s,background .12s,color .12s}",
+      ".wbsal-btn:hover:not(:disabled){border-color:var(--wb-accent,#2563eb);color:var(--wb-accent,#2563eb)}",
+      ".wbsal-btn:disabled{opacity:.5;cursor:default}",
+      ".wbsal-btn.primary{background:var(--wb-accent,#2563eb);border-color:var(--wb-accent,#2563eb);color:#fff}",
+      ".wbsal-btn.primary:hover:not(:disabled){filter:brightness(1.06);color:#fff}",
+      ".wbsal-btn.danger{color:var(--wb-danger,#b91c1c);border-color:color-mix(in srgb,var(--wb-danger,#b91c1c) 35%,transparent)}",
+      ".wbsal-btn.danger:hover:not(:disabled){background:color-mix(in srgb,var(--wb-danger,#b91c1c) 10%,transparent);color:var(--wb-danger,#b91c1c)}",
+      ".wbsal-btn.ghost{border-color:transparent;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 11%,transparent);color:var(--wb-text,inherit)}",
+      ".wbsal-btn.ghost:hover:not(:disabled){background:color-mix(in srgb,var(--wb-accent,#2563eb) 12%,transparent);color:var(--wb-accent,#2563eb)}",
+      ".wbsal-input{border:1px solid var(--wb-border,#d1d5db);border-radius:8px;padding:7px 9px;font:inherit;font-size:12.5px;background:var(--wb-surface,#fff);color:var(--wb-text,inherit);min-width:88px;box-sizing:border-box}",
+      ".wbsal-input:focus{outline:2px solid color-mix(in srgb,var(--wb-accent,#2563eb) 45%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbsal-field{display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:0}",
+      ".wbsal-label{font-size:11.5px;font-weight:600;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-hint{font-size:11px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-muted{font-size:12px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-danger{color:var(--wb-danger,#b91c1c);font-size:12px}",
+      /* 月份分组 + 记录表 */
+      ".wbsal-months{display:flex;flex-direction:column;gap:10px}",
+      ".wbsal-month{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:2px 2px 0}",
+      ".wbsal-month-title{display:flex;align-items:baseline;gap:8px}",
+      ".wbsal-month-title strong{font-size:13.5px;font-weight:650;color:var(--wb-text,inherit)}",
+      ".wbsal-month-title span{font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-month-total{font-size:12px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-month-total b{font-size:13px;color:var(--wb-text,inherit);font-variant-numeric:tabular-nums;margin-left:4px}",
+      ".wbsal-table-wrap{border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;background:var(--wb-card,#fff);overflow:hidden}",
+      ".wbsal-table{width:100%;border-collapse:collapse;font-size:12.5px}",
+      ".wbsal-table th,.wbsal-table td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--wb-line,#eef0f4);font-variant-numeric:tabular-nums;white-space:nowrap}",
+      ".wbsal-table th{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--wb-muted,#8b94a6);background:var(--wb-surface,#fff);padding-top:9px;padding-bottom:9px}",
+      ".wbsal-table th:first-child,.wbsal-table td:first-child,.wbsal-table th.left,.wbsal-table td.left{text-align:left}",
+      ".wbsal-table tbody tr:last-child td{border-bottom:0}",
+      ".wbsal-record td{height:44px}",
+      ".wbsal-record-row{cursor:pointer;transition:background .12s}",
+      ".wbsal-record-row:hover td{background:color-mix(in srgb,var(--wb-accent,#2563eb) 5%,transparent)}",
+      ".wbsal-record-row.open td{background:color-mix(in srgb,var(--wb-accent,#2563eb) 7%,transparent)}",
+      ".wbsal-date{display:flex;align-items:baseline;gap:7px}",
+      ".wbsal-date b{font-weight:600;font-variant-numeric:tabular-nums}",
+      ".wbsal-date span{font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-net{font-weight:680;font-size:13px;color:var(--wb-text,inherit)}",
+      ".wbsal-opt{color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-caret{display:inline-block;width:14px;color:var(--wb-muted,#8b94a6);transition:transform .15s}",
+      ".wbsal-record-row.open .wbsal-caret{transform:rotate(90deg)}",
+      ".wbsal-detail-cell{padding:0 14px 16px !important;background:color-mix(in srgb,var(--wb-accent,#2563eb) 4%,transparent)}",
+      ".wbsal-detail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 24px}",
+      ".wbsal-detail-block{display:flex;flex-direction:column;gap:6px;min-width:0}",
+      ".wbsal-group-title{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--wb-muted,#8b94a6);text-transform:uppercase}",
+      ".wbsal-fields{display:flex;flex-direction:column;gap:5px;font-size:12px}",
+      ".wbsal-fields div{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:4px;border-bottom:1px dashed var(--wb-line,#eef0f4)}",
+      ".wbsal-fields div:last-child{border-bottom:0}",
+      ".wbsal-fields span{color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-fields b{font-weight:600;font-variant-numeric:tabular-nums}",
+      ".wbsal-field-sum b{font-size:13.5px}",
+      ".wbsal-detail-foot{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;border-top:1px solid var(--wb-line,#eef0f4);padding-top:10px}",
+      ".wbsal-detail-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+      ".wbsal-confirm{display:inline-flex;align-items:center;gap:8px;padding:3px 8px 3px 10px;border-radius:999px;background:color-mix(in srgb,var(--wb-danger,#b91c1c) 10%,transparent)}",
+      /* 表单 */
+      ".wbsal-form{display:flex;flex-direction:column;gap:16px}",
+      ".wbsal-mask{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:38px 18px;overflow:auto;background:transparent;backdrop-filter:brightness(.62) blur(3px);-webkit-backdrop-filter:brightness(.62) blur(3px)}",
+      "@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.wbsal-mask{background:color-mix(in oklab,currentColor 34%,transparent)}}",
+      ".wbsal-modal{width:min(960px,100%);margin:auto 0;animation:wbsal-pop .16s ease-out}",
+      "@keyframes wbsal-pop{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}",
+      ".wbsal-form-modal{margin-top:0;max-height:calc(100vh - 76px);overflow:auto;box-shadow:0 24px 64px color-mix(in oklab,currentColor 22%,transparent)}",
+      ".wbsal-form-modal .wbsal-form-head{position:sticky;top:-14px;z-index:1;margin:-14px -16px 0;padding:14px 16px;background:var(--wb-card,#fff);border-bottom:1px solid var(--wb-line,#eef0f4)}",
+      ".wbsal-form-head{display:flex;align-items:center;justify-content:space-between;gap:10px}",
+      ".wbsal-form-head h3{font-size:14px;font-weight:650;margin:0}",
+      ".wbsal-form-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}",
+      ".wbsal-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 12px}",
+      ".wbsal-form-group{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--wb-line,#eef0f4)}",
+      ".wbsal-form-group:first-of-type{border-top:0;padding-top:0}",
+      ".wbsal-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}",
+      ".wbsal-group-head span{font-size:11px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;padding:14px;border:1px solid var(--wb-border,#e2e6ec);border-radius:12px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 5%,transparent)}",
+      ".wbsal-summary div span{display:block;font-size:11px;color:var(--wb-muted,#8b94a6);margin-bottom:3px}",
+      ".wbsal-summary div b{font-size:15px;font-variant-numeric:tabular-nums;font-weight:650}",
+      ".wbsal-summary .wbsal-lock{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+      ".wbsal-form-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}",
+      /* 统计 */
+      ".wbsal-seg{display:inline-flex;align-items:center;gap:6px;padding:4px;border:1px solid var(--wb-border,#e2e6ec);border-radius:10px;background:var(--wb-surface,#fff)}",
+      ".wbsal-seg .wbsal-btn{border-color:transparent;background:transparent}",
+      ".wbsal-seg .wbsal-btn.primary{background:var(--wb-accent,#2563eb);color:#fff}",
+      ".wbsal-seg-year{font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;min-width:64px;text-align:center}",
+      ".wbsal-section{display:flex;flex-direction:column;gap:12px}",
+      ".wbsal-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}",
+      ".wbsal-section-head h3{font-size:13.5px;font-weight:650;margin:0}",
+      ".wbsal-section-head span{font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-section-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}",
+      // 图表口径切换：与任务插件统计页一致的分段式小控件，选中态用 aria-pressed 表达。
+      ".wbsal-metric{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--wb-border,#e2e6ec);border-radius:8px;background:var(--wb-surface,#fff)}",
+      ".wbsal-metric button{appearance:none;border:0;background:transparent;color:var(--wb-muted,#8b94a6);font:inherit;font-size:11.5px;padding:4px 8px;border-radius:6px;cursor:pointer;white-space:nowrap}",
+      ".wbsal-metric button:hover{background:color-mix(in srgb,var(--wb-muted) 12%,transparent);color:var(--wb-text,#20242c)}",
+      ".wbsal-metric button.on,.wbsal-metric button[aria-pressed=true]{background:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff);font-weight:600}",
+      ".wbsal-metric button:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
+      ".wbsal-chart{display:flex;align-items:flex-end;gap:8px;height:210px;padding:8px 2px 0;border-bottom:1px solid var(--wb-line,#eef0f4)}",
+      ".wbsal-bar{flex:1 1 0;min-width:14px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}",
+      ".wbsal-bar-value{font-size:10.5px;line-height:1;color:var(--wb-muted,#8b94a6);font-variant-numeric:tabular-nums;white-space:nowrap}",
+      ".wbsal-bar-fill{width:72%;max-width:42px;border-radius:6px 6px 2px 2px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 38%,transparent);transition:background .12s}",
+      ".wbsal-bar-fill.top{background:var(--wb-accent,#2563eb)}",
+      ".wbsal-bar:hover .wbsal-bar-fill{background:color-mix(in srgb,var(--wb-accent,#2563eb) 70%,transparent)}",
+      ".wbsal-axis{display:flex;gap:8px;padding-top:7px}",
+      ".wbsal-axis span{flex:1 1 0;text-align:center;font-size:10.5px;color:var(--wb-muted,#8b94a6);font-variant-numeric:tabular-nums}",
+      ".wbsal-chart-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-legend{display:inline-flex;align-items:center;gap:6px}",
+      ".wbsal-legend i{width:8px;height:8px;border-radius:2px;background:var(--wb-accent,#2563eb);display:inline-block}",
+      ".wbsal-legend i.soft{background:color-mix(in srgb,var(--wb-accent,#2563eb) 38%,transparent)}",
+      ".wbsal-series{display:flex;align-items:center;gap:6px;flex-wrap:wrap}",
+      ".wbsal-series button{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--wb-border,#e2e6ee);border-radius:999px;background:var(--wb-surface,#fff);color:var(--wb-fg,inherit);font-size:12px;line-height:1;cursor:pointer;transition:opacity .12s,border-color .12s,background .12s}",
+      ".wbsal-series button:hover{border-color:color-mix(in srgb,var(--wb-accent,#2563eb) 45%,var(--wb-border,#e2e6ee))}",
+      ".wbsal-series button.off{opacity:.45;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-series button.off i{filter:grayscale(1)}",
+      ".wbsal-series i{width:14px;height:3px;border-radius:2px;display:inline-block;background:var(--wb-muted,#8b94a6)}",
+      ".wbsal-series i.s1,.wbsal-line-dot.s1{background:var(--wb-accent,#2563eb)}",
+      ".wbsal-series i.s2,.wbsal-line-dot.s2{background:var(--wb-ok,#16a34a)}",
+      ".wbsal-series i.s3,.wbsal-line-dot.s3{background:var(--wb-warn,#d97706)}",
+      ".wbsal-series i.s4,.wbsal-line-dot.s4{background:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
+      ".wbsal-series i.s5,.wbsal-line-dot.s5{background:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
+      ".wbsal-series i.s6,.wbsal-line-dot.s6{background:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
+      ".wbsal-series i.sum,.wbsal-line-dot.sum{background:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))}",
+      ".wbsal-line.sum{stroke:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb));stroke-dasharray:7 4}",
+      ".wbsal-line-dot.sum{fill:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))}",
+      ".wbsal-linechart{width:100%;padding:10px 2px 0;position:relative}",
+      ".wbsal-hit{fill:transparent;cursor:crosshair}",
+      ".wbsal-hit-area{fill:transparent}",
+      ".wbsal-crosshair{stroke:color-mix(in srgb,var(--wb-accent,#2563eb) 55%,transparent);stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}",
+      ".wbsal-line-dot.is-hot{stroke:var(--wb-card,#fff);stroke-width:2}",
+      ".wbsal-tip{position:absolute;top:6px;transform:translateX(-50%);z-index:3;pointer-events:none;min-width:170px;padding:9px 11px;border:1px solid var(--wb-border,#e2e6ee);border-radius:10px;background:var(--wb-card,#fff);box-shadow:0 8px 22px rgba(15,23,42,.16)}",
+      ".wbsal-tip.is-right{transform:translateX(-100%)}",
+      ".wbsal-tip strong{display:block;font-size:12px;color:var(--wb-muted,#8b94a6);font-weight:600;margin-bottom:6px}",
+      ".wbsal-tip-row{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.7}",
+      ".wbsal-tip-row i{width:14px;height:3px;border-radius:2px;background:var(--wb-muted,#8b94a6);flex:0 0 auto}",
+      ".wbsal-tip-row span{color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-tip-row b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:650}",
+      ".wbsal-tip-row i.s1{background:var(--wb-accent,#2563eb)}",
+      ".wbsal-tip-row i.s2{background:var(--wb-ok,#16a34a)}",
+      ".wbsal-tip-row i.s3{background:var(--wb-warn,#d97706)}",
+      ".wbsal-tip-row i.s4{background:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
+      ".wbsal-tip-row i.s5{background:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
+      ".wbsal-tip-row i.s6{background:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
+      ".wbsal-tip-row i.sum{background:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))}",
+      ".wbsal-tip em{display:block;margin-top:5px;font-size:11px;font-style:normal;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-stack{display:flex;flex-direction:column;gap:16px}",
+      ".wbsal-section-note{font-size:11.5px;color:var(--wb-muted,#8b94a6);font-variant-numeric:tabular-nums}",
+      ".wbsal-linechart .wbsalc-trend-wrap{width:100%}",
+      ".wbsal-chart-hint{margin-top:8px;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 10%,transparent);color:var(--wb-muted,#8b94a6);font-size:12px}",
+      ".wbsal-social-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap}",
+      ".wbsal-linechart svg{display:block;width:100%;height:auto;overflow:visible}",
+      ".wbsal-linechart text{fill:var(--wb-muted,#8b94a6);font-size:11px;font-variant-numeric:tabular-nums}",
+      ".wbsal-line-gridline{stroke:var(--wb-line,#eef0f4);stroke-width:1;vector-effect:non-scaling-stroke}",
+      ".wbsal-line{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}",
+      ".wbsal-line.s1{stroke:var(--wb-accent,#2563eb)}",
+      ".wbsal-line.s2{stroke:var(--wb-ok,#16a34a)}",
+      ".wbsal-line.s3{stroke:var(--wb-warn,#d97706)}",
+      ".wbsal-line.s4{stroke:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
+      ".wbsal-line.s5{stroke:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
+      ".wbsal-line.s6{stroke:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
+      ".wbsal-line-dot{stroke:none}",
+      ".wbsal-line-dot.s1{fill:var(--wb-accent,#2563eb)}",
+      ".wbsal-line-dot.s2{fill:var(--wb-ok,#16a34a)}",
+      ".wbsal-line-dot.s3{fill:var(--wb-warn,#d97706)}",
+      ".wbsal-line-dot.s4{fill:color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))}",
+      ".wbsal-line-dot.s5{fill:color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))}",
+      ".wbsal-line-dot.s6{fill:color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))}",
+      ".wbsal-comp{display:flex;flex-direction:column;gap:7px}",
+      ".wbsal-comp-row{display:grid;grid-template-columns:92px minmax(60px,1fr) 132px;gap:10px;align-items:center;font-size:12px}",
+      ".wbsal-comp-row span:first-child{color:var(--wb-text,inherit)}",
+      ".wbsal-comp-track{height:7px;border-radius:999px;background:var(--wb-line,#eef0f4);overflow:hidden}",
+      ".wbsal-comp-fill{height:100%;border-radius:999px;background:var(--wb-accent,#2563eb)}",
+      ".wbsal-comp-fill.deduction{background:var(--wb-warn,#b45309)}",
+      ".wbsal-comp-value{text-align:right;font-variant-numeric:tabular-nums;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-comp-value b{color:var(--wb-text,inherit);font-weight:600}",
+      ".wbsal-comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}",
+      ".wbsal-table th.num,.wbsal-table td.num{text-align:right}",
+      ".wbsal-table tbody tr:hover td{background:color-mix(in srgb,var(--wb-accent,#2563eb) 4%,transparent)}",
+      /* 空态 */
+      ".wbsal-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:44px 16px;border:1px dashed var(--wb-border,#e2e6ec);border-radius:12px;color:var(--wb-muted,#8b94a6);font-size:12.5px;text-align:center}",
+      ".wbsal-empty-actions{display:flex;gap:8px;justify-content:center;margin-top:2px}",
+      ".wbsal-inline-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}",
+      /* 五险一金 */
+      ".wbsal-social{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px}",
+      ".wbsal-social-item{border:1px solid var(--wb-line,#eef0f4);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 5%,transparent)}",
+      ".wbsal-social-item span{font-size:11px;color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-social-item b{font-size:15px;font-weight:650;font-variant-numeric:tabular-nums}",
+      ".wbsal-social-item em{font-size:11px;font-style:normal;color:var(--wb-muted,#8b94a6)}",
+      /* 共享组件在深色主题下的覆盖：base 里 notice/pill/json 写死了浅色，这里改成 token */
+      ".wbsal-notice{padding:9px 11px;border-radius:9px;font-size:12px;background:color-mix(in srgb,var(--wb-accent,#2563eb) 10%,transparent);color:var(--wb-text,inherit);border:1px solid color-mix(in srgb,var(--wb-accent,#2563eb) 18%,transparent)}",
+      ".wbsal-notice.ok{background:color-mix(in srgb,var(--wb-ok,#15803d) 12%,transparent);color:var(--wb-ok,#15803d);border-color:color-mix(in srgb,var(--wb-ok,#15803d) 22%,transparent)}",
+      ".wbsal-notice.error{background:color-mix(in srgb,var(--wb-danger,#b91c1c) 12%,transparent);color:var(--wb-danger,#b91c1c);border-color:color-mix(in srgb,var(--wb-danger,#b91c1c) 22%,transparent)}",
+      ".wbsal-pill{display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600;line-height:1.7;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 14%,transparent);color:var(--wb-muted,#8b94a6)}",
+      ".wbsal-pill.ok{background:color-mix(in srgb,var(--wb-ok,#15803d) 13%,transparent);color:var(--wb-ok,#15803d)}",
+      ".wbsal-pill.warn{background:color-mix(in srgb,var(--wb-warn,#b45309) 15%,transparent);color:var(--wb-warn,#b45309)}",
+      ".wbsal-pill.error{background:color-mix(in srgb,var(--wb-danger,#b91c1c) 13%,transparent);color:var(--wb-danger,#b91c1c)}",
+      ".wbsal-json{margin:0;padding:10px;border-radius:9px;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 8%,transparent);font-size:11.5px;line-height:1.6;max-height:240px;overflow:auto;color:var(--wb-text,inherit)}",
+      /* 说明页 */
+      ".wbsal-card h3{margin:0 0 10px;font-size:14px;font-weight:600;letter-spacing:-0.01em}",
+      ".wbsal-page > .wbsal-card + .wbsal-card{margin-top:14px}",
+      ".wbsal-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}",
+      /* 响应式 */
+      "@media (max-width:1100px){.wbsal-detail{grid-template-columns:repeat(2,minmax(0,1fr))}}",
+      "@media (max-width:900px){.wbsal-table th.hide-md,.wbsal-table td.hide-md{display:none}}",
+      "@media (max-width:760px){.wbsal-detail{grid-template-columns:minmax(0,1fr)}.wbsal-page{padding:16px 14px 36px}.wbsal-table th,.wbsal-table td{padding:9px 10px}.wbsal-opt,.wbsal-table th.opt{display:none}.wbsal-comp-row{grid-template-columns:80px minmax(50px,1fr) 112px}.wbsal-chart{height:170px}}"
+    ];
+    var DATE = require_date_picker_styles()("wbsal");
+    var AMOUNT = [
+      ".wbsal-form-grid .wbctl-num{width:100%}",
+      ".wbsal-form-grid .wbctl-num-box{width:100%}",
+      ".wbsal-form-grid .wbctl-num-input{width:100%;box-sizing:border-box;text-align:right}",
+      // 分阶段表单：每组金额之间留出间距，步骤内容区不再被外层卡片裁切。
+      ".wbsal-steps-groups{display:flex;flex-direction:column;gap:16px}"
+    ];
+    module2.exports = BASE.concat(PAGE, [DATE], AMOUNT, require_stepper().styles, require_staged_dialog().styles, require_number_field().styles).join("\n");
+  }
+});
+
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
+    ];
+    function Switch(props) {
+      var h = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h("span", { className: "wbctl-switch-text" }, text) : null
+      );
+    }
+    module2.exports = { Switch, styles: SWITCH_STYLES };
   }
 });
 
@@ -867,6 +1577,11 @@ var require_client_common = __commonJS({
         call,
         errText,
         fmtTime,
+        Switch: require_switch().Switch,
+        switchStyles: require_switch().styles,
+        NumberField: require_number_field().NumberField,
+        numberFieldStyles: require_number_field().styles,
+        validateNumber: require_number_field().validateNumber,
         Btn,
         Field,
         Notice,
@@ -896,6 +1611,21 @@ var require_fields = __commonJS({
       { id: "pretax", title: "\u7A0E\u524D\u6263\u6B3E", hint: "\u5148\u4ECE\u6536\u5165\u4E2D\u6263\u9664", keys: ["sickDeduction", "personalDeduction", "otherDeduction"] },
       { id: "social", title: "\u793E\u4FDD\u4E0E\u4E2A\u7A0E", hint: "\u518D\u4ECE\u5E94\u53D1\u4E2D\u6263\u9664", keys: ["pension", "medical", "unemployment", "housingFund", "incomeTax", "postTaxDeduction"] }
     ];
+    var EMPLOYMENT_TYPES = [
+      { value: "", label: "\u672A\u8BBE\u7F6E" },
+      { value: "temp", label: "\u4E34\u65F6" },
+      { value: "parttime", label: "\u517C\u804C" },
+      { value: "side", label: "\u5916\u5FEB" },
+      { value: "intern", label: "\u5B9E\u4E60" },
+      { value: "probation", label: "\u8BD5\u7528" },
+      { value: "regular", label: "\u6B63\u5F0F" }
+    ];
+    function employmentLabel(value) {
+      for (var i = 0; i < EMPLOYMENT_TYPES.length; i += 1) {
+        if (EMPLOYMENT_TYPES[i].value === value) return EMPLOYMENT_TYPES[i].label;
+      }
+      return "\u672A\u8BBE\u7F6E";
+    }
     var LABELS = {
       basePay: "\u57FA\u672C\u5DE5\u8D44",
       performancePay: "\u7EE9\u6548\u5DE5\u8D44",
@@ -984,6 +1714,8 @@ var require_fields = __commonJS({
       GROUPS,
       KEYS,
       LABELS,
+      EMPLOYMENT_TYPES,
+      employmentLabel,
       INCOME_KEYS,
       PRETAX_KEYS,
       SOCIAL_KEYS,
@@ -1003,466 +1735,213 @@ var require_fields = __commonJS({
   }
 });
 
-// packages/addons/salary/client/views/stats.cjs
-var require_stats = __commonJS({
-  "packages/addons/salary/client/views/stats.cjs"(exports2, module2) {
+// packages/addons/salary/client/views/stats-parts.cjs
+var require_stats_parts = __commonJS({
+  "packages/addons/salary/client/views/stats-parts.cjs"(exports2, module2) {
     "use strict";
-    module2.exports = function Stats(props) {
-      var h = props.h, React = props.React, api = props.api;
-      var C = require_common();
-      var F = require_fields();
-      var yearState = React.useState((/* @__PURE__ */ new Date()).getFullYear());
-      var year = yearState[0], setYear = yearState[1];
-      var load = C.useLoad(React, api, "salary.stats", { year }, [year]);
-      var data = load.data;
-      var METRICS = [
-        { key: "netPay", label: "\u5B9E\u53D1" },
-        { key: "basePay", label: "\u57FA\u672C" },
-        { key: "performancePay", label: "\u7EE9\u6548" },
-        { key: "allowance", label: "\u8865\u8D34" },
-        { key: "performanceBonus", label: "\u7EE9\u6548\u5956\u60E9" },
-        { key: "grossPay", label: "\u5E94\u53D1" }
-      ];
-      var metricState = React.useState(props.initialMetric || "netPay");
-      var metric = metricState[0], setMetric = metricState[1];
-      var metricLabel = "\u5B9E\u53D1";
-      METRICS.forEach(function(m) {
-        if (m.key === metric) metricLabel = m.label;
-      });
-      var monthly = data && data.monthly || [];
-      function metricValue(bucket) {
-        return Number(bucket[metric]) || 0;
-      }
-      var maxNet = 1;
-      monthly.forEach(function(bucket) {
-        if (metricValue(bucket) > maxNet) maxNet = metricValue(bucket);
-      });
-      var topMonth = -1;
-      monthly.forEach(function(bucket, i) {
-        if (metricValue(bucket) > 0 && (topMonth < 0 || metricValue(bucket) > metricValue(monthly[topMonth]))) topMonth = i;
-      });
-      var LINE_SERIES = [
-        { key: "netPay", label: "\u5B9E\u53D1", tone: "s1" },
-        { key: "grossPay", label: "\u5E94\u53D1", tone: "s2" },
-        { key: "basePay", label: "\u57FA\u672C", tone: "s3" },
-        { key: "performancePay", label: "\u7EE9\u6548", tone: "s4" },
-        { key: "allowance", label: "\u8865\u8D34", tone: "s5" },
-        { key: "performanceBonus", label: "\u7EE9\u6548\u5956\u60E9", tone: "s6" }
-      ];
-      var visibleState = React.useState(Object.assign({ netPay: true, grossPay: true, basePay: true, performancePay: true, allowance: true, performanceBonus: true }, props.initialVisible || {}));
-      var visible = visibleState[0];
-      function toggleSeries(key) {
-        var next = {};
-        LINE_SERIES.forEach(function(m) {
-          next[m.key] = !!visible[m.key];
-        });
-        next[key] = !next[key];
-        visibleState[1](next);
-      }
-      function round2(value) {
-        return Math.round((Number(value) || 0) * 100) / 100;
-      }
-      function deductOf(bucket) {
-        return round2((Number(bucket.pension) || 0) + (Number(bucket.medical) || 0) + (Number(bucket.unemployment) || 0) + (Number(bucket.housingFund) || 0) + (Number(bucket.incomeTax) || 0));
-      }
-      function seriesValue(m, bucket) {
-        if (typeof m.get === "function") return m.get(bucket);
-        return Number(bucket[m.key]) || 0;
-      }
-      var DEDUCT_TOTAL_ALL = round2((data && data.socialTotal) + (data && data.incomeTaxTotal));
-      var DEDUCT_SERIES = F.SOCIAL_KEYS.map(function(key, index) {
-        return { key, label: F.LABELS[key], tone: "s" + (index + 1) };
-      }).concat([
-        { key: "incomeTax", label: "\u4E2A\u7A0E", tone: "s5" },
-        { key: "deductTotal", label: "\u5408\u8BA1", tone: "sum", get: deductOf }
-      ]);
-      var socialVisibleState = React.useState(Object.assign({ pension: true, medical: true, unemployment: true, housingFund: true, incomeTax: true, deductTotal: true }, props.initialSocialVisible || {}));
-      var socialVisible = socialVisibleState[0];
-      function toggleSocial(key) {
-        var next = {};
-        DEDUCT_SERIES.forEach(function(m) {
-          next[m.key] = !!socialVisible[m.key];
-        });
-        next[key] = !next[key];
-        socialVisibleState[1](next);
-      }
-      var hoverState = React.useState(props.initialHover || null);
-      var hover = hoverState[0], setHover = hoverState[1];
-      var socialHoverState = React.useState(props.initialSocialHover || null);
-      var socialHover = socialHoverState[0], setSocialHover = socialHoverState[1];
-      var recordedMonths = monthly.filter(function(bucket) {
-        return bucket.records > 0;
-      });
-      var LPAD = { l: 62, r: 16, t: 14, b: 30 };
-      var LW = 1e3, LH = 250;
-      var plotW = LW - LPAD.l - LPAD.r;
-      var plotH = LH - LPAD.t - LPAD.b;
-      function plotX(month) {
-        return LPAD.l + (month - 1) / 11 * plotW;
-      }
-      function gridLabel(value) {
-        if (value >= 100 || value === 0) return Math.round(value).toLocaleString("zh-CN");
-        return Number(value.toFixed(1)).toLocaleString("zh-CN");
-      }
-      function niceStep(raw) {
-        if (!(raw > 0)) return 1;
-        var exp = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
-        var norm = raw / exp;
-        var mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
-        return mult * exp;
-      }
-      function renderChart(series, shown, ariaLabel, activeMonth, onHover) {
-        var max = 0;
-        recordedMonths.forEach(function(bucket) {
-          series.forEach(function(m) {
-            if (!shown[m.key]) return;
-            var v = seriesValue(m, bucket);
-            if (v > max) max = v;
-          });
-        });
-        var step = niceStep(Math.max(max, 1) / 5);
-        var axisMax = step * 5;
-        function plotY(value) {
-          return LPAD.t + plotH * (1 - Math.min(1, (Number(value) || 0) / axisMax));
-        }
-        var children = [];
-        if (onHover) {
-          var slot = plotW / 12;
-          children.push(h("rect", {
-            key: "hit-area",
-            x: LPAD.l - slot / 2,
-            y: LPAD.t,
-            width: plotW + slot,
-            height: plotH,
-            className: "wbsal-hit-area",
-            onMouseLeave: function() {
-              onHover(null);
-            }
-          }));
-          recordedMonths.forEach(function(bucket) {
-            children.push(h("rect", {
-              key: "hit" + bucket.month,
-              x: plotX(bucket.month) - slot / 2,
-              y: LPAD.t,
-              width: slot,
-              height: plotH,
-              className: "wbsal-hit",
-              onMouseEnter: function() {
-                onHover(bucket.month);
-              }
-            }));
-          });
-        }
-        [1, 0.8, 0.6, 0.4, 0.2, 0].forEach(function(ratio) {
-          var value = axisMax * ratio;
-          var y = plotY(value);
-          children.push(h("line", { key: "g" + ratio, x1: LPAD.l, y1: y, x2: LW - LPAD.r, y2: y, className: "wbsal-line-gridline" }));
-          children.push(h("text", { key: "gt" + ratio, x: LPAD.l - 10, y: y + 4, textAnchor: "end" }, gridLabel(value)));
-        });
-        monthly.forEach(function(bucket) {
-          children.push(h("text", { key: "x" + bucket.month, x: plotX(bucket.month), y: LH - 10, textAnchor: "middle" }, bucket.month));
-        });
-        if (activeMonth) {
-          children.push(h("line", {
-            key: "crosshair",
-            x1: plotX(activeMonth),
-            y1: LPAD.t,
-            x2: plotX(activeMonth),
-            y2: LPAD.t + plotH,
-            className: "wbsal-crosshair"
-          }));
-        }
-        series.forEach(function(m) {
-          if (!shown[m.key] || recordedMonths.length === 0) return;
-          var points = recordedMonths.map(function(bucket) {
-            return { month: bucket.month, value: seriesValue(m, bucket) };
-          });
-          if (points.length > 1) {
-            children.push(h("polyline", {
-              key: "line" + m.key,
-              className: "wbsal-line " + m.tone,
-              points: points.map(function(pt) {
-                return plotX(pt.month) + "," + plotY(pt.value);
-              }).join(" ")
-            }));
+    var TONE_COLOR = {
+      s1: "var(--wb-accent,#2563eb)",
+      s2: "var(--wb-ok,#16a34a)",
+      s3: "var(--wb-warn,#d97706)",
+      s4: "color-mix(in oklab,var(--wb-accent,#2563eb) 45%,var(--wb-danger,#dc2626))",
+      s5: "color-mix(in oklab,var(--wb-ok,#16a34a) 55%,var(--wb-accent,#2563eb))",
+      s6: "color-mix(in oklab,var(--wb-warn,#d97706) 60%,var(--wb-danger,#dc2626))",
+      sum: "color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))",
+      t1: "var(--wb-accent,#2563eb)",
+      t2: "color-mix(in oklab,var(--wb-ok,#16a34a) 60%,var(--wb-muted,#8b94a6))",
+      t3: "color-mix(in oklab,var(--wb-warn,#d97706) 55%,var(--wb-muted,#8b94a6))"
+    };
+    function segGroup(h, options, value, onPick, ariaLabel) {
+      return h("div", { className: "wbsal-metric", role: "group", "aria-label": ariaLabel }, options.map(function(option) {
+        return h("button", {
+          key: option[0],
+          type: "button",
+          className: value === option[0] ? "on" : "",
+          "aria-pressed": value === option[0],
+          onClick: function() {
+            onPick(option[0]);
           }
-          points.forEach(function(pt) {
-            children.push(h("circle", {
-              key: "dot" + m.key + pt.month,
-              className: "wbsal-line-dot " + m.tone + (pt.month === activeMonth ? " is-hot" : ""),
-              cx: plotX(pt.month),
-              cy: plotY(pt.value),
-              r: pt.month === activeMonth ? 5 : 3.6
-            }, h("title", null, pt.month + " \u6708 \xB7 " + m.label + " " + F.money(pt.value))));
-          });
-        });
-        return h("svg", { viewBox: "0 0 " + LW + " " + LH, role: "img", "aria-label": ariaLabel }, children);
-      }
-      function seriesSwitch(series, shown, onToggle, ariaLabel) {
-        return h("div", { className: "wbsal-series", role: "group", "aria-label": ariaLabel }, series.map(function(m) {
-          return h("button", {
-            key: m.key,
-            type: "button",
-            className: shown[m.key] ? "on" : "off",
-            "aria-pressed": !!shown[m.key],
-            title: (shown[m.key] ? "\u9690\u85CF" : "\u663E\u793A") + m.label,
-            onClick: function() {
-              onToggle(m.key);
-            }
-          }, h("i", { className: m.tone }), m.label);
-        }));
-      }
-      function anyShown(series, shown) {
-        return series.some(function(m) {
-          return shown[m.key];
-        });
-      }
-      function renderTip(series, shown, month) {
-        if (!month) return null;
-        var bucket = null;
-        monthly.forEach(function(b) {
-          if (b.month === month) bucket = b;
-        });
-        if (!bucket) return null;
-        var kids = [h("strong", { key: "m" }, F.monthLabel(bucket.period))];
-        series.forEach(function(m) {
-          if (!shown[m.key]) return;
-          kids.push(h(
-            "div",
-            { key: m.key, className: "wbsal-tip-row" },
-            h("i", { className: m.tone }),
-            h("span", null, m.label),
-            h("b", null, F.money(seriesValue(m, bucket)))
-          ));
-        });
-        kids.push(h("em", { key: "n" }, bucket.records + " \u7B14\u8BB0\u5F55"));
-        return h("div", {
-          className: "wbsal-tip" + (month >= 8 ? " is-right" : ""),
-          style: { left: plotX(month) / LW * 100 + "%" }
-        }, kids);
-      }
-      function signed(amount) {
-        var n = Number(amount) || 0;
-        return (n > 0 ? "+" : n < 0 ? "-" : "") + F.money(Math.abs(n));
-      }
-      function kpi(label, value, sub) {
-        return h("div", { className: "wbsal-card wbsal-kpi" }, h("span", null, label), h("strong", null, value), h("em", null, sub));
-      }
-      function compRows(keys, total, deduction) {
-        var rows = keys.filter(function(key) {
-          return (data.latestMonth.breakdown.fields[key] || 0) !== 0;
-        });
-        if (rows.length === 0) return null;
-        return h("div", { className: "wbsal-comp" }, rows.map(function(key) {
-          var amount = data.latestMonth.breakdown.fields[key] || 0;
-          var percent = total ? Math.max(2, Math.min(100, Math.round(Math.abs(amount) / total * 100))) : 0;
-          return h(
-            "div",
-            { key, className: "wbsal-comp-row" },
-            h("span", null, F.LABELS[key]),
-            h("div", { className: "wbsal-comp-track" }, h("div", { className: "wbsal-comp-fill" + (deduction ? " deduction" : ""), style: { width: percent + "%" } })),
-            h("span", { className: "wbsal-comp-value" }, h("b", null, F.money(amount)), " \xB7 " + percent + "%")
-          );
-        }));
-      }
-      var body;
-      if (load.loading) body = h(C.Empty, { h, text: "\u52A0\u8F7D\u4E2D\u2026" });
-      else if (load.error) body = h(C.Notice, { h, kind: "error", text: load.error });
-      else if (!data || data.records === 0) {
-        body = h(
+        }, option[1]);
+      }));
+    }
+    function seriesSwitch(h, series, shown, onToggle, ariaLabel) {
+      return h("div", { className: "wbsal-series", role: "group", "aria-label": ariaLabel }, series.map(function(m) {
+        return h("button", {
+          key: m.key,
+          type: "button",
+          className: shown[m.key] === false ? "off" : "",
+          "aria-pressed": shown[m.key] !== false,
+          title: (shown[m.key] === false ? "\u663E\u793A" : "\u9690\u85CF") + m.label,
+          onClick: function() {
+            onToggle(m.key);
+          }
+        }, h("i", { className: m.tone }), m.label);
+      }));
+    }
+    function anyShown(series, shown) {
+      return series.some(function(m) {
+        return shown[m.key] !== false;
+      });
+    }
+    function tipCard(h, ctx) {
+      if (ctx.index === null || ctx.index === void 0) return null;
+      var kids = [h("strong", { key: "t" }, ctx.title)];
+      (ctx.rows || []).forEach(function(row) {
+        kids.push(h(
           "div",
-          { className: "wbsal-empty" },
-          h("div", null, year + " \u5E74\u8FD8\u6CA1\u6709\u5DE5\u8D44\u8BB0\u5F55\uFF1B\u6362\u4E2A\u5E74\u4EFD\uFF0C\u6216\u5148\u53BB\u5DE5\u8D44\u8BB0\u5F55\u9875\u8BB0\u4E00\u7B14")
-        );
-      } else {
-        var latestBreakdown = data.latestMonth && data.latestMonth.breakdown;
-        var deductionTotal = latestBreakdown ? latestBreakdown.preTax + latestBreakdown.social + latestBreakdown.tax : 0;
-        var chartMax = Math.max(1, maxNet);
-        body = h(
-          "div",
-          { className: "wbsal-section" },
-          h(
-            "div",
-            { className: "wbsal-kpis" },
-            kpi("\u6700\u8FD1\u5B9E\u53D1", data.latest ? F.money(data.latest.netPay) : "\u2014", data.latest ? data.latest.payDate + " \xB7 \u6700\u8FD1\u4E00\u7B14" : "\u8FD8\u6CA1\u6709\u8BB0\u5F55"),
-            kpi("\u6708\u5747\u5B9E\u53D1", F.money(data.avgNetPay), "\u6309\u6709\u8BB0\u5F55\u7684\u6708\u4EFD\u5E73\u5747"),
-            kpi("\u5E74\u5EA6\u5B9E\u53D1\u5408\u8BA1", F.money(data.netTotal), data.records + " \u7B14 \xB7 \u8986\u76D6 " + data.months + " \u4E2A\u6708"),
-            kpi("\u5E74\u5EA6\u5E94\u53D1", F.money(data.grossTotal), "\u7A0E\u524D"),
-            kpi("\u5E74\u5EA6\u4E2A\u7A0E", F.money(data.incomeTaxTotal), "\u5DE5\u8D44\u85AA\u91D1\u9884\u6263"),
-            kpi("\u5E74\u5EA6\u4E94\u9669\u4E00\u91D1", F.money(data.socialTotal), "\u517B\u8001 / \u533B\u7597 / \u5931\u4E1A / \u516C\u79EF\u91D1")
-          ),
-          // 环比 / 最近月份 / 最近一笔：紧贴月度趋势图上方，先给结论再看图
-          h(
-            "div",
-            { className: "wbsal-kpis" },
-            kpi(
-              "\u73AF\u6BD4",
-              data.mom ? signed(data.mom.amount) : "\u2014",
-              data.mom ? data.mom.percent === null ? "\u4E0A\u6708\u4E3A 0" : (data.mom.percent > 0 ? "+" : "") + data.mom.percent + "% \xB7 \u6700\u8FD1\u4E24\u4E2A\u6708" : "\u81F3\u5C11\u9700\u8981\u4E24\u4E2A\u6708\u8BB0\u5F55"
-            ),
-            kpi("\u6700\u8FD1\u6708\u4EFD", data.latestMonth ? F.monthLabel(data.latestMonth.period) : "\u2014", data.latestMonth ? data.latestMonth.records + " \u7B14" : ""),
-            kpi("\u6700\u8FD1\u4E00\u7B14", data.latest ? data.latest.payDate : "\u2014", data.latest ? (data.latest.cycle === "daily" ? "\u65E5\u7ED3" : "\u6708\u7ED3") + " \xB7 " + F.money(data.latest.netPay) : "")
-          ),
-          h(
-            "div",
-            { className: "wbsal-card wbsal-section" },
-            h(
-              "div",
-              { className: "wbsal-section-head" },
-              h("h3", null, "\u6708\u5EA6" + metricLabel + "\u8D8B\u52BF"),
-              h(
-                "div",
-                { className: "wbsal-section-tools" },
-                h("div", { className: "wbsal-metric", role: "group", "aria-label": "\u56FE\u8868\u7EDF\u8BA1\u53E3\u5F84" }, METRICS.map(function(m) {
-                  return h("button", {
-                    key: m.key,
-                    type: "button",
-                    className: m.key === metric ? "on" : "",
-                    "aria-pressed": m.key === metric,
-                    onClick: function() {
-                      setMetric(m.key);
-                    }
-                  }, m.label);
-                })),
-                h("span", { className: "wbsal-section-note" }, "\u6700\u9AD8 " + F.monthLabel(monthly[topMonth] ? monthly[topMonth].period : "") + " \xB7 " + F.money(maxNet))
-              )
-            ),
-            h("div", { className: "wbsal-chart" }, monthly.map(function(bucket, i) {
-              var value = metricValue(bucket);
-              var ratio = value > 0 ? value / chartMax : 0;
-              var height = Math.round(Math.max(ratio * 150, value > 0 ? 6 : 0));
-              return h(
-                "div",
-                {
-                  key: bucket.month,
-                  className: "wbsal-bar",
-                  title: bucket.month + " \u6708 \xB7 \u57FA\u672C " + F.money(bucket.basePay) + " / \u7EE9\u6548 " + F.money(bucket.performancePay) + " / \u8865\u8D34 " + F.money(bucket.allowance) + " / \u7EE9\u6548\u5956\u60E9 " + F.money(bucket.performanceBonus) + " / \u5E94\u53D1 " + F.money(bucket.grossPay) + " / \u5B9E\u53D1 " + F.money(bucket.netPay)
-                },
-                h("div", { className: "wbsal-bar-value" }, value > 0 ? Math.round(value).toLocaleString("zh-CN") : ""),
-                h("div", { className: "wbsal-bar-fill" + (i === topMonth ? " top" : ""), style: { height: height + "px" } }),
-                h("div", { className: "wbsal-bar-label" }, "")
-              );
-            })),
-            h("div", { className: "wbsal-axis" }, monthly.map(function(bucket) {
-              return h("span", { key: bucket.month }, bucket.month);
-            })),
-            h(
-              "div",
-              { className: "wbsal-chart-foot" },
-              h("span", { className: "wbsal-legend" }, h("i", null), "\u6709\u8BB0\u5F55\u6708\u4EFD", h("i", { className: "soft" }), "\u5176\u4ED6\u6708\u4EFD"),
-              h("span", null, "\u5355\u4F4D\uFF1A\u5143 \xB7 \u6309\u53D1\u85AA\u65E5\u671F\u5F52\u5C5E\u6708\u4EFD \xB7 \u5F53\u524D\u53E3\u5F84 " + metricLabel)
-            )
-          ),
-          h(
-            "div",
-            { className: "wbsal-card wbsal-section" },
-            h(
-              "div",
-              { className: "wbsal-section-head" },
-              h("h3", null, "\u6708\u5EA6\u8D8B\u52BF\u5BF9\u6BD4"),
-              seriesSwitch(LINE_SERIES, visible, toggleSeries, "\u6298\u7EBF\u663E\u793A\u5F00\u5173")
-            ),
-            h(
-              "div",
-              { className: "wbsal-linechart" },
-              renderChart(LINE_SERIES, visible, "\u6708\u5EA6\u5B9E\u53D1/\u5E94\u53D1/\u57FA\u672C/\u7EE9\u6548/\u8865\u8D34/\u7EE9\u6548\u5956\u60E9\u6298\u7EBF\u56FE", hover, setHover),
-              renderTip(LINE_SERIES, visible, hover)
-            ),
-            anyShown(LINE_SERIES, visible) ? null : h("div", { className: "wbsal-chart-hint" }, "\u516D\u6761\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u300C\u5B9E\u53D1 / \u5E94\u53D1 / \u57FA\u672C / \u7EE9\u6548 / \u8865\u8D34 / \u7EE9\u6548\u5956\u60E9\u300D\u4EFB\u610F\u4E00\u4E2A\u6062\u590D\u663E\u793A"),
-            h(
-              "div",
-              { className: "wbsal-chart-foot" },
-              h("span", null, "\u516D\u6761\u7EBF\u53EF\u70B9\u4E0A\u65B9\u6807\u7B7E\u5355\u72EC\u5F00\u5173 \xB7 \u9F20\u6807\u79FB\u5230\u67D0\u4E2A\u6708\u4EFD\u770B\u8BE5\u6708\u5168\u90E8\u7EF4\u5EA6"),
-              h("span", null, "\u5355\u4F4D\uFF1A\u5143 \xB7 \u4EC5\u8FDE\u63A5\u6709\u8BB0\u5F55\u7684\u6708\u4EFD")
-            )
-          ),
-          h(
-            "div",
-            { className: "wbsal-card wbsal-section" },
-            h(
-              "div",
-              { className: "wbsal-section-head" },
-              h("h3", null, "\u793E\u4FDD\u4E0E\u4E2A\u7A0E"),
-              h("span", null, "\u5E74\u5EA6\u5408\u8BA1 " + F.money(DEDUCT_TOTAL_ALL) + " \xB7 \u5360\u5E94\u53D1 " + (data.grossTotal ? Math.round(DEDUCT_TOTAL_ALL / data.grossTotal * 100) : 0) + "%")
-            ),
-            h("div", { className: "wbsal-social" }, F.SOCIAL_KEYS.concat(["incomeTax"]).map(function(key) {
-              var amount = key === "incomeTax" ? data.incomeTaxTotal || 0 : data.social && data.social[key] || 0;
-              var share = DEDUCT_TOTAL_ALL ? Math.round(amount / DEDUCT_TOTAL_ALL * 100) : 0;
-              return h(
-                "div",
-                { key, className: "wbsal-social-item" },
-                h("span", null, F.LABELS[key]),
-                h("b", null, F.money(amount)),
-                h("em", null, "\u5360\u793E\u4FDD\u4E0E\u4E2A\u7A0E " + share + "%")
-              );
-            })),
-            h("div", { className: "wbsal-social-foot" }, seriesSwitch(DEDUCT_SERIES, socialVisible, toggleSocial, "\u793E\u4FDD\u4E0E\u4E2A\u7A0E\u6298\u7EBF\u663E\u793A\u5F00\u5173")),
-            h(
-              "div",
-              { className: "wbsal-linechart" },
-              renderChart(DEDUCT_SERIES, socialVisible, "\u6708\u5EA6\u517B\u8001/\u533B\u7597/\u5931\u4E1A/\u516C\u79EF\u91D1/\u4E2A\u7A0E\u6298\u7EBF\u56FE", socialHover, setSocialHover),
-              renderTip(DEDUCT_SERIES, socialVisible, socialHover)
-            ),
-            anyShown(DEDUCT_SERIES, socialVisible) ? null : h("div", { className: "wbsal-chart-hint" }, "\u6240\u6709\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u300C\u517B\u8001 / \u533B\u7597 / \u5931\u4E1A / \u516C\u79EF\u91D1 / \u4E2A\u7A0E / \u5408\u8BA1\u300D\u4EFB\u610F\u4E00\u4E2A\u6062\u590D\u663E\u793A"),
-            h(
-              "div",
-              { className: "wbsal-chart-foot" },
-              h("span", null, "\u4E94\u6761\u7EBF + \u865A\u7EBF\u5408\u8BA1\uFF08\u4E94\u9879\u4E4B\u548C\uFF09\u53EF\u5355\u72EC\u5F00\u5173 \xB7 \u9F20\u6807\u79FB\u5230\u67D0\u4E2A\u6708\u4EFD\u770B\u8BE5\u6708\u5206\u9879"),
-              h("span", null, "\u5355\u4F4D\uFF1A\u5143 \xB7 \u4EC5\u8FDE\u63A5\u6709\u8BB0\u5F55\u7684\u6708\u4EFD")
-            )
-          ),
-          data.latestMonth ? h(
-            "div",
-            { className: "wbsal-card wbsal-section" },
-            h(
-              "div",
-              { className: "wbsal-section-head" },
-              h("h3", null, F.monthLabel(data.latestMonth.period) + " \u6536\u5165\u4E0E\u6263\u6B3E\u6784\u6210"),
-              h("span", null, "\u5171 " + data.latestMonth.records + " \u7B14")
-            ),
-            h(
-              "div",
-              { className: "wbsal-comp-grid" },
-              h(
-                "div",
-                null,
-                h("div", { className: "wbsal-group-title" }, "\u6536\u5165\u9879 \xB7 \u5408\u8BA1 " + F.money(latestBreakdown.income)),
-                compRows(F.INCOME_KEYS, latestBreakdown.income, false)
-              ),
-              h(
-                "div",
-                null,
-                h("div", { className: "wbsal-group-title" }, "\u6263\u6B3E\u9879 \xB7 \u5408\u8BA1 " + F.money(deductionTotal)),
-                compRows(F.PRETAX_KEYS.concat(F.SOCIAL_KEYS, F.TAX_KEYS), deductionTotal, true)
-              )
-            )
-          ) : null
-        );
-      }
+          { key: row.key, className: "wbsal-tip-row" },
+          h("i", { className: row.tone }),
+          h("span", null, row.label),
+          h("b", null, ctx.fmt(row.value))
+        ));
+      });
+      if (ctx.note) kids.push(h("em", { key: "n" }, ctx.note));
+      var length = ctx.length || 1;
+      var ratio = length > 1 ? ctx.index / (length - 1) : 0;
+      return h("div", {
+        className: "wbsal-tip" + (ratio > 0.62 ? " is-right" : ""),
+        style: { left: ratio * 100 + "%" }
+      }, kids);
+    }
+    function trendCard(opts) {
+      var h = opts.h, CH = opts.CH;
+      var rows = opts.rows || [];
+      var series = (opts.series || []).map(function(s) {
+        return { key: s.key, label: s.label, className: s.tone, color: s.color || TONE_COLOR[s.tone] || void 0 };
+      });
+      var shown = opts.visible || {};
+      var empty = rows.length === 0;
+      var idx = typeof opts.hover === "number" && opts.hover >= 0 && opts.hover < rows.length ? opts.hover : null;
+      var row = idx === null ? null : rows[idx];
       return h(
         "div",
-        { className: "wbsal-page" },
+        { className: "wbsal-card wbsal-section" },
         h(
           "div",
-          { className: "wbsal-toolbar wbsal-toolbar-plain" },
+          { className: "wbsal-section-head" },
+          h("h3", null, opts.title),
           h(
             "div",
-            { className: "wbsal-toolbar-end" },
-            h(
-              "div",
-              { className: "wbsal-seg" },
-              h(C.Btn, { h, kind: "ghost", onClick: function() {
-                setYear(Math.max(2e3, year - 1));
-              } }, "\u2039"),
-              h("span", { className: "wbsal-seg-year" }, year + " \u5E74"),
-              h(C.Btn, { h, kind: "ghost", onClick: function() {
-                setYear(Math.min(2100, year + 1));
-              } }, "\u203A")
-            )
+            { className: "wbsal-section-tools" },
+            opts.note ? h("span", { className: "wbsal-section-note" }, opts.note) : null,
+            seriesSwitch(h, opts.series || [], shown, opts.onToggle, (opts.title || "\u6298\u7EBF") + "\u663E\u793A\u5F00\u5173")
           )
         ),
-        body
+        empty ? h(CH.Empty, { text: opts.emptyText || "\u8FD8\u6CA1\u6709\u53EF\u753B\u7684\u8BB0\u5F55" }) : h(
+          "div",
+          { className: "wbsal-linechart" },
+          h(CH.Trend, {
+            data: rows.map(function(row2) {
+              return row2;
+            }),
+            series,
+            lang: opts.lang,
+            height: opts.height || 210,
+            showLegend: false,
+            visible: shown,
+            active: idx,
+            onHover: opts.onHover,
+            format: opts.fmt,
+            label: opts.label,
+            note: opts.noteOf,
+            aria: opts.ariaLabel,
+            emptyText: opts.emptyText
+          }),
+          empty || idx === null ? null : tipCard(h, {
+            index: idx,
+            length: rows.length,
+            title: opts.tipTitle ? opts.tipTitle(row) : "",
+            rows: opts.tipRows ? opts.tipRows(row) : [],
+            note: opts.tipNote ? opts.tipNote(row) : "",
+            fmt: opts.fmt
+          })
+        ),
+        !empty && anyShown(opts.series || [], shown) ? null : h("div", { className: "wbsal-chart-hint" }, opts.allOffHint || "\u6240\u6709\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u7684\u6807\u7B7E\u4EFB\u610F\u4E00\u4E2A\u6062\u590D\u663E\u793A"),
+        h(
+          "div",
+          { className: "wbsal-chart-foot" },
+          h("span", null, opts.footLeft || ""),
+          h("span", null, opts.footRight || "")
+        )
       );
+    }
+    function barChart(opts) {
+      var h = opts.h, F = opts.F;
+      var rows = opts.rows || [];
+      var values = rows.map(function(b) {
+        return opts.value(b);
+      });
+      var max = Math.max(1, Math.max.apply(null, values));
+      var topIndex = -1;
+      values.forEach(function(v, i) {
+        if (v > 0 && (topIndex < 0 || v > values[topIndex])) topIndex = i;
+      });
+      var top = rows[topIndex];
+      return h(
+        "div",
+        null,
+        h("div", { className: "wbsal-chart" }, rows.map(function(bucket, i) {
+          var value = values[i];
+          var ratio = value > 0 ? value / max : 0;
+          var height = Math.round(Math.max(ratio * 150, value > 0 ? 6 : 0));
+          return h(
+            "div",
+            {
+              key: bucket.month,
+              className: "wbsal-bar",
+              title: bucket.month + " \u6708 \xB7 \u57FA\u672C " + F.money(bucket.basePay) + " / \u7EE9\u6548 " + F.money(bucket.performancePay) + " / \u8865\u8D34 " + F.money(bucket.allowance) + " / \u7EE9\u6548\u5956\u60E9 " + F.money(bucket.performanceBonus) + " / \u5E94\u53D1 " + F.money(bucket.grossPay) + " / \u5B9E\u53D1 " + F.money(bucket.netPay)
+            },
+            h("div", { className: "wbsal-bar-value" }, value > 0 ? Math.round(value).toLocaleString("zh-CN") : ""),
+            h("div", { className: "wbsal-bar-fill" + (i === topIndex ? " top" : ""), style: { height: height + "px" } }),
+            h("div", { className: "wbsal-bar-label" }, "")
+          );
+        })),
+        h("div", { className: "wbsal-axis" }, rows.map(function(bucket) {
+          return h("span", { key: bucket.month }, bucket.month);
+        })),
+        h(
+          "div",
+          { className: "wbsal-chart-foot" },
+          h("span", { className: "wbsal-legend" }, h("i", null), "\u6700\u9AD8\u6708", h("i", { className: "soft" }), "\u5176\u4ED6\u6708\u4EFD"),
+          h("span", null, top ? "\u6700\u9AD8 " + F.monthLabel(top.period) + " \xB7 " + F.money(Math.max(0, values[topIndex] || 0)) : "")
+        ),
+        h(
+          "div",
+          { className: "wbsal-chart-foot" },
+          h("span", null, "\u67F1\u9AD8\u6309" + opts.metricLabel + "\u53D6\u503C\uFF0C\u60AC\u505C\u770B\u8BE5\u6708\u5168\u90E8\u7EF4\u5EA6"),
+          h("span", null, "\u5355\u4F4D\uFF1A\u5143 \xB7 " + opts.basisLabel)
+        )
+      );
+    }
+    function kpi(h, label, value, sub) {
+      return h("div", { className: "wbsal-card wbsal-kpi" }, h("span", null, label), h("strong", null, value), h("em", null, sub));
+    }
+    function compRows(h, F, fields, keys, total, deduction) {
+      var rows = keys.filter(function(key) {
+        return (fields[key] || 0) !== 0;
+      });
+      if (rows.length === 0) return null;
+      return h("div", { className: "wbsal-comp" }, rows.map(function(key) {
+        var amount = fields[key] || 0;
+        var percent = total ? Math.max(2, Math.min(100, Math.round(Math.abs(amount) / total * 100))) : 0;
+        return h(
+          "div",
+          { key, className: "wbsal-comp-row" },
+          h("span", null, F.LABELS[key]),
+          h("div", { className: "wbsal-comp-track" }, h("div", { className: "wbsal-comp-fill" + (deduction ? " deduction" : ""), style: { width: percent + "%" } })),
+          h("span", { className: "wbsal-comp-value" }, h("b", null, F.money(amount)), " \xB7 " + percent + "%")
+        );
+      }));
+    }
+    module2.exports = {
+      TONE_COLOR,
+      segGroup,
+      seriesSwitch,
+      anyShown,
+      trendCard,
+      barChart,
+      kpi,
+      compRows
     };
   }
 });
@@ -1880,23 +2359,1195 @@ var require_date_picker = __commonJS({
   }
 });
 
+// packages/addons/lib/stats-charts.cjs
+var require_stats_charts = __commonJS({
+  "packages/addons/lib/stats-charts.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h = React.createElement;
+    var DP = require_date_picker();
+    var COLORS = [
+      "var(--dsw-alias-state-business-primary, #4f6ef7)",
+      "var(--dsw-alias-state-success-primary, #2f9e6e)",
+      "var(--dsw-alias-state-warn-primary, #d99100)",
+      "var(--dsw-alias-state-error-primary, #d9534f)",
+      "var(--dsw-alias-state-done-primary, #7c5cff)",
+      "var(--dsw-alias-state-idle-primary, #8f959e)"
+    ];
+    function css(prefix, extra) {
+      return [
+        ".@-stats{display:flex;flex-direction:column;gap:14px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-stoolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+        ".@-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,#fff)}",
+        ".@-seg button{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-size:12px;padding:6px 10px;cursor:pointer;white-space:nowrap}",
+        ".@-seg button.@-on{background:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-label-primary-inverted,#fff)}",
+        ".@-range{display:inline-flex;align-items:center;gap:4px}",
+        ".@-date{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-family:inherit;font-size:12px;padding:4px 2px;width:116px;outline:none}",
+        ".@-date::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}",
+        ".@-dash{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-clear{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:14px;line-height:1;padding:2px 4px;cursor:pointer;border-radius:4px}",
+        ".@-clear:hover{color:var(--dsw-alias-state-error-primary,#d9534f);background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-hint{font-size:11px;color:var(--dsw-alias-state-error-primary,#d9534f);white-space:nowrap}",
+        ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit}",
+        ".@-ghost:disabled{opacity:.6;cursor:progress}",
+        ".@-ico{display:block;flex:none}",
+        ".@-kpi-l .@-ico{opacity:.7}",
+        ".@-ghost:hover{border-color:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-brand-primary,#4f6ef7)}",
+        ".@-muted{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
+        ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
+        ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
+        ".@-chead{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}",
+        ".@-ctitle{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-cnote{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-kpis{grid-column:span 12;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}",
+        ".@-kpi{background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:12px 14px;min-width:0}",
+        ".@-kpi-l{font-size:12px;color:var(--dsw-alias-label-tertiary,#8f959e);display:flex;align-items:center;gap:6px}",
+        ".@-kpi-v{font-size:26px;line-height:1.25;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}",
+        ".@-kpi-u{font-size:12px;font-weight:400;color:var(--dsw-alias-label-tertiary,#8f959e);margin-left:3px}",
+        ".@-kpi-h{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);margin-top:3px}",
+        ".@-kpi.@-danger .@-kpi-v{color:var(--dsw-alias-state-error-primary,#d9534f)}",
+        ".@-kpi.@-warn .@-kpi-v{color:var(--dsw-alias-state-warn-primary,#d99100)}",
+        ".@-kpi.@-ok .@-kpi-v{color:var(--dsw-alias-state-success-primary,#2f9e6e)}",
+        ".@-donut{display:flex;align-items:center;gap:16px;flex-wrap:wrap}",
+        ".@-donut svg{flex:0 0 auto}",
+        ".@-legend{display:flex;flex-direction:column;gap:7px;min-width:120px;flex:1}",
+        ".@-leg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dsw-alias-label-secondary,#646a73)}",
+        ".@-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}",
+        ".@-leg b{margin-left:auto;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
+        ".@-bars{display:flex;flex-direction:column;gap:9px}",
+        ".@-bar{display:grid;grid-template-columns:minmax(72px,1.2fr) 3fr auto;gap:8px;align-items:center;font-size:12px}",
+        ".@-bar-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary,#646a73)}",
+        ".@-bar-t{display:block;height:8px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);overflow:hidden}",
+        ".@-bar-f{display:block;height:100%;border-radius:6px;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-width:2px}",
+        ".@-bar-v{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-primary,#1f2329);font-weight:600;min-width:34px;text-align:right}",
+        ".@-stack{display:flex;flex-direction:column;gap:10px}",
+        ".@-srow-l{font-size:12px;color:var(--dsw-alias-label-secondary,#646a73);margin-bottom:4px;display:flex}",
+        ".@-srow-l b{margin-left:auto;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
+        ".@-strack{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-seg-f{height:100%}",
+        ".@-hist{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:16px}",
+        ".@-hbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;min-width:0;height:100%}",
+        ".@-hbar-v{font-size:11px;color:var(--dsw-alias-label-secondary,#646a73);font-variant-numeric:tabular-nums}",
+        ".@-hbar-f{width:100%;max-width:44px;border-radius:5px 5px 0 0;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-height:2px}",
+        ".@-hbar-l{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}",
+        ".@-trend{width:100%;height:auto;display:block}",
+        ".@-tlegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-trend-wrap{position:relative}",
+        ".@-trend-hit{fill:transparent}",
+        ".@-trend-slot{fill:transparent;cursor:crosshair}",
+        ".@-trend-cross{stroke:var(--dsw-alias-border-l2,#e5e6eb);stroke-width:1;stroke-dasharray:3 3}",
+        ".@-tlegend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-tleg-item{appearance:none;border:0;background:transparent;color:inherit;font:inherit;display:inline-flex;align-items:center;gap:5px;padding:2px 4px;border-radius:5px;cursor:pointer}",
+        ".@-tleg-item.off{opacity:.45;text-decoration:line-through}",
+        ".@-tleg-item:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-table-scroll{max-width:100%;overflow-x:auto}.@-table{width:100%;border-collapse:collapse;font-size:12px}",
+        ".@-table th{text-align:left;font-weight:500;color:var(--dsw-alias-label-tertiary,#8f959e);padding:6px 8px;border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb);white-space:nowrap}",
+        ".@-table td{padding:7px 8px;border-bottom:1px solid var(--dsw-alias-border-l1,#f2f3f5);color:var(--dsw-alias-label-secondary,#646a73);vertical-align:top}",
+        ".@-table tr:last-child td{border-bottom:0}",
+        ".@-table th.@-num,.@-table td.@-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}",
+        ".@-empty{padding:26px 8px;text-align:center;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-err{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 8%,transparent);border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 30%,transparent);color:var(--dsw-alias-state-error-primary,#d9534f);border-radius:10px;padding:10px 12px;font-size:12px}",
+        ".@-warn{grid-column:span 12;border:1px dashed var(--dsw-alias-state-warn-primary,#d99100);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--dsw-alias-state-warn-primary,#d99100);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#d99100) 6%,transparent)}",
+        ".@-sk{height:14px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);margin:7px 0;animation:@-pulse 1.2s ease-in-out infinite}",
+        "@keyframes @-pulse{0%,100%{opacity:.55}50%{opacity:1}}",
+        "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}",
+        "@media (max-width:600px){.@-stats{padding-bottom:16px}.@-hist{height:130px}.@-kpi-v{font-size:22px}}",
+        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}"
+      ].concat(extra || []).concat([require_date_picker_styles()(prefix)]).join("\n").replace(/@-/g, prefix + "-");
+    }
+    function primitives(prefix, options) {
+      var opts = options || {};
+      var ICONS = opts.icons || {};
+      var showNote = !!opts.showNote;
+      function ico(name, size) {
+        var C = ICONS[name];
+        if (!C) return null;
+        return h(C, { size: size || 13, strokeWidth: 2, "aria-hidden": "true", className: prefix + "-ico" });
+      }
+      function num(lang, n) {
+        var v = Number(n);
+        if (!isFinite(v)) return "\u2014";
+        try {
+          return new Intl.NumberFormat(lang === "en" ? "en-US" : "zh-CN").format(v);
+        } catch (e) {
+          return String(v);
+        }
+      }
+      function pct(v, digits) {
+        if (v === null || v === void 0 || !isFinite(Number(v))) return "\u2014";
+        return (Number(v) * 100).toFixed(digits === void 0 ? 1 : digits) + "%";
+      }
+      function timeText(ms) {
+        if (!ms) return "";
+        var d = new Date(Number(ms));
+        function p(n) {
+          return String(n).padStart(2, "0");
+        }
+        return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+      }
+      function dateText(ms) {
+        if (!ms) return "\u2014";
+        var d = new Date(Number(ms));
+        function p(n) {
+          return String(n).padStart(2, "0");
+        }
+        return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+      }
+      function Card(props) {
+        var cls = prefix + "-scard" + (props.span ? " " + prefix + "-span-" + props.span : "");
+        return h(
+          "section",
+          { className: cls },
+          props.title || props.right ? h(
+            "div",
+            { className: prefix + "-chead" },
+            h("span", { className: prefix + "-ctitle" }, props.title),
+            props.note ? h("span", { className: prefix + "-cnote" }, props.note) : null,
+            props.right ? h("span", { style: { marginLeft: "auto" } }, props.right) : null
+          ) : null,
+          props.children
+        );
+      }
+      function Kpi(props) {
+        var tone = props.tone ? " " + prefix + "-" + props.tone : "";
+        return h(
+          "div",
+          { className: prefix + "-kpi" + tone },
+          h("div", { className: prefix + "-kpi-l" }, ico(props.icon, 13), props.label),
+          h(
+            "div",
+            { className: prefix + "-kpi-v" },
+            props.value === null || props.value === void 0 ? "\u2014" : typeof props.value === "number" ? num(props.lang, props.value) : props.value,
+            props.unit ? h("span", { className: prefix + "-kpi-u" }, props.unit) : null
+          ),
+          props.hint ? h("div", { className: prefix + "-kpi-h" }, props.hint) : null
+        );
+      }
+      function Donut(props) {
+        var data = (props.data || []).filter(function(d) {
+          return Number(d.count) > 0;
+        });
+        var total = Number(props.total || 0);
+        var size = props.size || 168;
+        var r = size / 2 - 16;
+        var c = 2 * Math.PI * r;
+        var offset = 0;
+        var aria = props.aria || data.map(function(d) {
+          return d.label + " " + d.count;
+        }).join("\uFF0C");
+        return h(
+          "div",
+          { className: prefix + "-donut" },
+          h(
+            "svg",
+            { width: size, height: size, viewBox: "0 0 " + size + " " + size, role: "img", "aria-label": aria },
+            h("circle", { cx: size / 2, cy: size / 2, r, fill: "none", stroke: "var(--dsw-alias-bg-skeleton,#f2f3f5)", strokeWidth: 18 }),
+            total > 0 ? data.map(function(d, i) {
+              var len = Number(d.count) / total * c;
+              var seg = h("circle", {
+                key: d.key || d.label || i,
+                cx: size / 2,
+                cy: size / 2,
+                r,
+                fill: "none",
+                stroke: d.color || COLORS[i % COLORS.length],
+                strokeWidth: 18,
+                strokeDasharray: len + " " + (c - len),
+                strokeDashoffset: -offset,
+                transform: "rotate(-90 " + size / 2 + " " + size / 2 + ")",
+                strokeLinecap: "butt"
+              }, h("title", null, d.label + "\uFF1A" + d.count + (showNote && d.note ? "\uFF08" + d.note + "\uFF09" : "")));
+              offset += len;
+              return seg;
+            }) : null,
+            h("text", { x: size / 2, y: size / 2 - 2, textAnchor: "middle", fill: "var(--dsw-alias-label-primary,#1f2329)", fontSize: 24, fontWeight: 650 }, num(props.lang, total)),
+            h("text", { x: size / 2, y: size / 2 + 18, textAnchor: "middle", fill: "var(--dsw-alias-label-tertiary,#8f959e)", fontSize: 11 }, props.centerLabel || "")
+          ),
+          h("div", { className: prefix + "-legend" }, (props.data || []).map(function(d, i) {
+            return h(
+              "div",
+              { key: d.key || d.label || i, className: prefix + "-leg" },
+              h("span", { className: prefix + "-dot", style: { background: d.color || COLORS[i % COLORS.length] } }),
+              h("span", null, d.label, showNote && d.note ? h("i", { className: prefix + "-leg-note" }, "\xB7 " + d.note) : null),
+              h("b", null, num(props.lang, d.count))
+            );
+          }))
+        );
+      }
+      function BarList(props) {
+        var data = props.data || [];
+        var max = Number(props.max || 0) || data.reduce(function(m, d) {
+          return Math.max(m, Number(d.value || 0));
+        }, 0) || 1;
+        return h("div", { className: prefix + "-bars" }, data.map(function(d, i) {
+          var v = Number(d.value || 0);
+          return h(
+            "div",
+            { key: d.key || d.label || i, className: prefix + "-bar" },
+            h("span", { className: prefix + "-bar-l", title: d.title || d.label }, d.label),
+            h("span", { className: prefix + "-bar-t" }, h("span", { className: prefix + "-bar-f", style: { width: Math.max(2, v / max * 100) + "%", background: d.color || props.color || COLORS[0] } })),
+            h("span", { className: prefix + "-bar-v" }, props.format ? props.format(v) : num(props.lang, v))
+          );
+        }));
+      }
+      function StackedRows(props) {
+        var rows = props.rows || [];
+        var keys = props.keys || [];
+        return h("div", { className: prefix + "-stack" }, rows.map(function(row, ri) {
+          var total = Number(row.total || 0) || 1;
+          return h(
+            "div",
+            { key: row.key || ri },
+            h("div", { className: prefix + "-srow-l" }, h("span", null, row.label), h("b", null, num(props.lang, row.total))),
+            h("div", { className: prefix + "-strack" }, keys.map(function(k, i) {
+              var v = Number(row.parts && row.parts[k.key] || 0);
+              if (v <= 0) return null;
+              return h("span", {
+                key: k.key,
+                className: prefix + "-seg-f",
+                title: k.label + " " + v,
+                style: { width: v / total * 100 + "%", background: k.color || COLORS[i % COLORS.length] }
+              });
+            }))
+          );
+        }));
+      }
+      function useWidth() {
+        if (typeof React.useRef !== "function" || typeof React.useEffect !== "function") return [null, 0];
+        var state = React.useState(0);
+        var ref = React.useRef(null);
+        var setWidth = state[1];
+        var useIso = React.useLayoutEffect || React.useEffect;
+        useIso(function() {
+          var node = ref.current;
+          if (!node) return void 0;
+          function read() {
+            var w = node.clientWidth || 0;
+            if (w > 0) setWidth(w);
+          }
+          read();
+          if (typeof ResizeObserver === "undefined") return void 0;
+          var ro = new ResizeObserver(read);
+          ro.observe(node);
+          return function() {
+            ro.disconnect();
+          };
+        }, []);
+        return [ref, state[0]];
+      }
+      function Trend(props) {
+        var data = props.data || [];
+        var series = props.series || [];
+        var lang = props.lang;
+        var fmt = typeof props.format === "function" ? props.format : function(v) {
+          return num(lang, v);
+        };
+        var visible = props.visible || null;
+        var shown = series.filter(function(s) {
+          return !visible || visible[s.key] !== false;
+        });
+        if (!data.length) return h("div", { className: prefix + "-empty" }, props.emptyText || "\u6682\u65E0\u6570\u636E");
+        var size = useWidth();
+        var width = Math.max(260, size[1] || props.width || 640);
+        var height = props.height || 200;
+        var left = props.left || 60, right = 12, top = 14, bottom = 26;
+        var pw = width - left - right, ph = height - top - bottom;
+        var max = 0;
+        data.forEach(function(d) {
+          shown.forEach(function(s) {
+            max = Math.max(max, Math.abs(Number(d[s.key] || 0)));
+          });
+        });
+        var raw = Math.max(max, 1) / 4;
+        var exp = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+        var norm = raw / exp;
+        var mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+        var step = mult * exp;
+        var axisMax = step * 4;
+        function x(i2) {
+          return left + (data.length <= 1 ? pw / 2 : i2 / (data.length - 1) * pw);
+        }
+        function y(v) {
+          return top + ph - Math.max(0, Number(v) || 0) / axisMax * ph;
+        }
+        var active = typeof props.active === "number" ? props.active : null;
+        var band = data.length > 1 ? pw / (data.length - 1) : pw;
+        var labelIdx = [];
+        var labelStep = Math.max(1, Math.ceil(data.length / 8));
+        for (var i = 0; i < data.length; i += labelStep) labelIdx.push(i);
+        if (labelIdx[labelIdx.length - 1] !== data.length - 1) labelIdx.push(data.length - 1);
+        var aria = props.aria || shown.map(function(s) {
+          return s.label + " " + data.reduce(function(n, d) {
+            return n + Number(d[s.key] || 0);
+          }, 0);
+        }).join("\uFF0C");
+        var ticks = [];
+        for (var t = 0; t <= 4; t++) ticks.push(step * t);
+        var children = [];
+        if (typeof props.onHover === "function") {
+          children.push(h("rect", {
+            key: "hit-area",
+            x: left,
+            y: top,
+            width: pw,
+            height: ph,
+            className: prefix + "-trend-hit",
+            onMouseLeave: function() {
+              props.onHover(null);
+            }
+          }));
+          data.forEach(function(d, di) {
+            children.push(h("rect", {
+              key: "hit" + di,
+              x: x(di) - band / 2,
+              y: top,
+              width: band,
+              height: ph,
+              className: prefix + "-trend-slot",
+              onMouseEnter: function() {
+                props.onHover(di);
+              }
+            }));
+          });
+        }
+        ticks.forEach(function(v, ti) {
+          children.push(h(
+            "g",
+            { key: "t" + ti },
+            h("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
+            h("text", { x: left - 8, y: y(v) + 3, textAnchor: "end", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, fmt(v))
+          ));
+        });
+        if (active !== null && data[active]) {
+          children.push(h("line", {
+            key: "cross",
+            x1: x(active),
+            y1: top,
+            x2: x(active),
+            y2: top + ph,
+            className: prefix + "-trend-cross"
+          }));
+        }
+        shown.forEach(function(s, si) {
+          var color = s.color || COLORS[series.indexOf(s) % COLORS.length];
+          var pts = data.map(function(d, di) {
+            return x(di) + "," + y(d[s.key]);
+          }).join(" ");
+          if (data.length > 1) {
+            children.push(h("polyline", {
+              key: "line" + s.key,
+              points: pts,
+              fill: "none",
+              stroke: color,
+              strokeWidth: 2,
+              strokeLinejoin: "round",
+              strokeLinecap: "round",
+              // className 供插件用自有色调样式挂靠，也方便测试按系列归类
+              className: prefix + "-trend-line" + (s.className ? " " + s.className : "")
+            }));
+          }
+          data.forEach(function(d, di) {
+            children.push(h("circle", {
+              key: "dot" + s.key + di,
+              cx: x(di),
+              cy: y(d[s.key]),
+              fill: color,
+              r: di === active ? 5 : 3,
+              className: prefix + "-trend-dot" + (di === active ? " is-hot" : "")
+            }, h("title", null, labelOf(d, di) + " \xB7 " + s.label + " " + fmt(d[s.key]) + (props.note ? " \xB7 " + props.note(d) : ""))));
+          });
+        });
+        function labelOf(d, di) {
+          if (typeof props.label === "function") return props.label(d, di);
+          return String(d.bucket === void 0 ? di + 1 : d.bucket).slice(5);
+        }
+        labelIdx.forEach(function(di) {
+          children.push(h("text", { key: "x" + di, x: x(di), y: height - 8, textAnchor: "middle", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, labelOf(data[di], di)));
+        });
+        var legend = props.showLegend === false ? null : h("div", { className: prefix + "-tlegend" }, series.map(function(s, si) {
+          var off = !!(visible && visible[s.key] === false);
+          var color = s.color || COLORS[si % COLORS.length];
+          var inner = [h("span", { key: "d", className: prefix + "-dot", style: { background: color } }), s.label];
+          if (typeof props.onToggle !== "function") {
+            return h("span", { key: s.key, className: prefix + "-tleg-item" + (off ? " off" : "") }, inner);
+          }
+          return h("button", {
+            key: s.key,
+            type: "button",
+            className: prefix + "-tleg-item" + (off ? " off" : ""),
+            "aria-pressed": !off,
+            title: (off ? "\u663E\u793A" : "\u9690\u85CF") + s.label,
+            onClick: function() {
+              props.onToggle(s.key);
+            }
+          }, inner);
+        }));
+        return h(
+          "div",
+          { className: prefix + "-trend-wrap", ref: size[0] },
+          h("svg", { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, width, height, role: "img", "aria-label": aria }, children),
+          legend
+        );
+      }
+      function Histogram(props) {
+        var data = props.data || [];
+        var max = data.reduce(function(m, d) {
+          return Math.max(m, Number(d.count || 0));
+        }, 0) || 1;
+        return h(
+          "div",
+          { className: prefix + "-hist", role: "img", "aria-label": props.aria || data.map(function(d) {
+            return d.label + " " + d.count;
+          }).join("\uFF0C") },
+          data.map(function(d, i) {
+            return h(
+              "div",
+              { key: d.key || d.label || i, className: prefix + "-hbar", title: d.label + "\uFF1A" + d.count },
+              h("span", { className: prefix + "-hbar-v" }, num(props.lang, d.count)),
+              h("span", { className: prefix + "-hbar-f", style: { height: Math.max(2, Number(d.count || 0) / max * 100) + "%", background: d.color || props.color || COLORS[0] } }),
+              h("span", { className: prefix + "-hbar-l" }, d.label)
+            );
+          })
+        );
+      }
+      function DataTable(props) {
+        var cols = props.columns || [];
+        var rows = props.rows || [];
+        if (!rows.length) return h("div", { className: prefix + "-empty" }, props.empty || "\u6682\u65E0\u6570\u636E");
+        return h("div", { className: prefix + "-table-scroll", tabIndex: 0, role: "region", "aria-label": props.lang === "en" ? "Data table" : "\u6570\u636E\u8868\u683C" }, h(
+          "table",
+          { className: prefix + "-table" },
+          h("thead", null, h("tr", null, cols.map(function(c) {
+            return h("th", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.label);
+          }))),
+          h("tbody", null, rows.map(function(row, ri) {
+            return h("tr", { key: row.id || row.key || ri }, cols.map(function(c) {
+              return h("td", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.render ? c.render(row) : row[c.key]);
+            }));
+          }))
+        ));
+      }
+      function RangeSwitch(props) {
+        var custom = props.custom || null;
+        var from = custom && custom.from ? custom.from : "";
+        var to = custom && custom.to ? custom.to : "";
+        function setDate(key, value) {
+          if (typeof props.onCustomChange !== "function") return;
+          var next = { from, to };
+          next[key] = value;
+          props.onCustomChange(next);
+        }
+        return h(
+          "div",
+          { className: prefix + "-stoolbar" },
+          h("div", { className: prefix + "-seg", role: "group", "aria-label": props.aria || "\u65F6\u95F4\u8303\u56F4" }, (props.options || []).map(function(o) {
+            return h("button", {
+              key: o.key,
+              type: "button",
+              className: o.key === props.value ? prefix + "-on" : "",
+              "aria-pressed": !!props.value && o.key === props.value,
+              onClick: function() {
+                props.onChange(o.key);
+              }
+            }, o.label);
+          })),
+          h(
+            "div",
+            { className: prefix + "-range", role: "group", "aria-label": props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4" },
+            h(DP.RangePicker, {
+              React,
+              h,
+              prefix,
+              lang: props.lang,
+              label: props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4",
+              value: { from, to },
+              max: props.today || void 0,
+              clearable: false,
+              onChange: function(next) {
+                if (typeof props.onCustomChange !== "function") return;
+                props.onCustomChange({ from: next.from, to: next.to });
+              }
+            }),
+            from || to ? h("button", {
+              type: "button",
+              className: prefix + "-clear",
+              "aria-label": props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
+              title: props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
+              onClick: function() {
+                if (props.onCustomClear) props.onCustomClear();
+              }
+            }, "\xD7") : null
+          ),
+          props.customHint ? h("span", { className: prefix + "-hint", role: "status" }, props.customHint) : null,
+          h("button", { type: "button", className: prefix + "-ghost", disabled: !!props.loading, onClick: props.onRefresh }, ico("refresh", 13), props.refreshLabel || "\u5237\u65B0"),
+          h("span", { className: prefix + "-muted" }, props.generatedAt ? (props.timeLabel || "\u622A\u81F3") + " " + timeText(props.generatedAt) : ""),
+          props.right ? h("span", { style: { marginLeft: "auto" } }, props.right) : null
+        );
+      }
+      function Empty(props) {
+        return h("div", { className: prefix + "-empty" }, props.text || "\u6682\u65E0\u6570\u636E");
+      }
+      function Skeleton() {
+        return h(
+          "div",
+          { className: prefix + "-sgrid" },
+          h("div", { className: prefix + "-kpis" }, [0, 1, 2, 3].map(function(i) {
+            return h(
+              "div",
+              { key: i, className: prefix + "-kpi" },
+              h("div", { className: prefix + "-sk", style: { width: "40%" } }),
+              h("div", { className: prefix + "-sk", style: { width: "65%", height: 26 } })
+            );
+          })),
+          [0, 1].map(function(i) {
+            return h(
+              "div",
+              { key: "c" + i, className: prefix + "-scard " + prefix + "-span-6" },
+              h("div", { className: prefix + "-sk", style: { width: "30%" } }),
+              h("div", { className: prefix + "-sk", style: { height: 120 } })
+            );
+          })
+        );
+      }
+      function ErrorBar(props) {
+        return h(
+          "div",
+          { className: prefix + "-err", role: "alert" },
+          h("span", null, props.message),
+          props.onRetry ? h("button", { type: "button", className: prefix + "-ghost", onClick: props.onRetry }, props.retryLabel || "\u91CD\u8BD5") : null
+        );
+      }
+      function Warnings(props) {
+        var items = props.items || [];
+        if (!items.length) return null;
+        return h("div", { className: prefix + "-warn", role: "status" }, items.map(function(w) {
+          return w.message;
+        }).join("\uFF1B"));
+      }
+      return {
+        Card,
+        Kpi,
+        Donut,
+        BarList,
+        StackedRows,
+        Trend,
+        Histogram,
+        DataTable,
+        RangeSwitch,
+        Empty,
+        Skeleton,
+        ErrorBar,
+        Warnings,
+        num,
+        pct,
+        timeText,
+        dateText,
+        colors: COLORS,
+        useWidth
+      };
+    }
+    function makeCharts(prefix, options) {
+      var opts = options || {};
+      if (typeof document !== "undefined" && !document.getElementById(prefix + "-charts-css")) {
+        var el = document.createElement("style");
+        el.id = prefix + "-charts-css";
+        el.textContent = css(prefix, opts.styles);
+        document.head.appendChild(el);
+      }
+      return primitives(prefix, opts);
+    }
+    module2.exports = { makeCharts, primitives, css, colors: COLORS };
+  }
+});
+
+// packages/addons/salary/client/views/stats.cjs
+var require_stats = __commonJS({
+  "packages/addons/salary/client/views/stats.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function Stats(props) {
+      var h = props.h, React = props.React, api = props.api;
+      var C = require_common();
+      var F = require_fields();
+      var P = require_stats_parts();
+      var charts = require_stats_charts();
+      var ch = React.useMemo(function() {
+        return charts.makeCharts("wbsalc");
+      }, []);
+      var yearState = React.useState(props.initialYear || (/* @__PURE__ */ new Date()).getFullYear());
+      var year = yearState[0], setYear = yearState[1];
+      var basisState = React.useState(props.initialBasis || "arrival");
+      var basis = basisState[0], setBasis = basisState[1];
+      var basisLabel = basis === "income" ? "\u6309\u6240\u5C5E\u6708" : "\u6309\u5230\u8D26\u6708";
+      var amountState = React.useState(props.initialAmount || "net");
+      var amount = amountState[0], setAmount = amountState[1];
+      var amountLabel = amount === "gross" ? "\u5E94\u53D1" : "\u5B9E\u53D1";
+      var load = C.useLoad(React, api, "salary.stats", { year, basis }, [year, basis]);
+      var data = load.data;
+      var METRICS = [
+        { key: "netPay", label: "\u5B9E\u53D1" },
+        { key: "basePay", label: "\u57FA\u672C" },
+        { key: "performancePay", label: "\u7EE9\u6548" },
+        { key: "allowance", label: "\u8865\u8D34" },
+        { key: "performanceBonus", label: "\u7EE9\u6548\u5956\u60E9" },
+        { key: "grossPay", label: "\u5E94\u53D1" }
+      ];
+      var metricState = React.useState(props.initialMetric || "netPay");
+      var metric = metricState[0], setMetric = metricState[1];
+      var metricLabel = "\u5B9E\u53D1";
+      METRICS.forEach(function(m) {
+        if (m.key === metric) metricLabel = m.label;
+      });
+      var monthly = data && data.monthly || [];
+      var recordedMonths = monthly.filter(function(bucket) {
+        return bucket.records > 0;
+      });
+      var LINE_SERIES = [
+        { key: "netPay", label: "\u5B9E\u53D1", tone: "s1" },
+        { key: "grossPay", label: "\u5E94\u53D1", tone: "s2" },
+        { key: "basePay", label: "\u57FA\u672C", tone: "s3" },
+        { key: "performancePay", label: "\u7EE9\u6548", tone: "s4" },
+        { key: "allowance", label: "\u8865\u8D34", tone: "s5" },
+        { key: "performanceBonus", label: "\u7EE9\u6548\u5956\u60E9", tone: "s6" }
+      ];
+      var visibleState = React.useState(Object.assign({ netPay: true, grossPay: true, basePay: true, performancePay: true, allowance: true, performanceBonus: true }, props.initialVisible || {}));
+      var visible = visibleState[0];
+      function toggleIn(state, series) {
+        return function(key) {
+          var next = {};
+          series.forEach(function(m) {
+            next[m.key] = state[0][m.key] !== false;
+          });
+          next[key] = !next[key];
+          state[1](next);
+        };
+      }
+      function round2(value) {
+        return Math.round((Number(value) || 0) * 100) / 100;
+      }
+      function deductOf(bucket) {
+        return round2((Number(bucket.pension) || 0) + (Number(bucket.medical) || 0) + (Number(bucket.unemployment) || 0) + (Number(bucket.housingFund) || 0) + (Number(bucket.incomeTax) || 0));
+      }
+      function seriesValue(m, bucket) {
+        if (typeof m.get === "function") return m.get(bucket);
+        return Number(bucket[m.key]) || 0;
+      }
+      var DEDUCT_TOTAL_ALL = round2((data && data.socialTotal || 0) + (data && data.incomeTaxTotal || 0));
+      var DEDUCT_SERIES = F.SOCIAL_KEYS.map(function(key, index) {
+        return { key, label: F.LABELS[key], tone: "s" + (index + 1) };
+      }).concat([
+        { key: "incomeTax", label: "\u4E2A\u7A0E", tone: "s5" },
+        { key: "deductTotal", label: "\u5408\u8BA1", tone: "sum", get: deductOf }
+      ]);
+      var socialState = React.useState(Object.assign({ pension: true, medical: true, unemployment: true, housingFund: true, incomeTax: true, deductTotal: true }, props.initialSocialVisible || {}));
+      var socialVisible = socialState[0];
+      var hoverState = React.useState(typeof props.initialHover === "number" ? props.initialHover : null);
+      var socialHoverState = React.useState(typeof props.initialSocialHover === "number" ? props.initialSocialHover : null);
+      var yearHoverState = React.useState(null);
+      var quarterHoverState = React.useState(null);
+      var yoyHoverState = React.useState(null);
+      function monthIndexOf(value) {
+        if (typeof value !== "number") return null;
+        for (var i = 0; i < recordedMonths.length; i += 1) {
+          if (recordedMonths[i].month === value) return i;
+        }
+        return null;
+      }
+      function monthOfIndex(index) {
+        if (index === null || index === void 0 || !recordedMonths[index]) return null;
+        return recordedMonths[index].month;
+      }
+      function sumSeries() {
+        return [
+          { key: "total", label: "\u5408\u8BA1", tone: "s1" },
+          { key: "max", label: "\u5355\u7B14\u6700\u9AD8", tone: "s3" },
+          { key: "avg", label: "\u5355\u7B14\u5747\u503C", tone: "s2" }
+        ];
+      }
+      var SUM_SERIES = sumSeries();
+      var yearVisibleState = React.useState({ total: true, max: true, avg: true });
+      var quarterVisibleState = React.useState({ total: true, max: true, avg: true });
+      var yoyVisibleState = React.useState({ now: true, prior: true });
+      var YOY_SERIES = [
+        { key: "now", label: year + " \u5E74", tone: "s1" },
+        { key: "prior", label: year - 1 + " \u5E74", tone: "s2" }
+      ];
+      function flatten(list, suffix) {
+        return (list || []).map(function(item) {
+          return {
+            bucket: item.bucket,
+            count: item.count || 0,
+            total: Number(item[amount + "Total"] !== void 0 ? item[amount + "Total"] : 0) || 0,
+            max: Number(item[amount + "Max"] !== void 0 ? item[amount + "Max"] : 0) || 0,
+            avg: Number(item[amount + "Avg"] !== void 0 ? item[amount + "Avg"] : 0) || 0,
+            suffix
+          };
+        });
+      }
+      var yearlyRows = flatten(data && data.yearly, "\u5E74");
+      var quarterRows = flatten(data && data.quarterly, "");
+      var priorByMonth = {};
+      (data && data.priorMonthly || []).forEach(function(item) {
+        priorByMonth[item.month] = item;
+      });
+      var yoyRows = (data && data.monthly || []).map(function(bucket) {
+        var prior = priorByMonth[bucket.month] || {};
+        return {
+          bucket: bucket.period || year + "-" + String(bucket.month).padStart(2, "0"),
+          month: bucket.month,
+          count: bucket.records || 0,
+          now: amount === "gross" ? Number(bucket.grossPay) || 0 : Number(bucket.netPay) || 0,
+          prior: amount === "gross" ? Number(prior.grossPay) || 0 : Number(prior.netPay) || 0,
+          priorRecords: prior.records || 0
+        };
+      }).filter(function(row) {
+        return row.count > 0 || row.prior > 0;
+      });
+      function money(v) {
+        return F.money(v);
+      }
+      function axisFmt(v) {
+        var n = Number(v) || 0;
+        if (Math.abs(n) >= 1e4) return Number((n / 1e4).toFixed(1)) + "\u4E07";
+        return String(Math.round(n));
+      }
+      function monthLabel(bucket) {
+        return String(bucket).slice(5) + " \u6708";
+      }
+      function quarterLabel(bucket) {
+        return String(bucket).replace("-Q", " Q");
+      }
+      var yearNet = Number(data && data.netTotal) || 0;
+      var yearGross = Number(data && data.grossTotal) || 0;
+      var yearTax = Number(data && data.incomeTaxTotal) || 0;
+      var yearSocial = Number(data && data.socialTotal) || 0;
+      var yearMax = 0, yearMin = null;
+      recordedMonths.forEach(function(bucket) {
+        var value = Number(bucket.netPay) || 0;
+        if (value > yearMax) yearMax = value;
+        if (value > 0 && (yearMin === null || value < yearMin)) yearMin = value;
+      });
+      var mom = data && data.mom;
+      var momText = mom && mom.percent !== null && mom.percent !== void 0 ? (mom.percent >= 0 ? "+" : "") + mom.percent + "%" : "\u2014";
+      var body;
+      if (load.loading || data && (data.year !== year || data.basis !== basis)) {
+        body = h("div", { className: "wbsal-card" }, h(ch.Skeleton, { text: "\u52A0\u8F7D\u4E2D\u2026" }));
+      } else if (!data) {
+        body = h(
+          "div",
+          { className: "wbsal-card wbsal-empty" },
+          h("strong", null, "\u7EDF\u8BA1\u52A0\u8F7D\u5931\u8D25"),
+          h("span", null, load.error || "\u8BF7\u7A0D\u540E\u91CD\u8BD5"),
+          h("div", { className: "wbsal-empty-actions" }, h(C.Btn, { h, onClick: function() {
+            load.refresh();
+          } }, "\u91CD\u8BD5"))
+        );
+      } else {
+        var hasYear = data.records > 0;
+        var latest = data.latestMonth;
+        var latestBreakdown = latest && latest.breakdown ? latest.breakdown : null;
+        var deductionTotal = Number(data.deductionTotal) || 0;
+        var sections = [];
+        sections.push(P.trendCard({
+          h,
+          CH: ch,
+          lang: props.lang,
+          title: "\u5E74\u5EA6\u8D8B\u52BF",
+          note: "\u5168\u90E8\u5E74\u4EFD \xB7 \u4E09\u6761\u7EBF\u5747\u6309" + amountLabel,
+          series: SUM_SERIES,
+          rows: yearlyRows,
+          visible: yearVisibleState[0],
+          onToggle: toggleIn(yearVisibleState, SUM_SERIES),
+          hover: yearHoverState[0],
+          onHover: yearHoverState[1],
+          fmt: money,
+          label: function(row) {
+            return row.bucket + " \u5E74";
+          },
+          tipTitle: function(row) {
+            return row.bucket + " \u5E74 \xB7 " + amountLabel;
+          },
+          tipRows: function(row) {
+            return [
+              { key: "total", label: "\u5408\u8BA1", tone: "s1", value: row.total },
+              { key: "max", label: "\u5355\u7B14\u6700\u9AD8", tone: "s3", value: row.max },
+              { key: "avg", label: "\u5355\u7B14\u5747\u503C", tone: "s2", value: row.avg }
+            ];
+          },
+          tipNote: function(row) {
+            return "\u5171 " + row.count + " \u7B14";
+          },
+          ariaLabel: "\u5E74\u5EA6\u5408\u8BA1\u3001\u5355\u7B14\u6700\u9AD8\u4E0E\u5355\u7B14\u5747\u503C\u6298\u7EBF\u56FE",
+          emptyText: "\u8FD8\u6CA1\u6709\u8DE8\u5E74\u5EA6\u7684\u5DE5\u8D44\u8BB0\u5F55",
+          allOffHint: "\u4E09\u6761\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u300C\u5408\u8BA1 / \u5355\u7B14\u6700\u9AD8 / \u5355\u7B14\u5747\u503C\u300D\u4EFB\u610F\u4E00\u4E2A\u6062\u590D\u663E\u793A",
+          footLeft: "\u6BCF\u6761\u7EBF\u53EF\u70B9\u4E0A\u65B9\u6807\u7B7E\u5355\u72EC\u5F00\u5173 \xB7 \u9F20\u6807\u79FB\u5230\u67D0\u4E00\u5E74\u770B\u5408\u8BA1\u3001\u6700\u9AD8\u4E0E\u5747\u503C",
+          footRight: "\u5355\u4F4D\uFF1A\u5143 \xB7 " + basisLabel,
+          height: 200
+        }));
+        sections.push(P.trendCard({
+          h,
+          CH: ch,
+          lang: props.lang,
+          title: "\u5B63\u5EA6\u8D8B\u52BF",
+          note: "\u6700\u8FD1 8 \u4E2A\u6709\u8BB0\u5F55\u7684\u5B63\u5EA6",
+          series: SUM_SERIES,
+          rows: quarterRows,
+          visible: quarterVisibleState[0],
+          onToggle: toggleIn(quarterVisibleState, SUM_SERIES),
+          hover: quarterHoverState[0],
+          onHover: quarterHoverState[1],
+          fmt: money,
+          label: function(row) {
+            return quarterLabel(row.bucket);
+          },
+          tipTitle: function(row) {
+            return quarterLabel(row.bucket) + " \xB7 " + amountLabel;
+          },
+          tipRows: function(row) {
+            return [
+              { key: "total", label: "\u5408\u8BA1", tone: "s1", value: row.total },
+              { key: "max", label: "\u5355\u7B14\u6700\u9AD8", tone: "s3", value: row.max },
+              { key: "avg", label: "\u5355\u7B14\u5747\u503C", tone: "s2", value: row.avg }
+            ];
+          },
+          tipNote: function(row) {
+            return "\u5171 " + row.count + " \u7B14";
+          },
+          ariaLabel: "\u5B63\u5EA6\u5408\u8BA1\u3001\u5355\u7B14\u6700\u9AD8\u4E0E\u5355\u7B14\u5747\u503C\u6298\u7EBF\u56FE",
+          emptyText: "\u8FD8\u6CA1\u6709\u5E26\u65E5\u671F\u7684\u5DE5\u8D44\u8BB0\u5F55",
+          allOffHint: "\u4E09\u6761\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u300C\u5408\u8BA1 / \u5355\u7B14\u6700\u9AD8 / \u5355\u7B14\u5747\u503C\u300D\u4EFB\u610F\u4E00\u4E2A\u6062\u590D\u663E\u793A",
+          footLeft: "\u5B63\u5EA6\u6309" + (basis === "income" ? "\u5DE5\u8D44\u6240\u5C5E\u671F" : "\u5230\u8D26\u65E5\u671F") + "\u5F52\u96C6 \xB7 \u672A\u6765\u5B63\u5EA6\u4E0D\u753B 0",
+          footRight: "\u5355\u4F4D\uFF1A\u5143 \xB7 " + amountLabel,
+          height: 200
+        }));
+        if (hasYear) {
+          sections.push(h(
+            "div",
+            { key: "kpi", className: "wbsal-kpis" },
+            P.kpi(h, "\u5E74\u5EA6\u5B9E\u53D1\u5408\u8BA1", money(yearNet), data.records + " \u7B14 \xB7 \u8986\u76D6 " + data.months + " \u4E2A\u6708"),
+            P.kpi(h, "\u5E74\u5EA6\u5E94\u53D1\u5408\u8BA1", money(yearGross), "\u4E2A\u7A0E " + money(yearTax) + " \xB7 \u4E94\u9669\u4E00\u91D1 " + money(yearSocial)),
+            P.kpi(h, "\u6708\u5747\u5B9E\u53D1", money(data.avgNetPay), "\u5355\u7B14\u6700\u9AD8 " + money(yearMax)),
+            P.kpi(h, "\u793E\u4FDD\u4E0E\u4E2A\u7A0E", money(DEDUCT_TOTAL_ALL), yearGross ? "\u5360\u5E94\u53D1 " + Math.round(DEDUCT_TOTAL_ALL / yearGross * 100) + "%" : "\u65E0\u5E94\u53D1\u8BB0\u5F55"),
+            P.kpi(h, "\u73AF\u6BD4\u4E0A\u6708", momText, data.previousMonth ? F.monthLabel(data.previousMonth.period) + " \u2192 " + F.monthLabel((data.latestMonth || {}).period || "") : "\u6682\u65E0\u4E0A\u6708\u6570\u636E"),
+            P.kpi(h, "\u6700\u9AD8 / \u6700\u4F4E\u5355\u6708", money(yearMax) + " / " + money(yearMin === null ? 0 : yearMin), data.peakMonth ? "\u5CF0\u503C " + F.monthLabel(data.peakMonth.period) : "\u6682\u65E0\u8BB0\u5F55")
+          ));
+          sections.push(h(
+            "div",
+            { key: "bar", className: "wbsal-card wbsal-section" },
+            h(
+              "div",
+              { className: "wbsal-section-head" },
+              h("h3", null, "\u6708\u5EA6" + metricLabel + "\u5206\u5E03"),
+              h(
+                "div",
+                { className: "wbsal-section-tools" },
+                h("span", { className: "wbsal-section-note" }, "\u6700\u9AD8 " + (data.peakMonth ? F.monthLabel(data.peakMonth.period) : "\u2014")),
+                P.segGroup(h, METRICS.map(function(m) {
+                  return [m.key, m.label];
+                }), metric, setMetric, "\u67F1\u72B6\u56FE\u53E3\u5F84")
+              )
+            ),
+            P.barChart({
+              h,
+              F,
+              rows: monthly,
+              value: function(bucket) {
+                return Number(bucket[metric]) || 0;
+              },
+              metricLabel,
+              basisLabel: basisLabel + " \xB7 " + year + " \u5E74"
+            })
+          ));
+          sections.push(P.trendCard({
+            h,
+            CH: ch,
+            lang: props.lang,
+            title: "\u6708\u5EA6\u8D8B\u52BF\u5BF9\u6BD4",
+            note: "\u516D\u6761\u53E3\u5F84\u7EBF",
+            series: LINE_SERIES,
+            rows: recordedMonths,
+            visible,
+            onToggle: toggleIn(visibleState, LINE_SERIES),
+            hover: monthIndexOf(hoverState[0]),
+            onHover: function(index) {
+              hoverState[1](monthOfIndex(index));
+            },
+            fmt: money,
+            label: function(row) {
+              return F.monthLabel(row.period || year + "-" + String(row.month).padStart(2, "0"));
+            },
+            tipTitle: function(row) {
+              return F.monthLabel(row.period || year + "-" + String(row.month).padStart(2, "0")) + " \u6536\u5165\u9762";
+            },
+            tipRows: function(row) {
+              return LINE_SERIES.map(function(m) {
+                return { key: m.key, label: m.label, tone: m.tone, value: seriesValue(m, row) };
+              });
+            },
+            tipNote: function(row) {
+              return "\u5171 " + row.records + " \u7B14";
+            },
+            ariaLabel: "\u6708\u5EA6\u5B9E\u53D1/\u5E94\u53D1/\u57FA\u672C/\u7EE9\u6548/\u8865\u8D34/\u7EE9\u6548\u5956\u60E9\u6298\u7EBF\u56FE",
+            emptyText: year + " \u5E74\u8FD8\u6CA1\u6709\u5DE5\u8D44\u8BB0\u5F55",
+            allOffHint: "\u516D\u6761\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u7684\u300C\u5B9E\u53D1 / \u5E94\u53D1 / \u57FA\u672C / \u7EE9\u6548 / \u8865\u8D34 / \u7EE9\u6548\u5956\u60E9\u300D\u4EFB\u610F\u4E00\u4E2A\u6062\u590D\u663E\u793A",
+            footLeft: "\u516D\u6761\u7EBF\u53EF\u5355\u72EC\u5F00\u5173 \xB7 \u9F20\u6807\u79FB\u5230\u67D0\u4E2A\u6708\u4EFD\u770B\u8BE5\u6708\u5168\u90E8\u7EF4\u5EA6",
+            footRight: "\u5355\u4F4D\uFF1A\u5143 \xB7 \u4EC5\u8FDE\u63A5\u6709\u8BB0\u5F55\u7684\u6708\u4EFD",
+            height: 220
+          }));
+          sections.push(h(
+            "div",
+            { key: "social", className: "wbsal-card wbsal-section" },
+            h(
+              "div",
+              { className: "wbsal-section-head" },
+              h("h3", null, "\u793E\u4FDD\u4E0E\u4E2A\u7A0E"),
+              h(
+                "div",
+                { className: "wbsal-section-tools" },
+                h("span", { className: "wbsal-section-note" }, "\u5E74\u5EA6\u5408\u8BA1 " + money(DEDUCT_TOTAL_ALL)),
+                P.seriesSwitch(h, DEDUCT_SERIES, socialVisible, toggleIn(socialState, DEDUCT_SERIES), "\u793E\u4FDD\u4E0E\u4E2A\u7A0E\u6298\u7EBF\u663E\u793A\u5F00\u5173")
+              )
+            ),
+            h("div", { className: "wbsal-social" }, F.SOCIAL_KEYS.concat(["incomeTax"]).map(function(key) {
+              var amount2 = key === "incomeTax" ? yearTax : Number((data.social || {})[key]) || 0;
+              var share = DEDUCT_TOTAL_ALL ? Math.round(amount2 / DEDUCT_TOTAL_ALL * 100) : 0;
+              return h(
+                "div",
+                { key, className: "wbsal-social-item" },
+                h("span", null, F.LABELS[key]),
+                h("b", null, money(amount2)),
+                h("em", null, "\u5360\u793E\u4FDD\u4E0E\u4E2A\u7A0E " + share + "%")
+              );
+            })),
+            h("div", { className: "wbsal-linechart" }, h(ch.Trend, {
+              data: recordedMonths,
+              series: DEDUCT_SERIES.map(function(m) {
+                return { key: m.key, label: m.label, className: m.tone, color: P.TONE_COLOR[m.tone] };
+              }),
+              lang: props.lang,
+              height: 200,
+              showLegend: false,
+              visible: socialVisible,
+              active: monthIndexOf(socialHoverState[0]),
+              onHover: function(index) {
+                socialHoverState[1](monthOfIndex(index));
+              },
+              format: money,
+              label: function(row) {
+                return F.monthLabel(row.period || year + "-" + String(row.month).padStart(2, "0"));
+              },
+              note: function(row) {
+                return row.records + " \u7B14";
+              },
+              aria: "\u6708\u5EA6\u517B\u8001/\u533B\u7597/\u5931\u4E1A/\u516C\u79EF\u91D1/\u4E2A\u7A0E\u6298\u7EBF\u56FE",
+              emptyText: "\u8FD8\u6CA1\u6709\u793E\u4FDD\u4E0E\u4E2A\u7A0E\u8BB0\u5F55"
+            })),
+            P.anyShown(DEDUCT_SERIES, socialVisible) ? null : h("div", { className: "wbsal-chart-hint" }, "\u6240\u6709\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u300C\u517B\u8001 / \u533B\u7597 / \u5931\u4E1A / \u516C\u79EF\u91D1 / \u4E2A\u7A0E / \u5408\u8BA1\u300D\u4EFB\u610F\u4E00\u4E2A\u6062\u590D\u663E\u793A"),
+            h(
+              "div",
+              { className: "wbsal-chart-foot" },
+              h("span", null, "\u4E94\u6761\u5206\u9879\u7EBF + \u5408\u8BA1\u7EBF\u53EF\u5355\u72EC\u5F00\u5173 \xB7 \u5408\u8BA1\u4E3A\u4E94\u9879\u4E4B\u548C"),
+              h("span", null, "\u5355\u4F4D\uFF1A\u5143 \xB7 " + basisLabel)
+            )
+          ));
+          sections.push(P.trendCard({
+            h,
+            CH: ch,
+            lang: props.lang,
+            title: "\u540C\u6BD4\u5BF9\u7167",
+            note: year + " \u5E74 vs " + (year - 1) + " \u5E74",
+            series: YOY_SERIES,
+            rows: yoyRows,
+            visible: yoyVisibleState[0],
+            onToggle: toggleIn(yoyVisibleState, YOY_SERIES),
+            hover: yoyHoverState[0],
+            onHover: yoyHoverState[1],
+            fmt: money,
+            label: function(row) {
+              return row.month + " \u6708";
+            },
+            tipTitle: function(row) {
+              return row.month + " \u6708 \xB7 " + amountLabel + "\u540C\u6BD4";
+            },
+            tipRows: function(row) {
+              return [
+                { key: "now", label: year + " \u5E74", tone: "s1", value: row.now },
+                { key: "prior", label: year - 1 + " \u5E74", tone: "s2", value: row.prior }
+              ];
+            },
+            tipNote: function(row) {
+              return "\u4ECA\u5E74 " + row.count + " \u7B14 \xB7 \u53BB\u5E74 " + row.priorRecords + " \u7B14";
+            },
+            ariaLabel: "\u4ECA\u5E74\u4E0E\u53BB\u5E74\u540C\u6708\u5B9E\u53D1\u5BF9\u7167\u6298\u7EBF\u56FE",
+            emptyText: "\u8FD9\u4E24\u5E74\u90FD\u8FD8\u6CA1\u6709\u5DE5\u8D44\u8BB0\u5F55",
+            allOffHint: "\u4E24\u6761\u7EBF\u90FD\u5173\u6389\u4E86\uFF0C\u70B9\u4E0A\u65B9\u5E74\u4EFD\u6807\u7B7E\u6062\u590D\u663E\u793A",
+            footLeft: "\u53BB\u5E74\u540C\u6708\u6309\u540C\u53E3\u5F84\u6C47\u603B \xB7 \u53EA\u753B\u4E24\u5E74\u91CC\u81F3\u5C11\u6709\u4E00\u7B14\u7684\u6708\u4EFD",
+            footRight: "\u5355\u4F4D\uFF1A\u5143 \xB7 " + amountLabel,
+            height: 200
+          }));
+          sections.push(h(
+            "div",
+            { key: "dist", className: "wbsal-card wbsal-section" },
+            h(
+              "div",
+              { className: "wbsal-section-head" },
+              h("h3", null, "\u5355\u7B14\u5B9E\u53D1\u5206\u5E03"),
+              h("span", { className: "wbsal-section-note" }, "\u5171 " + data.records + " \u7B14")
+            ),
+            h(ch.Histogram, {
+              data: (data.distribution || []).map(function(item) {
+                return { key: item.key, label: item.label, count: item.count || 0 };
+              }),
+              lang: props.lang,
+              aria: "\u5355\u7B14\u5B9E\u53D1\u91D1\u989D\u5206\u5E03\u76F4\u65B9\u56FE"
+            }),
+            h(
+              "div",
+              { className: "wbsal-chart-foot" },
+              h("span", null, "\u6309\u5355\u7B14\u5B9E\u53D1\u91D1\u989D\u5206\u4E94\u6863\uFF0C\u6863\u4F4D\u56FA\u5B9A\u4FBF\u4E8E\u8DE8\u5E74\u5BF9\u6BD4"),
+              h("span", null, "\u8BA1\u6570\u5355\u4F4D\uFF1A\u7B14")
+            )
+          ));
+          if (latest && latestBreakdown) {
+            sections.push(h(
+              "div",
+              { key: "comp", className: "wbsal-card wbsal-section" },
+              h(
+                "div",
+                { className: "wbsal-section-head" },
+                h("h3", null, F.monthLabel(latest.period) + " \u6536\u5165\u4E0E\u6263\u6B3E\u6784\u6210"),
+                h("span", { className: "wbsal-section-note" }, "\u5171 " + latest.records + " \u7B14")
+              ),
+              h(
+                "div",
+                { className: "wbsal-comp-grid" },
+                h(
+                  "div",
+                  null,
+                  h("div", { className: "wbsal-group-title" }, "\u6536\u5165\u9879 \xB7 \u5408\u8BA1 " + money(latestBreakdown.income)),
+                  P.compRows(h, F, latestBreakdown.fields, F.INCOME_KEYS, latestBreakdown.income, false)
+                ),
+                h(
+                  "div",
+                  null,
+                  h("div", { className: "wbsal-group-title" }, "\u6263\u6B3E\u9879 \xB7 \u5408\u8BA1 " + money(deductionTotal)),
+                  P.compRows(h, F, latestBreakdown.fields, F.PRETAX_KEYS.concat(F.SOCIAL_KEYS, F.TAX_KEYS), deductionTotal, true)
+                )
+              )
+            ));
+          }
+        } else {
+          sections.push(h(
+            "div",
+            { key: "empty", className: "wbsal-card wbsal-empty" },
+            h("strong", null, year + " \u5E74\u8FD8\u6CA1\u6709\u5DE5\u8D44\u8BB0\u5F55"),
+            h("span", null, "\u4E0A\u9762\u4E24\u5F20\u8DE8\u5E74\u5EA6\u8D8B\u52BF\u4ECD\u6309\u5168\u90E8\u5386\u53F2\u6570\u636E\u5C55\u793A\uFF1B\u6362\u4E00\u4E2A\u5E74\u4EFD\u6216\u5148\u8BB0\u4E00\u7B14\u5DE5\u8D44\u3002")
+          ));
+        }
+        body = h("div", { className: "wbsal-stack" }, sections);
+      }
+      return h(
+        "div",
+        { className: "wbsal-page" },
+        h(
+          "div",
+          { className: "wbsal-toolbar wbsal-toolbar-plain" },
+          h(
+            "div",
+            { className: "wbsal-toolbar-end" },
+            h(
+              "div",
+              { className: "wbsal-metric", role: "group", "aria-label": "\u5DE5\u8D44\u5F52\u6708\u53E3\u5F84" },
+              [["arrival", "\u6309\u5230\u8D26\u6708"], ["income", "\u6309\u6240\u5C5E\u6708"]].map(function(option) {
+                return h("button", {
+                  key: option[0],
+                  type: "button",
+                  "aria-pressed": basis === option[0],
+                  className: basis === option[0] ? "on" : "",
+                  onClick: function() {
+                    setBasis(option[0]);
+                    hoverState[1](null);
+                    socialHoverState[1](null);
+                  }
+                }, option[1]);
+              })
+            ),
+            P.segGroup(h, [["net", "\u5B9E\u53D1"], ["gross", "\u5E94\u53D1"]], amount, setAmount, "\u8D8B\u52BF\u91D1\u989D\u53E3\u5F84"),
+            h(
+              "div",
+              { className: "wbsal-seg" },
+              h(C.Btn, { h, kind: "ghost", onClick: function() {
+                setYear(Math.max(2e3, year - 1));
+              } }, "\u2039"),
+              h("span", { className: "wbsal-seg-year" }, year + " \u5E74"),
+              h(C.Btn, { h, kind: "ghost", onClick: function() {
+                setYear(Math.min(2100, year + 1));
+              } }, "\u203A")
+            )
+          )
+        ),
+        basis === "income" && data && data.year === year && data.basis === basis && data.unassignedRecords > 0 ? h(C.Notice, { h, text: "\u5168\u90E8\u5E74\u4EFD\u5171 " + data.unassignedRecords + " \u7B14\u5DE5\u8D44\u672A\u586B\u5199\u6240\u5C5E\u671F\uFF0C\u672A\u8BA1\u5165\u6240\u5C5E\u6708\u7EDF\u8BA1\u3002" }) : null,
+        data && (data.year !== year || data.basis !== basis) ? null : body,
+        load.error ? h(C.Notice, { h, kind: "error", text: load.error }) : null
+      );
+    };
+  }
+});
+
 // packages/addons/salary/client/views/records.cjs
 var require_records = __commonJS({
   "packages/addons/salary/client/views/records.cjs"(exports2, module2) {
     "use strict";
+    var staged = require_staged_dialog();
+    var salaryCommon = require_common();
+    var NF = require_number_field();
+    var FormDialog = staged.createStagedDialog({
+      maskClass: "wbsal-mask",
+      dialogClass: "wbsal-modal",
+      displayName: "SalaryFormDialog",
+      ariaLabelOf: function(props) {
+        return props["aria-label"] || props.title;
+      },
+      header: function(props) {
+        var h = props.h;
+        var C = salaryCommon;
+        return h(
+          "div",
+          { className: "wbsal-form-head" },
+          h(
+            "div",
+            null,
+            h("div", { className: "wbsal-eyebrow" }, props.eyebrow || ""),
+            h("h3", null, props.title)
+          ),
+          h(
+            C.Btn,
+            { h, kind: "ghost", onClick: props.onClose, disabled: !!props.submitting },
+            "\u5173\u95ED"
+          )
+        );
+      },
+      closeOnEscape: function(props) {
+        return !props.submitting;
+      },
+      closeOnMask: function(props) {
+        return !props.submitting;
+      }
+    });
     module2.exports = function Records(props) {
       var h = props.h, React = props.React, api = props.api, lang = props.lang;
       var C = require_common();
       var DP = require_date_picker();
       var F = require_fields();
       var status = C.useLoad(React, api, "salary.status", {}, []);
-      var filterState = React.useState({ year: String((/* @__PURE__ */ new Date()).getFullYear()), cycle: "" });
+      var filterState = React.useState({ year: String((/* @__PURE__ */ new Date()).getFullYear()), cycle: "", employmentType: "" });
       var filter = filterState[0], setFilter = filterState[1];
       var list = C.useLoad(React, api, "salary.recordList", {
         year: filter.year ? Number(filter.year) : void 0,
         cycle: filter.cycle || void 0,
+        employmentType: filter.employmentType || void 0,
         limit: 400
-      }, [filter.year, filter.cycle]);
+      }, [filter.year, filter.cycle, filter.employmentType]);
       var openState = React.useState(props.initialOpenId || "");
       var openId = openState[0], setOpenId = openState[1];
       var confirmState = React.useState("");
@@ -1907,17 +3558,15 @@ var require_records = __commonJS({
       var msg = msgState[0], setMsg = msgState[1];
       var savingState = React.useState(false);
       var saving = savingState[0], setSaving = savingState[1];
+      var badState = React.useState({});
+      var badKeys = badState[0], setBadKeys = badState[1];
+      var moneyInvalid = Object.keys(badKeys).length > 0;
       var modalOpen = !!form;
       React.useEffect(function() {
         if (!modalOpen || typeof document === "undefined" || typeof document.addEventListener !== "function" || !document.body) return void 0;
-        function onKey(event) {
-          if (event.key === "Escape") closeForm();
-        }
-        document.addEventListener("keydown", onKey);
         var previous = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         return function() {
-          document.removeEventListener("keydown", onKey);
           document.body.style.overflow = previous;
         };
       }, [modalOpen, form && form.mode, form && form.id]);
@@ -1935,8 +3584,9 @@ var require_records = __commonJS({
         setConfirmId("");
         setOpenId("");
         setMsg(null);
+        setBadKeys({});
         var payDate = pickDate("monthly");
-        setForm({ mode: "create", id: "", payDate, cycle: "monthly", note: F.defaultNote(payDate, "monthly"), values: F.blankValues(), lockGross: false });
+        setForm({ mode: "create", id: "", payDate, incomePeriod: defaultPeriod(payDate, "monthly"), cycle: "monthly", employmentType: "", note: F.defaultNote(payDate, "monthly"), values: F.blankValues(), lockGross: false });
       }
       function openEdit(item) {
         var values = F.blankValues();
@@ -1946,25 +3596,34 @@ var require_records = __commonJS({
         var incomeZero = F.INCOME_KEYS.every(function(key) {
           return !F.num(item[key]);
         });
+        setBadKeys({});
         setConfirmId("");
         setOpenId("");
         setMsg(null);
-        setForm({ mode: "edit", id: item.id, payDate: item.payDate, cycle: item.cycle || "monthly", note: item.note || "", values, lockGross: incomeZero && F.num(item.grossPay) > 0 });
+        setForm({ mode: "edit", id: item.id, payDate: item.payDate, incomePeriod: item.incomePeriod || "", cycle: item.cycle || "monthly", employmentType: item.employmentType || "", note: item.note || "", values, original: item, lockGross: incomeZero && F.num(item.grossPay) > 0 });
+      }
+      function defaultPeriod(payDate, cycle) {
+        return cycle === "daily" ? payDate : payDate === "" || payDate.startsWith("2000-01-") ? "" : F.incomePeriod(payDate);
       }
       function closeForm() {
         setForm(null);
         setMsg(null);
+        setBadKeys({});
       }
       function setField(key, value) {
         setForm(function(prev) {
-          var next = Object.assign({}, prev, { note: prev.note });
+          var next = Object.assign({}, prev);
           next[key] = value;
-          if (key === "payDate" && !prev.cycleLocked) {
-            var same = String(value).slice(5) === "15";
-            if (same) next.cycle = "monthly";
+          if (key === "incomePeriod") next.periodTouched = true;
+          if (key === "note") next.noteTouched = true;
+          if (prev.mode === "create" && (key === "payDate" || key === "cycle")) {
+            if (!prev.periodTouched) next.incomePeriod = defaultPeriod(next.payDate, next.cycle);
+            else if (key === "cycle" && next.cycle !== prev.cycle && prev.incomePeriod) {
+              next.incomePeriod = next.cycle === "monthly" ? prev.incomePeriod.slice(0, 7) : "";
+            }
           }
-          if (key === "payDate" && (!prev.note || prev.note === F.defaultNote(prev.payDate, prev.cycle))) {
-            next.note = F.defaultNote(value, next.cycle);
+          if (prev.mode === "create" && !next.noteTouched) {
+            next.note = next.cycle === "monthly" && next.incomePeriod ? F.monthLabel(next.incomePeriod.slice(0, 7)) + "\u5DE5\u8D44" : "";
           }
           return next;
         });
@@ -1976,6 +3635,24 @@ var require_records = __commonJS({
           return Object.assign({}, prev, { values });
         });
       }
+      function markAmount(key, ok) {
+        setBadKeys(function(prev) {
+          var known = !!prev[key];
+          if (known === !ok) return prev;
+          var next = Object.assign({}, prev);
+          if (ok) delete next[key];
+          else next[key] = true;
+          return next;
+        });
+      }
+      function firstBadAmount() {
+        var keys = F.KEYS;
+        for (var i = 0; i < keys.length; i += 1) {
+          var check = NF.validateNumber(form.values[keys[i]], amountRules(keys[i]));
+          if (!check.ok) return { key: keys[i], error: check.error };
+        }
+        return null;
+      }
       function recalcFromDetail() {
         setForm(function(prev) {
           var computed = F.totals(prev.values);
@@ -1985,13 +3662,23 @@ var require_records = __commonJS({
       }
       function submit() {
         if (!form) return;
+        var bad = firstBadAmount();
+        if (bad) {
+          setMsg({ kind: "error", text: F.LABELS[bad.key] + "\uFF1A" + bad.error });
+          return;
+        }
         var computed = F.totals(form.values);
         var payload = {
           payDate: form.payDate,
           cycle: form.cycle,
+          incomePeriod: form.incomePeriod || "",
+          employmentType: form.employmentType || "",
           note: form.note || ""
         };
-        F.KEYS.forEach(function(key) {
+        var moneyChanged = !form.original || F.KEYS.some(function(key) {
+          return F.num(form.values[key]) !== F.num(form.original[key]);
+        });
+        if (moneyChanged) F.KEYS.forEach(function(key) {
           if (key === "grossPay" && form.lockGross) {
             payload.grossPay = F.num(form.values.grossPay);
             return;
@@ -2035,137 +3722,196 @@ var require_records = __commonJS({
       var currentYear = (/* @__PURE__ */ new Date()).getFullYear();
       var yearOptions = ["", String(currentYear + 1), String(currentYear), String(currentYear - 1), String(currentYear - 2)];
       var latest = status.data || {};
+      function amountRules(key) {
+        return { min: key === "performanceBonus" ? void 0 : 0, step: 0.01, allowEmpty: true, lang };
+      }
       function amountInput(key, disabled) {
-        return h("input", {
-          className: "wbsal-input",
-          type: "number",
-          step: "0.01",
-          min: key === "performanceBonus" ? void 0 : "0",
+        return h(NF.NumberField, {
+          h,
+          lang,
+          wide: true,
+          className: "wbsal-amount",
           value: form.values[key],
           disabled,
-          onChange: function(e) {
-            setValue(key, e.target.value);
+          hint: false,
+          min: amountRules(key).min,
+          step: 0.01,
+          allowEmpty: true,
+          ariaLabel: F.LABELS[key],
+          onDraft: function(raw) {
+            setValue(key, raw);
+            markAmount(key, NF.validateNumber(raw, amountRules(key)).ok);
           },
-          onBlur: function() {
-            setValue(key, F.fmtAmount(F.num(form.values[key])));
+          onCommit: function(next) {
+            setValue(key, next === null ? "" : String(next));
+            markAmount(key, true);
           }
         });
       }
-      function renderForm() {
+      function renderModal() {
+        var label = form.mode === "edit" ? "\u7F16\u8F91\u5DE5\u8D44" : "\u8BB0\u4E00\u7B14\u5DE5\u8D44";
         var computed = F.totals(form.values);
         var lockedGross = form.lockGross;
         var sameDayCount = items.filter(function(item) {
           return item.payDate === form.payDate && item.id !== form.id;
         }).length;
-        return h(
-          "div",
-          { className: "wbsal-card wbsal-form wbsal-form-modal" },
-          h(
-            "div",
-            { className: "wbsal-form-head" },
-            h(
-              "div",
-              null,
-              h("div", { className: "wbsal-eyebrow" }, form.mode === "edit" ? "EDIT RECORD" : "NEW RECORD"),
-              h("h3", null, form.mode === "edit" ? "\u7F16\u8F91\u5DE5\u8D44" : "\u8BB0\u4E00\u7B14\u5DE5\u8D44")
-            ),
-            h(C.Btn, { h, kind: "ghost", onClick: closeForm }, "\u5173\u95ED")
-          ),
-          h(
-            "div",
-            { className: "wbsal-form-meta" },
-            h(
-              C.Field,
-              { h, label: "\u53D1\u85AA\u65E5\u671F", hint: F.incomeLabel(form.payDate) ? "\u5BF9\u5E94 " + F.incomeLabel(form.payDate) + " \u5DE5\u8D44" : "\u6708\u7ED3" },
-              h(DP.DatePicker, { React, h, prefix: "wbsal", lang, label: "\u53D1\u85AA\u65E5\u671F", value: form.payDate, onChange: function(next) {
-                setField("payDate", next);
-              } })
-            ),
-            h(
-              C.Field,
-              { h, label: "\u7C7B\u578B", hint: "\u6708\u7ED3" },
-              h(
-                "select",
-                { className: "wbsal-input", value: form.cycle, onChange: function(e) {
-                  setField("cycle", e.target.value);
-                } },
-                h("option", { value: "monthly" }, "\u6708\u7ED3"),
-                h("option", { value: "daily" }, "\u65E5\u7ED3")
-              )
-            ),
-            h(C.Field, { h, label: "\u5907\u6CE8" }, h("input", { className: "wbsal-input", value: form.note, onChange: function(e) {
-              setField("note", e.target.value);
-            } }))
-          ),
-          sameDayCount > 0 ? h(C.Notice, { h, text: "\u8BE5\u65E5\u5DF2\u6709 " + sameDayCount + " \u7B14\u8BB0\u5F55\uFF1B\u4FDD\u5B58\u4F1A\u65B0\u589E\u4E00\u6761\uFF0C\u4E0D\u4F1A\u8986\u76D6\u3002" }) : null,
-          F.GROUPS.map(function(group) {
-            return h(
+        function groupsBlock(hh, groups2) {
+          return hh("div", { className: "wbsal-steps-groups" }, groups2.map(function(group) {
+            return hh(
               "div",
               { key: group.id, className: "wbsal-form-group" },
-              h(
+              hh(
                 "div",
                 { className: "wbsal-group-head" },
-                h("div", { className: "wbsal-group-title" }, group.title),
-                h("span", null, group.hint)
+                hh("div", { className: "wbsal-group-title" }, group.title),
+                hh("span", null, group.hint)
               ),
-              h("div", { className: "wbsal-form-grid" }, group.keys.map(function(key) {
-                return h(C.Field, { key, h, label: F.LABELS[key] }, amountInput(key, false));
+              hh("div", { className: "wbsal-form-grid" }, group.keys.map(function(key) {
+                return hh(C.Field, { key, h: hh, label: F.LABELS[key] }, amountInput(key, false));
               }))
             );
-          }),
-          h(
-            "div",
-            { className: "wbsal-form-group" },
-            h(
-              "div",
-              { className: "wbsal-group-head" },
-              h("div", { className: "wbsal-group-title" }, "\u6C47\u603B"),
-              h("span", null, "\u9ED8\u8BA4\u6309\u660E\u7EC6\u5B9E\u65F6\u8BA1\u7B97\uFF0C\u4E5F\u53EF\u4EE5\u76F4\u63A5\u6539")
-            ),
-            h(
-              "div",
-              { className: "wbsal-form-grid" },
-              h(C.Field, { h, label: "\u5E94\u53D1\u7A0E\u524D\u5DE5\u8D44" }, amountInput("grossPay", lockedGross)),
-              h(C.Field, { h, label: "\u5B9E\u53D1\u5DE5\u8D44" }, amountInput("netPay", false))
-            )
-          ),
-          h(
-            "div",
-            { className: "wbsal-summary" },
-            h("div", null, h("span", null, "\u6536\u5165\u5408\u8BA1"), h("b", null, F.money(computed.income))),
-            h("div", null, h("span", null, "\u7A0E\u524D\u6263\u6B3E"), h("b", null, F.money(computed.preTax))),
-            h("div", null, h("span", null, "\u793E\u4FDD\u516C\u79EF\u91D1"), h("b", null, F.money(computed.social))),
-            h("div", null, h("span", null, "\u4E2A\u7A0E+\u7A0E\u540E"), h("b", null, F.money(computed.tax))),
-            h("div", null, h("span", null, "\u5E94\u53D1"), h("b", null, F.money(F.num(form.values.grossPay)))),
-            h("div", null, h("span", null, "\u5B9E\u53D1"), h("b", null, F.money(F.num(form.values.netPay)))),
-            lockedGross ? h(
-              "div",
-              { className: "wbsal-lock" },
-              h("span", { className: "wbsal-muted" }, "\u8FD9\u6761\u5386\u53F2\u8BB0\u5F55\u53EA\u6709\u6C47\u603B\u503C\uFF0C\u5E94\u53D1\u5DF2\u9501\u5B9A\uFF0C\u907F\u514D\u88AB\u660E\u7EC6\u91CD\u7B97\u6E05\u96F6\u3002"),
-              h(C.Btn, { h, onClick: recalcFromDetail }, "\u6309\u660E\u7EC6\u91CD\u7B97")
-            ) : null
-          ),
-          h(C.Notice, { h, kind: msg && msg.kind, text: msg && msg.text }),
-          h(
-            "div",
-            { className: "wbsal-form-actions" },
-            h(C.Btn, { h, kind: "primary", onClick: submit, disabled: saving }, saving ? "\u4FDD\u5B58\u4E2D\u2026" : form.mode === "edit" ? "\u4FDD\u5B58\u4FEE\u6539" : "\u4FDD\u5B58"),
-            h(C.Btn, { h, kind: "ghost", onClick: closeForm }, "\u53D6\u6D88")
-          )
-        );
-      }
-      function renderModal() {
-        return h("div", {
-          className: "wbsal-mask",
-          onClick: function(event) {
-            if (event.target === event.currentTarget) closeForm();
-          }
-        }, h("div", {
-          className: "wbsal-modal",
-          role: "dialog",
-          "aria-modal": "true",
-          "aria-label": form.mode === "edit" ? "\u7F16\u8F91\u5DE5\u8D44" : "\u8BB0\u4E00\u7B14\u5DE5\u8D44"
-        }, renderForm()));
+          }));
+        }
+        return h(FormDialog, {
+          h,
+          React,
+          title: label,
+          eyebrow: form.mode === "edit" ? "EDIT RECORD" : "NEW RECORD",
+          // 测试按步渲染校验金额控件，正常打开仍从第一步开始。
+          initialStep: props.initialStep,
+          submitting: saving,
+          error: msg && msg.kind === "error" ? msg.text : "",
+          onClose: saving ? null : closeForm,
+          onSubmit: submit,
+          submitText: form.mode === "edit" ? "\u4FDD\u5B58\u4FEE\u6539" : "\u4FDD\u5B58",
+          cancelText: "\u53D6\u6D88",
+          nextText: "\u4E0B\u4E00\u6B65",
+          backText: "\u4E0A\u4E00\u6B65",
+          steps: [
+            {
+              key: "basic",
+              label: "\u57FA\u7840\u4FE1\u606F",
+              hint: "\u65E5\u671F\u4E0E\u5F52\u5C5E",
+              render: function(hh) {
+                return hh(
+                  "div",
+                  { className: "wbsal-form-meta" },
+                  hh(
+                    C.Field,
+                    { h: hh, label: "\u5230\u8D26\u65E5" },
+                    hh(DP.DatePicker, { React, h: hh, prefix: "wbsal", lang, label: "\u5230\u8D26\u65E5", value: form.payDate, onChange: function(next) {
+                      setField("payDate", next);
+                    } })
+                  ),
+                  hh(
+                    C.Field,
+                    { h: hh, label: "\u7ED3\u7B97\u65B9\u5F0F" },
+                    hh(
+                      "select",
+                      { className: "wbsal-input", value: form.cycle, onChange: function(e) {
+                        setField("cycle", e.target.value);
+                      } },
+                      hh("option", { value: "monthly" }, "\u6708\u7ED3"),
+                      hh("option", { value: "daily" }, "\u65E5\u7ED3")
+                    )
+                  ),
+                  hh(
+                    C.Field,
+                    { h: hh, label: "\u7528\u5DE5\u7C7B\u578B" },
+                    hh(
+                      "select",
+                      { className: "wbsal-input", value: form.employmentType, onChange: function(e) {
+                        setField("employmentType", e.target.value);
+                      } },
+                      F.EMPLOYMENT_TYPES.map(function(t) {
+                        return hh("option", { key: t.value || "none", value: t.value }, t.label);
+                      })
+                    )
+                  ),
+                  hh(
+                    C.Field,
+                    { h: hh, label: "\u5DE5\u8D44\u6240\u5C5E\u671F" },
+                    hh((form.incomePeriod ? form.incomePeriod.length === 10 : form.cycle === "daily") ? DP.DatePicker : DP.MonthPicker, {
+                      React,
+                      h: hh,
+                      prefix: "wbsal",
+                      lang,
+                      label: "\u5DE5\u8D44\u6240\u5C5E\u671F",
+                      placeholder: "\u672A\u5F52\u5C5E",
+                      value: form.incomePeriod || "",
+                      onChange: function(next) {
+                        setField("incomePeriod", next);
+                      }
+                    })
+                  ),
+                  hh(
+                    C.Field,
+                    { h: hh, label: "\u5907\u6CE8" },
+                    hh("input", { className: "wbsal-input", value: form.note, onChange: function(e) {
+                      setField("note", e.target.value);
+                    } })
+                  )
+                );
+              }
+            },
+            {
+              key: "amount",
+              label: "\u91D1\u989D\u660E\u7EC6",
+              hint: "\u6309\u5206\u7EC4\u586B\u6536\u5165\u4E0E\u6263\u6B3E",
+              render: function(hh) {
+                return groupsBlock(hh, F.GROUPS);
+              },
+              validate: function() {
+                var bad = firstBadAmount();
+                return bad ? F.LABELS[bad.key] + "\uFF1A" + bad.error : "";
+              }
+            },
+            {
+              key: "summary",
+              label: "\u6C47\u603B\u786E\u8BA4",
+              hint: "\u9ED8\u8BA4\u6309\u660E\u7EC6\u5B9E\u65F6\u8BA1\u7B97",
+              render: function(hh) {
+                return hh(
+                  "div",
+                  { className: "wbsal-steps-groups" },
+                  hh(
+                    "div",
+                    { className: "wbsal-form-group" },
+                    hh(
+                      "div",
+                      { className: "wbsal-group-head" },
+                      hh("div", { className: "wbsal-group-title" }, "\u6C47\u603B"),
+                      hh("span", null, "\u9ED8\u8BA4\u6309\u660E\u7EC6\u5B9E\u65F6\u8BA1\u7B97\uFF0C\u4E5F\u53EF\u4EE5\u76F4\u63A5\u6539")
+                    ),
+                    hh(
+                      "div",
+                      { className: "wbsal-form-grid" },
+                      hh(C.Field, { h: hh, label: "\u5E94\u53D1\u7A0E\u524D\u5DE5\u8D44" }, amountInput("grossPay", lockedGross)),
+                      hh(C.Field, { h: hh, label: "\u5B9E\u53D1\u5DE5\u8D44" }, amountInput("netPay", false))
+                    )
+                  ),
+                  sameDayCount > 0 ? hh(C.Notice, { h: hh, text: "\u8BE5\u65E5\u5DF2\u6709 " + sameDayCount + " \u7B14\u8BB0\u5F55\uFF1B\u4FDD\u5B58\u4F1A\u65B0\u589E\u4E00\u6761\uFF0C\u4E0D\u4F1A\u8986\u76D6\u3002" }) : null,
+                  hh(
+                    "div",
+                    { className: "wbsal-summary" },
+                    hh("div", null, hh("span", null, "\u6536\u5165\u5408\u8BA1"), hh("b", null, F.money(computed.income))),
+                    hh("div", null, hh("span", null, "\u7A0E\u524D\u6263\u6B3E"), hh("b", null, F.money(computed.preTax))),
+                    hh("div", null, hh("span", null, "\u793E\u4FDD\u516C\u79EF\u91D1"), hh("b", null, F.money(computed.social))),
+                    hh("div", null, hh("span", null, "\u4E2A\u7A0E+\u7A0E\u540E"), hh("b", null, F.money(computed.tax))),
+                    hh("div", null, hh("span", null, "\u5E94\u53D1"), hh("b", null, F.money(F.num(form.values.grossPay)))),
+                    hh("div", null, hh("span", null, "\u5B9E\u53D1"), hh("b", null, F.money(F.num(form.values.netPay)))),
+                    lockedGross ? hh(
+                      "div",
+                      { className: "wbsal-lock" },
+                      hh("span", { className: "wbsal-muted" }, "\u8FD9\u6761\u5386\u53F2\u8BB0\u5F55\u53EA\u6709\u6C47\u603B\u503C\uFF0C\u5E94\u53D1\u5DF2\u9501\u5B9A\uFF0C\u907F\u514D\u88AB\u660E\u7EC6\u91CD\u7B97\u6E05\u96F6\u3002"),
+                      hh(C.Btn, { h: hh, onClick: recalcFromDetail }, "\u6309\u660E\u7EC6\u91CD\u7B97")
+                    ) : null
+                  )
+                );
+              }
+            }
+          ]
+        });
       }
       function renderDetail(item) {
         var blocks = F.GROUPS.map(function(group) {
@@ -2201,7 +3947,7 @@ var require_records = __commonJS({
             h(
               "div",
               { className: "wbsal-muted" },
-              (item.note ? "\u5907\u6CE8\uFF1A" + item.note + " \xB7 " : "") + "\u66F4\u65B0\u4E8E " + C.fmtTime(item.updatedAt, lang)
+              "\u7528\u5DE5\u7C7B\u578B\uFF1A" + F.employmentLabel(item.employmentType) + " \xB7 \u7ED3\u7B97\u65B9\u5F0F\uFF1A" + (item.cycle === "daily" ? "\u65E5\u7ED3" : "\u6708\u7ED3") + " \xB7 \u5DE5\u8D44\u6240\u5C5E\u671F\uFF1A" + (item.incomePeriod ? F.monthLabel(item.incomePeriod) : "\u672A\u5F52\u5C5E") + " \xB7 " + (item.note ? "\u5907\u6CE8\uFF1A" + item.note + " \xB7 " : "") + "\u66F4\u65B0\u4E8E " + C.fmtTime(item.updatedAt, lang)
             ),
             h(
               "div",
@@ -2240,14 +3986,20 @@ var require_records = __commonJS({
               }
             },
             h("td", { className: "left" }, h("span", { className: "wbsal-date" }, h("b", null, String(item.payDate).slice(5)), h("span", null, F.weekday(item.payDate)))),
-            h("td", { className: "left" }, h(C.Pill, { h, kind: item.cycle === "daily" ? "warn" : "ok" }, item.cycle === "daily" ? "\u65E5\u7ED3" : "\u6708\u7ED3")),
+            h(
+              "td",
+              { className: "left" },
+              h(C.Pill, { h, kind: item.cycle === "daily" ? "warn" : "ok" }, item.cycle === "daily" ? "\u65E5\u7ED3" : "\u6708\u7ED3"),
+              h("div", { className: "wbsal-muted" }, item.incomePeriod ? F.monthLabel(item.incomePeriod) : "\u672A\u5F52\u5C5E")
+            ),
+            h("td", { className: "left" }, h(C.Pill, { h, kind: item.employmentType === "regular" ? "ok" : item.employmentType === "probation" ? "warn" : "" }, F.employmentLabel(item.employmentType))),
             h("td", null, h("span", { className: "wbsal-net" }, F.money(item.netPay))),
             h("td", { className: "wbsal-opt" }, F.money(item.grossPay)),
             h("td", { className: "wbsal-opt hide-md" }, F.money(F.sumValues(item, F.SOCIAL_KEYS))),
             h("td", { className: "wbsal-opt hide-md" }, F.money(item.incomeTax)),
             h("td", null, h("span", { className: "wbsal-caret" }, "\u203A"))
           ),
-          expanded ? h("tr", { key: item.id + "-detail" }, h("td", { className: "wbsal-detail-cell", colSpan: 7 }, renderDetail(item))) : null
+          expanded ? h("tr", { key: item.id + "-detail" }, h("td", { className: "wbsal-detail-cell", colSpan: 8 }, renderDetail(item))) : null
         ];
         return rows;
       }
@@ -2258,12 +4010,12 @@ var require_records = __commonJS({
         body = h(
           "div",
           { className: "wbsal-empty" },
-          h("div", null, filter.year || filter.cycle ? "\u8FD9\u4E2A\u7B5B\u9009\u6761\u4EF6\u4E0B\u6CA1\u6709\u8BB0\u5F55" : "\u8FD8\u6CA1\u6709\u5DE5\u8D44\u8BB0\u5F55\uFF0C\u5148\u8BB0\u4E00\u7B14"),
+          h("div", null, filter.year || filter.cycle || filter.employmentType ? "\u8FD9\u4E2A\u7B5B\u9009\u6761\u4EF6\u4E0B\u6CA1\u6709\u8BB0\u5F55" : "\u8FD8\u6CA1\u6709\u5DE5\u8D44\u8BB0\u5F55\uFF0C\u5148\u8BB0\u4E00\u7B14"),
           h(
             "div",
             { className: "wbsal-empty-actions" },
-            filter.year || filter.cycle ? h(C.Btn, { h, onClick: function() {
-              setFilter({ year: "", cycle: "" });
+            filter.year || filter.cycle || filter.employmentType ? h(C.Btn, { h, onClick: function() {
+              setFilter({ year: "", cycle: "", employmentType: "" });
             } }, "\u6E05\u9664\u7B5B\u9009") : null,
             h(C.Btn, { h, kind: "primary", onClick: openCreate }, "\uFF0B \u8BB0\u4E00\u7B14")
           )
@@ -2298,7 +4050,8 @@ var require_records = __commonJS({
                   "tr",
                   null,
                   h("th", { className: "left" }, "\u53D1\u85AA\u65E5"),
-                  h("th", { className: "left" }, "\u7C7B\u578B"),
+                  h("th", { className: "left" }, "\u7ED3\u7B97"),
+                  h("th", { className: "left" }, "\u7528\u5DE5\u7C7B\u578B"),
                   h("th", null, "\u5B9E\u53D1"),
                   h("th", null, "\u5E94\u53D1"),
                   h("th", { className: "hide-md" }, "\u793E\u4FDD\u516C\u79EF\u91D1"),
@@ -2326,7 +4079,7 @@ var require_records = __commonJS({
               return h("option", { key: value || "all", value }, value ? value + " \u5E74" : "\u5168\u90E8\u5E74\u4EFD");
             })
           )),
-          h(C.Field, { h, label: "\u7C7B\u578B" }, h(
+          h(C.Field, { h, label: "\u7ED3\u7B97\u65B9\u5F0F" }, h(
             "select",
             { className: "wbsal-input", value: filter.cycle, onChange: function(e) {
               setFilter(Object.assign({}, filter, { cycle: e.target.value }));
@@ -2334,6 +4087,16 @@ var require_records = __commonJS({
             h("option", { value: "" }, "\u5168\u90E8"),
             h("option", { value: "monthly" }, "\u6708\u7ED3"),
             h("option", { value: "daily" }, "\u65E5\u7ED3")
+          )),
+          h(C.Field, { h, label: "\u7528\u5DE5\u7C7B\u578B" }, h(
+            "select",
+            { className: "wbsal-input", value: filter.employmentType, onChange: function(e) {
+              setFilter(Object.assign({}, filter, { employmentType: e.target.value }));
+            } },
+            h("option", { value: "" }, "\u5168\u90E8"),
+            F.EMPLOYMENT_TYPES.slice(1).map(function(t) {
+              return h("option", { key: t.value, value: t.value }, t.label);
+            })
           )),
           h(
             "div",
@@ -2656,13 +4419,6 @@ var require_data_style = __commonJS({
         "." + P + "-search input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
         "." + P + "-select{border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;outline:none}",
         "." + P + "-select:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
-        "." + P + "-switch{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--cfg-muted);user-select:none;padding:4px 2px}",
-        "." + P + "-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-        "." + P + "-track{position:relative;width:34px;height:20px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-        "." + P + "-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-        "." + P + "-switch input:checked+." + P + "-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-        "." + P + "-switch input:checked+." + P + "-track::after{transform:translateX(14px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-        "." + P + "-switch input:focus-visible+." + P + "-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
         "." + P + "-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cfg-line);background:transparent;color:var(--cfg-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}",
         "." + P + "-btn:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
         "." + P + "-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
@@ -2691,8 +4447,8 @@ var require_data_style = __commonJS({
         "." + P + "-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;font-size:11.5px;color:var(--cfg-muted)}",
         "." + P + "-grow{flex:1}",
         "." + P + "-pageinfo{font-variant-numeric:tabular-nums}",
-        "." + P + "-jump{width:56px;border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:7px;padding:4px 7px;font:inherit;font-size:11.5px;text-align:right;outline:none}",
-        "." + P + "-jump:focus{border-color:var(--dsw-alias-brand-primary,currentColor)}",
+        "." + P + "-jump .wbctl-num-input{width:56px;padding:4px 7px;font-size:11.5px;text-align:right}",
+        "." + P + "-jump .wbctl-num-hint{display:none}",
         "." + P + "-empty{border:1px dashed var(--cfg-line);border-radius:11px;padding:44px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
         "." + P + "-err{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:9px 12px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12px;line-height:1.5}",
         "." + P + "-skwrap{display:flex;flex-direction:column;gap:1px;padding:2px}",
@@ -2730,7 +4486,7 @@ var require_data_style = __commonJS({
         "." + P + "-images img{width:36px;height:36px;object-fit:cover;border-radius:5px}",
         "." + P + "-gallery{display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}",
         "." + P + "-gallery img{width:100%;height:auto;object-fit:contain;border-radius:8px}"
-      ].join("\n");
+      ].concat(require_switch().styles).concat(require_number_field().styles).join("\n");
       if (DOMAIN === "storage") {
         var buttons = "." + P + " :is(button)";
         CSS += buttons + "{border:none;background:var(--wb-btn-bg);min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm)}" + buttons + ":enabled:hover{background:var(--wb-btn-hover-bg)}" + buttons + ":enabled:active{background:var(--wb-btn-active-bg)}" + buttons + ":disabled{background:var(--wb-btn-bg);color:var(--cfg-muted)}" + buttons + ":focus-visible{outline:var(--wb-btn-focus);outline-offset:var(--wb-btn-focus-offset)}." + P + "-fcell:has(button) input{padding-right:34px}";
@@ -2758,8 +4514,10 @@ var require_data_view = __commonJS({
   "packages/addons/lib/data-view.cjs"(exports2, module2) {
     "use strict";
     var React = require("react");
+    var NF = require_number_field();
     var h = React.createElement;
     var COPY = require_data_copy();
+    var SW = require_switch();
     module2.exports = function createDataView(options) {
       var DOMAIN = options.domain;
       function icon(name) {
@@ -3313,17 +5071,18 @@ var require_data_view = __commonJS({
             h("button", { type: "button", className: P + "-btn", disabled: !data || page >= pages, onClick: function() {
               setPage(Math.min(pages, page + 1));
             } }, t.next + " \u203A"),
-            h("input", {
+            h(NF.NumberField, {
+              h,
+              lang,
               className: P + "-jump",
-              type: "number",
+              value: page,
               min: 1,
               max: pages,
-              "aria-label": t.jump,
-              onKeyDown: function(e) {
-                if (e.key === "Enter") {
-                  var n = Math.floor(Number(e.target.value));
-                  if (n >= 1) setPage(Math.min(pages, n));
-                }
+              integer: true,
+              ariaLabel: t.jump,
+              hint: false,
+              onCommit: function(next) {
+                if (next !== null) setPage(next);
               }
             }),
             data && data.queryMs !== void 0 ? h("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
@@ -3420,25 +5179,23 @@ var require_data_view = __commonJS({
                     }
                   })
                 ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: includeDeleted, onChange: function(e) {
-                    setIncludeDeleted(e.target.checked);
+                h(SW.Switch, {
+                  h,
+                  checked: includeDeleted,
+                  label: t.includeDeleted,
+                  onChange: function(next) {
+                    setIncludeDeleted(next);
                     setPage(1);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.includeDeleted)
-                ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: showSystem, onChange: function(e) {
-                    setShowSystem(e.target.checked);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.showSystem)
-                ),
+                  }
+                }),
+                h(SW.Switch, {
+                  h,
+                  checked: showSystem,
+                  label: t.showSystem,
+                  onChange: function(next) {
+                    setShowSystem(next);
+                  }
+                }),
                 h("span", { className: P + "-grow" }),
                 h(
                   "label",
@@ -3596,16 +5353,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -3658,15 +5412,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -3680,6 +5439,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -3712,15 +5473,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -3734,6 +5502,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -3877,6 +5647,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React.useState("");
@@ -3932,38 +5704,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -3998,6 +5785,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -4013,33 +5801,45 @@ var require_action_schema_view = __commonJS({
             h("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h("span", { className: P + "-track", "aria-hidden": true }),
-            h("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h("span", null, originText[origin])
+              );
+            }),
+            busy ? h("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -4060,7 +5860,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h(
@@ -4183,6 +5983,21 @@ var require_action_schema_view = __commonJS({
                   return h("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -4206,6 +6021,7 @@ var require_actions = __commonJS({
 });
 
 // packages/addons/salary/client/client.src.cjs
+var GLYPHS = require_icons2().ICONS;
 (function() {
   var root = typeof window !== "undefined" ? window : null;
   var host = root && root.__WB_HOST__;
@@ -4219,10 +6035,10 @@ var require_actions = __commonJS({
   var h = host.h;
   var CSS = require_styles();
   var ICONS = {
-    records: (init_wallet(), __toCommonJS(wallet_exports)).default,
-    stats: (init_chart_column(), __toCommonJS(chart_column_exports)).default,
-    data: (init_database(), __toCommonJS(database_exports)).default,
-    actions: (init_list(), __toCommonJS(list_exports)).default
+    records: GLYPHS["wallet"],
+    stats: GLYPHS["chart-column"],
+    data: GLYPHS["database"],
+    actions: GLYPHS["list"]
   };
   function Icon2(props) {
     var C = ICONS[props.name] || ICONS.records;
@@ -4249,8 +6065,8 @@ var require_actions = __commonJS({
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-salary",
-    version: "0.2.4",
-    icon: (init_wallet(), __toCommonJS(wallet_exports)).default,
+    version: "0.4.5",
+    icon: GLYPHS["wallet"],
     views: [
       { id: "stats", icon: tabIcon("stats"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: withProps(require_stats(), "\u7EDF\u8BA1") },
       { id: "records", icon: tabIcon("records"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: withProps(require_records(), "\u8BB0\u5F55") },

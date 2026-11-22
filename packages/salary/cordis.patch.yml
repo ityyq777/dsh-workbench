@@ -1,5 +1,5 @@
 - insert:
     - id: workbench
-      name: dsh-workbench
+      name: dsh-workbench-host
     - id: workbench-salary
       name: dsh-workbench-salary

@@ -35,7 +35,8 @@
   };
 
   var icons = require("./ui/icons.cjs"), ICONS = icons.ICONS, Icon = icons.Icon;
-  var workspaceView = require("./views/workspace-view.cjs")({ React: React, Icon: Icon });
+  var createOverlay = require("../../lib/overlay.cjs");
+  var workspaceView = require("./views/workspace-view.cjs")({ React: React, Icon: Icon, createOverlay: createOverlay });
   // 命令页的模板正文复用描述/感受的渲染与切换控件，由入口注入；视图自身保持零 require。
   var commandsView = require("./views/commands.cjs")({
     React: React,
@@ -69,18 +70,10 @@
     }, h(Icon, { name: "clock", size: 11 }), h("span", { className: "wbt-cd-num" }, text));
   }
 
-  var CSS = require("./ui/styles.cjs");
-
-  function injectCss() {
-    if (typeof document === "undefined") return;
-    var old = document.getElementById("wb-addon-tasks-v2-css");
-    if (old) { old.textContent = CSS; return; }
-    var s = document.createElement("style");
-    s.id = "wb-addon-tasks-v2-css";
-    s.setAttribute("data-wb-addon", "wb-addon-tasks");
-    s.textContent = CSS;
-    document.head.appendChild(s);
-  }
+  // 时间线样式并入插件全局样式：时间线页、时间线弹窗与「新建任务」弹窗共用一份，
+  // 避免只在某个视图里 <style> 注入、其他入口退回浏览器默认按钮。
+  // 抽到 ui/inject-css.cjs 是因为插槽贡献组件渲染在别的插件界面里，也要能自己保证样式到位。
+  var injectCss = require("./ui/inject-css.cjs");
 
   function cx() {
     return Array.prototype.filter.call(arguments, Boolean).join(" ");
@@ -195,7 +188,9 @@
   }
 
   var TaskItem = require("./item/task-item.cjs")({ React: React, statusInfo: statusInfo, stars: stars, pClass: pClass,
-    today: today, daysBetween: daysBetween, cx: cx, Icon: Icon, Countdown: Countdown, PathCrumbs: PathCrumbs });
+    today: today, daysBetween: daysBetween, cx: cx, Icon: Icon, Countdown: Countdown, PathCrumbs: PathCrumbs,
+    // 任务详情也开 item.actions 落点：来源插件把「回到原处」挂进来。
+    Slot: host.Slot });
 
   function TreeNode(props) {
     var node = props.node;
@@ -328,6 +323,9 @@
 
   var CreateModal = require("./modals/create-modal.cjs")({ React: React, allTables: allTables, tagNames: tagNames, splitTags: splitTags, today: today, addDays: addDays, hostHasAddon: hostHasAddon });
 
+  // 插槽贡献：把「从邮件建任务」挂进邮件视图的动作条。
+  var slotTaskFromMessage = require("./views/slot-task-from-message.cjs")({ React: React, Icon: Icon, injectCss: injectCss });
+
   var TimelineModal = require("./timeline/task-timeline-modal.cjs")(React, statusInfo);
 
   function DoneModal(props) {
@@ -342,7 +340,7 @@
       h("div", { className: "wbt-modal", style: { width: "420px" } },
         h("div", { className: "wbt-modal-head" }, h("h3", null, t.complete + " · " + props.task.title), h("button", { className: "wbt-icon", onClick: props.onClose }, "×")),
         h("div", { className: "wbt-mhint" }, t.difficultyHint),
-        require("./item/difficulty-field.cjs")(React)(t, value, setValue, "wbt-done-difficulty"),
+        require("./item/difficulty-field.cjs")(React)(t, value, setValue, "wbt-done-difficulty", props.lang),
         h("label", { className: "wbt-field", style: { marginTop: "12px" } },
           h("span", null, t.review + " · " + t.reviewHint),
           h("textarea", { className: "wbt-textarea", rows: 3, placeholder: t.reviewPlaceholder, value: review, onChange: function (e) { setReview(e.target.value); } })
@@ -382,8 +380,11 @@
 
   host.registerAddon({
     id: "wb-addon-tasks",
-    version: "5.2.26",
-    icon: require("lucide-react/icons/list-checks").default,
+    version: "5.2.40",
+    icon: ICONS["list-checks"],
+    // 贡献声明写在 registerAddon 里：卸载任务插件时宿主按 addonId 一起撤销，
+    // 不会在邮件里留一个渲染即报错的孤儿按钮。
+    slots: [{ slot: "item.actions", id: "tasks.create-from-mail", order: 100, component: slotTaskFromMessage }],
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "统计", en: "Stats" }, component: statsView.TasksStatsView, keepAlive: true },
       { id: "tasks", icon: tabIcon("list"), title: { zh: "记录", en: "Records" }, component: TasksView },

@@ -1,6 +1,8 @@
 "use strict";
-// 消息插件图标：lucide 按需引入，随 client.js 一起打包。
-module.exports = {
+// 图标表：lucide 图标按需引入，用哪个引哪个——这些图标都会随本插件 client.js 打包。
+var icons = require("../../../lib/icons.cjs");
+
+var set = icons.create("wbg", {
   bell: require("lucide-react/icons/bell").default,
   "bell-off": require("lucide-react/icons/bell-off").default,
   inbox: require("lucide-react/icons/inbox").default,
@@ -25,4 +27,7 @@ module.exports = {
   error: require("lucide-react/icons/circle-alert").default,
   reset: require("lucide-react/icons/rotate-ccw").default,
   play: require("lucide-react/icons/play").default,
-};
+  "message-square": require("lucide-react/icons/message-square").default,
+}, { fallback: "info", tabIcon: true });
+
+module.exports = { ICONS: set.ICONS, Icon: set.Icon, tabIcon: set.tabIcon };

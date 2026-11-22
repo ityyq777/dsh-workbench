@@ -17,29 +17,8 @@ var h = React.createElement;
   var configView = require("./views/config.cjs");
   var dataView = require("./views/data.cjs");
 
-  // 标签插件自带 lucide-react 图标；每个图标按需引入，随 client.js 一起打包。
-  var ICONS = {
-    "search": require("lucide-react/icons/search").default,
-    "x": require("lucide-react/icons/x").default,
-    "plus": require("lucide-react/icons/plus").default,
-    "trash": require("lucide-react/icons/trash-2").default,
-    "pencil": require("lucide-react/icons/pencil").default,
-    "check": require("lucide-react/icons/check").default,
-    "refresh": require("lucide-react/icons/refresh-cw").default,
-    "chart": require("lucide-react/icons/chart-column").default,
-    "settings": require("lucide-react/icons/settings").default,
-    "database": require("lucide-react/icons/database").default,
-    "tags": require("lucide-react/icons/tags").default,
-    "code-2": require("lucide-react/icons/code-xml").default,
-  };
-  // 标签页标题左侧图标：与储物/任务/站点保持同语义、同尺寸。
-  function tabIcon(name) { return function TagsTabIcon() { return h(Icon, { name: name, size: 14 }); }; }
-  // 统一的小尺寸图标调用方式，保持各视图里的 Icon({ name, size }) 不变。
-  function Icon(props) {
-    var C = ICONS[props.name];
-    if (!C) return null;
-    return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbg-svg" });
-  }
+  // 图标与视图标签图标统一收在 ui/icons.cjs，与其它插件共用 lib/icons.cjs 的映射。
+  var icons = require("./ui/icons.cjs"), ICONS = icons.ICONS, Icon = icons.Icon, tabIcon = icons.tabIcon;
 
   var COPY = {
     zh: {
@@ -114,6 +93,7 @@ var h = React.createElement;
     ".wbg-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:820;background:var(--dsw-alias-toast-bg,rgba(20,20,20,.88));color:var(--dsw-alias-toast-label,#fff);border-radius:9px;padding:9px 14px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.18);pointer-events:none}",
     "@media (max-width:760px){.wbg-search{width:100%;max-width:none}.wbg-toolbar .wbg-grow{display:none}.wbg-time{display:none}.wbg-row{padding:9px 10px}.wbg-ops .wbg-btn{padding:6px 8px}}",
     require("../../lib/date-picker-styles.cjs")("wbg"),
+    require("../../lib/switch.cjs").styles,
   ].join("\n");
 
   function injectCss() {
@@ -533,8 +513,8 @@ var h = React.createElement;
 
   host.registerAddon({
     id: "wb-addon-tags",
-    version: "1.7.3",
-    icon: require("lucide-react/icons/tag").default,
+    version: "1.7.7",
+    icon: ICONS.tag,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "统计", en: "Stats" }, component: statsView.TagsStatsView },
       { id: "tags", icon: tabIcon("tags"), title: { zh: "记录", en: "Records" }, component: TagsView },

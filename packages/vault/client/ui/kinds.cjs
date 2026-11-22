@@ -8,7 +8,7 @@ var KIND_LABEL = {
   phone: "手机号",
   id_card: "身份证号",
   token: "Token",
-  app_password: "应用专用密码",
+  app_password: "授权码",
   api_key: "API Key",
   other: "其它",
 };

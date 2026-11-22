@@ -11,6 +11,13 @@ function assertSetName(name) {
   return value;
 }
 
+/** 账号可空、可重复：留空即普通集合，有值即账号集合；身份仍由集合 id 承担。 */
+function assertSetAccount(account) {
+  const value = String(account == null ? "" : account).trim();
+  if (value.length > 100) throw new Error("集合账号最多 100 字");
+  return value;
+}
+
 export function createSets({ db }) {
   function setOrThrow(id) {
     const row = db.prepare("SELECT * FROM vault_set WHERE id = ? AND deleted_at IS NULL").get(String(id || ""));
@@ -40,8 +47,17 @@ export function createSets({ db }) {
     const id = newId("set");
     try {
       db.prepare(
-        "INSERT INTO vault_set(id, name, description, color, created_at, updated_at, rev) VALUES(?, ?, ?, ?, ?, ?, 1)",
-      ).run(id, value, String(extra.description || ""), extra.color ? String(extra.color) : null, ts, ts);
+        "INSERT INTO vault_set(id, name, account, description, color, created_at, updated_at, rev) " +
+          "VALUES(?, ?, ?, ?, ?, ?, ?, 1)",
+      ).run(
+        id,
+        value,
+        assertSetAccount(extra.account),
+        String(extra.description || ""),
+        extra.color ? String(extra.color) : null,
+        ts,
+        ts,
+      );
     } catch (error) {
       if (!String(error && error.message).includes("UNIQUE")) throw error;
       const row = findSetByName(value);
@@ -168,9 +184,11 @@ export function createSets({ db }) {
     const where = ["s.deleted_at IS NULL"];
     const params = [];
     if (q) {
-      where.push("(s.name LIKE ? OR s.description LIKE ?)");
-      params.push("%" + q + "%", "%" + q + "%");
+      where.push("(s.name LIKE ? OR s.account LIKE ? OR s.description LIKE ?)");
+      params.push("%" + q + "%", "%" + q + "%", "%" + q + "%");
     }
+    if (args.type === "account") where.push("s.account <> ''");
+    else if (args.type === "common") where.push("s.account = ''");
     let join = "";
     if (args.groupId) {
       join =
@@ -197,8 +215,17 @@ export function createSets({ db }) {
     const ts = now();
     const id = newId("set");
     db.prepare(
-      "INSERT INTO vault_set(id, name, description, color, created_at, updated_at, rev) VALUES(?, ?, ?, ?, ?, ?, 1)",
-    ).run(id, name, String(args.description || "").slice(0, 500), args.color ? String(args.color) : null, ts, ts);
+      "INSERT INTO vault_set(id, name, account, description, color, created_at, updated_at, rev) " +
+        "VALUES(?, ?, ?, ?, ?, ?, ?, 1)",
+    ).run(
+      id,
+      name,
+      assertSetAccount(args.account),
+      String(args.description || "").slice(0, 500),
+      args.color ? String(args.color) : null,
+      ts,
+      ts,
+    );
     return setRow(db.prepare("SELECT * FROM vault_set WHERE id = ?").get(id));
   }
 
@@ -206,11 +233,22 @@ export function createSets({ db }) {
     const row = setOrThrow(args.id);
     const name = args.name == null ? row.name : assertSetName(args.name);
     if (name !== row.name && findSetByName(name)) throw new Error("已有同名集合：" + name);
+    const account = args.account === undefined ? String(row.account || "") : assertSetAccount(args.account);
     const description = args.description == null ? row.description : String(args.description).slice(0, 500);
     const color = args.color === undefined ? row.color : args.color ? String(args.color) : null;
     db.prepare(
-      "UPDATE vault_set SET name = ?, description = ?, color = ?, updated_at = ?, rev = rev + 1 WHERE id = ?",
-    ).run(name, description, color, now(), row.id);
+      "UPDATE vault_set SET name = ?, account = ?, description = ?, color = ?, updated_at = ?, rev = rev + 1 WHERE id = ?",
+    ).run(name, account, description, color, now(), row.id);
+    return setRow(db.prepare("SELECT * FROM vault_set WHERE id = ?").get(row.id));
+  }
+
+  /** 只改集合的账号展示值（站点账号改名时同步），不动名称/描述/颜色。 */
+  function updateSetAccount(setId, account) {
+    const row = setOrThrow(setId);
+    const value = assertSetAccount(account);
+    if (String(row.account || "") !== value) {
+      db.prepare("UPDATE vault_set SET account = ?, updated_at = ?, rev = rev + 1 WHERE id = ?").run(value, now(), row.id);
+    }
     return setRow(db.prepare("SELECT * FROM vault_set WHERE id = ?").get(row.id));
   }
 
@@ -292,6 +330,7 @@ export function createSets({ db }) {
     listSets,
     createSet,
     updateSet,
+    updateSetAccount,
     deleteSet,
     detachSecretEverywhere,
     relinkGroup,

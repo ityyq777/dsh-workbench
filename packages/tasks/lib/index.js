@@ -129,9 +129,14 @@ export function apply(ctx) {
         id: "wb-addon-tasks",
         title: "任务",
         description: "任务树 + 统计/记录/时间线/配置/数据五个视图：紧急/已关闭/已开启/已完成/总览，可按标签筛选（需安装标签插件），附统计报表与只读数据浏览",
-        version: "5.2.26",
+        version: "5.2.40",
+        category: "work",
         tables: ["task", "task_node", "task_timeline", "task_timeline_link", "task_workspace", "task_workspace_link"],
         sync: taskSync,
+        // 贡献声明：任务往「条目操作」插槽里挂「从邮件建任务」。
+        // 与 mail 的 slotHosts 配对；对方没装时 capabilities 会写明"暂无落点"。
+        slots: ["item.actions"],
+        slotHosts: ["item.actions"],
         views: [
           { id: "stats", title: { zh: "统计", en: "Stats" } },
           { id: "tasks", title: { zh: "记录", en: "Records" } },
@@ -195,7 +200,7 @@ export function apply(ctx) {
             { name: "publishDate", type: "YYYY-MM-DD", description: "发布日期，缺省为创建当天" },
             { name: "doneDate", type: "YYYY-MM-DD|null", description: "完成日期，改成已完成时自动补今天" },
             { name: "shutdownDate", type: "YYYY-MM-DD|null", description: "关闭日期，改成已关闭时自动补今天" },
-            { name: "titleKey", type: "string", description: "关键词，字面包含匹配标题、描述、感受（OR）；%/_/反斜杠按普通字符，ASCII 大小写不敏感；list 与非 ids 导出共用" },
+            { name: "titleKey", type: "string|string[]", description: "关键词，字面包含匹配标题、描述、感受、任务 ID（OR）；%/_/反斜杠按普通字符，ASCII 大小写不敏感。list 传字符串数组（最多 10 个、不能空白或重复）时按词分组返回 { keywords, groups:[{ keyword, records, total, filter, notices }], total, returned }，groups 顺序与输入一致、每组独立分页；单个词失败该组带 failed/error 并追加 keyword_failed notice，其余分组照常返回。任务 ID 数组只支持 tasks.list，导出与非 ids export 只接受字符串；底层 SQLite 为同步驱动，多词是同一次调用内逐词执行而非线程并行" },
             { name: "tableKey", type: "string", description: "任务表关键词，同时匹配表名与表描述" },
             { name: "tableId / groupId", type: "string|number", description: "按任务表 / 任务组过滤；groupId 含义是该组下所有任务表" },
             { name: "tags / tagIds", type: "string[]", description: "写入时是整体替换（会覆盖原有标签，批量套用最危险）；读取时是“命中任一”过滤。tags 传标签名，不存在会自动建" },

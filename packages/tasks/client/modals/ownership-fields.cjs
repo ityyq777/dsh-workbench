@@ -2,21 +2,20 @@
 "use strict";
 var limits = require('../../shared/tree/limits.cjs');
 var ownership = require("./ownership.cjs");
+var SW = require("../../../lib/switch.cjs");
 module.exports = function (React) {
   var h = React.createElement;
   var Picker = require("./table-picker.cjs")(React);
+  // 选择器直接内嵌在步骤里：不再需要「选择目标任务表」按钮先展开，
+  // 搜索框与任务表树一进来就在，少一次点击。
   function Selection(props) {
-    var state = React.useState(false), open = state[0], setOpen = state[1], trigger = React.useRef(null);
     var chosen = ownership.tables(props.tree).find(function (x) { return x.id === props.form.tableId; });
-    function close() { setOpen(false); if (trigger.current) trigger.current.focus(); }
     return h("div", null,
       h("div", { className: "wbt-picker-detail" }, props.edit ? "当前归属：" + props.current : "目标任务表 *"),
-      h("button", { ref: trigger, type: "button", className: "wbt-btn", disabled: !!props.form.newPath, "aria-expanded": open,
-        onClick: function () { setOpen(!open); } }, props.edit ? "更换任务表" : "选择目标任务表"),
-      open && !props.form.newPath ? h(Picker, { tree: props.tree, value: props.form.tableId, recommended: props.recommended,
-        onChange: function (id) { props.set("tableId", props.edit && id === String(props.currentId) ? "" : id); }, onClose: close }) : null,
+      props.form.newPath ? null : h(Picker, { tree: props.tree, value: props.form.tableId, recommended: props.recommended, onClose: null,
+        onChange: function (id) { props.set("tableId", props.edit && id === String(props.currentId) ? "" : id); } }),
       chosen ? h("div", { className: "wbt-picker-detail", role: "status" }, (props.edit ? "将移动到：" : "已选择：") + chosen.path,
-        props.edit ? h("button", { type: "button", className: "wbt-btn ghost", onClick: function () { props.set("tableId", ""); close(); } }, "撤销，保留原位") : null) :
+        props.edit ? h("button", { type: "button", className: "wbt-btn ghost", onClick: function () { props.set("tableId", ""); } }, "撤销，保留原位") : null) :
         h("div", { className: "wbt-mhint" }, props.edit ? "未更换，保留当前归属。" : props.form.newPath ? "请确认新建路径。" : "请先选择目标任务表，再确认提交。"));
   }
   return function fields(props) {
@@ -24,8 +23,8 @@ module.exports = function (React) {
     var plan = ownership.preview(props.tree, form.tablePath, form.pathDescriptions || []);
     return h("div", { className: "wbt-field full" },
       h(Selection, { form: form, set: set, tree: props.tree, recommended: props.recommended, edit: props.edit, current: props.current, currentId: props.currentId }),
-      !props.edit ? h("label", { className: "wbt-check" }, h("input", { type: "checkbox", "aria-label": "没有合适的表？新建节点", checked: !!form.newPath,
-        onChange: function (e) { props.setMany({ newPath: e.target.checked, tableId: "", confirmed: false }); } }), "没有合适的表？新建节点") : null,
+      !props.edit ? h(SW.Switch, { h: h, checked: !!form.newPath, label: "没有合适的表？新建节点",
+        onChange: function (next) { props.setMany({ newPath: next, tableId: "", confirmed: false }); } }) : null,
       form.newPath ? h("div", null,
         h("label", { className: "wbt-field full" }, "新路径（相对于根；以 / 分隔）", h("input", { className: "wbt-input", "aria-label": "新路径", value: form.tablePath, maxLength: limits.PATH_LEN_MAX,
           onChange: function (e) { props.setMany({ tablePath: e.target.value, pathDescriptions: [], confirmed: false }); } })),
@@ -35,8 +34,8 @@ module.exports = function (React) {
           !node.existing ? h("textarea", { className: "wbt-textarea", "aria-label": "节点职责 " + (i + 1), maxLength: 2000, value: form.pathDescriptions[i] || "",
             onChange: function (e) { var values = form.pathDescriptions.slice(); values[i] = e.target.value; props.setMany({ pathDescriptions: values, confirmed: false }); } }) : null); }),
         plan.error ? h("div", { className: "wbt-err", role: "alert" }, plan.error) : null,
-        h("label", { className: "wbt-check" }, h("input", { type: "checkbox", "aria-label": "确认新建路径", checked: !!form.confirmed, disabled: !!plan.error,
-          onChange: function (e) { set("confirmed", e.target.checked); } }), "确认以上路径与职责，随任务一起提交")) : null
+        h(SW.Switch, { h: h, checked: !!form.confirmed, disabled: !!plan.error, label: "确认以上路径与职责，随任务一起提交",
+          onChange: function (next) { set("confirmed", next); } })) : null
     );
   };
 };

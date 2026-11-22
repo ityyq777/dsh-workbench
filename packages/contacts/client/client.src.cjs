@@ -1,4 +1,6 @@
 "use strict";
+var GLYPHS = require("./ui/icons.cjs").ICONS;
+
 // 联系人客户端：联系人 / 分组 / 导入导出 / 设置 / 数据 / Action 六个视图。
 (function () {
   var root = typeof window !== "undefined" ? window : null;
@@ -12,12 +14,12 @@
   var h = host.h;
   var CSS = require("./ui/styles.cjs");
   var ICONS = {
-    users: require("lucide-react/icons/users").default,
-    folder: require("lucide-react/icons/folder").default,
-    upload: require("lucide-react/icons/upload").default,
-    sliders: require("lucide-react/icons/sliders-horizontal").default,
-    database: require("lucide-react/icons/database").default,
-    list: require("lucide-react/icons/list").default,
+    users: GLYPHS["users"],
+    folder: GLYPHS["folder"],
+    upload: GLYPHS["upload"],
+    sliders: GLYPHS["sliders-horizontal"],
+    database: GLYPHS["database"],
+    list: GLYPHS["list"],
   };
   function Icon(props) { var C = ICONS[props.name] || ICONS.users; return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbg-svg" }); }
   function tabIcon(name) { return function () { return h(Icon, { name: name, size: 14 }); }; }
@@ -33,8 +35,8 @@
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-contacts",
-    version: "0.1.2",
-    icon: require("lucide-react/icons/users").default,
+    version: "0.1.6",
+    icon: GLYPHS["users"],
     views: [
       { id: "contacts", icon: tabIcon("users"), title: { zh: "联系人", en: "Contacts" }, component: withProps(require("./views/contacts.cjs"), "联系人") },
       { id: "groups", icon: tabIcon("folder"), title: { zh: "分组", en: "Groups" }, component: withProps(require("./views/groups.cjs"), "分组") },

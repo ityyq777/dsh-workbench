@@ -15,8 +15,11 @@ export const VAULT_SUBJECT_TYPE = "vault_subject_type";
 export const VAULT_SECRET_USAGE = "vault_secret_usage";
 export const VAULT_META_LEGACY = "vault_meta_legacy";
 
-/** 0.3.0 起：集合层（set）与两张多对多关联表；schema_version 3。 */
-export const SCHEMA_VERSION = 3;
+/**
+ * 0.3.0 起：集合层（set）与两张多对多关联表；schema_version 3。
+ * 0.4.0 起：集合加可选 account 列（账号集合 / 普通集合由它是否为空区分）；schema_version 4。
+ */
+export const SCHEMA_VERSION = 4;
 
 export const VAULT_DDL = [
   "CREATE TABLE IF NOT EXISTS vault_header (" +
@@ -70,6 +73,7 @@ export const VAULT_DDL = [
   "CREATE TABLE IF NOT EXISTS vault_set (" +
     "id TEXT PRIMARY KEY," +
     "name TEXT NOT NULL," +
+    "account TEXT NOT NULL DEFAULT ''," +
     "description TEXT NOT NULL DEFAULT ''," +
     "color TEXT," +
     "created_at INTEGER NOT NULL," +
@@ -165,6 +169,22 @@ export function columnNames(db, table) {
 export function ensureSchema(db) {
   for (const sql of VAULT_DDL) db.exec(sql);
   migrateV1(db);
+  migrateV4(db);
+}
+
+/**
+ * 0.3.x → 0.4.0：给 vault_set 补 account 列（纯结构升级，不需要 DEK）。
+ * 只把已经到 3 的库升到 4；schema_version=2 的旧库仍由解锁后的 migrateToV3 整批迁移，
+ * 否则会跳过 0.3.0 的数据搬家，只剩空壳结构。
+ */
+export function migrateV4(db) {
+  if (tableExists(db, "vault_set") && !hasColumn(db, "vault_set", "account")) {
+    db.exec("ALTER TABLE vault_set ADD COLUMN account TEXT NOT NULL DEFAULT ''");
+  }
+  const head = headerGet(db);
+  if (!head) return;
+  const version = Number(head.schema_version || 0);
+  if (version >= 3 && version < SCHEMA_VERSION) headerSet(db, { schema_version: SCHEMA_VERSION });
 }
 
 /**
@@ -339,9 +359,13 @@ export function secretRow(row, usage = {}) {
 
 export function setRow(row) {
   if (!row) return null;
+  const account = String(row.account || "");
   return {
     id: row.id,
     name: row.name,
+    account,
+    // 账号集合 / 普通集合由 account 是否为空推导，不存冗余列。
+    type: account ? "account" : "common",
     description: row.description || "",
     color: row.color || null,
     createdAt: row.created_at,

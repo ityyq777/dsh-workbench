@@ -100,7 +100,8 @@ export function apply(ctx) {
         id: "wb-addon-sites",
         title: "站点",
         description: "站点收藏：目录树、链接与标签（标签需安装标签插件）；含统计/记录/配置/数据四个视图",
-        version: "1.12.4",
+        version: "1.12.11",
+        category: "assets",
         tables: ["site", "site_node", "site_node_mapping", "tag_mapping", "site_account", "site_account_external"],
         sync: siteSync,
         views: [

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { getSyncStateText, setSyncStateText } from "../core/index.js";
 import { SyncEngine, SyncHttpError, listConflicts, resolveConflict } from "../sync/sync.js";
 import { createBackup, importBackup, normalizeImportPolicy } from "./backup.js";
+import { publicCategories } from "./categories.js";
 export function installNetwork({ ctx, state, saveCreds, clock, domains, emit, subscribers, listDomains, SHELL_VERSION, sessionModeOf, setSessionMode, audit, backupDomains, actionNames, invoke, log, schemaSnapshot }) {
     /** 云端 fetch 封装（带 access token；401 时尝试 refresh 一次）。 */
     async function cloudFetch(path, init, retry = true) {
@@ -257,7 +258,8 @@ export function installNetwork({ ctx, state, saveCreds, clock, domains, emit, su
                     return;
                 }
                 if (p === "/domains" && m === "GET") {
-                    return send(200, { ok: true, domains: listDomains(), shellVersion: SHELL_VERSION });
+                    // categories 是宿主定义的栏目表（顺序即首页顺序）；客户端缺它时回退单网格渲染。
+                    return send(200, { ok: true, domains: listDomains(), categories: publicCategories(), shellVersion: SHELL_VERSION });
                 }
                 if (p === "/record" && m === "GET") {
                     const sid = String(url.searchParams.get("sessionId") ?? "").trim();

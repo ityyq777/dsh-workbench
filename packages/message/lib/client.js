@@ -39,6 +39,42 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// packages/addons/lib/icons.cjs
+var require_icons = __commonJS({
+  "packages/addons/lib/icons.cjs"(exports2, module2) {
+    "use strict";
+    var h = require("react").createElement;
+    function create(prefix, glyphs, options) {
+      var opts = options || {};
+      var ICONS = Object.assign({}, glyphs);
+      function Icon2(props) {
+        var C = ICONS[props.name] || (opts.fallback ? ICONS[opts.fallback] : null);
+        if (!C) return null;
+        var size = typeof opts.sizeOf === "function" ? opts.sizeOf(props) : props.size || 14;
+        var cls = prefix + "-svg" + (opts.classNameAppend && props.className ? " " + props.className : "");
+        var attrs = {
+          size,
+          strokeWidth: props.strokeWidth || 2,
+          "aria-hidden": "true",
+          className: cls
+        };
+        if (opts.focusable) attrs.focusable = false;
+        return h(C, attrs);
+      }
+      var set = { ICONS, Icon: Icon2 };
+      if (opts.tabIcon) {
+        set.tabIcon = function(name) {
+          return function TabIcon() {
+            return h(Icon2, { name, size: 14 });
+          };
+        };
+      }
+      return set;
+    }
+    module2.exports = { create };
+  }
+});
+
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/shared/src/utils/toKebabCase.mjs
 var toKebabCase;
 var init_toKebabCase = __esm({
@@ -966,6 +1002,70 @@ var init_play = __esm({
   }
 });
 
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/message-square.mjs
+var message_square_exports = {};
+__export(message_square_exports, {
+  __iconData: () => __iconData25,
+  default: () => MessageSquare
+});
+var __iconData25, MessageSquare;
+var init_message_square = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/message-square.mjs"() {
+    init_createLucideIcon();
+    __iconData25 = {
+      name: "message-square",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z",
+            key: "18887p"
+          }
+        ]
+      ]
+    };
+    __iconData25.node;
+    MessageSquare = createLucideIcon(__iconData25);
+  }
+});
+
+// packages/addons/message/client/ui/icons.cjs
+var require_icons2 = __commonJS({
+  "packages/addons/message/client/ui/icons.cjs"(exports2, module2) {
+    "use strict";
+    var icons = require_icons();
+    var set = icons.create("wbg", {
+      bell: (init_bell(), __toCommonJS(bell_exports)).default,
+      "bell-off": (init_bell_off(), __toCommonJS(bell_off_exports)).default,
+      inbox: (init_inbox(), __toCommonJS(inbox_exports)).default,
+      mail: (init_mail(), __toCommonJS(mail_exports)).default,
+      "mail-open": (init_mail_open(), __toCommonJS(mail_open_exports)).default,
+      chart: (init_chart_column(), __toCommonJS(chart_column_exports)).default,
+      settings: (init_settings(), __toCommonJS(settings_exports)).default,
+      database: (init_database(), __toCommonJS(database_exports)).default,
+      list: (init_list(), __toCommonJS(list_exports)).default,
+      check: (init_check(), __toCommonJS(check_exports)).default,
+      "check-check": (init_check_check(), __toCommonJS(check_check_exports)).default,
+      search: (init_search(), __toCommonJS(search_exports)).default,
+      refresh: (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default,
+      plus: (init_plus(), __toCommonJS(plus_exports)).default,
+      volume: (init_volume_2(), __toCommonJS(volume_2_exports)).default,
+      mute: (init_volume_x(), __toCommonJS(volume_x_exports)).default,
+      moon: (init_moon(), __toCommonJS(moon_exports)).default,
+      clock: (init_clock(), __toCommonJS(clock_exports)).default,
+      info: (init_info(), __toCommonJS(info_exports)).default,
+      success: (init_circle_check(), __toCommonJS(circle_check_exports)).default,
+      warning: (init_triangle_alert(), __toCommonJS(triangle_alert_exports)).default,
+      error: (init_circle_alert(), __toCommonJS(circle_alert_exports)).default,
+      reset: (init_rotate_ccw(), __toCommonJS(rotate_ccw_exports)).default,
+      play: (init_play(), __toCommonJS(play_exports)).default,
+      "message-square": (init_message_square(), __toCommonJS(message_square_exports)).default
+    }, { fallback: "info", tabIcon: true });
+    module2.exports = { ICONS: set.ICONS, Icon: set.Icon, tabIcon: set.tabIcon };
+  }
+});
+
 // packages/addons/message/client/ui/copy.cjs
 var require_copy = __commonJS({
   "packages/addons/message/client/ui/copy.cjs"(exports2, module2) {
@@ -1019,6 +1119,8 @@ var require_copy = __commonJS({
         saved: "\u5DF2\u4FDD\u5B58",
         resetAll: "\u5168\u90E8\u6062\u590D\u9ED8\u8BA4",
         resetOne: "\u6062\u590D\u9ED8\u8BA4",
+        resetPos: "\u6062\u590D\u9ED8\u8BA4\u4F4D\u7F6E",
+        resetPosHint: "\u6E05\u7A7A\u81EA\u5B9A\u4E49\u4F4D\u7F6E\uFF0C\u56DE\u5230\u300C\u60AC\u6D6E\u5165\u53E3\u4F4D\u7F6E\u300D\u9009\u5B9A\u7684\u89D2\uFF1B\u672A\u62D6\u62FD\u8FC7\u65F6\u4E0D\u53EF\u7528",
         preview: "\u8BD5\u542C",
         quietNote: "\u514D\u6253\u6270\u65F6\u95F4\u6BB5\u5185\u4E0D\u53D1\u58F0\uFF0C\u6D88\u606F\u7167\u5E38\u5165\u5E93\uFF1B\u300C\u514D\u6253\u6270\u4ECD\u54CD\u7684\u7EA7\u522B\u300D\u53EF\u4EE5\u653E\u884C\u91CD\u8981\u6D88\u606F",
         readDaysNote: "\u5DF2\u8BFB\u6D88\u606F\u8D85\u8FC7\u4FDD\u7559\u5929\u6570\u4F1A\u88AB\u6E05\u7406\uFF1B\u672A\u8BFB\u6D88\u606F\u6C38\u4E0D\u6309\u65F6\u95F4\u6E05\u7406",
@@ -1075,6 +1177,8 @@ var require_copy = __commonJS({
         saved: "Saved",
         resetAll: "Reset all",
         resetOne: "Reset",
+        resetPos: "Reset position",
+        resetPosHint: "Clears the custom position and returns to the corner chosen above; unavailable until dragged",
         preview: "Preview",
         quietNote: "Inside quiet hours nothing plays, but messages are still stored. Levels above can pass through.",
         readDaysNote: "Read messages older than the retention window are pruned; unread ones never expire by time.",
@@ -1087,10 +1191,261 @@ var require_copy = __commonJS({
   }
 });
 
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
+    ];
+    function Switch(props) {
+      var h = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h("span", { className: "wbctl-switch-text" }, text) : null
+      );
+    }
+    module2.exports = { Switch, styles: SWITCH_STYLES };
+  }
+});
+
+// packages/addons/lib/number-field.cjs
+var require_number_field = __commonJS({
+  "packages/addons/lib/number-field.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var NUM = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    var TEXT = {
+      zh: {
+        required: "\u8BF7\u586B\u5199\u6570\u5B57",
+        invalid: "\u8BF7\u8F93\u5165\u6570\u5B57",
+        integer: "\u9700\u8981\u662F\u6574\u6570",
+        min: "\u4E0D\u80FD\u5C0F\u4E8E {min}",
+        max: "\u4E0D\u80FD\u5927\u4E8E {max}",
+        range: "\u9700\u8981\u5728 {min}\u2013{max} \u4E4B\u95F4",
+        step: "\u9700\u8981\u662F {step} \u7684\u500D\u6570",
+        unit: "\u5355\u4F4D"
+      },
+      en: {
+        required: "Please enter a number",
+        invalid: "Please enter a number",
+        integer: "Must be a whole number",
+        min: "Must be at least {min}",
+        max: "Must be at most {max}",
+        range: "Must be between {min} and {max}",
+        step: "Must be a multiple of {step}",
+        unit: "unit"
+      }
+    };
+    function messages(lang) {
+      return lang === "en" ? TEXT.en : TEXT.zh;
+    }
+    function fill(text, vars) {
+      return String(text).replace(/\{(\w+)\}/g, function(m, key) {
+        return vars && vars[key] !== void 0 ? String(vars[key]) : m;
+      });
+    }
+    function validateNumber(raw, opts) {
+      var o = opts || {};
+      var M = messages(o.lang);
+      var text = raw === null || raw === void 0 ? "" : String(raw).trim();
+      if (text === "") {
+        return o.allowEmpty ? { ok: true, value: null, error: "" } : { ok: false, value: null, error: M.required };
+      }
+      if (!NUM.test(text)) return { ok: false, value: null, error: M.invalid };
+      var n = Number(text);
+      if (!isFinite(n)) return { ok: false, value: null, error: M.invalid };
+      if (o.integer && Math.round(n) !== n) return { ok: false, value: null, error: M.integer };
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      if (hasMin && hasMax && n >= o.min && n <= o.max) {
+      } else if (hasMin && hasMax) {
+        return { ok: false, value: null, error: fill(M.range, { min: o.min, max: o.max }) };
+      } else if (hasMin && n < o.min) {
+        return { ok: false, value: null, error: fill(M.min, { min: o.min }) };
+      } else if (hasMax && n > o.max) {
+        return { ok: false, value: null, error: fill(M.max, { max: o.max }) };
+      }
+      if (o.step && Number(o.step) > 0) {
+        var q = n / Number(o.step);
+        if (Math.abs(q - Math.round(q)) > 1e-9) {
+          return { ok: false, value: null, error: fill(M.step, { step: o.step }) };
+        }
+      }
+      return { ok: true, value: n, error: "" };
+    }
+    function rangeHint(opts, lang) {
+      var o = opts || {};
+      var M = messages(lang);
+      var en = lang === "en";
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      var parts = [];
+      if (hasMin && hasMax) parts.push(String(o.min) + "\u2013" + String(o.max));
+      else if (hasMin) parts.push((en ? "\u2265 " : "\u2265 ") + String(o.min));
+      else if (hasMax) parts.push((en ? "\u2264 " : "\u2264 ") + String(o.max));
+      if (o.integer) parts.push(en ? "whole numbers" : "\u6574\u6570");
+      else if (o.step && Number(o.step) > 0) parts.push((en ? "step " : "\u6B65\u957F ") + String(o.step));
+      return parts.join(en ? ", " : "\uFF0C");
+    }
+    function NumberField(props) {
+      var h = props.h || React.createElement;
+      var lang = props.lang;
+      var M = messages(lang);
+      var text = props.value === null || props.value === void 0 ? "" : String(props.value);
+      var draftS = React.useState(text);
+      var draft = draftS[0];
+      var setDraft = draftS[1];
+      var focusS = React.useState(false);
+      var focused = focusS[0];
+      var setFocused = focusS[1];
+      var errS = React.useState("");
+      var err = errS[0];
+      var setErr = errS[1];
+      var lastRef = React.useRef(text);
+      var skipBlurRef = React.useRef(false);
+      React.useEffect(
+        function() {
+          if (focused) return;
+          if (lastRef.current === text) return;
+          lastRef.current = text;
+          setDraft(text);
+          setErr("");
+        },
+        [text, focused]
+      );
+      function commit(raw) {
+        var r = validateNumber(raw, props);
+        if (!r.ok) {
+          setErr(r.error);
+          if (typeof props.onValidChange === "function") props.onValidChange(false, r.error);
+          return false;
+        }
+        setErr("");
+        if (typeof props.onValidChange === "function") props.onValidChange(true, "");
+        var cur = props.value === null || props.value === void 0 ? null : Number(props.value);
+        if (r.value !== cur) {
+          lastRef.current = r.value === null ? "" : String(r.value);
+          if (typeof props.onCommit === "function") props.onCommit(r.value);
+        }
+        return true;
+      }
+      var hint = props.hint !== void 0 ? props.hint : rangeHint(props, lang);
+      var shown = props.hint === false ? "" : hint;
+      return h(
+        "span",
+        { className: "wbctl-num" + (props.wide ? " is-wide" : "") + (props.className ? " " + props.className : "") },
+        h(
+          "span",
+          { className: "wbctl-num-box" },
+          h("input", {
+            className: "wbctl-num-input" + (err ? " is-invalid" : ""),
+            type: "text",
+            inputMode: props.integer || Number(props.step) === 1 ? "numeric" : "decimal",
+            value: draft,
+            disabled: !!props.disabled,
+            placeholder: props.placeholder,
+            title: props.title,
+            "aria-label": props.ariaLabel,
+            "aria-invalid": err ? "true" : void 0,
+            onFocus: function() {
+              setFocused(true);
+            },
+            onChange: function(e) {
+              setDraft(e.target.value);
+              if (err) setErr("");
+              if (typeof props.onDraft === "function") props.onDraft(e.target.value);
+            },
+            onBlur: function() {
+              setFocused(false);
+              if (skipBlurRef.current) {
+                skipBlurRef.current = false;
+                return;
+              }
+              commit(draft);
+            },
+            onKeyDown: function(e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.target && e.target.blur) e.target.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                skipBlurRef.current = true;
+                setDraft(text);
+                setErr("");
+                if (e.target && e.target.blur) e.target.blur();
+              }
+            }
+          }),
+          props.unit ? h("span", { className: "wbctl-num-unit" }, props.unit) : null
+        ),
+        err ? h("span", { className: "wbctl-num-err", role: "alert" }, err) : shown ? h("span", { className: "wbctl-num-hint" }, shown) : null
+      );
+    }
+    var NUMBER_STYLES = [
+      ".wbctl-num{display:inline-flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}",
+      ".wbctl-num.is-wide{display:flex;width:100%}",
+      ".wbctl-num-box{display:inline-flex;align-items:center;gap:6px;min-width:0}",
+      ".wbctl-num-input{box-sizing:border-box;width:96px;min-width:0;padding:6px 9px;border:1px solid var(--wb-line,rgba(127,127,127,.35));border-radius:6px;background:var(--wb-surface,var(--wb-card,transparent));color:inherit;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,outline-color .14s ease}",
+      ".wbctl-num-input:hover:not(:disabled){border-color:var(--wb-border,var(--wb-line))}",
+      ".wbctl-num-input:focus{outline:2px solid color-mix(in oklab,var(--wb-accent,#2563eb) 55%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbctl-num-input.is-invalid{border-color:var(--wb-danger,#dc2626)}",
+      ".wbctl-num-input.is-invalid:focus{outline-color:color-mix(in oklab,var(--wb-danger,#dc2626) 55%,transparent)}",
+      ".wbctl-num-input:disabled{opacity:.5;cursor:not-allowed}",
+      ".wbctl-num-unit{color:var(--wb-muted,inherit);font-size:12px;white-space:nowrap}",
+      ".wbctl-num-hint{color:var(--wb-muted,inherit);font-size:11px;line-height:1.4}",
+      ".wbctl-num-err{color:var(--wb-danger,#dc2626);font-size:11px;line-height:1.4}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-num-input{transition:none}}"
+    ];
+    module2.exports = {
+      NumberField,
+      validateNumber,
+      rangeHint,
+      messages,
+      styles: NUMBER_STYLES
+    };
+  }
+});
+
 // packages/addons/message/client/ui/styles.cjs
 var require_styles = __commonJS({
   "packages/addons/message/client/ui/styles.cjs"(exports2, module2) {
     "use strict";
+    var SW = require_switch();
+    var NF = require_number_field();
     module2.exports = [
       ".wbm-root{--wbm-line:var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent));--wbm-surface:var(--dsw-alias-bg-layer-1,color-mix(in oklab,currentColor 4%,transparent));--wbm-accent:var(--dsw-alias-brand-primary,#11a89b);display:flex;flex-direction:column;gap:12px;min-height:0;color:inherit;font-size:13px}",
       ".wbm-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}",
@@ -1148,10 +1503,9 @@ var require_styles = __commonJS({
       ".wbm-range{width:130px}",
       ".wbm-note{font-size:11.5px;opacity:.62;line-height:1.5}",
       ".wbm-time{width:86px;border:1px solid var(--wbm-line);border-radius:7px;background:transparent;color:inherit;padding:4px 6px;font-size:12px}",
-      ".wbm-num{width:74px;border:1px solid var(--wbm-line);border-radius:7px;background:transparent;color:inherit;padding:4px 6px;font-size:12px}",
       ".wbm-multis{display:flex;gap:6px;flex-wrap:wrap}",
       "@media (max-width:760px){.wbm-toolbar{gap:6px}.wbm-input{max-width:none}.wbm-bar{grid-template-columns:70px 1fr 38px}}"
-    ].join("");
+    ].concat(SW.styles).concat(NF.styles).join("");
   }
 });
 
@@ -1167,6 +1521,7 @@ var require_notifier = __commonJS({
     var state = {
       running: false,
       source: null,
+      listeners: /* @__PURE__ */ new Set(),
       cfg: { at: 0, values: null },
       audio: null,
       lastKey: "",
@@ -1285,8 +1640,32 @@ var require_notifier = __commonJS({
       if (isQuiet(values, /* @__PURE__ */ new Date()) && !passQuiet(values, level)) return false;
       return playTone(level, values["sound.volume"]);
     }
+    function subscribe(fn) {
+      if (typeof fn !== "function") return function() {
+      };
+      state.listeners.add(fn);
+      return function() {
+        state.listeners.delete(fn);
+      };
+    }
+    function broadcast(event, data) {
+      state.listeners.forEach(function(fn) {
+        try {
+          fn(event, data);
+        } catch (e) {
+        }
+      });
+    }
     function handleEvent(payload) {
-      if (!payload || payload.domainId !== DOMAIN || payload.event !== "message.created") return;
+      if (!payload || payload.domainId !== DOMAIN) return;
+      if (payload.event === "message.created") {
+        var created = payload.data && payload.data.message;
+        if (created && created.id) broadcast("message.created", { message: created });
+      } else if (payload.event === "message.read") {
+        broadcast("message.read", payload.data || {});
+        return;
+      }
+      if (payload.event !== "message.created") return;
       var message = payload.data && payload.data.message;
       if (!message || !message.id) return;
       var now = Date.now();
@@ -1326,9 +1705,18 @@ var require_notifier = __commonJS({
         return playTone(lv, values["sound.volume"] === void 0 ? 0.4 : values["sound.volume"]);
       });
     }
-    module2.exports = { start, stop, preview, refreshConfig: function() {
-      return loadConfig(true);
-    } };
+    module2.exports = {
+      start,
+      stop,
+      subscribe,
+      preview,
+      refreshConfig: function() {
+        return loadConfig(true).then(function(values) {
+          broadcast("config", { values: values || {} });
+          return values;
+        });
+      }
+    };
   }
 });
 
@@ -1339,6 +1727,8 @@ var require_config = __commonJS({
     var React = require("react");
     var h = React.createElement;
     var notifier = require_notifier();
+    var SW = require_switch();
+    var NF = require_number_field();
     var DOMAIN = "message";
     function unwrap(r) {
       return r && r.result !== void 0 ? r.result : r;
@@ -1463,15 +1853,40 @@ var require_config = __commonJS({
           toastOnce(String(e && e.message || e));
         });
       }
+      function resetPositionRow() {
+        var custom = values()["float.customPos"];
+        return h(
+          "div",
+          { className: "wbm-field", key: "float.resetPos" },
+          h(
+            "div",
+            { className: "wbm-field-main" },
+            h("span", { className: "wbm-field-label" }, t.resetPos),
+            h("span", { className: "wbm-field-hint" }, t.resetPosHint)
+          ),
+          h(
+            "div",
+            { className: "wbm-field-ctl" },
+            h(
+              "button",
+              { type: "button", className: "wbm-btn", disabled: !custom, onClick: function() {
+                save("float.customPos", "");
+              } },
+              props.Icon ? h(props.Icon, { name: "reset", size: 12 }) : null,
+              h("span", null, t.resetPos)
+            )
+          )
+        );
+      }
       function control(item) {
         var value = values()[item.id];
         if (item.type === "bool") {
-          return h("input", {
-            type: "checkbox",
-            "aria-label": labelOf(item, lang),
+          return h(SW.Switch, {
+            h,
             checked: value === true,
-            onChange: function(e) {
-              save(item.id, e.target.checked);
+            label: labelOf(item, lang),
+            onChange: function(next) {
+              save(item.id, next);
             }
           });
         }
@@ -1496,15 +1911,16 @@ var require_config = __commonJS({
           );
         }
         if (item.type === "int") {
-          return h("input", {
-            className: "wbm-num",
-            type: "number",
+          return h(NF.NumberField, {
+            h,
+            lang,
+            value: value === void 0 ? "" : value,
             min: item.min,
             max: item.max,
-            value: value === void 0 ? "" : value,
-            "aria-label": labelOf(item, lang),
-            onChange: function(e) {
-              save(item.id, Number(e.target.value));
+            integer: true,
+            ariaLabel: labelOf(item, lang),
+            onCommit: function(next) {
+              save(item.id, next);
             }
           });
         }
@@ -1631,7 +2047,8 @@ var require_config = __commonJS({
                   ) : null
                 )
               );
-            })
+            }),
+            group.id === "float" ? resetPositionRow() : null
           );
         }),
         h("div", { className: "wbm-note" }, t.quietNote),
@@ -1647,6 +2064,7 @@ var require_config = __commonJS({
 var require_inbox = __commonJS({
   "packages/addons/message/client/views/inbox.cjs"(exports2, module2) {
     "use strict";
+    var SW = require_switch();
     module2.exports = function(deps) {
       var React = deps.React;
       var h = React.createElement;
@@ -1815,15 +2233,15 @@ var require_inbox = __commonJS({
           h(
             "div",
             { className: "wbm-toolbar" },
-            h(
-              "label",
-              { className: "wbm-check" },
-              h("input", { type: "checkbox", checked: unreadOnly, onChange: function(e) {
-                setUnreadOnly(e.target.checked);
+            h(SW.Switch, {
+              h,
+              checked: unreadOnly,
+              label: t.unreadOnly,
+              onChange: function(next) {
+                setUnreadOnly(next);
                 setPage(1);
-              } }),
-              h("span", null, t.unreadOnly)
-            ),
+              }
+            }),
             h(
               "select",
               { className: "wbm-select", value: level, "aria-label": t.levelAll, onChange: function(e) {
@@ -2218,13 +2636,6 @@ var require_data_style = __commonJS({
         "." + P + "-search input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
         "." + P + "-select{border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;outline:none}",
         "." + P + "-select:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
-        "." + P + "-switch{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--cfg-muted);user-select:none;padding:4px 2px}",
-        "." + P + "-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-        "." + P + "-track{position:relative;width:34px;height:20px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-        "." + P + "-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-        "." + P + "-switch input:checked+." + P + "-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-        "." + P + "-switch input:checked+." + P + "-track::after{transform:translateX(14px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-        "." + P + "-switch input:focus-visible+." + P + "-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
         "." + P + "-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cfg-line);background:transparent;color:var(--cfg-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}",
         "." + P + "-btn:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
         "." + P + "-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
@@ -2253,8 +2664,8 @@ var require_data_style = __commonJS({
         "." + P + "-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;font-size:11.5px;color:var(--cfg-muted)}",
         "." + P + "-grow{flex:1}",
         "." + P + "-pageinfo{font-variant-numeric:tabular-nums}",
-        "." + P + "-jump{width:56px;border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:7px;padding:4px 7px;font:inherit;font-size:11.5px;text-align:right;outline:none}",
-        "." + P + "-jump:focus{border-color:var(--dsw-alias-brand-primary,currentColor)}",
+        "." + P + "-jump .wbctl-num-input{width:56px;padding:4px 7px;font-size:11.5px;text-align:right}",
+        "." + P + "-jump .wbctl-num-hint{display:none}",
         "." + P + "-empty{border:1px dashed var(--cfg-line);border-radius:11px;padding:44px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
         "." + P + "-err{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:9px 12px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12px;line-height:1.5}",
         "." + P + "-skwrap{display:flex;flex-direction:column;gap:1px;padding:2px}",
@@ -2292,7 +2703,7 @@ var require_data_style = __commonJS({
         "." + P + "-images img{width:36px;height:36px;object-fit:cover;border-radius:5px}",
         "." + P + "-gallery{display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}",
         "." + P + "-gallery img{width:100%;height:auto;object-fit:contain;border-radius:8px}"
-      ].join("\n");
+      ].concat(require_switch().styles).concat(require_number_field().styles).join("\n");
       if (DOMAIN === "storage") {
         var buttons = "." + P + " :is(button)";
         CSS += buttons + "{border:none;background:var(--wb-btn-bg);min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm)}" + buttons + ":enabled:hover{background:var(--wb-btn-hover-bg)}" + buttons + ":enabled:active{background:var(--wb-btn-active-bg)}" + buttons + ":disabled{background:var(--wb-btn-bg);color:var(--cfg-muted)}" + buttons + ":focus-visible{outline:var(--wb-btn-focus);outline-offset:var(--wb-btn-focus-offset)}." + P + "-fcell:has(button) input{padding-right:34px}";
@@ -2320,8 +2731,10 @@ var require_data_view = __commonJS({
   "packages/addons/lib/data-view.cjs"(exports2, module2) {
     "use strict";
     var React = require("react");
+    var NF = require_number_field();
     var h = React.createElement;
     var COPY = require_data_copy();
+    var SW = require_switch();
     module2.exports = function createDataView(options) {
       var DOMAIN = options.domain;
       function icon(name) {
@@ -2875,17 +3288,18 @@ var require_data_view = __commonJS({
             h("button", { type: "button", className: P + "-btn", disabled: !data || page >= pages, onClick: function() {
               setPage(Math.min(pages, page + 1));
             } }, t.next + " \u203A"),
-            h("input", {
+            h(NF.NumberField, {
+              h,
+              lang,
               className: P + "-jump",
-              type: "number",
+              value: page,
               min: 1,
               max: pages,
-              "aria-label": t.jump,
-              onKeyDown: function(e) {
-                if (e.key === "Enter") {
-                  var n = Math.floor(Number(e.target.value));
-                  if (n >= 1) setPage(Math.min(pages, n));
-                }
+              integer: true,
+              ariaLabel: t.jump,
+              hint: false,
+              onCommit: function(next) {
+                if (next !== null) setPage(next);
               }
             }),
             data && data.queryMs !== void 0 ? h("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
@@ -2982,25 +3396,23 @@ var require_data_view = __commonJS({
                     }
                   })
                 ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: includeDeleted, onChange: function(e) {
-                    setIncludeDeleted(e.target.checked);
+                h(SW.Switch, {
+                  h,
+                  checked: includeDeleted,
+                  label: t.includeDeleted,
+                  onChange: function(next) {
+                    setIncludeDeleted(next);
                     setPage(1);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.includeDeleted)
-                ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: showSystem, onChange: function(e) {
-                    setShowSystem(e.target.checked);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.showSystem)
-                ),
+                  }
+                }),
+                h(SW.Switch, {
+                  h,
+                  checked: showSystem,
+                  label: t.showSystem,
+                  onChange: function(next) {
+                    setShowSystem(next);
+                  }
+                }),
                 h("span", { className: P + "-grow" }),
                 h(
                   "label",
@@ -3153,16 +3565,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -3215,15 +3624,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -3237,6 +3651,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -3269,15 +3685,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -3291,6 +3714,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -3434,6 +3859,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React.useState("");
@@ -3489,38 +3916,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -3555,6 +3997,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -3570,33 +4013,45 @@ var require_action_schema_view = __commonJS({
             h("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h("span", { className: P + "-track", "aria-hidden": true }),
-            h("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h("span", null, originText[origin])
+              );
+            }),
+            busy ? h("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -3617,7 +4072,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h(
@@ -3740,6 +4195,21 @@ var require_action_schema_view = __commonJS({
                   return h("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -3762,31 +4232,820 @@ var require_actions = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/message-square.mjs
-var message_square_exports = {};
-__export(message_square_exports, {
-  __iconData: () => __iconData25,
-  default: () => MessageSquare
-});
-var __iconData25, MessageSquare;
-var init_message_square = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/message-square.mjs"() {
-    init_createLucideIcon();
-    __iconData25 = {
-      name: "message-square",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z",
-            key: "18887p"
-          }
-        ]
-      ]
+// packages/addons/message/client/float/style.cjs
+var require_style = __commonJS({
+  "packages/addons/message/client/float/style.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function floatStyles() {
+      return [
+        ".wbm-float-root{position:fixed;left:0;top:0;width:0;height:0;z-index:860;pointer-events:none;-webkit-app-region:no-drag}",
+        ".wbm-float-root .wbm-float-btn{position:absolute;left:0;top:0;right:auto;bottom:auto;display:inline-flex;align-items:center;justify-content:center;",
+        "box-sizing:border-box;width:46px;height:46px;padding:0;flex:0 0 auto;border-radius:50%;",
+        "--wbm-float-bg:var(--dsw-alias-button-floating-fill,var(--wb-card,#2c2c2e));",
+        "--wbm-float-ink:var(--dsw-alias-label-primary,var(--wb-muted,currentColor));",
+        "--wbm-float-line:var(--dsw-alias-border-l2,var(--wb-border,rgba(255,255,255,.14)));",
+        "--wbm-float-danger:var(--dsw-alias-state-error-primary,var(--wb-danger,#dc2626));",
+        "border:1px solid var(--wbm-float-line);background:var(--wbm-float-bg);color:var(--wbm-float-ink);",
+        "cursor:grab;pointer-events:auto;-webkit-app-region:no-drag;overflow:visible;",
+        // 触屏拖动时不要被页面滚动抢走指针，文字也不要被选中。
+        "touch-action:none;-webkit-user-select:none;user-select:none;",
+        "box-shadow:0 8px 22px rgba(0,0,0,.24),0 1px 3px rgba(0,0,0,.18);",
+        "transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease}",
+        // 首次定位完成后才允许 left/top 过渡（挂载瞬间不要从左上角滑过来）。
+        ".wbm-float-root .wbm-float-btn[data-ready]{transition:left .18s ease,top .18s ease,transform .18s ease,",
+        "box-shadow .18s ease,background .18s ease,border-color .18s ease}",
+        // 拖拽中必须跟手：关掉过渡，hover 的位移也一并取消。
+        ".wbm-float-root .wbm-float-btn[data-dragging=1]{cursor:grabbing;transition:none}",
+        ".wbm-float-root .wbm-float-btn[data-dragging=1]:hover{transform:none;",
+        "box-shadow:0 8px 22px rgba(0,0,0,.24),0 1px 3px rgba(0,0,0,.18)}",
+        ".wbm-float-root .wbm-float-btn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(0,0,0,.28),0 1px 3px rgba(0,0,0,.2);",
+        "background:var(--dsw-alias-button-floating-hover,var(--wbm-float-bg))}",
+        ".wbm-float-root .wbm-float-btn:active{transform:translateY(0)}",
+        ".wbm-float-root .wbm-float-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,var(--wb-accent,#2563eb));outline-offset:2px}",
+        ".wbm-float-root .wbm-float-btn svg{display:block;width:21px;height:21px;flex:0 0 auto}",
+        ".wbm-float-root .wbm-float-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;",
+        "box-sizing:border-box;border-radius:999px;display:none;align-items:center;justify-content:center;",
+        "background:var(--wbm-float-danger,#dc2626);color:var(--dsw-alias-label-on-color,#fff);",
+        "font-size:11px;font-weight:650;line-height:1;font-variant-numeric:tabular-nums;",
+        "box-shadow:0 0 0 2px var(--wbm-float-bg)}",
+        ".wbm-float-root .wbm-float-btn[data-unread] .wbm-float-badge{display:inline-flex}",
+        // 半隐藏时角标会有一半在视口外，直接收起角标；来新消息会先临时展开再显示。
+        ".wbm-float-root .wbm-float-btn[data-collapsed=1] .wbm-float-badge{display:none}",
+        ".wbm-float-root .wbm-float-btn[data-pulse=1]{animation:wbm-float-bounce .6s cubic-bezier(.34,1.56,.64,1)}",
+        "@keyframes wbm-float-bounce{0%{transform:translateY(0)}35%{transform:translateY(-7px)}70%{transform:translateY(0)}100%{transform:translateY(0)}}",
+        "@media (max-width:640px){.wbm-float-root .wbm-float-btn{width:40px;height:40px}",
+        ".wbm-float-root .wbm-float-btn svg{width:18px;height:18px}}",
+        // 降低动态偏好：不做位移，只让描边闪一次颜色。
+        "@media (prefers-reduced-motion: reduce){.wbm-float-root .wbm-float-btn[data-pulse=1]{animation:none;",
+        "border-color:var(--dsw-alias-brand-primary,var(--wb-accent,#2563eb))}",
+        ".wbm-float-root .wbm-float-btn{transition:none}}"
+      ];
     };
-    __iconData25.node;
-    MessageSquare = createLucideIcon(__iconData25);
+  }
+});
+
+// packages/addons/message/client/float/button.cjs
+var require_button = __commonJS({
+  "packages/addons/message/client/float/button.cjs"(exports2, module2) {
+    "use strict";
+    var ICON_PATH = "M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z";
+    var PULSE_MS = 600;
+    function label(lang, count) {
+      var n = count > 0 ? count : 0;
+      if (lang === "en") return n > 0 ? "Messages, " + n + " unread" : "Messages, no unread";
+      return n > 0 ? "\u6D88\u606F\uFF0C" + n + " \u6761\u672A\u8BFB" : "\u6D88\u606F\uFF0C\u65E0\u672A\u8BFB";
+    }
+    function text(count) {
+      return count > 99 ? "99+" : String(count);
+    }
+    function createButton(options) {
+      var doc = options.doc || document;
+      var lang = options.lang === "en" ? "en" : "zh";
+      var onActivate = typeof options.onActivate === "function" ? options.onActivate : function() {
+      };
+      var onClick = typeof options.onClick === "function" ? options.onClick : null;
+      var count = 0;
+      var pulseTimer = null;
+      var btn = doc.createElement("button");
+      btn.type = "button";
+      btn.className = "wbm-float-btn";
+      btn.style.borderRadius = "50%";
+      btn.style.pointerEvents = "auto";
+      btn.setAttribute("data-pos", "bottom-right");
+      btn.setAttribute("aria-label", label(lang, 0));
+      btn.setAttribute("title", label(lang, 0));
+      var svg = doc.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", "none");
+      svg.setAttribute("stroke", "currentColor");
+      svg.setAttribute("stroke-width", "1.7");
+      svg.setAttribute("stroke-linecap", "round");
+      svg.setAttribute("stroke-linejoin", "round");
+      svg.setAttribute("aria-hidden", "true");
+      var path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", ICON_PATH);
+      svg.appendChild(path);
+      btn.appendChild(svg);
+      var badge = doc.createElement("span");
+      badge.className = "wbm-float-badge";
+      badge.setAttribute("aria-hidden", "true");
+      btn.appendChild(badge);
+      function announce(next) {
+        var text_ = label(lang, next);
+        btn.setAttribute("aria-label", text_);
+        btn.setAttribute("title", text_);
+      }
+      function setCount(next) {
+        var n = Number(next);
+        count = isFinite(n) && n > 0 ? Math.floor(n) : 0;
+        badge.textContent = text(count);
+        if (count > 0) btn.setAttribute("data-unread", "1");
+        else btn.removeAttribute("data-unread");
+        announce(count);
+        return count;
+      }
+      function pulse() {
+        if (!btn || typeof btn.setAttribute !== "function") return;
+        if (btn.getAttribute("data-pulse") === "1") return;
+        btn.setAttribute("data-pulse", "1");
+        if (typeof setTimeout !== "function") return;
+        pulseTimer = setTimeout(function() {
+          pulseTimer = null;
+          btn.removeAttribute("data-pulse");
+        }, PULSE_MS);
+      }
+      function setPosition(pos) {
+        btn.setAttribute("data-pos", pos === "bottom-left" ? "bottom-left" : "bottom-right");
+      }
+      function setLang(next) {
+        lang = next === "en" ? "en" : "zh";
+        announce(count);
+      }
+      function setPoint(x, y) {
+        btn.style.left = Math.round(x) + "px";
+        btn.style.top = Math.round(y) + "px";
+      }
+      function setCollapsed(on) {
+        if (on) btn.setAttribute("data-collapsed", "1");
+        else btn.removeAttribute("data-collapsed");
+      }
+      function setDragging(on) {
+        if (on) btn.setAttribute("data-dragging", "1");
+        else btn.removeAttribute("data-dragging");
+      }
+      function setReady() {
+        btn.setAttribute("data-ready", "1");
+      }
+      btn.addEventListener("click", function(event) {
+        if (event && typeof event.preventDefault === "function") event.preventDefault();
+        if (onClick) {
+          onClick(event);
+          return;
+        }
+        onActivate();
+      });
+      function destroy() {
+        if (pulseTimer && typeof clearTimeout === "function") clearTimeout(pulseTimer);
+        pulseTimer = null;
+        if (btn.parentNode) btn.parentNode.removeChild(btn);
+      }
+      return {
+        el: btn,
+        setCount,
+        pulse,
+        setPosition,
+        setLang,
+        setPoint,
+        setCollapsed,
+        setDragging,
+        setReady,
+        destroy
+      };
+    }
+    module2.exports = { createButton, ICON_PATH, PULSE_MS };
+  }
+});
+
+// packages/addons/message/client/float/geometry.cjs
+var require_geometry = __commonJS({
+  "packages/addons/message/client/float/geometry.cjs"(exports2, module2) {
+    "use strict";
+    var MIN_VISIBLE = 24;
+    var EDGE_ZONE = 48;
+    var EDGE_INSET = 20;
+    var EDGE_INSET_NARROW = 12;
+    var NARROW_WIDTH = 640;
+    var SIZE = 46;
+    var SIZE_NARROW = 40;
+    var FALLBACK_WIDTH = 1280;
+    var FALLBACK_HEIGHT = 800;
+    function clamp(value, min, max) {
+      if (!isFinite(value)) return min;
+      if (max < min) return min;
+      return Math.min(Math.max(value, min), max);
+    }
+    function viewport(doc, win) {
+      var el = doc && doc.documentElement;
+      var width = Number(el && el.clientWidth) || Number(win && win.innerWidth) || FALLBACK_WIDTH;
+      var height = Number(el && el.clientHeight) || Number(win && win.innerHeight) || FALLBACK_HEIGHT;
+      return { width: width > 0 ? width : FALLBACK_WIDTH, height: height > 0 ? height : FALLBACK_HEIGHT };
+    }
+    function sizeOf(el, viewportWidth) {
+      var rect = null;
+      if (el && typeof el.getBoundingClientRect === "function") {
+        try {
+          rect = el.getBoundingClientRect();
+        } catch (e) {
+          rect = null;
+        }
+      }
+      var size = rect && Number(rect.width) > 0 ? Number(rect.width) : 0;
+      if (!size) size = viewportWidth <= NARROW_WIDTH ? SIZE_NARROW : SIZE;
+      return size;
+    }
+    function marginOf(viewportWidth) {
+      return viewportWidth <= NARROW_WIDTH ? EDGE_INSET_NARROW : EDGE_INSET;
+    }
+    function cornerPoint(corner, viewportWidth, viewportHeight, size, lift, margin) {
+      var inset = margin === void 0 ? marginOf(viewportWidth) : margin;
+      var x = corner === "bottom-left" ? inset : viewportWidth - inset - size;
+      var y = viewportHeight - inset - size - (Number(lift) || 0);
+      return { x: clamp(x, 0, Math.max(0, viewportWidth - size)), y: clamp(y, 0, Math.max(0, viewportHeight - size)) };
+    }
+    function parsePos(text) {
+      if (typeof text !== "string") return null;
+      var raw = text.trim();
+      if (!raw) return null;
+      var parts = raw.split(",");
+      if (parts.length !== 2) return null;
+      var rx = Number(parts[0]);
+      var ry = Number(parts[1]);
+      if (!isFinite(rx) || !isFinite(ry)) return null;
+      if (rx < 0 || rx > 1 || ry < 0 || ry > 1) return null;
+      return { rx, ry };
+    }
+    function formatPos(rx, ry) {
+      return Number(rx).toFixed(4) + "," + Number(ry).toFixed(4);
+    }
+    function pointOf(rx, ry, viewportWidth, viewportHeight, size) {
+      return {
+        x: clamp(Number(rx) * viewportWidth - size / 2, 0, Math.max(0, viewportWidth - size)),
+        y: clamp(Number(ry) * viewportHeight - size / 2, 0, Math.max(0, viewportHeight - size))
+      };
+    }
+    function ratioOf(x, y, viewportWidth, viewportHeight, size) {
+      var p = clampPoint(x, y, size, viewportWidth, viewportHeight);
+      return {
+        rx: clamp((p.x + size / 2) / viewportWidth, 0, 1),
+        ry: clamp((p.y + size / 2) / viewportHeight, 0, 1)
+      };
+    }
+    function clampPoint(x, y, size, viewportWidth, viewportHeight) {
+      return {
+        x: clamp(x, 0, Math.max(0, viewportWidth - size)),
+        y: clamp(y, 0, Math.max(0, viewportHeight - size))
+      };
+    }
+    function gaps(left, size, viewportWidth) {
+      return { left, right: viewportWidth - left - size };
+    }
+    function nearEdge(left, size, viewportWidth) {
+      var g = gaps(left, size, viewportWidth);
+      return g.left <= EDGE_ZONE || g.right <= EDGE_ZONE;
+    }
+    function sideOf(left, size, viewportWidth) {
+      var g = gaps(left, size, viewportWidth);
+      return g.left <= g.right ? "left" : "right";
+    }
+    function collapsedPoint(side, size, viewportWidth, y) {
+      return {
+        x: side === "left" ? -size / 2 : viewportWidth - size / 2,
+        y
+      };
+    }
+    module2.exports = {
+      MIN_VISIBLE,
+      EDGE_ZONE,
+      NARROW_WIDTH,
+      SIZE,
+      SIZE_NARROW,
+      clamp,
+      viewport,
+      sizeOf,
+      marginOf,
+      cornerPoint,
+      parsePos,
+      formatPos,
+      pointOf,
+      ratioOf,
+      clampPoint,
+      nearEdge,
+      sideOf,
+      collapsedPoint
+    };
+  }
+});
+
+// packages/addons/message/client/float/mount.cjs
+var require_mount = __commonJS({
+  "packages/addons/message/client/float/mount.cjs"(exports2, module2) {
+    "use strict";
+    var styles = require_style();
+    var buttons = require_button();
+    var geo = require_geometry();
+    var DOMAIN = "wb-addon-message";
+    var BASE = "/workbench/api";
+    var STYLE_ID = "wb-message-float-style";
+    var ADDON_ID = "wb-addon-message";
+    var INBOX_VIEW = "inbox";
+    var HOLD_MS = 2e3;
+    var DRAG_THRESHOLD = 5;
+    var JUST_DRAGGED_MS = 120;
+    var POS_EPSILON = 1e-3;
+    function readLang(doc) {
+      var attr = doc && doc.documentElement && doc.documentElement.getAttribute("lang");
+      return attr && attr.toLowerCase().indexOf("en") === 0 ? "en" : "zh";
+    }
+    function injectStyles(doc) {
+      if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
+      var style = doc.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = styles().join("");
+      doc.head.appendChild(style);
+    }
+    function makeCall(fetchImpl) {
+      return function call(action, args) {
+        return fetchImpl(BASE + "/domains/" + DOMAIN + "/actions/" + action, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(args || {})
+        }).then(function(res) {
+          return res.json();
+        }).then(function(body) {
+          return body && body.result !== void 0 ? body.result : body;
+        });
+      };
+    }
+    function createMount(options) {
+      var opts = options || {};
+      var doc = opts.doc || (typeof document !== "undefined" ? document : null);
+      var win = opts.win || (typeof window !== "undefined" ? window : null);
+      var host = opts.host || win && win.__WB_HOST__ || null;
+      var notifier = opts.notifier || null;
+      var fetchImpl = opts.fetchImpl || (win && win.fetch ? win.fetch.bind(win) : null);
+      var call = fetchImpl ? makeCall(fetchImpl) : null;
+      var state = {
+        mounted: false,
+        root: null,
+        btn: null,
+        unsubscribe: null,
+        seen: /* @__PURE__ */ new Set(),
+        count: 0,
+        enabled: true,
+        corner: "bottom-right",
+        idleSeconds: 3,
+        edgeSnap: true,
+        customText: "",
+        hasCustom: false,
+        rx: 0.5,
+        ry: 0.5,
+        lift: 0,
+        size: geo.SIZE,
+        collapsed: false,
+        side: "right",
+        x: 0,
+        y: 0,
+        hovered: false,
+        focused: false,
+        dragging: false,
+        pressed: false,
+        pressX: 0,
+        pressY: 0,
+        startX: 0,
+        startY: 0,
+        expandedByPress: false,
+        justDraggedUntil: 0,
+        holdUntil: 0,
+        idleTimer: null,
+        onVisible: null,
+        onResize: null,
+        onWindowUp: null
+      };
+      function now() {
+        return Date.now ? Date.now() : (/* @__PURE__ */ new Date()).getTime();
+      }
+      function later(fn, ms) {
+        var setter = win && typeof win.setTimeout === "function" ? win.setTimeout.bind(win) : setTimeout;
+        var timer = setter(fn, Math.max(0, ms || 0));
+        if (timer && typeof timer.unref === "function") timer.unref();
+        return timer;
+      }
+      function cancel(timer) {
+        if (timer === null || timer === void 0) return;
+        var clearer = win && typeof win.clearTimeout === "function" ? win.clearTimeout.bind(win) : clearTimeout;
+        clearer(timer);
+      }
+      function disarm() {
+        cancel(state.idleTimer);
+        state.idleTimer = null;
+      }
+      function hostOverlay() {
+        return doc && doc.querySelector ? doc.querySelector("[data-shell-overlay]") : null;
+      }
+      function metrics() {
+        var vp = geo.viewport(doc, win);
+        var size = geo.sizeOf(state.btn && state.btn.el, vp.width);
+        var origin = { x: 0, y: 0 };
+        if (state.root && typeof state.root.getBoundingClientRect === "function") {
+          var rect = state.root.getBoundingClientRect();
+          origin.x = Number(rect && rect.left) || 0;
+          origin.y = Number(rect && rect.top) || 0;
+        }
+        return { width: vp.width, height: vp.height, size, origin };
+      }
+      function liftAboveComposer() {
+        if (!state.btn) return;
+        state.lift = 0;
+        if (!doc || typeof doc.querySelector !== "function") {
+          state.btn.el.removeAttribute("data-lift");
+          return;
+        }
+        var composer = doc.querySelector("[data-shell-composer], .dsh-composer, [contenteditable=true], .wb-composer");
+        if (!composer || typeof composer.getBoundingClientRect !== "function") {
+          state.btn.el.removeAttribute("data-lift");
+          return;
+        }
+        var rect = composer.getBoundingClientRect();
+        var height = rect && rect.height > 0 ? rect.height : 0;
+        if (!height) {
+          state.btn.el.removeAttribute("data-lift");
+          return;
+        }
+        var lift = Math.min(Math.max(Math.round(height + 12), 48), 140);
+        state.lift = lift;
+        state.btn.el.setAttribute("data-lift", "1");
+        state.btn.el.style.setProperty("--wbm-float-lift", lift + "px");
+      }
+      function place() {
+        if (!state.root || !doc) return;
+        var target = hostOverlay() || doc.body;
+        if (target && state.root.parentNode !== target) target.appendChild(state.root);
+      }
+      function basePoint(m) {
+        if (state.hasCustom) return geo.pointOf(state.rx, state.ry, m.width, m.height, m.size);
+        return geo.cornerPoint(state.corner, m.width, m.height, m.size, state.lift, geo.marginOf(m.width));
+      }
+      function paint(point, m) {
+        state.x = point.x;
+        state.y = point.y;
+        state.size = m.size;
+        if (!state.btn) return;
+        state.btn.setPoint(point.x - m.origin.x, point.y - m.origin.y);
+      }
+      function render() {
+        if (!state.btn) return;
+        var m = metrics();
+        if (state.collapsed) {
+          var base = basePoint(m);
+          var top = geo.clamp(base.y, 0, Math.max(0, m.height - m.size));
+          paint(geo.collapsedPoint(state.side, m.size, m.width, top), m);
+        } else {
+          paint(basePoint(m), m);
+        }
+        state.btn.setCollapsed(state.collapsed);
+        if (!state.dragging) state.btn.setReady();
+      }
+      function expand() {
+        if (!state.collapsed) return;
+        state.collapsed = false;
+        render();
+      }
+      function collapse() {
+        if (!state.enabled || state.collapsed || !state.edgeSnap || state.idleSeconds <= 0) return;
+        if (state.hovered || state.focused || state.dragging || state.pressed) return;
+        var m = metrics();
+        var base = basePoint(m);
+        if (!geo.nearEdge(base.x, m.size, m.width)) return;
+        state.side = geo.sideOf(base.x, m.size, m.width);
+        state.collapsed = true;
+        render();
+        disarm();
+      }
+      function arm(ms) {
+        disarm();
+        if (!state.enabled || !state.edgeSnap || state.idleSeconds <= 0) return;
+        var delay = ms === void 0 ? state.idleSeconds * 1e3 : ms;
+        state.idleTimer = later(function() {
+          state.idleTimer = null;
+          tick();
+        }, delay);
+      }
+      function tick() {
+        if (!state.mounted) return;
+        var wait = state.holdUntil - now();
+        if (wait > 0) {
+          arm(wait);
+          return;
+        }
+        if (state.hovered || state.focused || state.dragging || state.pressed) return;
+        collapse();
+      }
+      function persist() {
+        if (!call) return;
+        var last = geo.parsePos(state.customText);
+        if (last && Math.abs(last.rx - state.rx) < POS_EPSILON && Math.abs(last.ry - state.ry) < POS_EPSILON) return;
+        var text = geo.formatPos(state.rx, state.ry);
+        state.customText = text;
+        state.hasCustom = true;
+        Promise.resolve(call("message.configSet", { values: { "float.customPos": text } })).catch(function() {
+        });
+      }
+      function applyConfig(values) {
+        if (!values) return;
+        if (values["float.enabled"] !== void 0) state.enabled = values["float.enabled"] !== false;
+        if (values["float.position"]) {
+          state.corner = values["float.position"];
+          if (!state.hasCustom) state.collapsed = false;
+        }
+        if (values["float.idleSeconds"] !== void 0) {
+          state.idleSeconds = geo.clamp(Number(values["float.idleSeconds"]) || 0, 0, 60);
+        }
+        if (values["float.edgeSnap"] !== void 0) state.edgeSnap = values["float.edgeSnap"] !== false;
+        if (values["float.customPos"] !== void 0) {
+          var text = values["float.customPos"] === null || values["float.customPos"] === void 0 ? "" : String(values["float.customPos"]);
+          var parsed = geo.parsePos(text);
+          state.customText = text;
+          state.hasCustom = !!parsed;
+          if (parsed) {
+            state.rx = parsed.rx;
+            state.ry = parsed.ry;
+          } else {
+            state.collapsed = false;
+          }
+        }
+        if (!state.btn) return;
+        state.btn.setPosition(state.corner);
+        liftAboveComposer();
+        state.btn.el.style.display = state.enabled ? "" : "none";
+        if (!state.enabled) {
+          state.count = 0;
+          state.btn.setCount(0);
+          state.collapsed = false;
+          disarm();
+        }
+        place();
+        render();
+        if (state.enabled) arm();
+        else disarm();
+      }
+      function applyCount(next) {
+        state.count = next > 0 ? Math.floor(next) : 0;
+        if (state.btn) state.btn.setCount(state.count);
+        return state.count;
+      }
+      function activate() {
+        if (host && typeof host.navigateAddon === "function") {
+          try {
+            if (host.navigateAddon(ADDON_ID, INBOX_VIEW) !== false) return;
+          } catch (e) {
+          }
+        }
+        if (typeof console !== "undefined" && console.info) {
+          console.info("[dsh-workbench-message] \u5F53\u524D\u5BBF\u4E3B\u4E0D\u652F\u6301\u8DF3\u8F6C\u5230\u6D88\u606F\u6536\u4EF6\u7BB1\uFF0C\u8BF7\u5728\u5DE6\u4FA7\u5BFC\u822A\u6253\u5F00\u300C\u6D88\u606F\u300D");
+        }
+      }
+      function detachWindowUp() {
+        if (!state.onWindowUp || !win || typeof win.removeEventListener !== "function") return;
+        win.removeEventListener("mouseup", state.onWindowUp);
+        state.onWindowUp = null;
+      }
+      function eventPoint(event) {
+        return {
+          x: event && typeof event.clientX === "number" ? event.clientX : 0,
+          y: event && typeof event.clientY === "number" ? event.clientY : 0
+        };
+      }
+      function onDown(event) {
+        if (!state.enabled || !state.btn) return;
+        if (event && typeof event.button === "number" && event.button !== 0) return;
+        var m = metrics();
+        var point = eventPoint(event);
+        state.pressed = true;
+        state.dragging = false;
+        state.pressX = point.x;
+        state.pressY = point.y;
+        state.startX = state.x;
+        state.startY = state.y;
+        state.size = m.size;
+        disarm();
+        if (state.collapsed) {
+          expand();
+          state.expandedByPress = true;
+          state.startX = state.x;
+          state.startY = state.y;
+        }
+        if (typeof state.btn.el.setPointerCapture === "function" && event && event.pointerId !== void 0) {
+          try {
+            state.btn.el.setPointerCapture(event.pointerId);
+          } catch (err) {
+          }
+        }
+        if (win && typeof win.addEventListener === "function" && !state.onWindowUp) {
+          state.onWindowUp = function() {
+            endPress();
+          };
+          win.addEventListener("mouseup", state.onWindowUp);
+        }
+      }
+      function onMove(event) {
+        if (!state.pressed) return;
+        var point = eventPoint(event);
+        var dx = point.x - state.pressX;
+        var dy = point.y - state.pressY;
+        if (!state.dragging) {
+          if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
+          state.dragging = true;
+          state.expandedByPress = false;
+          state.holdUntil = 0;
+          disarm();
+          if (state.btn) state.btn.setDragging(true);
+        }
+        var m = metrics();
+        paint(geo.clampPoint(state.startX + dx, state.startY + dy, m.size, m.width, m.height), m);
+      }
+      function endPress() {
+        if (!state.pressed) return;
+        state.pressed = false;
+        detachWindowUp();
+        if (!state.dragging) return;
+        state.dragging = false;
+        if (state.btn) state.btn.setDragging(false);
+        var m = metrics();
+        var ratio = geo.ratioOf(state.x, state.y, m.width, m.height, m.size);
+        state.rx = ratio.rx;
+        state.ry = ratio.ry;
+        state.hasCustom = true;
+        state.collapsed = false;
+        render();
+        persist();
+        state.justDraggedUntil = now() + JUST_DRAGGED_MS;
+        arm();
+      }
+      function onClick() {
+        if (!state.enabled) return;
+        if (now() < state.justDraggedUntil) return;
+        if (state.expandedByPress) {
+          state.expandedByPress = false;
+          expand();
+          arm();
+          return;
+        }
+        if (state.collapsed) {
+          expand();
+          arm();
+          return;
+        }
+        activate();
+      }
+      function onEnter() {
+        state.hovered = true;
+        expand();
+        disarm();
+      }
+      function onLeave() {
+        state.hovered = false;
+        var wait = state.holdUntil - now();
+        arm(wait > 0 ? wait : state.idleSeconds * 1e3);
+      }
+      function onFocus() {
+        state.focused = true;
+        expand();
+        disarm();
+      }
+      function onBlur() {
+        state.focused = false;
+        arm();
+      }
+      function onResize() {
+        if (!state.mounted) return;
+        var m = metrics();
+        if (state.hasCustom && !state.collapsed) {
+          var ratio = geo.ratioOf(state.x, state.y, m.width, m.height, m.size);
+          state.rx = ratio.rx;
+          state.ry = ratio.ry;
+        }
+        if (state.collapsed) state.side = geo.sideOf(basePoint(m).x, m.size, m.width);
+        render();
+      }
+      function onEvent(event, data) {
+        if (!state.btn || !state.mounted) return;
+        if (event === "config") {
+          applyConfig(data && data.values);
+          return;
+        }
+        if (event === "message.read") {
+          if (data && typeof data.unread === "number") applyCount(data.unread);
+          return;
+        }
+        if (event !== "message.created") return;
+        var message = data && data.message;
+        if (!message || !message.id) return;
+        if (state.seen.has(message.id)) return;
+        state.seen.add(message.id);
+        if (state.seen.size > 500) state.seen.clear();
+        applyCount(state.count + 1);
+        if (state.btn) state.btn.pulse();
+        if (state.collapsed) {
+          state.collapsed = false;
+          render();
+        }
+        state.holdUntil = now() + HOLD_MS;
+        if (!state.hovered && !state.focused && !state.dragging) arm(HOLD_MS);
+      }
+      function refreshCount() {
+        if (!call) return Promise.resolve(state.count);
+        return call("message.unreadCount", {}).then(function(body) {
+          var unread = body && typeof body.unread === "number" ? body.unread : null;
+          return unread === null ? state.count : applyCount(unread);
+        }).catch(function() {
+          return state.count;
+        });
+      }
+      function loadConfig() {
+        if (!call) return Promise.resolve(state.enabled);
+        return call("message.configGet", {}).then(function(body) {
+          applyConfig(body && body.values);
+          return state.enabled;
+        }).catch(function() {
+          return state.enabled;
+        });
+      }
+      function bind() {
+        var el = state.btn.el;
+        el.addEventListener("pointerdown", onDown);
+        el.addEventListener("pointermove", onMove);
+        el.addEventListener("pointerup", endPress);
+        el.addEventListener("pointercancel", endPress);
+        el.addEventListener("pointerenter", onEnter);
+        el.addEventListener("pointerleave", onLeave);
+        el.addEventListener("focus", onFocus);
+        el.addEventListener("blur", onBlur);
+        if (win && typeof win.addEventListener === "function") {
+          state.onResize = onResize;
+          win.addEventListener("resize", state.onResize);
+          state.onVisible = function() {
+            if (doc.visibilityState === "visible") refreshCount();
+          };
+          win.addEventListener("visibilitychange", state.onVisible);
+        }
+      }
+      function mount() {
+        if (state.mounted || !doc) return state;
+        injectStyles(doc);
+        var root = doc.createElement("div");
+        root.className = "wbm-float-root";
+        root.setAttribute("data-message-float", "1");
+        root.style.pointerEvents = "none";
+        var btn = buttons.createButton({
+          doc,
+          lang: readLang(doc),
+          onClick
+        });
+        root.appendChild(btn.el);
+        state.root = root;
+        state.btn = btn;
+        state.mounted = true;
+        place();
+        liftAboveComposer();
+        render();
+        bind();
+        if (notifier && typeof notifier.subscribe === "function") state.unsubscribe = notifier.subscribe(onEvent);
+        loadConfig().then(function() {
+          if (state.enabled) refreshCount();
+        });
+        return state;
+      }
+      function destroy() {
+        if (state.unsubscribe) state.unsubscribe();
+        state.unsubscribe = null;
+        disarm();
+        state.holdUntil = 0;
+        detachWindowUp();
+        if (win && typeof win.removeEventListener === "function") {
+          if (state.onResize) win.removeEventListener("resize", state.onResize);
+          if (state.onVisible) win.removeEventListener("visibilitychange", state.onVisible);
+        }
+        state.onResize = null;
+        state.onVisible = null;
+        if (state.btn) state.btn.destroy();
+        if (state.root && state.root.parentNode) state.root.parentNode.removeChild(state.root);
+        state.btn = null;
+        state.root = null;
+        state.mounted = false;
+      }
+      return {
+        mount,
+        destroy,
+        refreshCount,
+        applyConfig,
+        readState: function() {
+          return {
+            mounted: state.mounted,
+            count: state.count,
+            enabled: state.enabled,
+            position: state.corner,
+            collapsed: state.collapsed,
+            side: state.side,
+            custom: state.hasCustom,
+            customText: state.customText,
+            idleSeconds: state.idleSeconds,
+            edgeSnap: state.edgeSnap,
+            seen: state.seen.size
+          };
+        }
+      };
+    }
+    module2.exports = { createMount, STYLE_ID, DOMAIN, HOLD_MS };
   }
 });
 
@@ -3802,41 +5061,7 @@ var init_message_square = __esm({
   }
   var React = host.react;
   var h = host.h;
-  var ICONS = {
-    bell: (init_bell(), __toCommonJS(bell_exports)).default,
-    "bell-off": (init_bell_off(), __toCommonJS(bell_off_exports)).default,
-    inbox: (init_inbox(), __toCommonJS(inbox_exports)).default,
-    mail: (init_mail(), __toCommonJS(mail_exports)).default,
-    "mail-open": (init_mail_open(), __toCommonJS(mail_open_exports)).default,
-    chart: (init_chart_column(), __toCommonJS(chart_column_exports)).default,
-    settings: (init_settings(), __toCommonJS(settings_exports)).default,
-    database: (init_database(), __toCommonJS(database_exports)).default,
-    list: (init_list(), __toCommonJS(list_exports)).default,
-    check: (init_check(), __toCommonJS(check_exports)).default,
-    "check-check": (init_check_check(), __toCommonJS(check_check_exports)).default,
-    search: (init_search(), __toCommonJS(search_exports)).default,
-    refresh: (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default,
-    plus: (init_plus(), __toCommonJS(plus_exports)).default,
-    volume: (init_volume_2(), __toCommonJS(volume_2_exports)).default,
-    mute: (init_volume_x(), __toCommonJS(volume_x_exports)).default,
-    moon: (init_moon(), __toCommonJS(moon_exports)).default,
-    clock: (init_clock(), __toCommonJS(clock_exports)).default,
-    info: (init_info(), __toCommonJS(info_exports)).default,
-    success: (init_circle_check(), __toCommonJS(circle_check_exports)).default,
-    warning: (init_triangle_alert(), __toCommonJS(triangle_alert_exports)).default,
-    error: (init_circle_alert(), __toCommonJS(circle_alert_exports)).default,
-    reset: (init_rotate_ccw(), __toCommonJS(rotate_ccw_exports)).default,
-    play: (init_play(), __toCommonJS(play_exports)).default
-  };
-  function Icon2(props) {
-    var C = ICONS[props.name] || ICONS.info;
-    return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbg-svg" });
-  }
-  function tabIcon(name) {
-    return function() {
-      return h(Icon2, { name, size: 14 });
-    };
-  }
+  var icons = require_icons2(), ICONS = icons.ICONS, Icon2 = icons.Icon, tabIcon = icons.tabIcon;
   var COPY = require_copy();
   var CSS = require_styles();
   var configView = require_config();
@@ -3845,6 +5070,7 @@ var init_message_square = __esm({
   var DataView = require_data().DataView;
   var ActionSchemaView = require_actions().ActionSchemaView;
   var notifier = require_notifier();
+  var floatMount = require_mount();
   var InboxView = inboxFactory({ React });
   var StatsView = statsFactory({ React });
   function langOf(props) {
@@ -3874,8 +5100,8 @@ var init_message_square = __esm({
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-message",
-    version: "0.1.1",
-    icon: (init_message_square(), __toCommonJS(message_square_exports)).default,
+    version: "0.1.9",
+    icon: ICONS["message-square"],
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: Stats },
       { id: "inbox", icon: tabIcon("inbox"), title: { zh: "\u6536\u4EF6\u7BB1", en: "Inbox" }, component: Inbox2 },
@@ -3888,6 +5114,11 @@ var init_message_square = __esm({
     notifier.start();
   } catch (e) {
     if (typeof console !== "undefined") console.warn("[dsh-workbench-message] \u63D0\u793A\u97F3\u542F\u52A8\u5931\u8D25", e);
+  }
+  try {
+    floatMount.createMount({ doc: typeof document !== "undefined" ? document : null, win: root, host, notifier }).mount();
+  } catch (e) {
+    if (typeof console !== "undefined") console.warn("[dsh-workbench-message] \u60AC\u6D6E\u5165\u53E3\u542F\u52A8\u5931\u8D25", e);
   }
   module.exports = {
     name: "dsh-workbench-message",

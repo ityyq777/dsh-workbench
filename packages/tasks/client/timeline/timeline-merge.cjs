@@ -1,12 +1,22 @@
 "use strict";
+var createOverlay = require("../../../lib/overlay.cjs");
 module.exports = function (React) {
   var h = React.createElement;
+  var Overlay = createOverlay({
+    maskClass: "wbt-modal-mask",
+    dialogClass: "wbt-modal",
+    ariaLabelOf: function (p) {
+      return p.t.timelineMerge;
+    },
+    // 合并是不可逆操作，点遮罩不关闭；保存中 Esc 也不关闭。
+    closeOnMask: false,
+  });
   return function Merge(props) {
     var t = props.t, targetS = React.useState(props.items[0].timelineKey), target = targetS[0], setTarget = targetS[1];
     var previewS = React.useState(null), preview = previewS[0], setPreview = previewS[1];
     var busyS = React.useState(false), busy = busyS[0], setBusy = busyS[1];
     var errorS = React.useState(""), error = errorS[0], setError = errorS[1];
-    var pending = React.useRef(false), panel = React.useRef(null);
+    var pending = React.useRef(false);
     function submit(dryRun) {
       if (pending.current || (!dryRun && preview === null)) return;
       pending.current = true; setBusy(true); setError("");
@@ -16,15 +26,7 @@ module.exports = function (React) {
         if (dryRun) setPreview(r.result); else props.onMerged();
       }).catch(function (e) { setError(String(e.message || e)); setPreview(null); }).finally(function () { pending.current = false; setBusy(false); });
     }
-    function keys(e) {
-      if (e.key === "Escape" && !busy) { e.stopPropagation(); props.onClose(); }
-      if (e.key !== "Tab") return;
-      var nodes = panel.current.querySelectorAll('button:not(:disabled),select:not(:disabled)');
-      var first = nodes[0], last = nodes[nodes.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    }
-    return h("div", { className: "wbt-modal-mask" }, h("div", { ref: panel, className: "wbt-modal", role: "dialog", "aria-modal": true, "aria-label": t.timelineMerge, onKeyDown: keys },
+    return h(Overlay, { onClose: props.onClose, closeOnEscape: !busy, closeOnMask: false, autoFocus: false },
       h("h3", null, t.timelineMerge),
       h("p", null, t.timelineMergeHint),
       h("label", { className: "wbt-field" }, h("span", null, t.timelineTarget),
@@ -33,6 +35,6 @@ module.exports = function (React) {
       error ? h("p", { role: "alert", className: "wbt-err" }, t.error + error) : null,
       h("div", { className: "wbt-modal-foot" },
         h("button", { className: "wbt-btn", disabled: busy, onClick: props.onClose }, t.cancel),
-        h("button", { className: "wbt-btn primary", disabled: busy, onClick: function () { submit(preview === null); } }, busy ? t.loading : preview === null ? t.timelinePreview : t.timelineConfirm))));
+        h("button", { className: "wbt-btn primary", disabled: busy, onClick: function () { submit(preview === null); } }, busy ? t.loading : preview === null ? t.timelinePreview : t.timelineConfirm)));
   };
 };

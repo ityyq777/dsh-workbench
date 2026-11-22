@@ -39,162 +39,39 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// packages/addons/lib/client-base-styles.cjs
-var require_client_base_styles = __commonJS({
-  "packages/addons/lib/client-base-styles.cjs"(exports2, module2) {
+// packages/addons/lib/icons.cjs
+var require_icons = __commonJS({
+  "packages/addons/lib/icons.cjs"(exports2, module2) {
     "use strict";
-    var SECRET_FIELD = [
-      ".wb-secret-field{position:relative;display:flex;align-items:center;min-width:0}",
-      ".wb-secret-field input{flex:1 1 auto;min-width:0;padding-right:34px}",
-      ".wb-eye{position:absolute;right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:6px;padding:4px;color:var(--wb-muted,#6b7280);cursor:pointer}",
-      ".wb-eye:hover:not(:disabled){color:var(--wb-accent,#2563eb);background:color-mix(in srgb, var(--wb-accent,#2563eb) 12%, transparent)}",
-      ".wb-eye:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
-      ".wb-eye:disabled{opacity:.45;cursor:not-allowed}"
-    ];
-    module2.exports = function baseStyles(prefix) {
-      var p = String(prefix || "wb");
-      var s = "." + p;
-      return SECRET_FIELD.concat([
-        s + "-wrap{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
-        s + "-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}",
-        s + "-title{font-size:16px;font-weight:650;margin:0}",
-        s + "-sub{font-size:12px;color:var(--wb-muted,#6b7280);margin:2px 0 0}",
-        s + "-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}",
-        s + "-card{border:1px solid var(--wb-border,#e5e7eb);border-radius:10px;background:var(--wb-surface,#fff);padding:12px}",
-        s + "-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}",
-        s + "-kpi{font-size:22px;font-weight:700;line-height:1.2}" + s + "-kpi-label{font-size:12px;color:var(--wb-muted,#6b7280)}",
-        s + "-table{width:100%;border-collapse:collapse;font-size:12px}" + s + "-table th," + s + "-table td{padding:7px 8px;border-bottom:1px solid var(--wb-border,#eef0f3);text-align:left;vertical-align:top}",
-        s + "-table th{font-weight:600;color:var(--wb-muted,#6b7280);white-space:nowrap}",
-        s + "-btn{border:1px solid var(--wb-border,#d1d5db);background:var(--wb-surface,#fff);color:inherit;border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}",
-        s + "-btn:hover:not(:disabled){border-color:var(--wb-accent,#2563eb)}" + s + "-btn:disabled{opacity:.5;cursor:default}",
-        s + "-btn.primary{background:var(--wb-accent,#2563eb);border-color:var(--wb-accent,#2563eb);color:#fff}",
-        s + "-btn.danger{color:#b91c1c;border-color:#fecaca}",
-        s + "-field{display:flex;flex-direction:column;gap:4px;font-size:12px}" + s + "-label{font-weight:600}",
-        s + "-field input," + s + "-field select," + s + "-field textarea{border:1px solid var(--wb-border,#d1d5db);border-radius:7px;padding:6px 8px;font:inherit;background:var(--wb-surface,#fff);color:inherit;min-width:0}",
-        s + "-hint{color:var(--wb-muted,#6b7280);font-size:11px}" + s + "-notice{padding:8px 10px;border-radius:8px;font-size:12px;background:#eff6ff;color:#1e40af}",
-        s + "-notice.error{background:#fef2f2;color:#b91c1c}" + s + "-notice.ok{background:#ecfdf5;color:#047857}",
-        s + "-empty{padding:18px;text-align:center;color:var(--wb-muted,#6b7280);font-size:12px;border:1px dashed var(--wb-border,#e5e7eb);border-radius:8px}",
-        s + "-pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;background:#f3f4f6;color:#374151}",
-        s + "-pill.ok{background:#ecfdf5;color:#047857}" + s + "-pill.error{background:#fef2f2;color:#b91c1c}" + s + "-pill.warn{background:#fffbeb;color:#b45309}",
-        s + "-json{margin:0;padding:8px;background:#f8fafc;border-radius:8px;font-size:11px;max-height:240px;overflow:auto}",
-        s + "-muted{color:var(--wb-muted,#6b7280)}" + s + "-link{color:var(--wb-accent,#2563eb);cursor:pointer;text-decoration:none}",
-        s + "-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}"
-      ]);
-    };
-    module2.exports.secretFieldStyles = SECRET_FIELD;
-  }
-});
-
-// packages/addons/automation/client/ui/layout-styles.cjs
-var require_layout_styles = __commonJS({
-  "packages/addons/automation/client/ui/layout-styles.cjs"(exports2, module2) {
-    "use strict";
-    module2.exports = [
-      // 页面分区
-      ".wba-panel{border:1px solid var(--wb-border);border-radius:12px;padding:16px;background:var(--wb-surface);display:flex;flex-direction:column;gap:12px}",
-      ".wba-panel-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}",
-      ".wba-panel-title{font-size:14px;font-weight:650;margin:0}",
-      ".wba-sub{font-size:12px;color:var(--wb-muted);margin:0;line-height:1.5}",
-      ".wba-sep{height:1px;background:var(--wb-border);border:0;margin:0}",
-      // 表格容器与行
-      ".wba-table-wrap{overflow-x:auto;border:1px solid var(--wb-border);border-radius:12px;background:var(--wb-surface)}",
-      ".wba-table-wrap .wba-table{border-collapse:separate;border-spacing:0}",
-      ".wba-table tbody tr{transition:background 120ms ease}",
-      ".wba-table tbody tr:hover{background:var(--wb-line)}",
-      ".wba-table td{vertical-align:middle}",
-      ".wba-table code{font-size:11px;color:var(--wb-muted)}",
-      ".wba-table tr.wba-row-open{background:var(--wb-line)}",
-      ".wba-detail-cell{padding:12px 14px!important;background:color-mix(in oklab,var(--wb-line) 45%,transparent)}",
-      // KPI 卡片
-      ".wba-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}",
-      ".wba-card{border:1px solid var(--wb-border);border-radius:10px;padding:12px;background:var(--wb-surface);display:flex;flex-direction:column;gap:6px}",
-      ".wba-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--wb-muted)}",
-      ".wba-card-num{font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}",
-      ".wba-card-ico{display:flex;color:var(--wb-accent)}",
-      ".wba-card-label{font-size:12px;font-weight:600}",
-      ".wba-card-hint{font-size:11px;color:var(--wb-muted);margin:0}",
-      // 键值 / chips
-      ".wba-kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 12px;font-size:12px;align-items:start}",
-      ".wba-kv b{font-weight:600;color:var(--wb-muted);white-space:nowrap}",
-      ".wba-kv span,.wba-kv code{min-width:0;overflow-wrap:anywhere}",
-      ".wba-pills{display:flex;flex-wrap:wrap;gap:6px}",
-      ".wba-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--wb-border);border-radius:999px;padding:2px 10px;font-size:12px;background:transparent;color:inherit;cursor:pointer;font-family:inherit}",
-      ".wba-chip[aria-pressed=true]{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-surface)}",
-      ".wba-chip.static{cursor:default}",
-      ".wba-chips{display:flex;flex-wrap:wrap;gap:6px}",
-      // JSON 编辑器
-      ".wba-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;width:100%;min-height:160px;resize:vertical;tab-size:2;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--wb-border);background:var(--wb-line);color:inherit}",
-      ".wba-code.sm{min-height:96px}",
-      ".wba-code:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-      ".wba-code.err{border-color:var(--wb-danger)}",
-      ".wba-code-err{font-size:11px;color:var(--wb-danger);min-height:14px}",
-      ".wba-pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:1.55;margin:0;padding:10px;border-radius:8px;background:var(--wb-line);max-height:260px;overflow:auto;overflow-wrap:anywhere}",
-      // 输入与按钮
-      ".wba-input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--wb-border);border-radius:8px;padding:6px 8px;font:inherit;font-size:12px;background:var(--wb-surface);color:inherit}",
-      ".wba-input.err{border-color:var(--wb-danger)}",
-      ".wba-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}",
-      ".wba-toolbar .wba-field{min-width:150px}",
-      ".wba-actions{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}",
-      ".wba-icon-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:7px;background:transparent;color:inherit;cursor:pointer;padding:0}",
-      ".wba-icon-btn:hover{border-color:var(--wb-accent);color:var(--wb-accent)}",
-      ".wba-icon-btn.danger:hover{border-color:var(--wb-danger);color:var(--wb-danger)}",
-      ".wba-icon-btn:disabled{opacity:.45;cursor:default}",
-      // 空态与骨架
-      ".wba-empty-card{border:1px dashed var(--wb-border);border-radius:12px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:var(--wb-surface)}",
-      ".wba-empty-ico{color:var(--wb-muted);display:flex}",
-      ".wba-empty-title{font-size:14px;font-weight:650;margin:0}",
-      ".wba-empty-body{font-size:12px;color:var(--wb-muted);margin:0;max-width:52ch;line-height:1.55}",
-      ".wba-skel{height:12px;border-radius:6px;background:var(--wb-line);animation:wba-pulse 1.2s ease-in-out infinite}",
-      ".wba-skel-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:14px;padding:12px 14px;border-bottom:1px solid var(--wb-border)}",
-      "@keyframes wba-pulse{50%{opacity:.45}}",
-      // 模态
-      ".wba-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:color-mix(in oklab,var(--wb-muted) 45%,transparent)}",
-      ".wba-modal-box{width:min(760px,calc(100vw - 32px));max-height:90vh;display:flex;flex-direction:column;background:var(--wb-surface);border:1px solid var(--wb-border);border-radius:14px;overflow:hidden;box-shadow:0 24px 64px color-mix(in oklab,var(--wb-muted) 40%,transparent)}",
-      ".wba-modal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;border-bottom:1px solid var(--wb-border)}",
-      ".wba-modal-head h3{font-size:15px;margin:0}",
-      ".wba-modal-body{padding:16px;overflow:auto;display:flex;flex-direction:column;gap:16px}",
-      ".wba-modal-foot{position:sticky;bottom:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--wb-border);background:var(--wb-surface)}",
-      ".wba-modal-foot .wba-grow{flex:1}",
-      // 编辑器分段与栅格
-      ".wba-section{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--wb-border)}",
-      ".wba-section:first-child{border-top:0;padding-top:0}",
-      ".wba-section-title{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--wb-muted);margin:0;text-transform:uppercase}",
-      ".wba-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}",
-      ".wba-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}",
-      ".wba-span-2{grid-column:span 2}",
-      ".wba-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-line);align-self:flex-start}",
-      ".wba-seg button{border:0;background:transparent;color:inherit;border-radius:6px;padding:4px 12px;font-size:12px;font-family:inherit;cursor:pointer}",
-      ".wba-seg button[aria-pressed=true]{background:var(--wb-surface);box-shadow:0 0 0 1px var(--wb-border);font-weight:600}",
-      ".wba-switch{display:inline-flex;align-items:center;gap:8px;font-size:12px;cursor:pointer}",
-      ".wba-block{display:flex;flex-direction:column;gap:6px;min-width:0}",
-      ".wba-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}",
-      ".wba-grow{flex:1;min-width:0}",
-      ".wba-svg{display:inline-block;vertical-align:middle;flex:none}",
-      ".wba-w-120{width:120px;flex:none}",
-      ".wba-w-96{width:96px;flex:none}",
-      ".wba-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.55}",
-      ".wba-clickable{cursor:pointer}",
-      ".wba-check{display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}",
-      ".wba-check input{accent-color:var(--wb-accent);margin:0}",
-      // 文本与焦点
-      ".wba-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}",
-      ".wba-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--wb-muted)}",
-      ".wba-nowrap{white-space:nowrap}",
-      ".wba-strong{font-weight:600}",
-      ".wba-warn{color:var(--wb-warn)}",
-      ".wba-err-text{color:var(--wb-danger);font-size:11px;margin:0}",
-      ".wba-wrap :focus-visible,.wba-modal :focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-      // 响应式
-      "@media (max-width:720px){.wba-grid-2,.wba-grid-3{grid-template-columns:1fr}.wba-span-2{grid-column:auto}.wba-modal{padding:8px}.wba-modal-box{width:calc(100vw - 16px)}.wba-toolbar .wba-field{min-width:0;flex:1 1 140px}.wba-modal-body{padding:12px}.wba-modal-foot{flex-wrap:wrap}.wba-skel-row{grid-template-columns:1fr 1fr}}"
-    ].join("\n");
-  }
-});
-
-// packages/addons/automation/client/ui/styles.cjs
-var require_styles = __commonJS({
-  "packages/addons/automation/client/ui/styles.cjs"(exports2, module2) {
-    "use strict";
-    module2.exports = require_client_base_styles()("wba").join("\n") + "\n" + require_layout_styles();
+    var h = require("react").createElement;
+    function create(prefix, glyphs, options) {
+      var opts = options || {};
+      var ICONS = Object.assign({}, glyphs);
+      function Icon2(props) {
+        var C = ICONS[props.name] || (opts.fallback ? ICONS[opts.fallback] : null);
+        if (!C) return null;
+        var size = typeof opts.sizeOf === "function" ? opts.sizeOf(props) : props.size || 14;
+        var cls = prefix + "-svg" + (opts.classNameAppend && props.className ? " " + props.className : "");
+        var attrs = {
+          size,
+          strokeWidth: props.strokeWidth || 2,
+          "aria-hidden": "true",
+          className: cls
+        };
+        if (opts.focusable) attrs.focusable = false;
+        return h(C, attrs);
+      }
+      var set = { ICONS, Icon: Icon2 };
+      if (opts.tabIcon) {
+        set.tabIcon = function(name) {
+          return function TabIcon() {
+            return h(Icon2, { name, size: 14 });
+          };
+        };
+      }
+      return set;
+    }
+    module2.exports = { create };
   }
 });
 
@@ -514,181 +391,217 @@ var init_activity = __esm({
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/zap.mjs
-var zap_exports = {};
-__export(zap_exports, {
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/bot.mjs
+var bot_exports = {};
+__export(bot_exports, {
   __iconData: () => __iconData2,
-  default: () => Zap
+  default: () => Bot
 });
-var __iconData2, Zap;
-var init_zap = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/zap.mjs"() {
+var __iconData2, Bot;
+var init_bot = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/bot.mjs"() {
     init_createLucideIcon();
     __iconData2 = {
-      name: "zap",
+      name: "bot",
+      size: 24,
+      node: [
+        ["path", { d: "M12 8V4H8", key: "hb8ula" }],
+        ["rect", { width: "16", height: "12", x: "4", y: "8", rx: "2", key: "enze0r" }],
+        ["path", { d: "M2 14h2", key: "vft8re" }],
+        ["path", { d: "M20 14h2", key: "4cs60a" }],
+        ["path", { d: "M15 13v2", key: "1xurst" }],
+        ["path", { d: "M9 13v2", key: "rq6x2g" }]
+      ]
+    };
+    __iconData2.node;
+    Bot = createLucideIcon(__iconData2);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/calendar-clock.mjs
+var calendar_clock_exports = {};
+__export(calendar_clock_exports, {
+  __iconData: () => __iconData3,
+  default: () => CalendarClock
+});
+var __iconData3, CalendarClock;
+var init_calendar_clock = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/calendar-clock.mjs"() {
+    init_createLucideIcon();
+    __iconData3 = {
+      name: "calendar-clock",
+      size: 24,
+      node: [
+        ["path", { d: "M16 14v2.2l1.6 1", key: "fo4ql5" }],
+        ["path", { d: "M16 2v3", key: "otl347" }],
+        ["path", { d: "M21 7.338V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h2.338", key: "7hb8p4" }],
+        ["path", { d: "M3 9h5.859", key: "numkqi" }],
+        ["path", { d: "M8 2v3", key: "1ioesn" }],
+        ["circle", { cx: "16", cy: "16", r: "6", key: "qoo3c4" }]
+      ]
+    };
+    __iconData3.node;
+    CalendarClock = createLucideIcon(__iconData3);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/clock.mjs
+var clock_exports = {};
+__export(clock_exports, {
+  __iconData: () => __iconData4,
+  default: () => Clock
+});
+var __iconData4, Clock;
+var init_clock = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/clock.mjs"() {
+    init_createLucideIcon();
+    __iconData4 = {
+      name: "clock",
+      size: 24,
+      node: [
+        ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+        ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }]
+      ]
+    };
+    __iconData4.node;
+    Clock = createLucideIcon(__iconData4);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/hourglass.mjs
+var hourglass_exports = {};
+__export(hourglass_exports, {
+  __iconData: () => __iconData5,
+  default: () => Hourglass
+});
+var __iconData5, Hourglass;
+var init_hourglass = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/hourglass.mjs"() {
+    init_createLucideIcon();
+    __iconData5 = {
+      name: "hourglass",
+      size: 24,
+      node: [
+        ["path", { d: "M5 22h14", key: "ehvnwv" }],
+        ["path", { d: "M5 2h14", key: "pdyrp9" }],
+        [
+          "path",
+          {
+            d: "M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22",
+            key: "1d314k"
+          }
+        ],
+        [
+          "path",
+          {
+            d: "M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2",
+            key: "1vvvr6"
+          }
+        ]
+      ]
+    };
+    __iconData5.node;
+    Hourglass = createLucideIcon(__iconData5);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/repeat.mjs
+var repeat_exports = {};
+__export(repeat_exports, {
+  __iconData: () => __iconData6,
+  default: () => Repeat
+});
+var __iconData6, Repeat;
+var init_repeat = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/repeat.mjs"() {
+    init_createLucideIcon();
+    __iconData6 = {
+      name: "repeat",
+      size: 24,
+      node: [
+        ["path", { d: "m17 2 4 4-4 4", key: "nntrym" }],
+        ["path", { d: "M3 11v-1a4 4 0 0 1 4-4h14", key: "84bu3i" }],
+        ["path", { d: "m7 22-4-4 4-4", key: "1wqhfi" }],
+        ["path", { d: "M21 13v1a4 4 0 0 1-4 4H3", key: "1rx37r" }]
+      ]
+    };
+    __iconData6.node;
+    Repeat = createLucideIcon(__iconData6);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/send.mjs
+var send_exports = {};
+__export(send_exports, {
+  __iconData: () => __iconData7,
+  default: () => Send
+});
+var __iconData7, Send;
+var init_send = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/send.mjs"() {
+    init_createLucideIcon();
+    __iconData7 = {
+      name: "send",
       size: 24,
       node: [
         [
           "path",
           {
-            d: "M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z",
-            key: "1v7up4"
+            d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
+            key: "1ffxy3"
           }
-        ]
-      ]
-    };
-    __iconData2.node;
-    Zap = createLucideIcon(__iconData2);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/rotate-ccw-clock.mjs
-var __iconData3, RotateCcwClock;
-var init_rotate_ccw_clock = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/rotate-ccw-clock.mjs"() {
-    init_createLucideIcon();
-    __iconData3 = {
-      name: "rotate-ccw-clock",
-      size: 24,
-      node: [
-        ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
-        ["path", { d: "M3 3v5h5", key: "1xhq8a" }],
-        ["path", { d: "M12 7v5l4 2", key: "1fdv2h" }]
-      ],
-      aliases: ["history"]
-    };
-    __iconData3.node;
-    RotateCcwClock = createLucideIcon(__iconData3);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/history.mjs
-var history_exports = {};
-__export(history_exports, {
-  default: () => RotateCcwClock
-});
-var init_history = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/history.mjs"() {
-    init_rotate_ccw_clock();
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs
-var sliders_horizontal_exports = {};
-__export(sliders_horizontal_exports, {
-  __iconData: () => __iconData4,
-  default: () => SlidersHorizontal
-});
-var __iconData4, SlidersHorizontal;
-var init_sliders_horizontal = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs"() {
-    init_createLucideIcon();
-    __iconData4 = {
-      name: "sliders-horizontal",
-      size: 24,
-      node: [
-        ["path", { d: "M10 5H3", key: "1qgfaw" }],
-        ["path", { d: "M12 19H3", key: "yhmn1j" }],
-        ["path", { d: "M14 3v4", key: "1sua03" }],
-        ["path", { d: "M16 17v4", key: "1q0r14" }],
-        ["path", { d: "M21 12h-9", key: "1o4lsq" }],
-        ["path", { d: "M21 19h-5", key: "1rlt1p" }],
-        ["path", { d: "M21 5h-7", key: "1oszz2" }],
-        ["path", { d: "M8 10v4", key: "tgpxqk" }],
-        ["path", { d: "M8 12H3", key: "a7s4jb" }]
-      ]
-    };
-    __iconData4.node;
-    SlidersHorizontal = createLucideIcon(__iconData4);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs
-var database_exports = {};
-__export(database_exports, {
-  __iconData: () => __iconData5,
-  default: () => Database
-});
-var __iconData5, Database;
-var init_database = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs"() {
-    init_createLucideIcon();
-    __iconData5 = {
-      name: "database",
-      size: 24,
-      node: [
-        ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
-        ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
-        ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
-      ]
-    };
-    __iconData5.node;
-    Database = createLucideIcon(__iconData5);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs
-var list_exports = {};
-__export(list_exports, {
-  __iconData: () => __iconData6,
-  default: () => List
-});
-var __iconData6, List;
-var init_list = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs"() {
-    init_createLucideIcon();
-    __iconData6 = {
-      name: "list",
-      size: 24,
-      node: [
-        ["path", { d: "M3 5h.01", key: "18ugdj" }],
-        ["path", { d: "M3 12h.01", key: "nlz23k" }],
-        ["path", { d: "M3 19h.01", key: "noohij" }],
-        ["path", { d: "M8 5h13", key: "1pao27" }],
-        ["path", { d: "M8 12h13", key: "1za7za" }],
-        ["path", { d: "M8 19h13", key: "m83p4d" }]
-      ]
-    };
-    __iconData6.node;
-    List = createLucideIcon(__iconData6);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/timer.mjs
-var timer_exports = {};
-__export(timer_exports, {
-  __iconData: () => __iconData7,
-  default: () => Timer
-});
-var __iconData7, Timer;
-var init_timer = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/timer.mjs"() {
-    init_createLucideIcon();
-    __iconData7 = {
-      name: "timer",
-      size: 24,
-      node: [
-        ["line", { x1: "10", x2: "14", y1: "2", y2: "2", key: "14vaq8" }],
-        ["line", { x1: "12", x2: "15", y1: "14", y2: "11", key: "17fdiu" }],
-        ["circle", { cx: "12", cy: "14", r: "8", key: "1e1u0o" }]
+        ],
+        ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
       ]
     };
     __iconData7.node;
-    Timer = createLucideIcon(__iconData7);
+    Send = createLucideIcon(__iconData7);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/sparkles.mjs
+var sparkles_exports = {};
+__export(sparkles_exports, {
+  __iconData: () => __iconData8,
+  default: () => Sparkles
+});
+var __iconData8, Sparkles;
+var init_sparkles = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/sparkles.mjs"() {
+    init_createLucideIcon();
+    __iconData8 = {
+      name: "sparkles",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z",
+            key: "1s2grr"
+          }
+        ],
+        ["path", { d: "M20 2v4", key: "1rf3ol" }],
+        ["path", { d: "M22 4h-4", key: "gwowj6" }],
+        ["circle", { cx: "4", cy: "20", r: "2", key: "6kqj1y" }]
+      ],
+      aliases: ["stars"]
+    };
+    __iconData8.node;
+    Sparkles = createLucideIcon(__iconData8);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/alarm-clock.mjs
 var alarm_clock_exports = {};
 __export(alarm_clock_exports, {
-  __iconData: () => __iconData8,
+  __iconData: () => __iconData9,
   default: () => AlarmClock
 });
-var __iconData8, AlarmClock;
+var __iconData9, AlarmClock;
 var init_alarm_clock = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/alarm-clock.mjs"() {
     init_createLucideIcon();
-    __iconData8 = {
+    __iconData9 = {
       name: "alarm-clock",
       size: 24,
       node: [
@@ -700,265 +613,17 @@ var init_alarm_clock = __esm({
         ["path", { d: "M17.64 18.67 20 21", key: "kv2oe2" }]
       ]
     };
-    __iconData8.node;
-    AlarmClock = createLucideIcon(__iconData8);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/radio.mjs
-var radio_exports = {};
-__export(radio_exports, {
-  __iconData: () => __iconData9,
-  default: () => Radio
-});
-var __iconData9, Radio;
-var init_radio = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/radio.mjs"() {
-    init_createLucideIcon();
-    __iconData9 = {
-      name: "radio",
-      size: 24,
-      node: [
-        ["path", { d: "M16.247 7.761a6 6 0 0 1 0 8.478", key: "1fwjs5" }],
-        ["path", { d: "M19.075 4.933a10 10 0 0 1 0 14.134", key: "ehdyv1" }],
-        ["path", { d: "M4.925 19.067a10 10 0 0 1 0-14.134", key: "1q22gi" }],
-        ["path", { d: "M7.753 16.239a6 6 0 0 1 0-8.478", key: "r2q7qm" }],
-        ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }]
-      ]
-    };
     __iconData9.node;
-    Radio = createLucideIcon(__iconData9);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/hand.mjs
-var hand_exports = {};
-__export(hand_exports, {
-  __iconData: () => __iconData10,
-  default: () => Hand
-});
-var __iconData10, Hand;
-var init_hand = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/hand.mjs"() {
-    init_createLucideIcon();
-    __iconData10 = {
-      name: "hand",
-      size: 24,
-      node: [
-        ["path", { d: "M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2", key: "1fvzgz" }],
-        ["path", { d: "M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2", key: "1kc0my" }],
-        ["path", { d: "M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8", key: "10h0bg" }],
-        [
-          "path",
-          {
-            d: "M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15",
-            key: "1s1gnw"
-          }
-        ]
-      ]
-    };
-    __iconData10.node;
-    Hand = createLucideIcon(__iconData10);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/play.mjs
-var play_exports = {};
-__export(play_exports, {
-  __iconData: () => __iconData11,
-  default: () => Play
-});
-var __iconData11, Play;
-var init_play = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/play.mjs"() {
-    init_createLucideIcon();
-    __iconData11 = {
-      name: "play",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z",
-            key: "10ikf1"
-          }
-        ]
-      ]
-    };
-    __iconData11.node;
-    Play = createLucideIcon(__iconData11);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs
-var pencil_exports = {};
-__export(pencil_exports, {
-  __iconData: () => __iconData12,
-  default: () => Pencil
-});
-var __iconData12, Pencil;
-var init_pencil = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs"() {
-    init_createLucideIcon();
-    __iconData12 = {
-      name: "pencil",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
-            key: "1a8usu"
-          }
-        ],
-        ["path", { d: "m15 5 4 4", key: "1mk7zo" }]
-      ]
-    };
-    __iconData12.node;
-    Pencil = createLucideIcon(__iconData12);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power.mjs
-var power_exports = {};
-__export(power_exports, {
-  __iconData: () => __iconData13,
-  default: () => Power
-});
-var __iconData13, Power;
-var init_power = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power.mjs"() {
-    init_createLucideIcon();
-    __iconData13 = {
-      name: "power",
-      size: 24,
-      node: [
-        ["path", { d: "M12 2v10", key: "mnfbl" }],
-        ["path", { d: "M18.4 6.6a9 9 0 1 1-12.77.04", key: "obofu9" }]
-      ]
-    };
-    __iconData13.node;
-    Power = createLucideIcon(__iconData13);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power-off.mjs
-var power_off_exports = {};
-__export(power_off_exports, {
-  __iconData: () => __iconData14,
-  default: () => PowerOff
-});
-var __iconData14, PowerOff;
-var init_power_off = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power-off.mjs"() {
-    init_createLucideIcon();
-    __iconData14 = {
-      name: "power-off",
-      size: 24,
-      node: [
-        ["path", { d: "M18.36 6.64A9 9 0 0 1 20.77 15", key: "dxknvb" }],
-        ["path", { d: "M6.16 6.16a9 9 0 1 0 12.68 12.68", key: "1x7qb5" }],
-        ["path", { d: "M12 2v4", key: "3427ic" }],
-        ["path", { d: "m2 2 20 20", key: "1ooewy" }]
-      ]
-    };
-    __iconData14.node;
-    PowerOff = createLucideIcon(__iconData14);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs
-var __iconData15, Trash;
-var init_trash = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs"() {
-    init_createLucideIcon();
-    __iconData15 = {
-      name: "trash",
-      size: 24,
-      node: [
-        ["path", { d: "M10 11v6", key: "nco0om" }],
-        ["path", { d: "M14 11v6", key: "outv1u" }],
-        ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
-        ["path", { d: "M3 6h18", key: "d0wm0j" }],
-        ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
-      ],
-      aliases: ["trash-2"]
-    };
-    __iconData15.node;
-    Trash = createLucideIcon(__iconData15);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs
-var trash_2_exports = {};
-__export(trash_2_exports, {
-  default: () => Trash
-});
-var init_trash_2 = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs"() {
-    init_trash();
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs
-var x_exports = {};
-__export(x_exports, {
-  __iconData: () => __iconData16,
-  default: () => X
-});
-var __iconData16, X;
-var init_x = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs"() {
-    init_createLucideIcon();
-    __iconData16 = {
-      name: "x",
-      size: 24,
-      node: [
-        ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
-        ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
-      ]
-    };
-    __iconData16.node;
-    X = createLucideIcon(__iconData16);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/circle-check-big.mjs
-var __iconData17, CircleCheckBig;
-var init_circle_check_big = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/circle-check-big.mjs"() {
-    init_createLucideIcon();
-    __iconData17 = {
-      name: "circle-check-big",
-      size: 24,
-      node: [
-        ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
-        ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
-      ],
-      aliases: ["check-circle"]
-    };
-    __iconData17.node;
-    CircleCheckBig = createLucideIcon(__iconData17);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check-circle.mjs
-var check_circle_exports = {};
-__export(check_circle_exports, {
-  default: () => CircleCheckBig
-});
-var init_check_circle = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check-circle.mjs"() {
-    init_circle_check_big();
+    AlarmClock = createLucideIcon(__iconData9);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/triangle-exclamation-point.mjs
-var __iconData18, TriangleExclamationPoint;
+var __iconData10, TriangleExclamationPoint;
 var init_triangle_exclamation_point = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/triangle-exclamation-point.mjs"() {
     init_createLucideIcon();
-    __iconData18 = {
+    __iconData10 = {
       name: "triangle-exclamation-point",
       size: 24,
       node: [
@@ -974,8 +639,8 @@ var init_triangle_exclamation_point = __esm({
       ],
       aliases: ["alert-triangle", "triangle-alert"]
     };
-    __iconData18.node;
-    TriangleExclamationPoint = createLucideIcon(__iconData18);
+    __iconData10.node;
+    TriangleExclamationPoint = createLucideIcon(__iconData10);
   }
 });
 
@@ -990,46 +655,133 @@ var init_alert_triangle = __esm({
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/skip-forward.mjs
-var skip_forward_exports = {};
-__export(skip_forward_exports, {
-  __iconData: () => __iconData19,
-  default: () => SkipForward
-});
-var __iconData19, SkipForward;
-var init_skip_forward = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/skip-forward.mjs"() {
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/circle-check-big.mjs
+var __iconData11, CircleCheckBig;
+var init_circle_check_big = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/circle-check-big.mjs"() {
     init_createLucideIcon();
-    __iconData19 = {
-      name: "skip-forward",
+    __iconData11 = {
+      name: "circle-check-big",
       size: 24,
       node: [
-        ["path", { d: "M21 4v16", key: "7j8fe9" }],
+        ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
+        ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
+      ],
+      aliases: ["check-circle"]
+    };
+    __iconData11.node;
+    CircleCheckBig = createLucideIcon(__iconData11);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check-circle.mjs
+var check_circle_exports = {};
+__export(check_circle_exports, {
+  default: () => CircleCheckBig
+});
+var init_check_circle = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check-circle.mjs"() {
+    init_circle_check_big();
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs
+var database_exports = {};
+__export(database_exports, {
+  __iconData: () => __iconData12,
+  default: () => Database
+});
+var __iconData12, Database;
+var init_database = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs"() {
+    init_createLucideIcon();
+    __iconData12 = {
+      name: "database",
+      size: 24,
+      node: [
+        ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
+        ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
+        ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
+      ]
+    };
+    __iconData12.node;
+    Database = createLucideIcon(__iconData12);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/hand.mjs
+var hand_exports = {};
+__export(hand_exports, {
+  __iconData: () => __iconData13,
+  default: () => Hand
+});
+var __iconData13, Hand;
+var init_hand = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/hand.mjs"() {
+    init_createLucideIcon();
+    __iconData13 = {
+      name: "hand",
+      size: 24,
+      node: [
+        ["path", { d: "M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2", key: "1fvzgz" }],
+        ["path", { d: "M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2", key: "1kc0my" }],
+        ["path", { d: "M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8", key: "10h0bg" }],
         [
           "path",
           {
-            d: "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z",
-            key: "zs4d6"
+            d: "M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15",
+            key: "1s1gnw"
           }
         ]
       ]
     };
-    __iconData19.node;
-    SkipForward = createLucideIcon(__iconData19);
+    __iconData13.node;
+    Hand = createLucideIcon(__iconData13);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/rotate-ccw-clock.mjs
+var __iconData14, RotateCcwClock;
+var init_rotate_ccw_clock = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/rotate-ccw-clock.mjs"() {
+    init_createLucideIcon();
+    __iconData14 = {
+      name: "rotate-ccw-clock",
+      size: 24,
+      node: [
+        ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
+        ["path", { d: "M3 3v5h5", key: "1xhq8a" }],
+        ["path", { d: "M12 7v5l4 2", key: "1fdv2h" }]
+      ],
+      aliases: ["history"]
+    };
+    __iconData14.node;
+    RotateCcwClock = createLucideIcon(__iconData14);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/history.mjs
+var history_exports = {};
+__export(history_exports, {
+  default: () => RotateCcwClock
+});
+var init_history = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/history.mjs"() {
+    init_rotate_ccw_clock();
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/layers.mjs
 var layers_exports = {};
 __export(layers_exports, {
-  __iconData: () => __iconData20,
+  __iconData: () => __iconData15,
   default: () => Layers
 });
-var __iconData20, Layers;
+var __iconData15, Layers;
 var init_layers = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/layers.mjs"() {
     init_createLucideIcon();
-    __iconData20 = {
+    __iconData15 = {
       name: "layers",
       size: 24,
       node: [
@@ -1057,22 +809,180 @@ var init_layers = __esm({
       ],
       aliases: ["layers-3"]
     };
+    __iconData15.node;
+    Layers = createLucideIcon(__iconData15);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs
+var list_exports = {};
+__export(list_exports, {
+  __iconData: () => __iconData16,
+  default: () => List
+});
+var __iconData16, List;
+var init_list = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list.mjs"() {
+    init_createLucideIcon();
+    __iconData16 = {
+      name: "list",
+      size: 24,
+      node: [
+        ["path", { d: "M3 5h.01", key: "18ugdj" }],
+        ["path", { d: "M3 12h.01", key: "nlz23k" }],
+        ["path", { d: "M3 19h.01", key: "noohij" }],
+        ["path", { d: "M8 5h13", key: "1pao27" }],
+        ["path", { d: "M8 12h13", key: "1za7za" }],
+        ["path", { d: "M8 19h13", key: "m83p4d" }]
+      ]
+    };
+    __iconData16.node;
+    List = createLucideIcon(__iconData16);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs
+var pencil_exports = {};
+__export(pencil_exports, {
+  __iconData: () => __iconData17,
+  default: () => Pencil
+});
+var __iconData17, Pencil;
+var init_pencil = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs"() {
+    init_createLucideIcon();
+    __iconData17 = {
+      name: "pencil",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+            key: "1a8usu"
+          }
+        ],
+        ["path", { d: "m15 5 4 4", key: "1mk7zo" }]
+      ]
+    };
+    __iconData17.node;
+    Pencil = createLucideIcon(__iconData17);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/play.mjs
+var play_exports = {};
+__export(play_exports, {
+  __iconData: () => __iconData18,
+  default: () => Play
+});
+var __iconData18, Play;
+var init_play = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/play.mjs"() {
+    init_createLucideIcon();
+    __iconData18 = {
+      name: "play",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z",
+            key: "10ikf1"
+          }
+        ]
+      ]
+    };
+    __iconData18.node;
+    Play = createLucideIcon(__iconData18);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power.mjs
+var power_exports = {};
+__export(power_exports, {
+  __iconData: () => __iconData19,
+  default: () => Power
+});
+var __iconData19, Power;
+var init_power = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power.mjs"() {
+    init_createLucideIcon();
+    __iconData19 = {
+      name: "power",
+      size: 24,
+      node: [
+        ["path", { d: "M12 2v10", key: "mnfbl" }],
+        ["path", { d: "M18.4 6.6a9 9 0 1 1-12.77.04", key: "obofu9" }]
+      ]
+    };
+    __iconData19.node;
+    Power = createLucideIcon(__iconData19);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power-off.mjs
+var power_off_exports = {};
+__export(power_off_exports, {
+  __iconData: () => __iconData20,
+  default: () => PowerOff
+});
+var __iconData20, PowerOff;
+var init_power_off = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/power-off.mjs"() {
+    init_createLucideIcon();
+    __iconData20 = {
+      name: "power-off",
+      size: 24,
+      node: [
+        ["path", { d: "M18.36 6.64A9 9 0 0 1 20.77 15", key: "dxknvb" }],
+        ["path", { d: "M6.16 6.16a9 9 0 1 0 12.68 12.68", key: "1x7qb5" }],
+        ["path", { d: "M12 2v4", key: "3427ic" }],
+        ["path", { d: "m2 2 20 20", key: "1ooewy" }]
+      ]
+    };
     __iconData20.node;
-    Layers = createLucideIcon(__iconData20);
+    PowerOff = createLucideIcon(__iconData20);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/radio.mjs
+var radio_exports = {};
+__export(radio_exports, {
+  __iconData: () => __iconData21,
+  default: () => Radio
+});
+var __iconData21, Radio;
+var init_radio = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/radio.mjs"() {
+    init_createLucideIcon();
+    __iconData21 = {
+      name: "radio",
+      size: 24,
+      node: [
+        ["path", { d: "M16.247 7.761a6 6 0 0 1 0 8.478", key: "1fwjs5" }],
+        ["path", { d: "M19.075 4.933a10 10 0 0 1 0 14.134", key: "ehdyv1" }],
+        ["path", { d: "M4.925 19.067a10 10 0 0 1 0-14.134", key: "1q22gi" }],
+        ["path", { d: "M7.753 16.239a6 6 0 0 1 0-8.478", key: "r2q7qm" }],
+        ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }]
+      ]
+    };
+    __iconData21.node;
+    Radio = createLucideIcon(__iconData21);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/shield-check.mjs
 var shield_check_exports = {};
 __export(shield_check_exports, {
-  __iconData: () => __iconData21,
+  __iconData: () => __iconData22,
   default: () => ShieldCheck
 });
-var __iconData21, ShieldCheck;
+var __iconData22, ShieldCheck;
 var init_shield_check = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/shield-check.mjs"() {
     init_createLucideIcon();
-    __iconData21 = {
+    __iconData22 = {
       name: "shield-check",
       size: 24,
       node: [
@@ -1086,8 +996,638 @@ var init_shield_check = __esm({
         ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
       ]
     };
-    __iconData21.node;
-    ShieldCheck = createLucideIcon(__iconData21);
+    __iconData22.node;
+    ShieldCheck = createLucideIcon(__iconData22);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/skip-forward.mjs
+var skip_forward_exports = {};
+__export(skip_forward_exports, {
+  __iconData: () => __iconData23,
+  default: () => SkipForward
+});
+var __iconData23, SkipForward;
+var init_skip_forward = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/skip-forward.mjs"() {
+    init_createLucideIcon();
+    __iconData23 = {
+      name: "skip-forward",
+      size: 24,
+      node: [
+        ["path", { d: "M21 4v16", key: "7j8fe9" }],
+        [
+          "path",
+          {
+            d: "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z",
+            key: "zs4d6"
+          }
+        ]
+      ]
+    };
+    __iconData23.node;
+    SkipForward = createLucideIcon(__iconData23);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs
+var sliders_horizontal_exports = {};
+__export(sliders_horizontal_exports, {
+  __iconData: () => __iconData24,
+  default: () => SlidersHorizontal
+});
+var __iconData24, SlidersHorizontal;
+var init_sliders_horizontal = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs"() {
+    init_createLucideIcon();
+    __iconData24 = {
+      name: "sliders-horizontal",
+      size: 24,
+      node: [
+        ["path", { d: "M10 5H3", key: "1qgfaw" }],
+        ["path", { d: "M12 19H3", key: "yhmn1j" }],
+        ["path", { d: "M14 3v4", key: "1sua03" }],
+        ["path", { d: "M16 17v4", key: "1q0r14" }],
+        ["path", { d: "M21 12h-9", key: "1o4lsq" }],
+        ["path", { d: "M21 19h-5", key: "1rlt1p" }],
+        ["path", { d: "M21 5h-7", key: "1oszz2" }],
+        ["path", { d: "M8 10v4", key: "tgpxqk" }],
+        ["path", { d: "M8 12H3", key: "a7s4jb" }]
+      ]
+    };
+    __iconData24.node;
+    SlidersHorizontal = createLucideIcon(__iconData24);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/timer.mjs
+var timer_exports = {};
+__export(timer_exports, {
+  __iconData: () => __iconData25,
+  default: () => Timer
+});
+var __iconData25, Timer;
+var init_timer = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/timer.mjs"() {
+    init_createLucideIcon();
+    __iconData25 = {
+      name: "timer",
+      size: 24,
+      node: [
+        ["line", { x1: "10", x2: "14", y1: "2", y2: "2", key: "14vaq8" }],
+        ["line", { x1: "12", x2: "15", y1: "14", y2: "11", key: "17fdiu" }],
+        ["circle", { cx: "12", cy: "14", r: "8", key: "1e1u0o" }]
+      ]
+    };
+    __iconData25.node;
+    Timer = createLucideIcon(__iconData25);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs
+var __iconData26, Trash;
+var init_trash = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs"() {
+    init_createLucideIcon();
+    __iconData26 = {
+      name: "trash",
+      size: 24,
+      node: [
+        ["path", { d: "M10 11v6", key: "nco0om" }],
+        ["path", { d: "M14 11v6", key: "outv1u" }],
+        ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
+        ["path", { d: "M3 6h18", key: "d0wm0j" }],
+        ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
+      ],
+      aliases: ["trash-2"]
+    };
+    __iconData26.node;
+    Trash = createLucideIcon(__iconData26);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs
+var trash_2_exports = {};
+__export(trash_2_exports, {
+  default: () => Trash
+});
+var init_trash_2 = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs"() {
+    init_trash();
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs
+var x_exports = {};
+__export(x_exports, {
+  __iconData: () => __iconData27,
+  default: () => X
+});
+var __iconData27, X;
+var init_x = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs"() {
+    init_createLucideIcon();
+    __iconData27 = {
+      name: "x",
+      size: 24,
+      node: [
+        ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+        ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
+      ]
+    };
+    __iconData27.node;
+    X = createLucideIcon(__iconData27);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/zap.mjs
+var zap_exports = {};
+__export(zap_exports, {
+  __iconData: () => __iconData28,
+  default: () => Zap
+});
+var __iconData28, Zap;
+var init_zap = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/zap.mjs"() {
+    init_createLucideIcon();
+    __iconData28 = {
+      name: "zap",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z",
+            key: "1v7up4"
+          }
+        ]
+      ]
+    };
+    __iconData28.node;
+    Zap = createLucideIcon(__iconData28);
+  }
+});
+
+// packages/addons/automation/client/ui/icons.cjs
+var require_icons2 = __commonJS({
+  "packages/addons/automation/client/ui/icons.cjs"(exports2, module2) {
+    "use strict";
+    var icons = require_icons();
+    var set = icons.create("wba", {
+      "activity": (init_activity(), __toCommonJS(activity_exports)).default,
+      "bot": (init_bot(), __toCommonJS(bot_exports)).default,
+      "calendar-clock": (init_calendar_clock(), __toCommonJS(calendar_clock_exports)).default,
+      "clock": (init_clock(), __toCommonJS(clock_exports)).default,
+      "hourglass": (init_hourglass(), __toCommonJS(hourglass_exports)).default,
+      "repeat": (init_repeat(), __toCommonJS(repeat_exports)).default,
+      "send": (init_send(), __toCommonJS(send_exports)).default,
+      "sparkles": (init_sparkles(), __toCommonJS(sparkles_exports)).default,
+      "alarm-clock": (init_alarm_clock(), __toCommonJS(alarm_clock_exports)).default,
+      "alert-triangle": (init_alert_triangle(), __toCommonJS(alert_triangle_exports)).default,
+      "check-circle": (init_check_circle(), __toCommonJS(check_circle_exports)).default,
+      "database": (init_database(), __toCommonJS(database_exports)).default,
+      "hand": (init_hand(), __toCommonJS(hand_exports)).default,
+      "history": (init_history(), __toCommonJS(history_exports)).default,
+      "layers": (init_layers(), __toCommonJS(layers_exports)).default,
+      "list": (init_list(), __toCommonJS(list_exports)).default,
+      "pencil": (init_pencil(), __toCommonJS(pencil_exports)).default,
+      "play": (init_play(), __toCommonJS(play_exports)).default,
+      "power": (init_power(), __toCommonJS(power_exports)).default,
+      "power-off": (init_power_off(), __toCommonJS(power_off_exports)).default,
+      "radio": (init_radio(), __toCommonJS(radio_exports)).default,
+      "shield-check": (init_shield_check(), __toCommonJS(shield_check_exports)).default,
+      "skip-forward": (init_skip_forward(), __toCommonJS(skip_forward_exports)).default,
+      "sliders-horizontal": (init_sliders_horizontal(), __toCommonJS(sliders_horizontal_exports)).default,
+      "timer": (init_timer(), __toCommonJS(timer_exports)).default,
+      "trash-2": (init_trash_2(), __toCommonJS(trash_2_exports)).default,
+      "x": (init_x(), __toCommonJS(x_exports)).default,
+      "zap": (init_zap(), __toCommonJS(zap_exports)).default
+    });
+    module2.exports = { ICONS: set.ICONS, Icon: set.Icon };
+  }
+});
+
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
+    ];
+    function Switch(props) {
+      var h = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h("span", { className: "wbctl-switch-text" }, text) : null
+      );
+    }
+    module2.exports = { Switch, styles: SWITCH_STYLES };
+  }
+});
+
+// packages/addons/lib/number-field.cjs
+var require_number_field = __commonJS({
+  "packages/addons/lib/number-field.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var NUM = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    var TEXT = {
+      zh: {
+        required: "\u8BF7\u586B\u5199\u6570\u5B57",
+        invalid: "\u8BF7\u8F93\u5165\u6570\u5B57",
+        integer: "\u9700\u8981\u662F\u6574\u6570",
+        min: "\u4E0D\u80FD\u5C0F\u4E8E {min}",
+        max: "\u4E0D\u80FD\u5927\u4E8E {max}",
+        range: "\u9700\u8981\u5728 {min}\u2013{max} \u4E4B\u95F4",
+        step: "\u9700\u8981\u662F {step} \u7684\u500D\u6570",
+        unit: "\u5355\u4F4D"
+      },
+      en: {
+        required: "Please enter a number",
+        invalid: "Please enter a number",
+        integer: "Must be a whole number",
+        min: "Must be at least {min}",
+        max: "Must be at most {max}",
+        range: "Must be between {min} and {max}",
+        step: "Must be a multiple of {step}",
+        unit: "unit"
+      }
+    };
+    function messages(lang) {
+      return lang === "en" ? TEXT.en : TEXT.zh;
+    }
+    function fill(text, vars) {
+      return String(text).replace(/\{(\w+)\}/g, function(m, key) {
+        return vars && vars[key] !== void 0 ? String(vars[key]) : m;
+      });
+    }
+    function validateNumber(raw, opts) {
+      var o = opts || {};
+      var M = messages(o.lang);
+      var text = raw === null || raw === void 0 ? "" : String(raw).trim();
+      if (text === "") {
+        return o.allowEmpty ? { ok: true, value: null, error: "" } : { ok: false, value: null, error: M.required };
+      }
+      if (!NUM.test(text)) return { ok: false, value: null, error: M.invalid };
+      var n = Number(text);
+      if (!isFinite(n)) return { ok: false, value: null, error: M.invalid };
+      if (o.integer && Math.round(n) !== n) return { ok: false, value: null, error: M.integer };
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      if (hasMin && hasMax && n >= o.min && n <= o.max) {
+      } else if (hasMin && hasMax) {
+        return { ok: false, value: null, error: fill(M.range, { min: o.min, max: o.max }) };
+      } else if (hasMin && n < o.min) {
+        return { ok: false, value: null, error: fill(M.min, { min: o.min }) };
+      } else if (hasMax && n > o.max) {
+        return { ok: false, value: null, error: fill(M.max, { max: o.max }) };
+      }
+      if (o.step && Number(o.step) > 0) {
+        var q = n / Number(o.step);
+        if (Math.abs(q - Math.round(q)) > 1e-9) {
+          return { ok: false, value: null, error: fill(M.step, { step: o.step }) };
+        }
+      }
+      return { ok: true, value: n, error: "" };
+    }
+    function rangeHint(opts, lang) {
+      var o = opts || {};
+      var M = messages(lang);
+      var en = lang === "en";
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      var parts = [];
+      if (hasMin && hasMax) parts.push(String(o.min) + "\u2013" + String(o.max));
+      else if (hasMin) parts.push((en ? "\u2265 " : "\u2265 ") + String(o.min));
+      else if (hasMax) parts.push((en ? "\u2264 " : "\u2264 ") + String(o.max));
+      if (o.integer) parts.push(en ? "whole numbers" : "\u6574\u6570");
+      else if (o.step && Number(o.step) > 0) parts.push((en ? "step " : "\u6B65\u957F ") + String(o.step));
+      return parts.join(en ? ", " : "\uFF0C");
+    }
+    function NumberField(props) {
+      var h = props.h || React.createElement;
+      var lang = props.lang;
+      var M = messages(lang);
+      var text = props.value === null || props.value === void 0 ? "" : String(props.value);
+      var draftS = React.useState(text);
+      var draft = draftS[0];
+      var setDraft = draftS[1];
+      var focusS = React.useState(false);
+      var focused = focusS[0];
+      var setFocused = focusS[1];
+      var errS = React.useState("");
+      var err = errS[0];
+      var setErr = errS[1];
+      var lastRef = React.useRef(text);
+      var skipBlurRef = React.useRef(false);
+      React.useEffect(
+        function() {
+          if (focused) return;
+          if (lastRef.current === text) return;
+          lastRef.current = text;
+          setDraft(text);
+          setErr("");
+        },
+        [text, focused]
+      );
+      function commit(raw) {
+        var r = validateNumber(raw, props);
+        if (!r.ok) {
+          setErr(r.error);
+          if (typeof props.onValidChange === "function") props.onValidChange(false, r.error);
+          return false;
+        }
+        setErr("");
+        if (typeof props.onValidChange === "function") props.onValidChange(true, "");
+        var cur = props.value === null || props.value === void 0 ? null : Number(props.value);
+        if (r.value !== cur) {
+          lastRef.current = r.value === null ? "" : String(r.value);
+          if (typeof props.onCommit === "function") props.onCommit(r.value);
+        }
+        return true;
+      }
+      var hint = props.hint !== void 0 ? props.hint : rangeHint(props, lang);
+      var shown = props.hint === false ? "" : hint;
+      return h(
+        "span",
+        { className: "wbctl-num" + (props.wide ? " is-wide" : "") + (props.className ? " " + props.className : "") },
+        h(
+          "span",
+          { className: "wbctl-num-box" },
+          h("input", {
+            className: "wbctl-num-input" + (err ? " is-invalid" : ""),
+            type: "text",
+            inputMode: props.integer || Number(props.step) === 1 ? "numeric" : "decimal",
+            value: draft,
+            disabled: !!props.disabled,
+            placeholder: props.placeholder,
+            title: props.title,
+            "aria-label": props.ariaLabel,
+            "aria-invalid": err ? "true" : void 0,
+            onFocus: function() {
+              setFocused(true);
+            },
+            onChange: function(e) {
+              setDraft(e.target.value);
+              if (err) setErr("");
+              if (typeof props.onDraft === "function") props.onDraft(e.target.value);
+            },
+            onBlur: function() {
+              setFocused(false);
+              if (skipBlurRef.current) {
+                skipBlurRef.current = false;
+                return;
+              }
+              commit(draft);
+            },
+            onKeyDown: function(e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.target && e.target.blur) e.target.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                skipBlurRef.current = true;
+                setDraft(text);
+                setErr("");
+                if (e.target && e.target.blur) e.target.blur();
+              }
+            }
+          }),
+          props.unit ? h("span", { className: "wbctl-num-unit" }, props.unit) : null
+        ),
+        err ? h("span", { className: "wbctl-num-err", role: "alert" }, err) : shown ? h("span", { className: "wbctl-num-hint" }, shown) : null
+      );
+    }
+    var NUMBER_STYLES = [
+      ".wbctl-num{display:inline-flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}",
+      ".wbctl-num.is-wide{display:flex;width:100%}",
+      ".wbctl-num-box{display:inline-flex;align-items:center;gap:6px;min-width:0}",
+      ".wbctl-num-input{box-sizing:border-box;width:96px;min-width:0;padding:6px 9px;border:1px solid var(--wb-line,rgba(127,127,127,.35));border-radius:6px;background:var(--wb-surface,var(--wb-card,transparent));color:inherit;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,outline-color .14s ease}",
+      ".wbctl-num-input:hover:not(:disabled){border-color:var(--wb-border,var(--wb-line))}",
+      ".wbctl-num-input:focus{outline:2px solid color-mix(in oklab,var(--wb-accent,#2563eb) 55%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbctl-num-input.is-invalid{border-color:var(--wb-danger,#dc2626)}",
+      ".wbctl-num-input.is-invalid:focus{outline-color:color-mix(in oklab,var(--wb-danger,#dc2626) 55%,transparent)}",
+      ".wbctl-num-input:disabled{opacity:.5;cursor:not-allowed}",
+      ".wbctl-num-unit{color:var(--wb-muted,inherit);font-size:12px;white-space:nowrap}",
+      ".wbctl-num-hint{color:var(--wb-muted,inherit);font-size:11px;line-height:1.4}",
+      ".wbctl-num-err{color:var(--wb-danger,#dc2626);font-size:11px;line-height:1.4}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-num-input{transition:none}}"
+    ];
+    module2.exports = {
+      NumberField,
+      validateNumber,
+      rangeHint,
+      messages,
+      styles: NUMBER_STYLES
+    };
+  }
+});
+
+// packages/addons/lib/client-base-styles.cjs
+var require_client_base_styles = __commonJS({
+  "packages/addons/lib/client-base-styles.cjs"(exports2, module2) {
+    "use strict";
+    var SECRET_FIELD = [
+      ".wb-secret-field{position:relative;display:flex;align-items:center;min-width:0}",
+      ".wb-secret-field input{flex:1 1 auto;min-width:0;padding-right:34px}",
+      ".wb-eye{position:absolute;right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:6px;padding:4px;color:var(--wb-muted,#6b7280);cursor:pointer}",
+      ".wb-eye:hover:not(:disabled){color:var(--wb-accent,#2563eb);background:color-mix(in srgb, var(--wb-accent,#2563eb) 12%, transparent)}",
+      ".wb-eye:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:1px}",
+      ".wb-eye:disabled{opacity:.45;cursor:not-allowed}"
+    ];
+    module2.exports = function baseStyles(prefix) {
+      var p = String(prefix || "wb");
+      var s = "." + p;
+      return SECRET_FIELD.concat([
+        s + "-wrap{display:flex;flex-direction:column;gap:12px;padding:16px;overflow:auto;height:100%;box-sizing:border-box}",
+        s + "-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}",
+        s + "-title{font-size:16px;font-weight:650;margin:0}",
+        s + "-sub{font-size:12px;color:var(--wb-muted,#6b7280);margin:2px 0 0}",
+        s + "-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}",
+        s + "-card{border:1px solid var(--wb-border,#e5e7eb);border-radius:10px;background:var(--wb-surface,#fff);padding:12px}",
+        s + "-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}",
+        s + "-kpi{font-size:22px;font-weight:700;line-height:1.2}" + s + "-kpi-label{font-size:12px;color:var(--wb-muted,#6b7280)}",
+        s + "-table{width:100%;border-collapse:collapse;font-size:12px}" + s + "-table th," + s + "-table td{padding:7px 8px;border-bottom:1px solid var(--wb-border,#eef0f3);text-align:left;vertical-align:top}",
+        s + "-table th{font-weight:600;color:var(--wb-muted,#6b7280);white-space:nowrap}",
+        s + "-btn{border:1px solid var(--wb-border,#d1d5db);background:var(--wb-surface,#fff);color:inherit;border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}",
+        s + "-btn:hover:not(:disabled){border-color:var(--wb-accent,#2563eb)}" + s + "-btn:disabled{opacity:.5;cursor:default}",
+        s + "-btn.primary{background:var(--wb-accent,#2563eb);border-color:var(--wb-accent,#2563eb);color:#fff}",
+        s + "-btn.danger{color:#b91c1c;border-color:#fecaca}",
+        s + "-field{display:flex;flex-direction:column;gap:4px;font-size:12px}" + s + "-label{font-weight:600}",
+        s + "-field input," + s + "-field select," + s + "-field textarea{border:1px solid var(--wb-border,#d1d5db);border-radius:7px;padding:6px 8px;font:inherit;background:var(--wb-surface,#fff);color:inherit;min-width:0}",
+        s + "-hint{color:var(--wb-muted,#6b7280);font-size:11px}" + s + "-notice{padding:8px 10px;border-radius:8px;font-size:12px;background:#eff6ff;color:#1e40af}",
+        s + "-notice.error{background:#fef2f2;color:#b91c1c}" + s + "-notice.ok{background:#ecfdf5;color:#047857}",
+        s + "-empty{padding:18px;text-align:center;color:var(--wb-muted,#6b7280);font-size:12px;border:1px dashed var(--wb-border,#e5e7eb);border-radius:8px}",
+        s + "-pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;background:#f3f4f6;color:#374151}",
+        s + "-pill.ok{background:#ecfdf5;color:#047857}" + s + "-pill.error{background:#fef2f2;color:#b91c1c}" + s + "-pill.warn{background:#fffbeb;color:#b45309}",
+        s + "-json{margin:0;padding:8px;background:#f8fafc;border-radius:8px;font-size:11px;max-height:240px;overflow:auto}",
+        s + "-muted{color:var(--wb-muted,#6b7280)}" + s + "-link{color:var(--wb-accent,#2563eb);cursor:pointer;text-decoration:none}",
+        s + "-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}"
+      ]);
+    };
+    module2.exports.secretFieldStyles = SECRET_FIELD;
+  }
+});
+
+// packages/addons/automation/client/ui/layout-styles.cjs
+var require_layout_styles = __commonJS({
+  "packages/addons/automation/client/ui/layout-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = [
+      // 页面分区
+      ".wba-panel{border:1px solid var(--wb-border);border-radius:12px;padding:16px;background:var(--wb-surface);display:flex;flex-direction:column;gap:12px}",
+      ".wba-panel-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}",
+      ".wba-panel-title{font-size:14px;font-weight:650;margin:0}",
+      ".wba-sub{font-size:12px;color:var(--wb-muted);margin:0;line-height:1.5}",
+      ".wba-sep{height:1px;background:var(--wb-border);border:0;margin:0}",
+      // 表格容器与行
+      ".wba-table-wrap{overflow-x:auto;border:1px solid var(--wb-border);border-radius:12px;background:var(--wb-surface)}",
+      ".wba-table-wrap .wba-table{border-collapse:separate;border-spacing:0}",
+      ".wba-table tbody tr{transition:background 120ms ease}",
+      ".wba-table tbody tr:hover{background:var(--wb-line)}",
+      ".wba-table td{vertical-align:middle}",
+      ".wba-table code{font-size:11px;color:var(--wb-muted)}",
+      ".wba-table tr.wba-row-open{background:var(--wb-line)}",
+      ".wba-detail-cell{padding:12px 14px!important;background:color-mix(in oklab,var(--wb-line) 45%,transparent)}",
+      // KPI 卡片
+      ".wba-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}",
+      ".wba-card{border:1px solid var(--wb-border);border-radius:10px;padding:12px;background:var(--wb-surface);display:flex;flex-direction:column;gap:6px}",
+      ".wba-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--wb-muted)}",
+      ".wba-card-num{font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}",
+      ".wba-card-ico{display:flex;color:var(--wb-accent)}",
+      ".wba-card-label{font-size:12px;font-weight:600}",
+      ".wba-card-hint{font-size:11px;color:var(--wb-muted);margin:0}",
+      // 键值 / chips
+      ".wba-kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 12px;font-size:12px;align-items:start}",
+      ".wba-kv b{font-weight:600;color:var(--wb-muted);white-space:nowrap}",
+      ".wba-kv span,.wba-kv code{min-width:0;overflow-wrap:anywhere}",
+      ".wba-pills{display:flex;flex-wrap:wrap;gap:6px}",
+      ".wba-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--wb-border);border-radius:999px;padding:2px 10px;font-size:12px;background:transparent;color:inherit;cursor:pointer;font-family:inherit}",
+      ".wba-chip[aria-pressed=true]{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-surface)}",
+      ".wba-chip.static{cursor:default}",
+      ".wba-chips{display:flex;flex-wrap:wrap;gap:6px}",
+      // JSON 编辑器
+      ".wba-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;width:100%;min-height:160px;resize:vertical;tab-size:2;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--wb-border);background:var(--wb-line);color:inherit}",
+      ".wba-code.sm{min-height:96px}",
+      ".wba-code:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
+      ".wba-code.err{border-color:var(--wb-danger)}",
+      ".wba-code-err{font-size:11px;color:var(--wb-danger);min-height:14px}",
+      ".wba-pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:1.55;margin:0;padding:10px;border-radius:8px;background:var(--wb-line);max-height:260px;overflow:auto;overflow-wrap:anywhere}",
+      // 输入与按钮
+      ".wba-input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--wb-border);border-radius:8px;padding:6px 8px;font:inherit;font-size:12px;background:var(--wb-surface);color:inherit}",
+      ".wba-input.err{border-color:var(--wb-danger)}",
+      ".wba-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}",
+      ".wba-toolbar .wba-field{min-width:150px}",
+      ".wba-actions{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}",
+      ".wba-icon-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:7px;background:transparent;color:inherit;cursor:pointer;padding:0}",
+      ".wba-icon-btn:hover{border-color:var(--wb-accent);color:var(--wb-accent)}",
+      ".wba-icon-btn.danger:hover{border-color:var(--wb-danger);color:var(--wb-danger)}",
+      ".wba-icon-btn:disabled{opacity:.45;cursor:default}",
+      // 空态与骨架
+      ".wba-empty-card{border:1px dashed var(--wb-border);border-radius:12px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:var(--wb-surface)}",
+      ".wba-empty-ico{color:var(--wb-muted);display:flex}",
+      ".wba-empty-title{font-size:14px;font-weight:650;margin:0}",
+      ".wba-empty-body{font-size:12px;color:var(--wb-muted);margin:0;max-width:52ch;line-height:1.55}",
+      ".wba-skel{height:12px;border-radius:6px;background:var(--wb-line);animation:wba-pulse 1.2s ease-in-out infinite}",
+      ".wba-skel-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:14px;padding:12px 14px;border-bottom:1px solid var(--wb-border)}",
+      "@keyframes wba-pulse{50%{opacity:.45}}",
+      // 模态
+      ".wba-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:color-mix(in oklab,var(--wb-muted) 45%,transparent)}",
+      ".wba-modal-box{width:min(760px,calc(100vw - 32px));max-height:90vh;display:flex;flex-direction:column;background:var(--wb-surface);border:1px solid var(--wb-border);border-radius:14px;overflow:hidden;box-shadow:0 24px 64px color-mix(in oklab,var(--wb-muted) 40%,transparent)}",
+      ".wba-modal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;border-bottom:1px solid var(--wb-border)}",
+      ".wba-modal-head h3{font-size:15px;margin:0}",
+      ".wba-modal-body{padding:16px;overflow:auto;display:flex;flex-direction:column;gap:16px}",
+      ".wba-modal-foot{position:sticky;bottom:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--wb-border);background:var(--wb-surface)}",
+      ".wba-modal-foot .wba-grow{flex:1}",
+      // 编辑器分段与栅格
+      ".wba-section{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--wb-border)}",
+      ".wba-section:first-child{border-top:0;padding-top:0}",
+      ".wba-section-title{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--wb-muted);margin:0;text-transform:uppercase}",
+      ".wba-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}",
+      ".wba-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}",
+      ".wba-span-2{grid-column:span 2}",
+      ".wba-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-line);align-self:flex-start}",
+      ".wba-seg button{border:0;background:transparent;color:inherit;border-radius:6px;padding:4px 12px;font-size:12px;font-family:inherit;cursor:pointer}",
+      ".wba-seg button[aria-pressed=true]{background:var(--wb-surface);box-shadow:0 0 0 1px var(--wb-border);font-weight:600}",
+      ".wba-block{display:flex;flex-direction:column;gap:6px;min-width:0}",
+      ".wba-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}",
+      ".wba-grow{flex:1;min-width:0}",
+      ".wba-svg{display:inline-block;vertical-align:middle;flex:none}",
+      ".wba-w-120{width:120px;flex:none}",
+      /* 共享数字输入框在触发配置里的宽度：与原来的 120px 输入框对齐。 */
+      ".wba-num{flex:none}.wba-num .wbctl-num-input{width:120px}",
+      ".wba-w-96{width:96px;flex:none}",
+      ".wba-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.55}",
+      ".wba-clickable{cursor:pointer}",
+      ".wba-check{display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}",
+      ".wba-check input{accent-color:var(--wb-accent);margin:0}",
+      // 设置页：纵向堆叠的卡片与 action 多选
+      ".wba-stack{display:flex;flex-direction:column;gap:12px}",
+      ".wba-notice.warn{background:var(--wb-surface);color:var(--wb-warn);border:1px solid var(--wb-warn)}",
+      ".wba-hist{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto}",
+      ".wba-hist-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--wb-line);border-radius:8px;background:var(--wb-surface)}",
+      ".wba-hist-row .wba-pre{max-height:120px}",
+      ".wba-empty-inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 0}",
+      ".wba-picker{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;border:1px solid var(--wb-border);border-radius:8px;padding:8px;background:var(--wb-surface)}",
+      ".wba-picker-group{display:flex;flex-direction:column;gap:2px}",
+      ".wba-picker-domain{margin:4px 0 2px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--wb-muted)}",
+      ".wba-picker-row{padding:3px 4px;border-radius:6px;gap:8px;min-width:0}",
+      ".wba-picker-row:hover{background:var(--wb-card)}",
+      ".wba-picker-row .wba-hint{flex:1;min-width:0}",
+      // 文本与焦点
+      ".wba-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}",
+      ".wba-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--wb-muted)}",
+      ".wba-nowrap{white-space:nowrap}",
+      ".wba-strong{font-weight:600}",
+      ".wba-warn{color:var(--wb-warn)}",
+      ".wba-err-text{color:var(--wb-danger);font-size:11px;margin:0}",
+      ".wba-wrap :focus-visible,.wba-modal :focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
+      // 响应式
+      "@media (max-width:720px){.wba-grid-2,.wba-grid-3{grid-template-columns:1fr}.wba-span-2{grid-column:auto}.wba-modal{padding:8px}.wba-modal-box{width:calc(100vw - 16px)}.wba-toolbar .wba-field{min-width:0;flex:1 1 140px}.wba-modal-body{padding:12px}.wba-modal-foot{flex-wrap:wrap}.wba-skel-row{grid-template-columns:1fr 1fr}}"
+    ].join("\n");
+  }
+});
+
+// packages/addons/automation/client/ui/styles.cjs
+var require_styles = __commonJS({
+  "packages/addons/automation/client/ui/styles.cjs"(exports2, module2) {
+    "use strict";
+    var SW = require_switch();
+    var NF = require_number_field();
+    module2.exports = require_client_base_styles()("wba").join("\n") + "\n" + require_layout_styles() + "\n" + SW.styles.join("\n") + "\n" + NF.styles.join("\n");
   }
 });
 
@@ -1197,6 +1737,11 @@ var require_client_common = __commonJS({
         call,
         errText,
         fmtTime,
+        Switch: require_switch().Switch,
+        switchStyles: require_switch().styles,
+        NumberField: require_number_field().NumberField,
+        numberFieldStyles: require_number_field().styles,
+        validateNumber: require_number_field().validateNumber,
         Btn,
         Field,
         Notice,
@@ -1227,6 +1772,9 @@ var require_copy = __commonJS({
         "common.save": "\u4FDD\u5B58",
         "common.cancel": "\u53D6\u6D88",
         "common.close": "\u5173\u95ED",
+        "common.next": "\u4E0B\u4E00\u6B65",
+        "common.back": "\u4E0A\u4E00\u6B65",
+        "common.more": "\u52A0\u8F7D\u66F4\u65E9\u7684\u8BB0\u5F55",
         "common.refresh": "\u5237\u65B0",
         "common.retry": "\u91CD\u8BD5",
         "common.delete": "\u5220\u9664",
@@ -1260,8 +1808,25 @@ var require_copy = __commonJS({
         "rules.empty.backup": "\u89C4\u5219\u53EF\u4EE5\u968F\u5907\u4EFD\u5BFC\u5165\u5BFC\u51FA\uFF1B\u8FD0\u884C\u8BB0\u5F55\u53EA\u4FDD\u7559\u5728\u672C\u673A\u3002",
         "rules.empty.filtered": "\u6CA1\u6709\u5339\u914D\u7684\u89C4\u5219",
         "rules.empty.filteredBody": "\u6362\u4E2A\u5173\u952E\u8BCD\uFF0C\u6216\u6E05\u9664\u8FC7\u6EE4\u6761\u4EF6\u3002",
+        "rules.empty.noActionTitle": "\u8FD8\u6CA1\u6709\u542F\u7528\u4EFB\u4F55 action",
+        "rules.empty.noActionBody": "\u81EA\u52A8\u5316\u9ED8\u8BA4\u4E0D\u5141\u8BB8\u8C03\u7528\u4EFB\u4F55 action\u3002\u5148\u5230\u8BBE\u7F6E\u9875\u52FE\u9009\u9700\u8981\u7684 action\uFF0C\u518D\u521B\u5EFA\u89C4\u5219\u3002",
+        "rules.empty.noActionCta": "\u53BB\u8BBE\u7F6E",
+        "rules.empty.noActionHint": "\u52FE\u9009\u540E\u7ACB\u5373\u751F\u6548\uFF0C\u4E0D\u9700\u8981\u91CD\u542F\u3002",
+        "rules.actionDisabled": "\u672A\u542F\u7528",
         "rules.confirm.delete": "\u5220\u9664\u89C4\u5219\u300C{name}\u300D\uFF1F\u5220\u9664\u540E\u4E0D\u53EF\u6062\u590D\u3002",
         "rules.running": "\u8FD0\u884C\u4E2D\u2026",
+        "rules.exec.mode": "\u6267\u884C\u65B9\u5F0F",
+        "rules.exec.action": "\u8C03\u7528 Action",
+        "rules.exec.agent": "\u4EA4\u7ED9 AI",
+        "rules.agentAction": "\u4EA4\u7ED9 AI \u6267\u884C",
+        "rules.schedule.active": "\u8FD0\u884C\u4E2D",
+        "rules.schedule.paused": "\u5DF2\u6682\u505C",
+        "rules.schedule.ended": "\u5DF2\u7ED3\u675F",
+        "rules.schedule.missing": "\u5BBF\u4E3B\u4EFB\u52A1\u5DF2\u5220\u9664",
+        "rules.lastDelivery": "\u4E0A\u6B21\u6295\u9012",
+        "rules.history": "\u6295\u9012\u5386\u53F2",
+        "rules.agentOffline": "\u5F53\u524D\u5BBF\u4E3B\u6CA1\u6709\u52A0\u8F7D\u300C\u81EA\u52A8\u5316\u4EFB\u52A1\u300D\u670D\u52A1\uFF0CAI \u89C4\u5219\u6682\u65F6\u53EA\u80FD\u67E5\u770B\uFF0C\u4E0D\u80FD\u521B\u5EFA\u6216\u4FEE\u6539\u3002",
+        "rules.orphans": "\u5BBF\u4E3B\u91CC\u8FD8\u6709 {n} \u4E2A\u81EA\u52A8\u5316\u4EFB\u52A1\u6CA1\u6709\u7EB3\u5165\u5DE5\u4F5C\u53F0\u89C4\u5219\uFF0C\u53EF\u5728\u300C\u81EA\u52A8\u5316\u4EFB\u52A1\u300D\u9762\u677F\u7BA1\u7406\u3002",
         "trigger.interval": "\u95F4\u9694",
         "trigger.dailyAt": "\u6BCF\u5929",
         "trigger.event": "\u4E8B\u4EF6",
@@ -1301,6 +1866,9 @@ var require_copy = __commonJS({
         "editor.nameRequired": "\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A",
         "editor.enabled": "\u542F\u7528",
         "editor.action": "Action",
+        "editor.actionRequired": "\u8BF7\u9009\u62E9\u4E00\u4E2A action",
+        "editor.noActions": "\u672A\u542F\u7528\u4EFB\u4F55 action",
+        "editor.noActionsHint": "\u5148\u5230\u8BBE\u7F6E\u9875\u52FE\u9009 action\uFF0C\u624D\u80FD\u4FDD\u5B58\u89C4\u5219\u3002",
         "editor.showExample": "\u67E5\u770B\u53C2\u6570\u793A\u4F8B",
         "editor.fillExample": "\u586B\u5165\u793A\u4F8B",
         "editor.exampleHint": "\u793A\u4F8B\u4F1A\u8986\u76D6\u5F53\u524D JSON\uFF0C\u786E\u8BA4\u540E\u586B\u5165\u3002",
@@ -1317,6 +1885,61 @@ var require_copy = __commonJS({
         "editor.conditionObject": "\u6761\u4EF6\u5FC5\u987B\u662F JSON \u5BF9\u8C61",
         "editor.exampleTitle": "\u53C2\u6570\u793A\u4F8B",
         "editor.ruleFallbackHint": "\u89E6\u53D1\u5668\u6BCF 30 \u79D2\u626B\u63CF\u4E00\u6B21\uFF0C\u5355\u6B21\u6700\u591A\u6267\u884C 3 \u6761\u3002",
+        "editor.section.mode": "\u6267\u884C\u65B9\u5F0F",
+        "editor.mode.action": "\u8C03\u7528 Action",
+        "editor.mode.actionHint": "\u6309\u65F6\u95F4\u6216\u57DF\u4E8B\u4EF6\u76F4\u63A5\u8C03\u7528\u5DF2\u542F\u7528\u7684 action\uFF1A\u786E\u5B9A\u6027\u6267\u884C\uFF0C\u4E0D\u6D88\u8017 token\u3002",
+        "editor.mode.agent": "\u4EA4\u7ED9 AI",
+        "editor.mode.agentHint": "\u628A\u63D0\u793A\u8BCD\u4EA4\u7ED9\u5BBF\u4E3B\u300C\u81EA\u52A8\u5316\u4EFB\u52A1\u300D\uFF0C\u6309\u65F6\u6295\u8FDB\u4F1A\u8BDD\u7531 AI \u6267\u884C\uFF1A\u6BCF\u6B21\u6295\u9012\u90FD\u4F1A\u4EA7\u751F\u4E00\u6B21\u6A21\u578B\u8BF7\u6C42\uFF0C\u7ED3\u679C\u4E0D\u786E\u5B9A\u3002",
+        "editor.mode.locked": "\u6267\u884C\u65B9\u5F0F\u521B\u5EFA\u540E\u4E0D\u53EF\u4FEE\u6539\uFF1B\u8981\u6362\u65B9\u5F0F\u8BF7\u65B0\u5EFA\u4E00\u6761\u89C4\u5219\u3002",
+        "editor.mode.agentUnavailable": "\u5F53\u524D\u5BBF\u4E3B\u6CA1\u6709\u300C\u81EA\u52A8\u5316\u4EFB\u52A1\u300D\u670D\u52A1\uFF0C\u65E0\u6CD5\u9009\u62E9\u300C\u4EA4\u7ED9 AI\u300D\u3002",
+        "editor.section.prompt": "\u63D0\u793A\u8BCD",
+        "editor.prompt": "\u63D0\u793A\u8BCD",
+        "editor.promptPh": "\u4F8B\u5982\uFF1A\u8BFB\u4ECA\u5929\u7684\u4EFB\u52A1\u4E0E\u6D88\u606F\uFF0C\u6C47\u603B\u6210\u4E00\u6BB5\u6458\u8981\u53D1\u7ED9\u6211\u3002",
+        "editor.promptHint": "\u539F\u6837\u6295\u9012\u7ED9 agent\uFF0C\u5199\u6E05\u8981\u505A\u4EC0\u4E48\u3001\u770B\u54EA\u4E9B\u6570\u636E\u3001\u8F93\u51FA\u6210\u4EC0\u4E48\u6837\u3002",
+        "editor.promptRequired": "AI \u89C4\u5219\u9700\u8981\u586B\u5199\u63D0\u793A\u8BCD",
+        "editor.section.timing": "\u65F6\u95F4\uFF08\u7531\u5BBF\u4E3B\u8C03\u5EA6\uFF09",
+        "editor.section.target": "\u6295\u9012\u76EE\u6807",
+        "editor.target": "\u76EE\u6807",
+        "editor.target.new_once": "\u65B0\u5EFA\u4F1A\u8BDD\uFF08\u4E4B\u540E\u590D\u7528\u540C\u4E00\u4E2A\uFF09",
+        "editor.target.new": "\u6BCF\u6B21\u65B0\u5EFA\u4F1A\u8BDD",
+        "editor.targetHint": "\u300C\u65B0\u5EFA\u4F1A\u8BDD\u300D\u7531\u5BBF\u4E3B\u628A\u63D0\u793A\u8BCD\u6295\u8FDB\u4E00\u4E2A\u7A7A\u4F1A\u8BDD\u518D\u4EA4\u7ED9 AI\uFF1B\u300C\u6BCF\u6B21\u65B0\u5EFA\u300D\u53EF\u4EE5\u5E76\u53D1\uFF0C\u4E92\u4E0D\u5F71\u54CD\u3002",
+        "editor.targetCwd": "\u5DE5\u4F5C\u533A\u8DEF\u5F84\uFF08\u53EF\u9009\uFF09",
+        "editor.targetPreset": "Agent \u9884\u8BBE\uFF08\u53EF\u9009\uFF09",
+        "editor.targetPresetPh": "\u7559\u7A7A\u4F7F\u7528\u5BBF\u4E3B\u9ED8\u8BA4\u9884\u8BBE",
+        "editor.targetSession": "\u4F1A\u8BDD ID",
+        "editor.targetSessionPh": "\u8981\u6295\u9012\u5230\u7684\u73B0\u6709\u4F1A\u8BDD id",
+        "editor.targetSessionRequired": "\u6295\u9012\u5230\u73B0\u6709\u4F1A\u8BDD\u65F6\u9700\u8981\u586B\u5199\u4F1A\u8BDD ID",
+        "agent.every": "\u6BCF\u9694",
+        "agent.after": "\u5EF6\u8FDF",
+        "agent.daily": "\u6BCF\u5929",
+        "agent.weekly": "\u6BCF\u5468",
+        "agent.cron": "cron \u8868\u8FBE\u5F0F",
+        "agent.rrule": "RRULE",
+        "agent.at": "\u4E00\u6B21\u6027",
+        "agent.everyHint": "\u4E0D\u80FD\u5C0F\u4E8E 1 \u5206\u949F\uFF0C\u6700\u957F 30 \u5929\u3002",
+        "agent.afterHint": "\u4ECE\u4FDD\u5B58\u65F6\u8D77\u5EF6\u8FDF N \u5206\u949F\u540E\u6267\u884C\u4E00\u6B21\u3002",
+        "agent.cronPh": "0 9 * * 1-5",
+        "agent.cronHint": "5 \u6BB5\uFF1A\u5206 \u65F6 \u65E5 \u6708 \u5468\u3002",
+        "agent.rrulePh": "DTSTART;TZID=Asia/Shanghai:20260101T090000\nRRULE:FREQ=DAILY",
+        "agent.rruleHint": "\u4E24\u884C\uFF1A\u4E00\u884C DTSTART\uFF0C\u4E00\u884C RRULE\u3002",
+        "agent.date": "\u65E5\u671F",
+        "agent.text.every": "\u6BCF {n} \u5206\u949F",
+        "agent.text.everyHours": "\u6BCF {n} \u5C0F\u65F6",
+        "agent.text.daily": "\u6BCF\u5929 {time}\uFF08{tz}\uFF09",
+        "agent.text.weekly": "\u6BCF\u5468 {days} {time}\uFF08{tz}\uFF09",
+        "agent.text.cron": "cron {expr}\uFF08{tz}\uFF09",
+        "agent.text.rrule": "RRULE {expr}",
+        "agent.text.at": "\u4E00\u6B21\u6027 {at}",
+        "agent.text.after": "{n} \u5206\u949F\u540E\u6267\u884C\u4E00\u6B21",
+        "agent.text.missing": "\u672A\u8BBE\u7F6E\u65F6\u95F4",
+        "hist.title": "\u6295\u9012\u5386\u53F2",
+        "hist.subtitle": "\u7531\u5BBF\u4E3B\u8BB0\u5F55\uFF1B\u56DE\u6267\u53EA\u4EE3\u8868\u63D0\u793A\u8BCD\u8FDB\u5165\u4E86\u76EE\u6807\u4F1A\u8BDD\uFF0C\u4E0D\u4EE3\u8868 agent \u6267\u884C\u6210\u529F\u3002",
+        "hist.records": "\u6700\u8FD1 {n} \u6761",
+        "hist.empty": "\u8FD8\u6CA1\u6709\u6295\u9012\u8BB0\u5F55\u3002",
+        "hist.pruned": "\u66F4\u65E9\u7684\u8BB0\u5F55\u5DF2\u88AB\u5BBF\u4E3B\u6E05\u7406\u3002",
+        "hist.missing": "\u5BBF\u4E3B\u4EFB\u52A1\u5DF2\u4E0D\u5B58\u5728\uFF0C\u65E0\u6CD5\u8BFB\u53D6\u6295\u9012\u8BB0\u5F55\u3002",
+        "hist.col.time": "\u6295\u9012\u65F6\u95F4",
+        "hist.col.detail": "\u8BE6\u60C5",
         "runs.title": "\u8FD0\u884C\u8BB0\u5F55",
         "runs.subtitle": "\u53EA\u5728\u672C\u673A\u4FDD\u7559\uFF0C\u4E0D\u968F\u5907\u4EFD\u540C\u6B65\uFF1B\u70B9\u51FB\u884C\u67E5\u770B\u8BE6\u60C5\u3002",
         "runs.limitNote": "\u6700\u8FD1 200 \u6761",
@@ -1343,7 +1966,7 @@ var require_copy = __commonJS({
         "runs.empty.title": "\u8FD8\u6CA1\u6709\u8FD0\u884C\u8BB0\u5F55",
         "runs.empty.body": "\u89C4\u5219\u8FD0\u884C\u540E\uFF0C\u8FD9\u91CC\u4FDD\u7559\u6700\u8FD1 200 \u6761\u8BB0\u5F55\u4E0E\u9519\u8BEF\u4FE1\u606F\u3002",
         "stats.title": "\u81EA\u52A8\u5316",
-        "stats.subtitle": "\u628A\u5B9A\u65F6\u3001\u57DF\u4E8B\u4EF6\u6216\u624B\u52A8\u64CD\u4F5C\u63A5\u5230\u767D\u540D\u5355 action\uFF1A\u6A21\u677F\u3001\u6761\u4EF6\u3001\u9650\u9891\u4E0E\u8FD0\u884C\u8BB0\u5F55\u3002",
+        "stats.subtitle": "\u628A\u5B9A\u65F6\u3001\u57DF\u4E8B\u4EF6\u6216\u624B\u52A8\u64CD\u4F5C\u63A5\u5230\u5DF2\u542F\u7528\u7684 action\uFF1A\u6A21\u677F\u3001\u6761\u4EF6\u3001\u9650\u9891\u4E0E\u8FD0\u884C\u8BB0\u5F55\u3002",
         "stats.kpi.total": "\u89C4\u5219\u603B\u6570",
         "stats.kpi.totalHint": "\u672A\u5220\u9664\u7684\u89C4\u5219",
         "stats.kpi.enabled": "\u5DF2\u542F\u7528",
@@ -1355,16 +1978,19 @@ var require_copy = __commonJS({
         "stats.kpi.skipped": "\u4ECA\u65E5\u8DF3\u8FC7",
         "stats.kpi.skippedHint": "\u6761\u4EF6\u4E0D\u6EE1\u8DB3\u3001\u8D85\u9650\u6216\u5E76\u53D1\u5DF2\u6EE1",
         "stats.allowed": "\u5141\u8BB8\u8C03\u7528",
-        "stats.allowedHint": "\u540E\u7AEF\u767D\u540D\u5355\uFF0C\u5171 5 \u4E2A action",
+        "stats.allowedHint": "\u5728\u8BBE\u7F6E\u9875\u52FE\u9009\uFF0C\u9ED8\u8BA4\u7A7A",
+        "stats.allowedEmpty": "\u5C1A\u672A\u542F\u7528\u4EFB\u4F55 action\uFF1B\u52FE\u9009\u540E\u624D\u80FD\u521B\u5EFA\u89C4\u5219\u3002",
+        "stats.gotoSettings": "\u53BB\u8BBE\u7F6E",
+        "stats.staleWarning": "{n} \u6761\u89C4\u5219\u7684 action \u672A\u542F\u7528\uFF0C\u8FD0\u884C\u4F1A\u88AB\u8DF3\u8FC7\u3002",
         "stats.denied": "\u4E0D\u5141\u8BB8\u8C03\u7528",
         "stats.deniedHint": "vault / automation / audit \u4E0E\u4EFB\u4F55\u5220\u9664\u3001\u5907\u4EFD\u7C7B action",
         "stats.triggers": "\u89E6\u53D1\u65B9\u5F0F",
         "stats.trigger.interval": "\u6BCF N \u5206\u949F\u6309 next_run_at \u5230\u671F\u6267\u884C\u3002",
         "stats.trigger.dailyAt": "\u6309\u65F6\u95F4\u4E0E\u65F6\u533A\u8BA1\u7B97\u4E0B\u4E00\u6B21\uFF0C\u53EF\u9009\u661F\u671F\u3002",
         "stats.trigger.event": "\u5BBF\u4E3B domain-event \u547D\u4E2D domainId + event \u65F6\u6267\u884C\u3002",
-        "stats.trigger.manual": "\u5728\u89C4\u5219\u9875\u70B9\u300C\u8FD0\u884C\u300D\uFF0C\u4ECD\u53D7\u767D\u540D\u5355\u3001\u6761\u4EF6\u4E0E\u9650\u9891\u7EA6\u675F\u3002",
+        "stats.trigger.manual": "\u5728\u89C4\u5219\u9875\u70B9\u300C\u8FD0\u884C\u300D\uFF0C\u4ECD\u53D7\u5DF2\u542F\u7528\u6E05\u5355\u3001\u6761\u4EF6\u4E0E\u9650\u9891\u7EA6\u675F\u3002",
         "config.title": "\u8BBE\u7F6E",
-        "config.subtitle": "\u9650\u6D41\u53C2\u6570\u4FDD\u5B58\u5728\u672C\u673A meta\uFF1B\u89C4\u5219\u4E0E\u5176\u5B83\u4E1A\u52A1\u6570\u636E\u4E00\u8D77\u53C2\u4E0E\u5907\u4EFD\u3002",
+        "config.subtitle": "\u9650\u6D41\u53C2\u6570\u4E0E\u5141\u8BB8\u8C03\u7528\u7684 action \u90FD\u5B58\u5728\u672C\u673A\uFF1B\u89C4\u5219\u4E0E\u5176\u5B83\u4E1A\u52A1\u6570\u636E\u4E00\u8D77\u53C2\u4E0E\u5907\u4EFD\u3002",
         "config.limit.title": "\u9650\u6D41",
         "config.limit.maxRules": "\u89C4\u5219\u6570\u91CF\u4E0A\u9650",
         "config.limit.perHour": "\u6BCF\u89C4\u5219\u6BCF\u5C0F\u65F6\u4E0A\u9650",
@@ -1375,13 +2001,26 @@ var require_copy = __commonJS({
         "config.c.concurrency": "\u5168\u5C40\u5E76\u53D1 2\uFF1B\u5E76\u53D1\u5DF2\u6EE1\u65F6\u5B9A\u65F6\u89E6\u53D1\u8BB0 skipped\uFF0C\u4E0D\u6392\u961F\u91CD\u8BD5\u3002",
         "config.c.event": "\u4E8B\u4EF6\u89E6\u53D1\u7531\u5BBF\u4E3B domain-event \u9A71\u52A8\uFF0Cpayload \u4E3A {domainId,event,data}\u3002",
         "config.c.condition": "\u6761\u4EF6\u4E0D\u6EE1\u8DB3\u8BB0 skipped\uFF0C\u4E0D\u8C03\u7528 action\u3002",
-        "config.c.backup": "\u89C4\u5219\u968F\u5907\u4EFD\u8FC1\u79FB\uFF1B\u8FD0\u884C\u8BB0\u5F55\u53EA\u5728\u672C\u673A\uFF0C\u4E0D\u53C2\u4E0E\u4E91\u540C\u6B65\u3002",
-        "config.c.safety": "\u4E0D\u5141\u8BB8\u8C03\u7528 vault.*\u3001automation.*\u3001audit.* \u6216\u4EFB\u4F55 delete/backup action\u3002"
+        "config.c.backup": "\u89C4\u5219\u968F\u5907\u4EFD\u8FC1\u79FB\uFF1B\u5141\u8BB8\u6E05\u5355\u4E0E\u8FD0\u884C\u8BB0\u5F55\u53EA\u5728\u672C\u673A\uFF0C\u4E0D\u53C2\u4E0E\u4E91\u540C\u6B65\u3002",
+        "config.c.safety": "\u786C\u5E95\u7EBF\u4E0D\u53EF\u914D\u7F6E\uFF1Avault.*\u3001automation.*\u3001audit.* \u4E0E\u4EFB\u4F55 delete/backup action \u6C38\u8FDC\u4E0D\u5141\u8BB8\u88AB\u81EA\u52A8\u5316\u8C03\u7528\u3002",
+        "config.allowed.title": "\u5141\u8BB8\u8C03\u7528\u7684 action",
+        "config.allowed.hint": "\u9ED8\u8BA4\u7A7A\u3002\u53EA\u6709\u52FE\u9009\u540E\u7684 action \u624D\u80FD\u88AB\u89C4\u5219\u8C03\u7528\uFF1B\u786C\u5E95\u7EBF\u4E0D\u53D7\u6B64\u5904\u5F71\u54CD\u3002",
+        "config.allowed.search": "\u641C\u7D22 action \u6216\u6240\u5C5E\u57DF",
+        "config.allowed.selected": "\u5DF2\u9009 {n} \u4E2A",
+        "config.allowed.empty": "\u6CA1\u6709\u5339\u914D\u7684 action\uFF0C\u53EF\u5728\u4E0B\u65B9\u624B\u52A8\u6DFB\u52A0\u3002",
+        "config.allowed.extra": "\u5DF2\u9009\u4F46\u4E0D\u5728\u5019\u9009",
+        "config.allowed.manual": "\u624B\u52A8\u6DFB\u52A0 action",
+        "config.allowed.add": "\u6DFB\u52A0",
+        "config.allowed.invalid": "\u8BF7\u8F93\u5165 namespace.action\uFF0C\u4E14\u4E0D\u80FD\u662F vault / automation / audit \u6216 delete / backup\u3002",
+        "config.allowed.deniedNote": "vault / automation / audit \u4E0E\u5220\u9664\u3001\u5907\u4EFD\u7C7B action \u6C38\u8FDC\u4E0D\u53EF\u542F\u7528\u3002"
       },
       en: {
         "common.save": "Save",
         "common.cancel": "Cancel",
         "common.close": "Close",
+        "common.next": "Next",
+        "common.back": "Back",
+        "common.more": "Load older deliveries",
         "common.refresh": "Refresh",
         "common.retry": "Retry",
         "common.delete": "Delete",
@@ -1415,8 +2054,25 @@ var require_copy = __commonJS({
         "rules.empty.backup": "Rules travel with backups; run history stays on this device.",
         "rules.empty.filtered": "No matching rules",
         "rules.empty.filteredBody": "Try another keyword, or clear the filters.",
+        "rules.empty.noActionTitle": "No actions enabled yet",
+        "rules.empty.noActionBody": "Automation cannot call any action by default. Pick the ones you need in Settings first.",
+        "rules.empty.noActionCta": "Open settings",
+        "rules.empty.noActionHint": "Changes take effect immediately; no restart needed.",
+        "rules.actionDisabled": "Disabled",
         "rules.confirm.delete": 'Delete rule "{name}"? This cannot be undone.',
         "rules.running": "Running\u2026",
+        "rules.exec.mode": "Mode",
+        "rules.exec.action": "Run action",
+        "rules.exec.agent": "Hand to AI",
+        "rules.agentAction": "Handed to AI",
+        "rules.schedule.active": "Active",
+        "rules.schedule.paused": "Paused",
+        "rules.schedule.ended": "Ended",
+        "rules.schedule.missing": "Schedule deleted",
+        "rules.lastDelivery": "Last delivery",
+        "rules.history": "Delivery history",
+        "rules.agentOffline": "This Host does not expose the Schedule service, so AI rules are read-only for now.",
+        "rules.orphans": "{n} schedule task(s) in the Host are not registered as rules; manage them in the Schedule panel.",
         "trigger.interval": "Interval",
         "trigger.dailyAt": "Daily",
         "trigger.event": "Event",
@@ -1456,6 +2112,9 @@ var require_copy = __commonJS({
         "editor.nameRequired": "Name is required",
         "editor.enabled": "Enabled",
         "editor.action": "Action",
+        "editor.actionRequired": "Pick an action",
+        "editor.noActions": "No actions enabled",
+        "editor.noActionsHint": "Enable actions in Settings before saving a rule.",
         "editor.showExample": "View example args",
         "editor.fillExample": "Fill example",
         "editor.exampleHint": "The example replaces the current JSON after confirmation.",
@@ -1472,6 +2131,61 @@ var require_copy = __commonJS({
         "editor.conditionObject": "Condition must be a JSON object",
         "editor.exampleTitle": "Example args",
         "editor.ruleFallbackHint": "The trigger scans every 30 seconds, at most 3 rules per scan.",
+        "editor.section.mode": "Mode",
+        "editor.mode.action": "Run action",
+        "editor.mode.actionHint": "Call an enabled action directly on a schedule or domain event: deterministic, no tokens.",
+        "editor.mode.agent": "Hand to AI",
+        "editor.mode.agentHint": "Register the prompt with the Host Schedule service; each delivery starts a model request and the result is not deterministic.",
+        "editor.mode.locked": "The mode cannot change after creation; create a new rule instead.",
+        "editor.mode.agentUnavailable": 'This Host does not expose the Schedule service, so "Hand to AI" is unavailable.',
+        "editor.section.prompt": "Prompt",
+        "editor.prompt": "Prompt",
+        "editor.promptPh": "e.g. Read today's tasks and messages, then send me a short digest.",
+        "editor.promptHint": "Delivered verbatim to the agent; state the goal, the data to read and the expected output.",
+        "editor.promptRequired": "AI rules need a prompt",
+        "editor.section.timing": "Timing (driven by the Host)",
+        "editor.section.target": "Delivery target",
+        "editor.target": "Target",
+        "editor.target.new_once": "New session (reused afterwards)",
+        "editor.target.new": "New session each time",
+        "editor.targetHint": 'The Host delivers the prompt into an empty session; "each time" may run concurrently.',
+        "editor.targetCwd": "Workspace path (optional)",
+        "editor.targetPreset": "Agent preset (optional)",
+        "editor.targetPresetPh": "Leave empty for the Host default",
+        "editor.targetSession": "Session id",
+        "editor.targetSessionPh": "Existing session id to deliver into",
+        "editor.targetSessionRequired": "A session id is required when delivering into an existing session",
+        "agent.every": "Every",
+        "agent.after": "Delay",
+        "agent.daily": "Daily",
+        "agent.weekly": "Weekly",
+        "agent.cron": "cron expression",
+        "agent.rrule": "RRULE",
+        "agent.at": "One-off",
+        "agent.everyHint": "At least 1 minute, at most 30 days.",
+        "agent.afterHint": "Runs once, N minutes after saving.",
+        "agent.cronPh": "0 9 * * 1-5",
+        "agent.cronHint": "Five fields: minute hour day month weekday.",
+        "agent.rrulePh": "DTSTART;TZID=Asia/Shanghai:20260101T090000\nRRULE:FREQ=DAILY",
+        "agent.rruleHint": "Two lines: DTSTART then RRULE.",
+        "agent.date": "Date",
+        "agent.text.every": "Every {n} min",
+        "agent.text.everyHours": "Every {n} h",
+        "agent.text.daily": "Daily at {time} ({tz})",
+        "agent.text.weekly": "Every {days} at {time} ({tz})",
+        "agent.text.cron": "cron {expr} ({tz})",
+        "agent.text.rrule": "RRULE {expr}",
+        "agent.text.at": "Once at {at}",
+        "agent.text.after": "Once in {n} minutes",
+        "agent.text.missing": "No timing set",
+        "hist.title": "Delivery history",
+        "hist.subtitle": "Recorded by the Host; a receipt only means the prompt reached the session, not that the agent succeeded.",
+        "hist.records": "Latest {n}",
+        "hist.empty": "No deliveries yet.",
+        "hist.pruned": "Earlier records were pruned by the Host.",
+        "hist.missing": "The schedule task no longer exists; history is unavailable.",
+        "hist.col.time": "Delivered at",
+        "hist.col.detail": "Detail",
         "runs.title": "Run history",
         "runs.subtitle": "Local only, not synced with backups; click a row for details.",
         "runs.limitNote": "Latest 200",
@@ -1510,7 +2224,10 @@ var require_copy = __commonJS({
         "stats.kpi.skipped": "Skipped today",
         "stats.kpi.skippedHint": "Condition, rate limit or concurrency",
         "stats.allowed": "Allowed",
-        "stats.allowedHint": "Backend whitelist, 5 actions",
+        "stats.allowedHint": "Chosen in Settings; empty by default",
+        "stats.allowedEmpty": "No actions enabled yet; enable some before creating rules.",
+        "stats.gotoSettings": "Open settings",
+        "stats.staleWarning": "{n} rule(s) use actions that are not enabled and will be skipped.",
         "stats.denied": "Denied",
         "stats.deniedHint": "vault / automation / audit and any delete or backup action",
         "stats.triggers": "Triggers",
@@ -1519,7 +2236,7 @@ var require_copy = __commonJS({
         "stats.trigger.event": "A host domain-event matching domainId + event.",
         "stats.trigger.manual": '"Run now" on the rules page, still subject to whitelist, conditions and limits.',
         "config.title": "Settings",
-        "config.subtitle": "Limits are stored in local meta; rules are part of regular backups.",
+        "config.subtitle": "Limits and allowed actions stay on this device; rules are part of regular backups.",
         "config.limit.title": "Rate limits",
         "config.limit.maxRules": "Max rules",
         "config.limit.perHour": "Runs per rule per hour",
@@ -1530,8 +2247,18 @@ var require_copy = __commonJS({
         "config.c.concurrency": "Global concurrency 2; when full, scheduled triggers are recorded as skipped without retry.",
         "config.c.event": "Events come from the host domain-event bus; payload is {domainId,event,data}.",
         "config.c.condition": "A false condition records skipped and does not call the action.",
-        "config.c.backup": "Rules travel with backups; run history stays on this device and is not synced.",
-        "config.c.safety": "vault.*, automation.*, audit.* and any delete/backup action are refused."
+        "config.c.backup": "Rules travel with backups; the allowed list and run history stay on this device.",
+        "config.c.safety": "Hard limits are not configurable: vault.*, automation.*, audit.* and any delete/backup action can never be called.",
+        "config.allowed.title": "Allowed actions",
+        "config.allowed.hint": "Empty by default. Only checked actions can be called by rules; hard limits always apply.",
+        "config.allowed.search": "Search action or domain",
+        "config.allowed.selected": "{n} selected",
+        "config.allowed.empty": "No matching action; add one manually below.",
+        "config.allowed.extra": "Selected but not in catalog",
+        "config.allowed.manual": "Add action manually",
+        "config.allowed.add": "Add",
+        "config.allowed.invalid": "Use namespace.action, and avoid vault / automation / audit or delete / backup.",
+        "config.allowed.deniedNote": "vault / automation / audit and delete/backup actions can never be enabled."
       }
     };
     function t(lang, key, vars) {
@@ -1595,9 +2322,14 @@ var require_stats = __commonJS({
             h("p", { className: "wba-panel-title" }, t("stats.allowed")),
             h("span", { className: "wba-hint" }, t("stats.allowedHint"))
           ),
-          h("div", { className: "wba-pills" }, (props.actions || []).map(function(a) {
+          (props.actions || []).length ? h("div", { className: "wba-pills" }, (props.actions || []).map(function(a) {
             return h("span", { key: a, className: "wba-chip static" }, h("code", null, a));
-          }))
+          })) : h(
+            "div",
+            { className: "wba-empty-inline" },
+            h("p", { className: "wba-hint" }, t("stats.allowedEmpty")),
+            h(C.Btn, { h, onClick: props.onSettings }, t("stats.gotoSettings"))
+          )
         ),
         h(
           "div",
@@ -1608,7 +2340,7 @@ var require_stats = __commonJS({
             h("p", { className: "wba-panel-title" }, t("stats.denied")),
             h("span", { className: "wba-hint" }, t("stats.deniedHint"))
           ),
-          h("div", { className: "wba-pills" }, DENIED.map(function(a) {
+          h("div", { className: "wba-pills" }, (props.denied || DENIED).map(function(a) {
             return h("span", { key: a, className: "wba-chip static wba-mono" }, a);
           }))
         ),
@@ -1658,9 +2390,20 @@ var require_stats = __commonJS({
           )
         ),
         stats.error ? h(C.Notice, { h, kind: "error", text: stats.error }) : null,
+        s.staleCount ? h(C.Notice, { h, kind: "warn", text: t("stats.staleWarning", { n: s.staleCount }) }) : null,
         stats.loading ? h("div", { className: "wba-cards" }, [0, 1, 2, 3, 4].map(function(i) {
           return h("div", { key: i, className: "wba-card" }, h("div", { className: "wba-skel" }));
-        })) : h(StatsBody, { h, t, icon: props.icon, s, actions: opts.data && opts.data.actions || [] })
+        })) : h(StatsBody, {
+          h,
+          t,
+          icon: props.icon,
+          s,
+          actions: opts.data && opts.data.actions || [],
+          denied: opts.data && opts.data.denied || DENIED,
+          onSettings: function() {
+            if (props.onNavigate) props.onNavigate("config");
+          }
+        })
       );
     };
     module2.exports.StatsBody = StatsBody;
@@ -1673,6 +2416,8 @@ var require_trigger_fields = __commonJS({
   "packages/addons/automation/client/views/trigger-fields.cjs"(exports2, module2) {
     "use strict";
     var copy = require_copy();
+    var NF = require_number_field();
+    var INTERVAL = { min: 1, max: 10080, integer: true };
     var TZ_LIST = ["Asia/Shanghai", "UTC", "Asia/Tokyo", "Europe/London", "America/New_York"];
     var DOMAIN_HINTS = ["wb-addon-connector", "wb-addon-message", "wb-addon-tasks", "wb-addon-sites"];
     var EVENT_HINTS = ["item.created", "message.sent", "task.created", "site.created"];
@@ -1701,14 +2446,24 @@ var require_trigger_fields = __commonJS({
       var set = props.set;
       var errs = props.errs || {};
       var icon = props.icon;
+      var lang = props.lang;
       function unitOf(minutes) {
         var n = Number(minutes) || 60;
         return n >= 60 && n % 60 === 0 ? 60 : 1;
       }
       function changeUnit(unit2) {
-        var n = Number(form.everyMinutes) || 60;
-        if (unit2 === 60) set("everyMinutes", Math.max(1, Math.min(10080, Math.round(n / 60) * 60)));
-        else set("everyMinutes", Math.max(1, Math.min(10080, n)));
+        var n = Number(form.everyMinutes);
+        if (!isFinite(n)) return;
+        if (unit2 === 60) {
+          var hours = Math.round(n / 60);
+          set("everyMinutes", (hours < 1 ? 1 : hours) * 60);
+        } else set("everyMinutes", n);
+      }
+      function reportValid(ok) {
+        if (typeof props.onValidChange === "function") props.onValidChange(ok);
+      }
+      function reportDraft(raw) {
+        reportValid(NF.validateNumber(raw, { min: INTERVAL.min, max: INTERVAL.max, integer: INTERVAL.integer, lang }).ok);
       }
       function toggleDay(day) {
         var days2 = daysOf(form.weekdays);
@@ -1740,6 +2495,7 @@ var require_trigger_fields = __commonJS({
               type: "button",
               "aria-pressed": form.kind === k[0],
               onClick: function() {
+                reportValid(true);
                 set("kind", k[0]);
               }
             }, icon ? h("span", { className: "wba-inline" }, icon(k[1], 12), k[2]) : k[2]);
@@ -1755,16 +2511,23 @@ var require_trigger_fields = __commonJS({
             h(
               "div",
               { className: "wba-inline" },
-              h("input", {
-                className: "wba-input wba-w-120" + (errs.everyMinutes ? " err" : ""),
-                type: "number",
-                min: 1,
-                max: 10080,
-                step: unit,
+              h(NF.NumberField, {
+                h,
+                lang,
                 value: form.everyMinutes,
-                "aria-label": t("trigger.every"),
-                onChange: function(e) {
-                  set("everyMinutes", e.target.value);
+                min: INTERVAL.min,
+                max: INTERVAL.max,
+                integer: INTERVAL.integer,
+                className: "wba-num",
+                // 范围提示由本行下方的 wba-hint/wba-err-text 统一展示，避免出现两条提示。
+                hint: false,
+                ariaLabel: t("trigger.every"),
+                onCommit: function(next) {
+                  set("everyMinutes", next);
+                },
+                onDraft: reportDraft,
+                onValidChange: function(ok) {
+                  reportValid(ok);
                 }
               }),
               h(
@@ -1879,6 +2642,709 @@ var require_trigger_fields = __commonJS({
   }
 });
 
+// packages/addons/automation/client/views/agent-timing.cjs
+var require_agent_timing = __commonJS({
+  "packages/addons/automation/client/views/agent-timing.cjs"(exports2, module2) {
+    "use strict";
+    var NF = require_number_field();
+    var copy = require_copy();
+    var trig = require_trigger_fields();
+    var EVERY = { min: 1, max: 43200, integer: true };
+    var AFTER = { min: 1, max: 525600, integer: true };
+    var KINDS = [
+      ["every", "repeat", "agent.every"],
+      ["daily", "alarm-clock", "agent.daily"],
+      ["weekly", "calendar-clock", "agent.weekly"],
+      ["cron", "clock", "agent.cron"],
+      ["rrule", "repeat", "agent.rrule"],
+      ["at", "calendar-clock", "agent.at"],
+      ["after", "hourglass", "agent.after"]
+    ];
+    function hhmm(value) {
+      var s = String(value || "").trim();
+      return /^\d{2}:\d{2}$/.test(s) ? s + ":00" : s;
+    }
+    function buildTiming(form) {
+      var kind = form.pKind || "daily";
+      var tz = form.pTz || "Asia/Shanghai";
+      if (kind === "every") return { kind: "every", every_seconds: (Number(form.pEvery) || 60) * 60 };
+      if (kind === "after") return { kind: "after", after_seconds: (Number(form.pAfter) || 60) * 60 };
+      if (kind === "daily") return { kind: "daily", daily: { time: hhmm(form.pTime), time_zone: tz } };
+      if (kind === "weekly") {
+        return { kind: "weekly", weekly: { time: hhmm(form.pTime), time_zone: tz, weekdays: trig.daysOf(form.pWeekdays) } };
+      }
+      if (kind === "cron") return { kind: "cron", cron: { expression: String(form.pCron || "").trim().replace(/\s+/g, " "), time_zone: tz } };
+      if (kind === "at") return { kind: "at", at: { date: String(form.pDate || "").trim(), time: hhmm(form.pTime), time_zone: tz } };
+      return { kind: "rrule", rrule: String(form.pRrule || "").replace(/\r\n/g, "\n") };
+    }
+    function validateTiming(form, t) {
+      var errs = {};
+      var kind = form.pKind || "daily";
+      if (kind === "every") {
+        var every = Number(form.pEvery);
+        if (!isFinite(every) || every < EVERY.min || every > EVERY.max) errs.pEvery = t("agent.everyHint");
+      }
+      if (kind === "after") {
+        var after = Number(form.pAfter);
+        if (!isFinite(after) || after < AFTER.min || after > AFTER.max) errs.pAfter = t("agent.afterHint");
+      }
+      if (kind === "daily" || kind === "weekly" || kind === "at") {
+        if (!/^\d{2}:\d{2}$/.test(String(form.pTime || ""))) errs.pTime = t("trigger.time");
+      }
+      if (kind === "weekly" && trig.daysOf(form.pWeekdays).length === 0) errs.pWeekdays = t("trigger.weekdaysHint");
+      if (kind === "at" && !/^\d{4}-\d{2}-\d{2}$/.test(String(form.pDate || ""))) errs.pDate = t("agent.date");
+      if (kind === "cron") {
+        var expr = String(form.pCron || "").trim();
+        if (expr.split(/\s+/).filter(Boolean).length !== 5) errs.pCron = t("agent.cronHint");
+      }
+      if (kind === "rrule" && !/^DTSTART[^\n]*\nRRULE:/i.test(String(form.pRrule || "").replace(/\r\n/g, "\n"))) {
+        errs.pRrule = t("agent.rruleHint");
+      }
+      return errs;
+    }
+    function timingText(timing, t) {
+      var c = timing || {};
+      if (c.kind === "every") {
+        var mins = Math.round((Number(c.every_seconds) || 60) / 60);
+        return mins % 60 === 0 && mins >= 60 ? t("agent.text.everyHours", { n: mins / 60 }) : t("agent.text.every", { n: mins });
+      }
+      if (c.kind === "after") {
+        return t("agent.text.after", { n: Math.round((Number(c.after_seconds) || 60) / 60) });
+      }
+      if (c.kind === "daily" && c.daily) return t("agent.text.daily", { time: String(c.daily.time || "").slice(0, 5), tz: c.daily.time_zone || "" });
+      if (c.kind === "weekly" && c.weekly) {
+        var days = (Array.isArray(c.weekly.weekdays) ? c.weekly.weekdays : []).map(function(d) {
+          return t("trigger.wd." + d);
+        }).join("\u3001");
+        return t("agent.text.weekly", { days, time: String(c.weekly.time || "").slice(0, 5), tz: c.weekly.time_zone || "" });
+      }
+      if (c.kind === "cron" && c.cron) return t("agent.text.cron", { expr: c.cron.expression || "", tz: c.cron.time_zone || "" });
+      if (c.kind === "rrule") {
+        var m = String(c.rrule || "").match(/RRULE:([^\n]*)/i);
+        return t("agent.text.rrule", { expr: m ? m[1] : "" });
+      }
+      if (c.kind === "at") {
+        var at = c.at;
+        if (typeof at === "string") return t("agent.text.at", { at });
+        if (at && at.date) return t("agent.text.at", { at: at.date + " " + String(at.time || "").slice(0, 5) + "\uFF08" + (at.time_zone || "") + "\uFF09" });
+      }
+      return t("agent.text.missing");
+    }
+    function TimingFields(props) {
+      var h = props.h;
+      var t = props.t;
+      var icon = props.icon;
+      var lang = props.lang;
+      var form = props.form;
+      var set = props.set;
+      var errs = props.errs || {};
+      var kind = form.pKind || "daily";
+      var days = trig.daysOf(form.pWeekdays);
+      function reportValid(ok) {
+        if (typeof props.onValidChange === "function") props.onValidChange(ok);
+      }
+      function toggleDay(day) {
+        var list = trig.daysOf(form.pWeekdays);
+        var i = list.indexOf(day);
+        if (i === -1) list.push(day);
+        else list.splice(i, 1);
+        list.sort(function(a, b) {
+          return a - b;
+        });
+        set("pWeekdays", list.join(","));
+      }
+      var tzOptions = trig.TZ_LIST.indexOf(form.pTz) === -1 ? [form.pTz].concat(trig.TZ_LIST) : trig.TZ_LIST;
+      return h(
+        "div",
+        { className: "wba-block" },
+        h(
+          "div",
+          { className: "wba-seg", role: "group" },
+          KINDS.map(function(k) {
+            return h("button", {
+              key: k[0],
+              type: "button",
+              "aria-pressed": kind === k[0],
+              onClick: function() {
+                reportValid(true);
+                set("pKind", k[0]);
+              }
+            }, icon ? h("span", { className: "wba-inline" }, icon(k[1], 12), t(k[2])) : t(k[2]));
+          })
+        ),
+        kind === "every" ? h(
+          "label",
+          { className: "wba-field" },
+          h("span", { className: "wba-label" }, t("agent.every")),
+          h(NF.NumberField, {
+            h,
+            lang,
+            value: form.pEvery,
+            min: EVERY.min,
+            max: EVERY.max,
+            integer: EVERY.integer,
+            className: "wba-num",
+            hint: false,
+            ariaLabel: t("agent.every"),
+            onCommit: function(next) {
+              set("pEvery", next);
+            },
+            onValidChange: function(ok) {
+              reportValid(ok);
+            }
+          }),
+          errs.pEvery ? h("span", { className: "wba-err-text" }, errs.pEvery) : h("span", { className: "wba-hint" }, t("agent.everyHint"))
+        ) : null,
+        kind === "after" ? h(
+          "label",
+          { className: "wba-field" },
+          h("span", { className: "wba-label" }, t("agent.after")),
+          h(NF.NumberField, {
+            h,
+            lang,
+            value: form.pAfter,
+            min: AFTER.min,
+            max: AFTER.max,
+            integer: AFTER.integer,
+            className: "wba-num",
+            hint: false,
+            ariaLabel: t("agent.after"),
+            onCommit: function(next) {
+              set("pAfter", next);
+            },
+            onValidChange: function(ok) {
+              reportValid(ok);
+            }
+          }),
+          errs.pAfter ? h("span", { className: "wba-err-text" }, errs.pAfter) : h("span", { className: "wba-hint" }, t("agent.afterHint"))
+        ) : null,
+        kind === "daily" || kind === "weekly" || kind === "at" ? h(
+          "div",
+          { className: kind === "at" ? "wba-grid-3" : "wba-grid-2" },
+          kind === "at" ? h(
+            "label",
+            { className: "wba-field" },
+            h("span", { className: "wba-label" }, t("agent.date")),
+            h("input", {
+              className: "wba-input" + (errs.pDate ? " err" : ""),
+              type: "date",
+              value: form.pDate,
+              onChange: function(e) {
+                set("pDate", e.target.value);
+              }
+            }),
+            errs.pDate ? h("span", { className: "wba-err-text" }, errs.pDate) : null
+          ) : null,
+          h(
+            "label",
+            { className: "wba-field" },
+            h("span", { className: "wba-label" }, t("trigger.time")),
+            h("input", {
+              className: "wba-input" + (errs.pTime ? " err" : ""),
+              type: "time",
+              value: form.pTime,
+              onChange: function(e) {
+                set("pTime", e.target.value);
+              }
+            }),
+            errs.pTime ? h("span", { className: "wba-err-text" }, errs.pTime) : null
+          ),
+          h(
+            "label",
+            { className: "wba-field" },
+            h("span", { className: "wba-label" }, t("trigger.tz")),
+            h(
+              "select",
+              { className: "wba-input", value: form.pTz, onChange: function(e) {
+                set("pTz", e.target.value);
+              } },
+              tzOptions.map(function(z) {
+                return h("option", { key: z, value: z }, z);
+              })
+            )
+          ),
+          kind === "weekly" ? h(
+            "div",
+            { className: "wba-field wba-span-2" },
+            h("span", { className: "wba-label" }, t("trigger.weekdays")),
+            h(
+              "div",
+              { className: "wba-chips" },
+              copy.WEEKDAYS.map(function(d) {
+                return h("button", {
+                  key: d,
+                  type: "button",
+                  className: "wba-chip",
+                  "aria-pressed": days.indexOf(d) !== -1,
+                  onClick: function() {
+                    toggleDay(d);
+                  }
+                }, t("trigger.wd." + d));
+              })
+            ),
+            h("span", { className: "wba-hint" }, t("trigger.weekdaysHint"))
+          ) : null
+        ) : null,
+        kind === "cron" ? h(
+          "div",
+          { className: "wba-grid-2" },
+          h(
+            "label",
+            { className: "wba-field" },
+            h("span", { className: "wba-label" }, t("agent.cron")),
+            h("input", {
+              className: "wba-input" + (errs.pCron ? " err" : ""),
+              value: form.pCron,
+              placeholder: t("agent.cronPh"),
+              spellCheck: false,
+              onChange: function(e) {
+                set("pCron", e.target.value);
+              }
+            }),
+            errs.pCron ? h("span", { className: "wba-err-text" }, errs.pCron) : h("span", { className: "wba-hint" }, t("agent.cronHint"))
+          ),
+          h(
+            "label",
+            { className: "wba-field" },
+            h("span", { className: "wba-label" }, t("trigger.tz")),
+            h(
+              "select",
+              { className: "wba-input", value: form.pTz, onChange: function(e) {
+                set("pTz", e.target.value);
+              } },
+              tzOptions.map(function(z) {
+                return h("option", { key: z, value: z }, z);
+              })
+            )
+          )
+        ) : null,
+        kind === "rrule" ? h(
+          "label",
+          { className: "wba-field" },
+          h("span", { className: "wba-label" }, t("agent.rrule")),
+          h("textarea", {
+            className: "wba-code sm" + (errs.pRrule ? " err" : ""),
+            value: form.pRrule,
+            placeholder: t("agent.rrulePh"),
+            spellCheck: false,
+            onChange: function(e) {
+              set("pRrule", e.target.value);
+            }
+          }),
+          errs.pRrule ? h("span", { className: "wba-err-text" }, errs.pRrule) : h("span", { className: "wba-hint" }, t("agent.rruleHint"))
+        ) : null
+      );
+    }
+    module2.exports = {
+      KINDS,
+      buildTiming,
+      validateTiming,
+      timingText,
+      TimingFields
+    };
+  }
+});
+
+// packages/addons/lib/overlay.cjs
+var require_overlay = __commonJS({
+  "packages/addons/lib/overlay.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var FOCUSABLE = "button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]";
+    module2.exports = function createOverlay(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h = React.createElement;
+      var tag = opts.tag || "section";
+      var maskClass = opts.maskClass;
+      var dialogClass = opts.dialogClass;
+      var dialogClassOf = opts.dialogClassOf || function() {
+        return "";
+      };
+      var ariaLabelOf = opts.ariaLabelOf || function(props) {
+        return props["aria-label"] || props.title;
+      };
+      var ariaLabelledByOf = opts.ariaLabelledByOf || function() {
+        return null;
+      };
+      var header = opts.header || null;
+      var closeOnEscape = opts.closeOnEscape || function() {
+        return true;
+      };
+      var closeOnMask = opts.closeOnMask || function() {
+        return true;
+      };
+      var extraKeyDown = opts.onKeyDown || null;
+      var autoFocusDialog = opts.autoFocusDialog !== false;
+      var focusableSelector = opts.focusableSelector || FOCUSABLE;
+      function Modal(props) {
+        var R = props.React || React;
+        var ref = R.useRef(null);
+        R.useEffect(function() {
+          var previous = typeof document !== "undefined" ? document.activeElement : null;
+          var focusIt = props.autoFocus !== void 0 ? props.autoFocus : autoFocusDialog;
+          if (focusIt && ref.current) ref.current.focus();
+          return function() {
+            if (previous && previous.isConnected) previous.focus();
+          };
+        }, []);
+        function onKeyDown(e) {
+          if (extraKeyDown && extraKeyDown(e, props, ref)) return;
+          if (e.key === "Escape") {
+            if (!(props.closeOnEscape !== void 0 ? props.closeOnEscape : closeOnEscape(props))) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (props.onClose) props.onClose();
+            return;
+          }
+          if (e.key !== "Tab" || !ref.current) return;
+          var els = ref.current.querySelectorAll(focusableSelector);
+          if (!els.length) {
+            e.preventDefault();
+            return;
+          }
+          var first = els[0];
+          var last = els[els.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+            e.preventDefault();
+            last.focus();
+          }
+          if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+        var labelledBy = ariaLabelledByOf(props);
+        return h(
+          "div",
+          {
+            className: maskClass,
+            onMouseDown: function(e) {
+              var allowed = props.closeOnMask !== void 0 ? props.closeOnMask : closeOnMask(props);
+              if (e.target === e.currentTarget && props.onClose && allowed) props.onClose();
+            }
+          },
+          h(
+            tag,
+            {
+              className: dialogClass + dialogClassOf(props),
+              role: "dialog",
+              "aria-modal": true,
+              "aria-label": labelledBy ? null : ariaLabelOf(props),
+              "aria-labelledby": labelledBy || null,
+              ref,
+              tabIndex: -1,
+              onKeyDown
+            },
+            header ? header(props) : null,
+            props.children
+          )
+        );
+      }
+      return Modal;
+    };
+  }
+});
+
+// packages/addons/lib/stepper.cjs
+var require_stepper = __commonJS({
+  "packages/addons/lib/stepper.cjs"(exports2, module2) {
+    "use strict";
+    function stepState(index, current, maxVisited) {
+      if (index === current) return "current";
+      if (index < current) return "done";
+      if (index <= maxVisited) return "visited";
+      return "todo";
+    }
+    function Steps(props) {
+      var h = props.h;
+      var steps = props.steps || [];
+      var current = props.current || 0;
+      var maxVisited = props.maxVisited === void 0 ? current : props.maxVisited;
+      var invalid = props.invalid || {};
+      var disabled = !!props.disabled;
+      var label = props.label || "\u6B65\u9AA4";
+      return h(
+        "nav",
+        { className: "wbctl-steps" + (props.className ? " " + props.className : ""), "aria-label": label },
+        h(
+          "ol",
+          { className: "wbctl-step-list" },
+          steps.map(function(step, index) {
+            var state = stepState(index, current, maxVisited);
+            var canJump = !disabled && typeof props.onJump === "function" && state !== "current" && state !== "todo";
+            var isInvalid = !!invalid[index] || !!invalid[step.key];
+            return h(
+              "li",
+              { key: step.key || index, className: "wbctl-step-item" },
+              h(
+                "button",
+                {
+                  type: "button",
+                  className: "wbctl-step",
+                  "data-state": state,
+                  "data-invalid": isInvalid ? "true" : null,
+                  "aria-current": state === "current" ? "step" : void 0,
+                  "aria-label": index + 1 + " \xB7 " + step.label + (state === "done" ? "\uFF08\u5DF2\u5B8C\u6210\uFF09" : ""),
+                  disabled: disabled || state === "todo",
+                  title: step.hint || "",
+                  onClick: function() {
+                    if (canJump) props.onJump(index);
+                  }
+                },
+                h("span", { className: "wbctl-step-index", "aria-hidden": "true" }, state === "done" ? "\u2713" : String(index + 1)),
+                h("span", { className: "wbctl-step-label" }, step.label),
+                step.hint ? h("span", { className: "wbctl-step-hint" }, step.hint) : null,
+                step.optional ? h("span", { className: "wbctl-step-opt" }, "\u53EF\u9009") : null
+              )
+            );
+          })
+        )
+      );
+    }
+    var STYLES = [
+      ".wbctl-steps{display:block;min-width:0}",
+      ".wbctl-step-list{display:flex;align-items:stretch;gap:6px;list-style:none;margin:0 0 14px;padding:0;min-width:0}",
+      ".wbctl-step-item{display:flex;flex:1 1 0;min-width:0}",
+      ".wbctl-step{display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;padding:7px 9px;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;background:transparent;color:var(--wb-muted,inherit);font:inherit;font-size:12px;line-height:1.35;text-align:left;cursor:default;transition:background .14s ease,border-color .14s ease,color .14s ease}",
+      ".wbctl-step[data-state=done],.wbctl-step[data-state=visited]{color:inherit;cursor:pointer}",
+      ".wbctl-step[data-state=done]{border-color:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 36%,var(--wb-border))}",
+      ".wbctl-step[data-state=current]{border-color:color-mix(in oklab,var(--wb-accent,#2563eb) 58%,var(--wb-border));background:color-mix(in oklab,var(--wb-accent,#2563eb) 8%,transparent);color:inherit;font-weight:600}",
+      ".wbctl-step[data-state=visited]:hover,.wbctl-step[data-state=done]:hover{background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-step[data-invalid=true]{border-color:var(--wb-danger,#d33)}",
+      ".wbctl-step:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-step:disabled{cursor:default;opacity:.72}",
+      ".wbctl-step-index{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;border-radius:50%;font-size:11px;font-variant-numeric:tabular-nums;background:color-mix(in oklab,currentColor 15%,transparent)}",
+      ".wbctl-step[data-state=current] .wbctl-step-index{background:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff)}",
+      ".wbctl-step[data-state=done] .wbctl-step-index{background:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 20%,transparent);color:var(--wb-ok,var(--wb-accent,#2563eb))}",
+      ".wbctl-step-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbctl-step-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:400;opacity:.62}",
+      ".wbctl-step-opt{flex:none;font-size:10px;font-weight:400;opacity:.55}",
+      "@media (max-width:760px){.wbctl-step{padding:6px 7px;font-size:11.5px}.wbctl-step-hint,.wbctl-step-opt{display:none}.wbctl-step-index{width:18px;height:18px;font-size:10px}}",
+      "@media (max-width:520px){.wbctl-step-list{gap:4px}.wbctl-step-label{white-space:normal}.wbctl-step{gap:5px}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-step{transition:none}}"
+    ];
+    module2.exports = { Steps, stepState, styles: STYLES };
+  }
+});
+
+// packages/addons/lib/staged-dialog.cjs
+var require_staged_dialog = __commonJS({
+  "packages/addons/lib/staged-dialog.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var overlayFactory = require_overlay();
+    var stepper = require_stepper();
+    function validateStep(step) {
+      if (!step || typeof step.validate !== "function") return "";
+      var message = step.validate();
+      return message ? String(message) : "";
+    }
+    function firstFailing(steps) {
+      var list = steps || [];
+      for (var i = 0; i < list.length; i += 1) {
+        var message = validateStep(list[i]);
+        if (message) return { index: i, key: list[i] && list[i].key, message };
+      }
+      return null;
+    }
+    function createStagedDialog(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h = React.createElement;
+      var dialogClass = ((opts.dialogClass || "") + " wbctl-dialog").trim();
+      var Overlay = overlayFactory(
+        Object.assign({}, opts, {
+          React,
+          dialogClass,
+          // 首焦点由外壳送进对话框，字段由 focusStep 负责，避免打开瞬间落进第一个输入框。
+          autoFocusDialog: opts.autoFocusDialog !== false
+        })
+      );
+      function StagedDialog(props) {
+        var R = props.React || React;
+        var steps = props.steps || [];
+        var count = steps.length;
+        var busy = !!props.submitting || !!props.busy;
+        var indexState = R.useState(props.initialStep || 0);
+        var rawIndex = indexState[0];
+        var setIndex = indexState[1];
+        var index = count === 0 ? 0 : Math.min(Math.max(rawIndex, 0), count - 1);
+        var visitedState = R.useState(props.initialStep || 0);
+        var maxVisited = count === 0 ? 0 : Math.min(Math.max(visitedState[0], index), count - 1);
+        var setMaxVisited = visitedState[1];
+        var errorState = R.useState("");
+        var stepError = errorState[0];
+        var setStepError = errorState[1];
+        var invalidState = R.useState({});
+        var invalid = invalidState[0];
+        var setInvalid = invalidState[1];
+        var bodyRef = R.useRef(null);
+        var mounted = R.useRef(true);
+        function runValidate(step) {
+          return validateStep(step);
+        }
+        function markInvalid(i, bad) {
+          setInvalid(function(prev) {
+            var next2 = Object.assign({}, prev);
+            if (bad) next2[i] = true;
+            else delete next2[i];
+            return next2;
+          });
+        }
+        function focusBody() {
+          var el = bodyRef.current;
+          if (el && typeof el.focus === "function") el.focus();
+        }
+        R.useEffect(
+          function() {
+            if (!mounted.current) return;
+            focusBody();
+          },
+          [index]
+        );
+        R.useEffect(function() {
+          mounted.current = true;
+          return function() {
+            mounted.current = false;
+          };
+        }, []);
+        function goTo(i) {
+          if (busy || i < 0 || i >= count) return;
+          setIndex(i);
+          if (i > maxVisited) setMaxVisited(i);
+          setStepError("");
+        }
+        function fail(i, message) {
+          markInvalid(i, true);
+          goTo(i);
+          setStepError(message);
+          focusBody();
+        }
+        function next() {
+          if (busy) return;
+          var message = runValidate(steps[index]);
+          if (message) {
+            fail(index, message);
+            return;
+          }
+          markInvalid(index, false);
+          goTo(Math.min(index + 1, count - 1));
+        }
+        function back() {
+          if (busy || index === 0) return;
+          goTo(index - 1);
+        }
+        function jump(i) {
+          if (busy || i > maxVisited) return;
+          goTo(i);
+        }
+        function submit() {
+          if (busy) return;
+          var bad = firstFailing(steps);
+          if (bad) {
+            fail(bad.index, bad.message);
+            return;
+          }
+          for (var i = 0; i < count; i++) markInvalid(i, false);
+          setStepError("");
+          if (typeof props.onSubmit === "function") props.onSubmit();
+        }
+        function cancel() {
+          if (busy) return;
+          if (typeof props.onClose === "function") props.onClose();
+        }
+        var current = steps[index];
+        var isLast = index >= count - 1;
+        var saveText = props.submitText || "\u4FDD\u5B58";
+        var shownError = stepError || props.error || "";
+        return h(
+          Overlay,
+          props,
+          count > 1 ? h(stepper.Steps, {
+            h,
+            steps: steps.map(function(step) {
+              return { key: step.key, label: step.label, hint: step.hint, optional: step.optional };
+            }),
+            current: index,
+            maxVisited,
+            onJump: jump,
+            invalid,
+            disabled: busy,
+            label: props.stepsLabel || "\u521B\u5EFA\u6B65\u9AA4"
+          }) : null,
+          h(
+            "div",
+            {
+              className: "wbctl-dialog-body" + (props.bodyClassName ? " " + props.bodyClassName : ""),
+              ref: bodyRef,
+              tabIndex: -1
+            },
+            current ? current.render(h, props) : null
+          ),
+          props.footerExtra || null,
+          shownError ? h("div", { className: "wbctl-dialog-err", role: "alert" }, shownError) : null,
+          h(
+            "div",
+            { className: "wbctl-dialog-foot" },
+            count > 1 ? h("span", { className: "wbctl-dialog-progress" }, index + 1 + " / " + count) : null,
+            props.footerNote ? h("span", { className: "wbctl-dialog-note" }, props.footerNote) : null,
+            h("span", { className: "wbctl-dialog-spacer" }),
+            index > 0 ? h(
+              "button",
+              { type: "button", className: "wbctl-btn", onClick: back, disabled: busy },
+              props.backText || "\u4E0A\u4E00\u6B65"
+            ) : null,
+            h("button", { type: "button", className: "wbctl-btn", onClick: cancel, disabled: busy }, props.cancelText || "\u53D6\u6D88"),
+            h(
+              "button",
+              {
+                type: "button",
+                className: "wbctl-btn wbctl-btn-p",
+                onClick: isLast ? submit : next,
+                // submitDisabled 只作用于末步的保存：插件据此把「结构性不合法」（JSON 语法、无可选 action）
+                // 提前反映成禁用态，避免用户点到保存才被弹回第一步。
+                disabled: busy || isLast && !!props.submitDisabled
+              },
+              busy ? saveText + "\u4E2D\u2026" : isLast ? saveText : props.nextText || "\u4E0B\u4E00\u6B65"
+            )
+          )
+        );
+      }
+      StagedDialog.displayName = opts.displayName || "StagedDialog";
+      return StagedDialog;
+    }
+    var STYLES = [
+      // 宽表单：内容多时给足横向空间，窄屏留 16px 边距后铺满。
+      ".wbctl-dialog{width:min(880px,calc(100vw - 32px));max-height:min(92vh,760px);display:flex;flex-direction:column;overflow:hidden}",
+      ".wbctl-dialog-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 10px;outline:none}",
+      ".wbctl-dialog-body:focus-visible{outline:none}",
+      ".wbctl-dialog-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:10px;margin-top:10px;border-top:1px solid var(--wb-line,var(--wb-border))}",
+      ".wbctl-dialog-progress{font-size:11.5px;color:var(--wb-muted,#666);font-variant-numeric:tabular-nums}",
+      ".wbctl-dialog-note{font-size:11.5px;color:var(--wb-muted,#666);min-width:0}",
+      ".wbctl-dialog-spacer{flex:1 1 auto}",
+      ".wbctl-dialog-err{margin-top:8px;padding:7px 10px;border-radius:8px;border:1px solid color-mix(in oklab,var(--wb-danger,#d33) 45%,transparent);background:color-mix(in oklab,var(--wb-danger,#d33) 8%,transparent);color:var(--wb-danger,#d33);font-size:12px}",
+      ".wbctl-btn{padding:6px 14px;border:1px solid var(--wb-border,#d0d5dd);border-radius:8px;background:var(--wb-card,#fff);color:inherit;font:inherit;font-size:12.5px;cursor:pointer}",
+      ".wbctl-btn:hover:not(:disabled){background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-btn:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-btn:disabled{opacity:.55;cursor:default}",
+      ".wbctl-btn.wbctl-btn-p{background:var(--wb-accent,#2563eb);border-color:transparent;color:var(--wb-on-accent,#fff)}",
+      ".wbctl-btn.wbctl-btn-p:hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent,#2563eb) 86%,#000)}",
+      // 确认步：键值对清单，各插件共用，避免再各写一套只读摘要。\n  ".wbctl-review{display:flex;flex-direction:column;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;overflow:hidden}",\n  ".wbctl-review-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 12px;font-size:12.5px;background:var(--wb-surface,transparent)}",\n  ".wbctl-review-row+.wbctl-review-row{border-top:1px solid var(--wb-line,var(--wb-border))}",\n  ".wbctl-review-k{color:var(--wb-muted,inherit);font-size:11.5px;line-height:1.6}",\n  ".wbctl-review-v{min-width:0;word-break:break-word;line-height:1.6}",\n  ".wbctl-note{margin:10px 0 0;font-size:11.5px;color:var(--wb-muted,inherit)}",\n  // 两列字段布局：内容多的弹窗不再单列拉长，窄屏回落单列。
+      ".wbctl-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}",
+      ".wbctl-form>.full{grid-column:1/-1}",
+      "@media (max-width:760px){.wbctl-dialog{width:calc(100vw - 16px);max-height:94vh}.wbctl-form{grid-template-columns:1fr}.wbctl-form>.full{grid-column:auto}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-btn{transition:none}}"
+    ];
+    module2.exports = {
+      createStagedDialog,
+      validateStep,
+      firstFailing,
+      styles: STYLES
+    };
+  }
+});
+
 // packages/addons/automation/client/views/json-editor.cjs
 var require_json_editor = __commonJS({
   "packages/addons/automation/client/views/json-editor.cjs"(exports2, module2) {
@@ -1980,7 +3446,40 @@ var require_json_editor = __commonJS({
 var require_rule_editor = __commonJS({
   "packages/addons/automation/client/views/rule-editor.cjs"(exports2, module2) {
     "use strict";
+    var staged = require_staged_dialog();
+    var SW = require_switch();
+    var EditorDialog = staged.createStagedDialog({
+      maskClass: "wba-modal",
+      dialogClass: "wba-modal-box",
+      displayName: "AutomationRuleDialog",
+      ariaLabelOf: function(props) {
+        var t = props.t;
+        return props.form && props.form.id ? t("editor.editTitle") : t("editor.newTitle");
+      },
+      header: function(props) {
+        var hh = props.h;
+        return hh(
+          "div",
+          { className: "wba-modal-head" },
+          hh("h3", null, props.form && props.form.id ? props.t("editor.editTitle") : props.t("editor.newTitle")),
+          hh("button", {
+            type: "button",
+            className: "wba-icon-btn",
+            title: props.t("common.close"),
+            "aria-label": props.t("common.close"),
+            disabled: !!props.submitting,
+            onClick: props.onClose
+          }, props.icon ? props.icon("x", 15) : "\xD7")
+        );
+      },
+      // 有未保存改动时要先问一次，所以关掉「点遮罩直接关」的默认行为，交给 close()。
+      closeOnMask: false,
+      closeOnEscape: function(props) {
+        return !props.submitting;
+      }
+    });
     var trig = require_trigger_fields();
+    var atiming = require_agent_timing();
     var json = require_json_editor();
     var EXAMPLES = {
       "message.send": { title: "\u81EA\u52A8\u5316\u63D0\u9192", body: "\u89C4\u5219 {{rule.name}} \u5DF2\u8FD0\u884C" },
@@ -1996,14 +3495,33 @@ var require_rule_editor = __commonJS({
       if (!r.value || typeof r.value !== "object" || Array.isArray(r.value)) return { ok: false, error: "object" };
       return { ok: true, value: r.value };
     }
+    function buildTarget(form) {
+      var kind = form.targetKind || "new_once";
+      if (kind === "session") return { kind: "session", sessionId: String(form.targetSession || "").trim() };
+      var create = {};
+      if (String(form.targetCwd || "").trim()) create.cwd = String(form.targetCwd).trim();
+      if (String(form.targetPreset || "").trim()) create.agentPreset = String(form.targetPreset).trim();
+      return Object.keys(create).length ? { kind, create } : { kind };
+    }
+    function isAgent(form) {
+      return Boolean(form) && form.execMode === "agent";
+    }
     function validateForm(form, t) {
       var errs = {};
       if (!String(form.name || "").trim()) errs.name = t("editor.nameRequired");
+      if (isAgent(form)) {
+        if (!String(form.prompt || "").trim()) errs.prompt = t("editor.promptRequired");
+        Object.assign(errs, atiming.validateTiming(form, t));
+        if (String(form.targetKind || "new_once") === "session" && !String(form.targetSession || "").trim()) {
+          errs.targetSession = t("editor.targetSessionRequired");
+        }
+        return { errs, valid: Object.keys(errs).length === 0 };
+      }
+      if (!String(form.actionName || "").trim()) errs.actionName = t("editor.actionRequired");
       var args = plain(form.actionArgs);
       if (!args.ok) errs.actionArgs = args.error === "object" ? t("editor.argsObject") : t("editor.jsonInvalid", { msg: args.error });
-      var cond = null;
       if (form.condOn) {
-        cond = plain(form.condition);
+        var cond = plain(form.condition);
         if (!cond.ok) errs.condition = cond.error === "object" ? t("editor.conditionObject") : t("editor.jsonInvalid", { msg: cond.error });
       }
       if (form.kind === "interval") {
@@ -2018,6 +3536,20 @@ var require_rule_editor = __commonJS({
       return { errs, valid: Object.keys(errs).length === 0 };
     }
     function buildPayload(form) {
+      var name = String(form.name || "").trim();
+      if (isAgent(form)) {
+        return {
+          id: form.id || void 0,
+          name,
+          enabled: Boolean(form.enabled),
+          execMode: "agent",
+          agent: {
+            prompt: String(form.prompt || "").trim(),
+            timing: atiming.buildTiming(form),
+            target: buildTarget(form)
+          }
+        };
+      }
       var triggerConfig = { kind: form.kind };
       if (form.kind === "interval") triggerConfig.everyMinutes = Number(form.everyMinutes) || 60;
       if (form.kind === "dailyAt") {
@@ -2039,8 +3571,9 @@ var require_rule_editor = __commonJS({
       }
       return {
         id: form.id || void 0,
-        name: String(form.name || "").trim(),
+        name,
         enabled: Boolean(form.enabled),
+        execMode: "action",
         triggerType: form.kind === "event" ? "event" : form.kind === "manual" ? "manual" : "schedule",
         triggerConfig,
         actionName: form.actionName,
@@ -2052,7 +3585,7 @@ var require_rule_editor = __commonJS({
       try {
         return JSON.stringify(buildPayload(form));
       } catch (e) {
-        return JSON.stringify({ name: form.name, actionArgs: form.actionArgs, condition: form.condition, kind: form.kind });
+        return JSON.stringify({ name: form.name, actionArgs: form.actionArgs, condition: form.condition, kind: form.kind, prompt: form.prompt });
       }
     }
     function RuleEditor(props) {
@@ -2063,26 +3596,28 @@ var require_rule_editor = __commonJS({
       var form = props.form;
       var set = props.set;
       var busy = props.busy;
+      var lang = props.lang;
       var actions = props.actions || [];
       var icon = props.icon;
       var initial = props.initial;
+      var agentMode = isAgent(form);
+      var locked = Boolean(form.id);
+      var agentAvailable = props.agentAvailable !== false;
       var validation = validateForm(form, t);
       var errs = validation.errs;
       var exampleS = React.useState(false);
+      var numOkS = React.useState(true);
       var touchedS = React.useState(Boolean(form.name));
       var showNameErr = touchedS[0] && Boolean(errs.name);
-      var actionName = actions.indexOf(form.actionName) === -1 ? [form.actionName].concat(actions) : actions;
+      var hasActions = actions.length > 0;
+      var actionName = !form.actionName || actions.indexOf(form.actionName) !== -1 ? actions : [form.actionName].concat(actions);
+      var actionMissing = hasActions && Boolean(form.actionName) && actions.indexOf(form.actionName) === -1;
       var example = EXAMPLES[form.actionName];
       React.useEffect(function() {
         var prev = typeof document !== "undefined" ? document.body.style.overflow : "";
         if (typeof document !== "undefined") document.body.style.overflow = "hidden";
-        function onKey(e) {
-          if (e.key === "Escape") close();
-        }
-        if (typeof window !== "undefined") window.addEventListener("keydown", onKey);
         return function() {
           if (typeof document !== "undefined") document.body.style.overflow = prev;
-          if (typeof window !== "undefined") window.removeEventListener("keydown", onKey);
         };
       });
       function dirty() {
@@ -2092,171 +3627,454 @@ var require_rule_editor = __commonJS({
         if (dirty() && typeof window !== "undefined" && !window.confirm(t("editor.discard"))) return;
         props.onClose();
       }
-      return h(
-        "div",
-        { className: "wba-modal", onClick: function(e) {
-          if (e.target === e.currentTarget) close();
-        } },
-        h(
+      function pickMode(mode) {
+        if (locked || mode === (agentMode ? "agent" : "action")) return;
+        set("execMode", mode);
+      }
+      var modeButtons = [
+        ["action", t("editor.mode.action")],
+        ["agent", t("editor.mode.agent")]
+      ];
+      function renderBasic(hh) {
+        return hh(
           "div",
-          { className: "wba-modal-box", role: "dialog", "aria-modal": "true" },
-          h(
+          { className: "wba-section" },
+          hh(
             "div",
-            { className: "wba-modal-head" },
-            h("h3", null, form.id ? t("editor.editTitle") : t("editor.newTitle")),
-            h("button", { type: "button", className: "wba-icon-btn", title: t("common.close"), onClick: close }, icon ? icon("x", 15) : "\xD7")
-          ),
-          h(
-            "div",
-            { className: "wba-modal-body" },
-            h(
+            { className: "wba-grid-3" },
+            hh(
+              "label",
+              { className: "wba-field wba-span-2" },
+              hh("span", { className: "wba-label" }, t("editor.name")),
+              hh("input", {
+                className: "wba-input" + (showNameErr ? " err" : ""),
+                value: form.name,
+                placeholder: t("editor.namePh"),
+                onChange: function(e) {
+                  touchedS[1](true);
+                  set("name", e.target.value);
+                }
+              }),
+              showNameErr ? hh("span", { className: "wba-err-text" }, errs.name) : null
+            ),
+            hh(
               "div",
-              { className: "wba-section" },
-              h("p", { className: "wba-section-title" }, "\u2460 " + t("editor.section.basic")),
-              h(
-                "div",
-                { className: "wba-grid-3" },
-                h(
-                  "label",
-                  { className: "wba-field wba-span-2" },
-                  h("span", { className: "wba-label" }, t("editor.name")),
-                  h("input", {
-                    className: "wba-input" + (showNameErr ? " err" : ""),
-                    value: form.name,
-                    placeholder: t("editor.namePh"),
-                    onChange: function(e) {
-                      touchedS[1](true);
-                      set("name", e.target.value);
-                    }
-                  }),
-                  showNameErr ? h("span", { className: "wba-err-text" }, errs.name) : null
-                ),
-                h(
-                  "div",
-                  { className: "wba-field" },
-                  h("span", { className: "wba-label" }, t("editor.enabled")),
-                  h(
-                    "label",
-                    { className: "wba-switch" },
-                    h("input", { type: "checkbox", checked: form.enabled, onChange: function(e) {
-                      set("enabled", e.target.checked);
-                    } }),
-                    h("span", null, form.enabled ? t("rules.status.on") : t("rules.status.off"))
-                  )
-                )
+              { className: "wba-field" },
+              hh("span", { className: "wba-label" }, t("editor.enabled")),
+              hh(SW.Switch, {
+                h: hh,
+                checked: Boolean(form.enabled),
+                showState: true,
+                onText: t("rules.status.on"),
+                offText: t("rules.status.off"),
+                onChange: function(next) {
+                  set("enabled", next);
+                }
+              })
+            )
+          ),
+          hh("p", { className: "wba-section-title" }, t("editor.section.mode")),
+          renderModeBody(hh)
+        );
+      }
+      function renderModeBody(hh) {
+        return hh(
+          "div",
+          null,
+          hh(
+            "div",
+            { className: "wba-seg", role: "group" },
+            modeButtons.map(function(m) {
+              var off = locked || m[0] === "agent" && !agentAvailable;
+              return hh("button", {
+                key: m[0],
+                type: "button",
+                "data-mode": m[0],
+                "aria-pressed": (agentMode ? "agent" : "action") === m[0],
+                disabled: off,
+                title: m[0] === "agent" && !agentAvailable ? t("editor.mode.agentUnavailable") : "",
+                onClick: function() {
+                  pickMode(m[0]);
+                }
+              }, m[1]);
+            })
+          ),
+          hh("p", { className: "wba-sub" }, agentMode ? t("editor.mode.agentHint") : t("editor.mode.actionHint")),
+          locked ? hh("p", { className: "wba-hint" }, t("editor.mode.locked")) : null
+        );
+      }
+      function renderTiming(hh) {
+        return hh(
+          "div",
+          { className: "wba-section" },
+          agentMode ? hh(atiming.TimingFields, {
+            h: hh,
+            t,
+            lang,
+            form,
+            set,
+            errs,
+            icon,
+            onValidChange: function(ok) {
+              numOkS[1](ok);
+            }
+          }) : hh(trig.TriggerFields, {
+            h: hh,
+            t,
+            lang,
+            form,
+            set,
+            errs,
+            icon,
+            onValidChange: function(ok) {
+              numOkS[1](ok);
+            }
+          })
+        );
+      }
+      function renderPrompt(hh) {
+        return hh(
+          "div",
+          { className: "wba-section" },
+          hh(
+            "label",
+            { className: "wba-field" },
+            hh("span", { className: "wba-label" }, t("editor.prompt")),
+            hh("textarea", {
+              className: "wba-code sm" + (errs.prompt ? " err" : ""),
+              value: form.prompt,
+              placeholder: t("editor.promptPh"),
+              onChange: function(e) {
+                set("prompt", e.target.value);
+              }
+            }),
+            errs.prompt ? hh("span", { className: "wba-err-text" }, errs.prompt) : hh("span", { className: "wba-hint" }, t("editor.promptHint"))
+          ),
+          hh("p", { className: "wba-section-title" }, t("editor.section.target")),
+          hh(
+            "div",
+            { className: "wba-grid-3" },
+            hh(
+              "label",
+              { className: "wba-field" },
+              hh("span", { className: "wba-label" }, t("editor.target")),
+              hh(
+                "select",
+                {
+                  className: "wba-input",
+                  value: form.targetKind || "new_once",
+                  onChange: function(e) {
+                    set("targetKind", e.target.value);
+                  }
+                },
+                ["new_once", "new", "session"].map(function(k) {
+                  return hh("option", { key: k, value: k }, t("editor.target." + k));
+                })
               )
             ),
-            h(
-              "div",
-              { className: "wba-section" },
-              h("p", { className: "wba-section-title" }, "\u2461 " + t("editor.section.trigger")),
-              h(trig.TriggerFields, { h, t, form, set, errs, icon })
-            ),
-            h(
-              "div",
-              { className: "wba-section" },
-              h("p", { className: "wba-section-title" }, "\u2462 " + t("editor.section.run")),
-              h(
-                "div",
-                { className: "wba-inline" },
-                h(
-                  "label",
-                  { className: "wba-field" },
-                  h("span", { className: "wba-label" }, t("editor.action")),
-                  h(
-                    "select",
-                    { className: "wba-input", value: form.actionName, onChange: function(e) {
-                      set("actionName", e.target.value);
-                    } },
-                    actionName.map(function(a) {
-                      return h("option", { key: a, value: a }, a);
-                    })
-                  )
-                ),
-                h("span", { className: "wba-grow" }),
-                example ? h(C.Btn, { h, onClick: function() {
-                  exampleS[1](!exampleS[0]);
-                } }, t("editor.showExample")) : null
+            (form.targetKind || "new_once") === "session" ? hh(
+              "label",
+              { className: "wba-field wba-span-2" },
+              hh("span", { className: "wba-label" }, t("editor.targetSession")),
+              hh("input", {
+                className: "wba-input" + (errs.targetSession ? " err" : ""),
+                value: form.targetSession || "",
+                placeholder: t("editor.targetSessionPh"),
+                onChange: function(e) {
+                  set("targetSession", e.target.value);
+                }
+              }),
+              errs.targetSession ? hh("span", { className: "wba-err-text" }, errs.targetSession) : null
+            ) : [
+              hh(
+                "label",
+                { key: "cwd", className: "wba-field" },
+                hh("span", { className: "wba-label" }, t("editor.targetCwd")),
+                hh("input", {
+                  className: "wba-input",
+                  value: form.targetCwd || "",
+                  placeholder: "/Users/me/work",
+                  onChange: function(e) {
+                    set("targetCwd", e.target.value);
+                  }
+                })
               ),
-              exampleS[0] && example ? h(
+              hh(
+                "label",
+                { key: "preset", className: "wba-field" },
+                hh("span", { className: "wba-label" }, t("editor.targetPreset")),
+                hh("input", {
+                  className: "wba-input",
+                  value: form.targetPreset || "",
+                  placeholder: t("editor.targetPresetPh"),
+                  onChange: function(e) {
+                    set("targetPreset", e.target.value);
+                  }
+                })
+              )
+            ]
+          ),
+          hh("p", { className: "wba-hint" }, t("editor.targetHint"))
+        );
+      }
+      function renderAction(hh) {
+        return hh(
+          "div",
+          { className: "wba-section" },
+          hh(
+            "div",
+            { className: "wba-inline" },
+            hh(
+              "label",
+              { className: "wba-field" },
+              hh("span", { className: "wba-label" }, t("editor.action")),
+              hh(
+                "select",
+                {
+                  className: "wba-input",
+                  value: form.actionName,
+                  disabled: !hasActions,
+                  onChange: function(e) {
+                    set("actionName", e.target.value);
+                  }
+                },
+                hasActions ? actionName.map(function(a) {
+                  return hh("option", { key: a, value: a }, a);
+                }) : hh("option", { value: "" }, t("editor.noActions"))
+              ),
+              !hasActions || actionMissing ? hh("span", { className: "wba-err-text" }, hasActions ? t("rules.actionDisabled") : t("editor.noActionsHint")) : null
+            ),
+            hh("span", { className: "wba-grow" }),
+            example ? hh(C.Btn, { h: hh, onClick: function() {
+              exampleS[1](!exampleS[0]);
+            } }, t("editor.showExample")) : null
+          ),
+          exampleS[0] && example ? hh(
+            "div",
+            { className: "wba-block" },
+            hh("span", { className: "wba-label" }, t("editor.exampleTitle")),
+            hh("pre", { className: "wba-pre" }, JSON.stringify(example, null, 2)),
+            hh(
+              "div",
+              { className: "wba-inline" },
+              hh(C.Btn, { h: hh, onClick: function() {
+                if (typeof window !== "undefined" && !window.confirm(t("editor.exampleHint"))) return;
+                set("actionArgs", JSON.stringify(example, null, 2));
+              } }, t("editor.fillExample")),
+              hh("span", { className: "wba-grow" })
+            )
+          ) : null,
+          hh(json.JsonEditor, {
+            h: hh,
+            t,
+            React,
+            label: "actionArgs",
+            hint: t("editor.argsHint"),
+            value: form.actionArgs,
+            invalid: Boolean(errs.actionArgs),
+            error: errs.actionArgs,
+            onChange: function(v) {
+              set("actionArgs", v);
+            },
+            action: hh(C.Btn, { h: hh, onClick: function() {
+              var next = json.formatJson(form.actionArgs);
+              if (next) set("actionArgs", next);
+            } }, t("editor.format"))
+          })
+        );
+      }
+      function renderCondition(hh) {
+        return hh(
+          "div",
+          { className: "wba-section" },
+          hh("p", { className: "wba-section-title" }, t("editor.section.condition")),
+          hh(SW.Switch, {
+            h: hh,
+            checked: Boolean(form.condOn),
+            label: t("editor.conditionOn"),
+            onChange: function(next) {
+              set("condOn", next);
+            }
+          }),
+          hh("p", { className: "wba-sub" }, t("editor.conditionHint")),
+          form.condOn ? hh(json.JsonEditor, {
+            h: hh,
+            t,
+            React,
+            small: true,
+            vars: false,
+            label: "condition",
+            value: form.condition,
+            invalid: Boolean(errs.condition),
+            error: errs.condition,
+            onChange: function(v) {
+              set("condition", v);
+            }
+          }) : hh("p", { className: "wba-sub" }, t("editor.conditionEmpty"))
+        );
+      }
+      function renderRun(hh) {
+        return hh(
+          "div",
+          null,
+          agentMode ? renderPrompt(hh) : renderAction(hh),
+          agentMode ? null : renderCondition(hh)
+        );
+      }
+      var steps = [
+        {
+          key: "basic",
+          label: t("editor.section.basic"),
+          render: renderBasic,
+          validate: function() {
+            return String(form.name || "").trim() ? "" : t("editor.nameRequired");
+          }
+        },
+        {
+          key: agentMode ? "timing" : "trigger",
+          label: agentMode ? t("editor.section.timing") : t("editor.section.trigger"),
+          render: renderTiming,
+          validate: function() {
+            if (numOkS[0]) return "";
+            return errs.pEvery || errs.pAfter || errs.everyMinutes || errs.pCron || errs.pRrule || errs.pDate || errs.pTime || errs.pWeekdays || t("trigger.intervalHint");
+          }
+        },
+        {
+          key: agentMode ? "prompt" : "run",
+          label: agentMode ? t("editor.section.prompt") : t("editor.section.run"),
+          render: renderRun,
+          validate: function() {
+            if (agentMode) return String(form.prompt || "").trim() ? "" : t("editor.promptRequired");
+            if (!hasActions || actionMissing) return hasActions ? t("rules.actionDisabled") : t("editor.noActionsHint");
+            return errs.actionArgs || errs.condition || "";
+          }
+        }
+      ];
+      return h(EditorDialog, {
+        h,
+        React,
+        t,
+        form,
+        icon,
+        steps,
+        // 测试与深链接需要直接落到某一步；正常打开都从第一步开始。
+        initialStep: props.initialStep,
+        submitting: busy,
+        submitDisabled: !validation.valid || !numOkS[0],
+        onClose: close,
+        onSubmit: function() {
+          if (!validation.valid || !numOkS[0]) return;
+          props.onSave(buildPayload(form));
+        },
+        submitText: t("common.save"),
+        cancelText: t("common.cancel"),
+        nextText: t("common.next"),
+        backText: t("common.back"),
+        // 页脚只在用户动过字段之后给一行说明（也是「保存」禁用时的原因）；
+        // 空表单首屏不再先红一片——此前一打开就显示「名称不能为空」。
+        footerNote: !touchedS[0] ? "" : validation.valid ? numOkS[0] ? "" : errs.pEvery || errs.pAfter || errs.everyMinutes || t("trigger.intervalHint") : errs.name || errs.prompt || errs.actionArgs || errs.condition || errs.pCron || errs.pRrule || errs.pDate || errs.pTime || errs.pWeekdays || t("editor.nameEmptySave")
+      });
+    }
+    module2.exports = {
+      RuleEditor,
+      buildPayload,
+      validateForm,
+      buildTarget,
+      EXAMPLES
+    };
+  }
+});
+
+// packages/addons/automation/client/views/agent-history.cjs
+var require_agent_history = __commonJS({
+  "packages/addons/automation/client/views/agent-history.cjs"(exports2, module2) {
+    "use strict";
+    var createOverlay = require_overlay();
+    var C = require_common();
+    var copy = require_copy();
+    var HistoryOverlay = createOverlay({
+      maskClass: "wba-modal",
+      dialogClass: "wba-modal-box",
+      ariaLabelOf: function(props) {
+        return props.t("hist.title");
+      },
+      closeOnMask: true,
+      autoFocusDialog: false
+    });
+    var LIMIT = 20;
+    function when(rec, lang) {
+      var ts = rec && (rec.deliveredAt || rec.scheduledAt);
+      if (!ts) return "";
+      var ms = Date.parse(ts);
+      return isNaN(ms) ? String(ts) : C.fmtTime(ms, lang);
+    }
+    function AgentHistory(props) {
+      var h = props.h;
+      var api = props.api;
+      var React = props.React;
+      var icon = props.icon;
+      var lang = props.lang === "en" ? "en" : "zh";
+      var t = function(key, vars) {
+        return copy.t(lang, key, vars);
+      };
+      var rule = props.rule;
+      var cursorS = React.useState("");
+      var state = C.useLoad(React, api, "automation.ruleHistory", { id: rule.id, limit: LIMIT, before: cursorS[0] || void 0 }, [rule.id, cursorS[0]]);
+      var data = state.data || {};
+      var records = data.records || [];
+      var missing = Boolean(rule.scheduleMissing) || data.earlierRecordsUnavailable && records.length === 0;
+      var oldest = records.length ? records[records.length - 1].messageId : "";
+      var canOlder = records.length === LIMIT && Boolean(oldest);
+      return h(
+        HistoryOverlay,
+        { t, onClose: props.onClose },
+        h(
+          "div",
+          { className: "wba-modal-head" },
+          h("h3", null, t("hist.title") + " \xB7 " + rule.name),
+          h("button", { type: "button", className: "wba-icon-btn", title: t("common.close"), onClick: props.onClose }, icon ? icon("x", 15) : "\xD7")
+        ),
+        h(
+          "div",
+          { className: "wba-modal-body" },
+          h("p", { className: "wba-sub" }, t("hist.subtitle")),
+          state.error ? h(C.Notice, { h, kind: "error", text: state.error }) : null,
+          missing ? h("p", { className: "wba-sub" }, t("hist.missing")) : state.loading && records.length === 0 ? h("div", { className: "wba-hist" }, [1, 2, 3].map(function(i) {
+            return h("div", { key: i, className: "wba-skel" });
+          })) : records.length === 0 ? h("p", { className: "wba-sub" }, t("hist.empty")) : h(
+            "div",
+            { className: "wba-hist" },
+            h("p", { className: "wba-sub" }, t("hist.records", { n: records.length })),
+            records.map(function(rec, i) {
+              return h(
                 "div",
-                { className: "wba-block" },
-                h("span", { className: "wba-label" }, t("editor.exampleTitle")),
-                h("pre", { className: "wba-pre" }, JSON.stringify(example, null, 2)),
+                { key: rec.messageId || i, className: "wba-hist-row" },
                 h(
                   "div",
                   { className: "wba-inline" },
-                  h(C.Btn, { h, onClick: function() {
-                    if (typeof window !== "undefined" && !window.confirm(t("editor.exampleHint"))) return;
-                    set("actionArgs", JSON.stringify(example, null, 2));
-                  } }, t("editor.fillExample")),
-                  h("span", { className: "wba-grow" })
-                )
-              ) : null,
-              h(json.JsonEditor, {
-                h,
-                t,
-                React,
-                label: "actionArgs",
-                hint: t("editor.argsHint"),
-                value: form.actionArgs,
-                invalid: Boolean(errs.actionArgs),
-                error: errs.actionArgs,
-                onChange: function(v) {
-                  set("actionArgs", v);
-                },
-                action: h(C.Btn, { h, onClick: function() {
-                  var next = json.formatJson(form.actionArgs);
-                  if (next) set("actionArgs", next);
-                } }, t("editor.format"))
-              })
-            ),
-            h(
-              "div",
-              { className: "wba-section" },
-              h("p", { className: "wba-section-title" }, "\u2463 " + t("editor.section.condition")),
-              h(
-                "label",
-                { className: "wba-switch" },
-                h("input", { type: "checkbox", checked: Boolean(form.condOn), onChange: function(e) {
-                  set("condOn", e.target.checked);
-                } }),
-                h("span", null, t("editor.conditionOn"))
-              ),
-              h("p", { className: "wba-sub" }, t("editor.conditionHint")),
-              form.condOn ? h(json.JsonEditor, {
-                h,
-                t,
-                React,
-                small: true,
-                vars: false,
-                label: "condition",
-                value: form.condition,
-                invalid: Boolean(errs.condition),
-                error: errs.condition,
-                onChange: function(v) {
-                  set("condition", v);
-                }
-              }) : h("p", { className: "wba-sub" }, t("editor.conditionEmpty"))
-            )
-          ),
-          h(
-            "div",
-            { className: "wba-modal-foot" },
-            h("span", { className: "wba-sub wba-grow" }, validation.valid ? "" : errs.name || errs.actionArgs || errs.condition || t("editor.nameEmptySave")),
-            h(C.Btn, { h, onClick: close }, t("common.cancel")),
-            h(
-              C.Btn,
-              { h, kind: "primary", disabled: busy || !validation.valid, onClick: function() {
-                props.onSave(buildPayload(form));
-              } },
-              busy ? t("common.loading") : t("common.save")
-            )
+                  icon ? icon("send", 13) : null,
+                  h("span", { className: "wba-nowrap" }, when(rec, lang)),
+                  h("code", { className: "wba-mono wba-ellipsis", title: rec.targetSessionId }, rec.targetSessionId || "")
+                ),
+                rec.prompt ? h("pre", { className: "wba-pre" }, rec.prompt) : null
+              );
+            }),
+            data.earlierRecordsPruned ? h("p", { className: "wba-sub" }, t("hist.pruned")) : null,
+            canOlder ? h(C.Btn, { h, onClick: function() {
+              cursorS[1](oldest);
+            } }, t("common.more")) : null
           )
+        ),
+        h(
+          "div",
+          { className: "wba-modal-foot" },
+          h("span", { className: "wba-grow" }),
+          h(C.Btn, { h, onClick: props.onClose }, t("common.close"))
         )
       );
     }
-    module2.exports = { RuleEditor, buildPayload, validateForm, EXAMPLES };
+    module2.exports = AgentHistory;
+    module2.exports.AgentHistory = AgentHistory;
   }
 });
 
@@ -2267,13 +4085,17 @@ var require_rules = __commonJS({
     var C = require_common();
     var copy = require_copy();
     var trig = require_trigger_fields();
+    var atiming = require_agent_timing();
     var editor = require_rule_editor();
+    var AgentHistory = require_agent_history();
     var TRIGGER_ICON = { interval: "timer", dailyAt: "alarm-clock", event: "radio", manual: "hand" };
     function emptyForm() {
       return {
         id: "",
         name: "",
         enabled: true,
+        execMode: "action",
+        // action 模式
         kind: "interval",
         everyMinutes: 60,
         time: "09:00",
@@ -2281,17 +4103,76 @@ var require_rules = __commonJS({
         weekdays: "1,2,3,4,5",
         domainId: "",
         event: "",
-        actionName: "message.send",
-        actionArgs: '{\n  "title": "\u81EA\u52A8\u5316\u63D0\u9192",\n  "body": "\u89C4\u5219 {{rule.name}} \u5DF2\u8FD0\u884C"\n}',
+        actionName: "",
+        actionArgs: "{}",
         condOn: false,
-        condition: '{\n  "field": "event.item.title",\n  "op": "contains",\n  "value": ""\n}'
+        condition: '{\n  "field": "event.item.title",\n  "op": "contains",\n  "value": ""\n}',
+        // agent 模式
+        prompt: "",
+        pKind: "every",
+        pEvery: 60,
+        pAfter: 60,
+        pTime: "09:00",
+        pTz: "Asia/Shanghai",
+        pWeekdays: "1,2,3,4,5",
+        pCron: "0 9 * * *",
+        pRrule: "DTSTART;TZID=Asia/Shanghai:20260101T090000\nRRULE:FREQ=DAILY",
+        pDate: "",
+        targetKind: "new_once",
+        targetCwd: "",
+        targetPreset: "",
+        targetSession: ""
       };
+    }
+    function timingToForm(f, timing) {
+      var ti = timing && typeof timing === "object" ? timing : {};
+      f.pKind = ti.kind || "every";
+      if (ti.kind === "every") f.pEvery = Math.max(1, Math.round((ti.every_seconds || 3600) / 60));
+      if (ti.kind === "after") f.pAfter = Math.max(1, Math.round((ti.after_seconds || 60) / 60));
+      if (ti.kind === "daily" && ti.daily) {
+        f.pTime = String(ti.daily.time || "09:00").slice(0, 5);
+        f.pTz = ti.daily.time_zone || "Asia/Shanghai";
+      }
+      if (ti.kind === "weekly" && ti.weekly) {
+        f.pTime = String(ti.weekly.time || "09:00").slice(0, 5);
+        f.pTz = ti.weekly.time_zone || "Asia/Shanghai";
+        f.pWeekdays = (ti.weekly.weekdays || [1, 2, 3, 4, 5]).join(",");
+      }
+      if (ti.kind === "cron" && ti.cron) {
+        f.pCron = ti.cron.expression || f.pCron;
+        f.pTz = ti.cron.time_zone || "Asia/Shanghai";
+      }
+      if (ti.kind === "rrule") f.pRrule = ti.rrule || f.pRrule;
+      if (ti.kind === "at") {
+        var at = ti.at;
+        if (typeof at === "string") {
+          f.pDate = at.slice(0, 10);
+          f.pTime = at.slice(11, 16) || f.pTime;
+        } else if (at && typeof at === "object") {
+          f.pDate = at.date || "";
+          f.pTime = String(at.time || "09:00").slice(0, 5);
+          f.pTz = at.time_zone || f.pTz;
+        }
+      }
     }
     function formFromRule(rule) {
       var f = emptyForm();
       f.id = rule.id;
       f.name = rule.name;
       f.enabled = rule.enabled;
+      f.execMode = rule.execMode === "agent" ? "agent" : "action";
+      if (f.execMode === "agent") {
+        var snap = rule.agent && typeof rule.agent === "object" ? rule.agent : {};
+        f.prompt = String(snap.prompt || "");
+        timingToForm(f, snap.timing);
+        var target = snap.target && typeof snap.target === "object" ? snap.target : {};
+        f.targetKind = target.kind || "new_once";
+        f.targetSession = target.sessionId || "";
+        var create = target.create && typeof target.create === "object" ? target.create : {};
+        f.targetCwd = create.cwd || "";
+        f.targetPreset = create.agentPreset || "";
+        return f;
+      }
       f.actionName = rule.actionName;
       f.actionArgs = JSON.stringify(rule.actionArgs || {}, null, 2);
       f.condOn = Boolean(rule.condition);
@@ -2314,11 +4195,20 @@ var require_rules = __commonJS({
       var q = String(filters && filters.q || "").trim().toLowerCase();
       var status = filters && filters.status || "";
       var trigger = filters && filters.trigger || "";
+      var mode = filters && filters.mode || "";
       return rows.filter(function(r) {
-        if (q && !(String(r.name).toLowerCase().indexOf(q) !== -1 || String(r.actionName).toLowerCase().indexOf(q) !== -1)) return false;
+        if (q) {
+          var hit = String(r.name).toLowerCase().indexOf(q) !== -1 || String(r.actionName || "").toLowerCase().indexOf(q) !== -1 || String(r.agent && r.agent.prompt || "").toLowerCase().indexOf(q) !== -1;
+          if (!hit) return false;
+        }
         if (status === "on" && !r.enabled) return false;
         if (status === "off" && r.enabled) return false;
-        if (trigger && (r.triggerConfig && r.triggerConfig.kind ? r.triggerConfig.kind : r.triggerType) !== trigger) return false;
+        if (mode === "agent" && r.execMode !== "agent") return false;
+        if (mode === "action" && r.execMode === "agent") return false;
+        if (trigger) {
+          var kind = r.execMode === "agent" ? "agent" : r.triggerConfig && r.triggerConfig.kind || r.triggerType;
+          if (kind !== trigger) return false;
+        }
         return true;
       });
     }
@@ -2326,6 +4216,11 @@ var require_rules = __commonJS({
       if (status === "ok") return "ok";
       if (status === "error") return "error";
       if (status === "skipped") return "warn";
+      return "";
+    }
+    function scheduleKind(status) {
+      if (status === "active") return "ok";
+      if (status === "paused") return "warn";
       return "";
     }
     function EmptyCard(props) {
@@ -2341,9 +4236,77 @@ var require_rules = __commonJS({
         h(
           "div",
           { className: "wba-inline" },
-          h(C.Btn, { h, kind: "primary", onClick: props.onNew }, t("common.create"))
+          props.noActions ? h(C.Btn, { h, kind: "primary", onClick: props.onSettings }, t("rules.empty.noActionCta")) : h(C.Btn, { h, kind: "primary", onClick: props.onNew }, t("common.create"))
         ),
-        h("p", { className: "wba-empty-body" }, t("rules.empty.backup"))
+        h("p", { className: "wba-empty-body" }, props.noActions ? t("rules.empty.noActionHint") : t("rules.empty.backup"))
+      );
+    }
+    function RuleRow(props) {
+      var h = props.h;
+      var t = props.t;
+      var icon = props.icon;
+      var r = props.rule;
+      var agentRule = r.execMode === "agent";
+      var snap = r.agent && typeof r.agent === "object" ? r.agent : {};
+      var kind = agentRule ? "agent" : r.triggerConfig && r.triggerConfig.kind || r.triggerType || "manual";
+      var last = r.lastRun;
+      var deliveredAt = snap.lastDeliveryAt;
+      return h(
+        "tr",
+        null,
+        h(
+          "td",
+          null,
+          h("div", { className: "wba-strong wba-ellipsis", title: r.name }, r.name),
+          h("div", { className: "wba-mono" }, r.id)
+        ),
+        h(
+          "td",
+          { className: "wba-nowrap" },
+          h(
+            "span",
+            { className: "wba-inline" },
+            icon ? icon(agentRule ? "bot" : TRIGGER_ICON[kind] || "zap", 13) : null,
+            agentRule ? atiming.timingText(snap.timing, t) : trig.triggerText(r, t)
+          )
+        ),
+        h("td", null, agentRule ? h(
+          "span",
+          { className: "wba-inline" },
+          h(C.Pill, { h, kind: "" }, t("rules.agentAction")),
+          h("span", { className: "wba-ellipsis", title: snap.prompt || "" }, String(snap.prompt || "").slice(0, 48))
+        ) : h(
+          "span",
+          { className: "wba-inline" },
+          h("code", { className: "wba-ellipsis", title: r.actionName }, r.actionName),
+          props.allowed.indexOf(r.actionName) === -1 ? h(C.Pill, { h, kind: "warn" }, t("rules.actionDisabled")) : null
+        )),
+        h("td", null, agentRule ? h(C.Pill, { h, kind: r.scheduleMissing ? "error" : scheduleKind(r.scheduleStatus) }, t("rules.schedule." + (r.scheduleMissing ? "missing" : r.scheduleStatus || "paused"))) : h(C.Pill, { h, kind: r.enabled ? "ok" : "" }, r.enabled ? t("rules.status.on") : t("rules.status.off"))),
+        h("td", { className: "wba-nowrap" }, agentRule ? h("span", null, deliveredAt ? C.fmtTime(deliveredAt, props.lang) : t("common.none")) : h(
+          "div",
+          { className: "wba-inline" },
+          h("span", null, last ? C.fmtTime(last.startedAt, props.lang) : t("common.none")),
+          last ? h(C.Pill, { h, kind: resultKind(last.status) }, t("run.status." + last.status) || last.status) : null
+        )),
+        h("td", null, h(
+          "div",
+          { className: "wba-actions" },
+          agentRule ? h("button", { type: "button", className: "wba-icon-btn", title: t("rules.history"), onClick: function() {
+            props.onHistory(r);
+          } }, icon ? icon("send", 14) : "\u2709") : null,
+          h("button", { type: "button", className: "wba-icon-btn", title: t("common.run"), disabled: props.runningId === r.id || agentRule && r.scheduleMissing, onClick: function() {
+            props.onRun(r);
+          } }, icon ? icon("play", 14) : "\u25B6"),
+          h("button", { type: "button", className: "wba-icon-btn", title: t("common.edit"), onClick: function() {
+            props.onEdit(r);
+          } }, icon ? icon("pencil", 14) : "\u270E"),
+          h("button", { type: "button", className: "wba-icon-btn", title: r.enabled ? t("common.disable") : t("common.enable"), onClick: function() {
+            props.onToggle(r);
+          } }, icon ? icon(r.enabled ? "power-off" : "power", 14) : "\u23FB"),
+          h("button", { type: "button", className: "wba-icon-btn danger", title: t("common.delete"), onClick: function() {
+            props.onDelete(r);
+          } }, icon ? icon("trash-2", 14) : "\u{1F5D1}")
+        ))
       );
     }
     function RulesBody(props) {
@@ -2352,6 +4315,9 @@ var require_rules = __commonJS({
       var icon = props.icon;
       var rows = props.rows;
       var filters = props.filters || {};
+      var allowed = props.allowed || [];
+      var orphans = Number(props.agentStatus && props.agentStatus.orphans && props.agentStatus.orphans.length || 0);
+      var offline = props.agentStatus && props.agentStatus.available === false;
       return h(
         "div",
         { className: "wba-panel" },
@@ -2398,13 +4364,30 @@ var require_rules = __commonJS({
               h("option", { value: "" }, t("common.all")),
               ["interval", "dailyAt", "event", "manual"].map(function(k) {
                 return h("option", { key: k, value: k }, t("trigger." + k));
-              })
+              }),
+              h("option", { value: "agent" }, t("rules.agentAction"))
+            )
+          ),
+          h(
+            "label",
+            { className: "wba-field" },
+            h("span", { className: "wba-label" }, t("rules.exec.mode")),
+            h(
+              "select",
+              { className: "wba-input", value: filters.mode || "", onChange: function(e) {
+                props.onFilter({ mode: e.target.value });
+              } },
+              h("option", { value: "" }, t("common.all")),
+              h("option", { value: "action" }, t("editor.mode.action")),
+              h("option", { value: "agent" }, t("editor.mode.agent"))
             )
           ),
           h("span", { className: "wba-grow" }),
           h(C.Btn, { h, onClick: props.onClear }, t("common.clear"))
         ),
         props.error ? h(C.Notice, { h, kind: "error", text: props.error }) : null,
+        offline ? h(C.Notice, { h, kind: "warn", text: t("rules.agentOffline") }) : null,
+        orphans > 0 ? h(C.Notice, { h, kind: "warn", text: t("rules.orphans", { n: orphans }) }) : null,
         props.loading ? h(
           "div",
           { className: "wba-table-wrap" },
@@ -2421,9 +4404,11 @@ var require_rules = __commonJS({
           h,
           t,
           icon,
-          title: props.hasRules ? t("rules.empty.filtered") : t("rules.empty.title"),
-          body: props.hasRules ? t("rules.empty.filteredBody") : t("rules.empty.body"),
-          onNew: props.onNew
+          title: props.hasRules ? t("rules.empty.filtered") : props.noActions ? t("rules.empty.noActionTitle") : t("rules.empty.title"),
+          body: props.hasRules ? t("rules.empty.filteredBody") : props.noActions ? t("rules.empty.noActionBody") : t("rules.empty.body"),
+          noActions: !props.hasRules && props.noActions,
+          onNew: props.onNew,
+          onSettings: props.onSettings
         }) : h(
           "div",
           { className: "wba-table-wrap" },
@@ -2438,55 +4423,21 @@ var require_rules = __commonJS({
               })
             )),
             h("tbody", null, rows.map(function(r) {
-              var kind = r.triggerConfig && r.triggerConfig.kind || r.triggerType || "manual";
-              var last = r.lastRun;
-              var cells = [
-                h(
-                  "td",
-                  null,
-                  h("div", { className: "wba-strong wba-ellipsis", title: r.name }, r.name),
-                  h("div", { className: "wba-mono" }, r.id)
-                ),
-                h(
-                  "td",
-                  { className: "wba-nowrap" },
-                  h(
-                    "span",
-                    { className: "wba-inline" },
-                    icon ? icon(TRIGGER_ICON[kind] || "zap", 13) : null,
-                    trig.triggerText(r, t)
-                  )
-                ),
-                h("td", null, h("code", { className: "wba-ellipsis", title: r.actionName }, r.actionName)),
-                h("td", null, h(C.Pill, { h, kind: r.enabled ? "ok" : "" }, r.enabled ? t("rules.status.on") : t("rules.status.off"))),
-                h(
-                  "td",
-                  { className: "wba-nowrap" },
-                  h(
-                    "div",
-                    { className: "wba-inline" },
-                    h("span", null, last ? C.fmtTime(last.startedAt, props.lang) : t("common.none")),
-                    last ? h(C.Pill, { h, kind: resultKind(last.status) }, t("run.status." + last.status) || last.status) : null
-                  )
-                ),
-                h("td", null, h(
-                  "div",
-                  { className: "wba-actions" },
-                  h("button", { type: "button", className: "wba-icon-btn", title: t("common.run"), disabled: props.runningId === r.id, onClick: function() {
-                    props.onRun(r);
-                  } }, icon ? icon("play", 14) : "\u25B6"),
-                  h("button", { type: "button", className: "wba-icon-btn", title: t("common.edit"), onClick: function() {
-                    props.onEdit(r);
-                  } }, icon ? icon("pencil", 14) : "\u270E"),
-                  h("button", { type: "button", className: "wba-icon-btn", title: r.enabled ? t("common.disable") : t("common.enable"), onClick: function() {
-                    props.onToggle(r);
-                  } }, icon ? icon(r.enabled ? "power-off" : "power", 14) : "\u23FB"),
-                  h("button", { type: "button", className: "wba-icon-btn danger", title: t("common.delete"), onClick: function() {
-                    props.onDelete(r);
-                  } }, icon ? icon("trash-2", 14) : "\u{1F5D1}")
-                ))
-              ];
-              return h("tr", { key: r.id }, cells);
+              return h(RuleRow, {
+                key: r.id,
+                h,
+                t,
+                icon,
+                lang: props.lang,
+                rule: r,
+                allowed,
+                runningId: props.runningId,
+                onRun: props.onRun,
+                onEdit: props.onEdit,
+                onToggle: props.onToggle,
+                onDelete: props.onDelete,
+                onHistory: props.onHistory
+              });
             }))
           )
         )
@@ -2502,15 +4453,18 @@ var require_rules = __commonJS({
       };
       var list = C.useLoad(React, api, "automation.ruleList", {}, []);
       var opts = C.useLoad(React, api, "automation.actionOptions", {}, []);
+      var status = C.useLoad(React, api, "automation.agentStatus", {}, []);
       var formS = React.useState(null);
       var initS = React.useState(null);
       var busyS = React.useState(false);
       var msgS = React.useState("");
-      var filterS = React.useState({ q: "", status: "", trigger: "" });
+      var filterS = React.useState({ q: "", status: "", trigger: "", mode: "" });
       var runningS = React.useState("");
+      var historyS = React.useState(null);
       var all = list.data && list.data.items || [];
       var rows = filterRules(all, filterS[0]);
-      var actions = opts.data && opts.data.actions || ["message.send"];
+      var actions = opts.data && opts.data.actions || [];
+      var agentStatus = status.data || null;
       var form = formS[0];
       React.useEffect(function() {
         if (props.viewParams && props.viewParams.new && !formS[0]) openNew();
@@ -2518,8 +4472,13 @@ var require_rules = __commonJS({
       function fail(e) {
         msgS[1](C.errText(e));
       }
+      function reload() {
+        list.refresh();
+        status.refresh();
+      }
       function openNew() {
         var f = emptyForm();
+        if (agentStatus && agentStatus.available === false) f.execMode = "action";
         initS[1](f);
         formS[1](f);
         msgS[1]("");
@@ -2531,7 +4490,7 @@ var require_rules = __commonJS({
         C.call(api, action, payload).then(function() {
           busyS[1](false);
           formS[1](null);
-          list.refresh();
+          reload();
           msgS[1](t("common.saved"));
         }).catch(function(e) {
           busyS[1](false);
@@ -2540,9 +4499,7 @@ var require_rules = __commonJS({
       }
       function remove(rule) {
         if (typeof window !== "undefined" && !window.confirm(t("rules.confirm.delete", { name: rule.name }))) return;
-        C.call(api, "automation.ruleDelete", { id: rule.id }).then(function() {
-          list.refresh();
-        }).catch(fail);
+        C.call(api, "automation.ruleDelete", { id: rule.id }).then(reload).catch(fail);
       }
       function run(rule) {
         runningS[1](rule.id);
@@ -2550,16 +4507,14 @@ var require_rules = __commonJS({
         C.call(api, "automation.ruleRun", { id: rule.id }).then(function(r) {
           runningS[1]("");
           msgS[1](r && r.skipped ? "skipped: " + (r.reason || "") : t("common.saved"));
-          list.refresh();
+          reload();
         }).catch(function(e) {
           runningS[1]("");
           fail(e);
         });
       }
       function toggle(rule) {
-        C.call(api, "automation.ruleUpdate", { id: rule.id, enabled: !rule.enabled }).then(function() {
-          list.refresh();
-        }).catch(fail);
+        C.call(api, "automation.ruleUpdate", { id: rule.id, enabled: !rule.enabled }).then(reload).catch(fail);
       }
       function setForm(k, v) {
         var next = Object.assign({}, formS[0]);
@@ -2581,7 +4536,7 @@ var require_rules = __commonJS({
           h(
             "div",
             { className: "wba-row" },
-            h(C.Btn, { h, onClick: list.refresh }, t("common.refresh")),
+            h(C.Btn, { h, onClick: reload }, t("common.refresh")),
             h(C.Btn, { h, kind: "primary", onClick: openNew }, t("common.create"))
           )
         ),
@@ -2595,13 +4550,19 @@ var require_rules = __commonJS({
           hasRules: all.length > 0,
           loading: list.loading,
           error: list.error,
+          allowed: actions,
+          agentStatus,
+          noActions: actions.length === 0,
+          onSettings: function() {
+            if (props.onNavigate) props.onNavigate("config");
+          },
           filters: filterS[0],
           runningId: runningS[0],
           onFilter: function(patch) {
             filterS[1](Object.assign({}, filterS[0], patch));
           },
           onClear: function() {
-            filterS[1]({ q: "", status: "", trigger: "" });
+            filterS[1]({ q: "", status: "", trigger: "", mode: "" });
           },
           onNew: openNew,
           onRun: run,
@@ -2611,7 +4572,10 @@ var require_rules = __commonJS({
             formS[1](f);
           },
           onToggle: toggle,
-          onDelete: remove
+          onDelete: remove,
+          onHistory: function(r) {
+            historyS[1](r);
+          }
         }),
         form ? h(editor.RuleEditor, {
           h,
@@ -2625,17 +4589,32 @@ var require_rules = __commonJS({
           set: setForm,
           busy: busyS[0],
           actions,
+          agentAvailable: !(agentStatus && agentStatus.available === false),
           onClose: function() {
             formS[1](null);
           },
           onSave: save
+        }) : null,
+        historyS[0] ? h(AgentHistory, {
+          h,
+          api,
+          React,
+          t,
+          lang,
+          icon: props.icon,
+          rule: historyS[0],
+          onClose: function() {
+            historyS[1](null);
+          }
         }) : null
       );
     };
     module2.exports.filterRules = filterRules;
     module2.exports.RulesBody = RulesBody;
+    module2.exports.RuleRow = RuleRow;
     module2.exports.emptyForm = emptyForm;
     module2.exports.formFromRule = formFromRule;
+    module2.exports.timingToForm = timingToForm;
   }
 });
 
@@ -2868,87 +4847,263 @@ var require_runs = __commonJS({
   }
 });
 
-// packages/addons/automation/client/views/config.cjs
-var require_config = __commonJS({
-  "packages/addons/automation/client/views/config.cjs"(exports2, module2) {
+// packages/addons/automation/client/views/action-picker.cjs
+var require_action_picker = __commonJS({
+  "packages/addons/automation/client/views/action-picker.cjs"(exports2, module2) {
     "use strict";
     var C = require_common();
     var copy = require_copy();
-    var CONSTRAINTS = ["strategy", "concurrency", "event", "condition", "backup", "safety"];
-    function ConfigBody(props) {
+    var DENIED = /^(vault|automation|audit)\.|\.(delete|backup)$/i;
+    var NAME = /^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*){1,2}$/;
+    function filterCatalog(items, q) {
+      var text = String(q || "").trim().toLowerCase();
+      if (!text) return items || [];
+      return (items || []).filter(function(row) {
+        return String(row.name).toLowerCase().indexOf(text) !== -1 || String(row.domain || "").toLowerCase().indexOf(text) !== -1 || String(row.description || "").toLowerCase().indexOf(text) !== -1;
+      });
+    }
+    function groupByDomain(items) {
+      var order = [];
+      var map = {};
+      (items || []).forEach(function(row) {
+        var key = String(row.domain || "other");
+        if (!map[key]) {
+          map[key] = [];
+          order.push(key);
+        }
+        map[key].push(row);
+      });
+      return order.map(function(key) {
+        return { domain: key, items: map[key] };
+      });
+    }
+    function ActionPicker(props) {
       var h = props.h;
       var t = props.t;
       var icon = props.icon;
-      var form = props.form || {};
+      var React = props.React;
+      var qS = React.useState("");
+      var manualS = React.useState("");
+      var items = props.items || [];
+      var selected = props.selected || [];
+      var loading = Boolean(props.loading);
+      var error = props.error || "";
+      var rows = filterCatalog(items, qS[0]);
+      var groups = groupByDomain(rows);
+      var known = {};
+      items.forEach(function(row) {
+        known[row.name] = true;
+      });
+      var extra = selected.filter(function(name) {
+        return !known[name];
+      });
+      if (extra.length) groups.push({ domain: "__extra", items: extra.map(function(name) {
+        return { name, domain: "", description: "" };
+      }) });
+      function has(name) {
+        return selected.indexOf(name) !== -1;
+      }
+      function toggle(name, on) {
+        var next = selected.filter(function(x) {
+          return x !== name;
+        });
+        if (on) next.push(name);
+        next.sort();
+        props.onChange(next);
+      }
+      function addManual() {
+        var name = manualS[0].trim();
+        if (!name) return;
+        if (!NAME.test(name) || DENIED.test(name)) {
+          manualS[1](name);
+          return;
+        }
+        if (!has(name)) toggle(name, true);
+        manualS[1]("");
+      }
+      var manualBad = manualS[0].trim() ? !NAME.test(manualS[0].trim()) || DENIED.test(manualS[0].trim()) : false;
       return h(
         "div",
         { className: "wba-panel" },
         h(
           "div",
           { className: "wba-panel-h" },
-          h("p", { className: "wba-panel-title" }, t("config.limit.title")),
-          props.saved && !props.dirty ? h(C.Pill, { h, kind: "ok" }, t("common.saved")) : null
+          h("p", { className: "wba-panel-title" }, t("config.allowed.title")),
+          icon ? h("span", { className: "wba-card-ico" }, icon("list-checks", 16)) : null
         ),
-        h(
-          "div",
-          { className: "wba-grid-2" },
-          h(
-            "label",
-            { className: "wba-field" },
-            h("span", { className: "wba-label" }, t("config.limit.maxRules")),
-            h("input", {
-              className: "wba-input",
-              type: "number",
-              min: 1,
-              max: 500,
-              value: form.maxRules,
-              "aria-label": t("config.limit.maxRules"),
-              onChange: function(e) {
-                props.onChange("maxRules", e.target.value);
-              }
-            })
-          ),
-          h(
-            "label",
-            { className: "wba-field" },
-            h("span", { className: "wba-label" }, t("config.limit.perHour")),
-            h("input", {
-              className: "wba-input",
-              type: "number",
-              min: 1,
-              max: 600,
-              value: form.perHour,
-              "aria-label": t("config.limit.perHour"),
-              onChange: function(e) {
-                props.onChange("perHour", e.target.value);
-              }
-            })
-          )
-        ),
-        h("p", { className: "wba-sub" }, t("config.limit.hint")),
+        h("p", { className: "wba-sub" }, t("config.allowed.hint")),
         h(
           "div",
           { className: "wba-inline" },
-          h(C.Btn, {
-            h,
-            kind: "primary",
-            disabled: props.busy || !props.dirty,
-            onClick: function() {
-              props.onSave({ maxRules: Number(form.maxRules), perHour: Number(form.perHour) });
-            }
-          }, props.busy ? t("common.loading") : t("common.save")),
-          props.dirty ? null : h("span", { className: "wba-hint" }, t("config.limit.unchanged"))
+          h(
+            "label",
+            { className: "wba-field wba-grow" },
+            h("span", { className: "wba-label" }, t("common.search")),
+            h("input", {
+              className: "wba-input",
+              type: "search",
+              value: qS[0],
+              placeholder: t("config.allowed.search"),
+              "aria-label": t("config.allowed.search"),
+              onChange: function(e) {
+                qS[1](e.target.value);
+              }
+            })
+          ),
+          h("span", { className: "wba-hint" }, t("config.allowed.selected", { n: selected.length })),
+          h(C.Btn, { h, disabled: !selected.length, onClick: function() {
+            props.onChange([]);
+          } }, t("common.clear"))
         ),
-        h("hr", { className: "wba-sep" }),
+        error ? h(C.Notice, { h, kind: "error", text: error }) : null,
+        loading ? h("div", { className: "wba-skel" }) : groups.length === 0 ? h("p", { className: "wba-hint" }, t("config.allowed.empty")) : h("div", { className: "wba-picker" }, groups.map(function(group) {
+          return h(
+            "div",
+            { key: group.domain, className: "wba-picker-group" },
+            h("p", { className: "wba-picker-domain" }, group.domain === "__extra" ? t("config.allowed.extra") : group.domain),
+            group.items.map(function(row) {
+              return h(
+                "label",
+                { key: row.name, className: "wba-check wba-picker-row", title: row.description || row.name },
+                h("input", { type: "checkbox", checked: has(row.name), onChange: function(e) {
+                  toggle(row.name, e.target.checked);
+                } }),
+                h("code", null, row.name),
+                row.description ? h("span", { className: "wba-hint wba-ellipsis" }, row.description) : null
+              );
+            })
+          );
+        })),
         h(
           "div",
-          { className: "wba-panel-h" },
-          h("p", { className: "wba-panel-title" }, t("config.constraints.title")),
-          icon ? h("span", { className: "wba-card-ico" }, icon("shield-check", 16)) : null
+          { className: "wba-inline" },
+          h(
+            "label",
+            { className: "wba-field wba-grow" },
+            h("span", { className: "wba-label" }, t("config.allowed.manual")),
+            h("input", {
+              className: "wba-input" + (manualBad ? " err" : ""),
+              value: manualS[0],
+              placeholder: "namespace.action",
+              "aria-label": t("config.allowed.manual"),
+              onChange: function(e) {
+                manualS[1](e.target.value);
+              }
+            })
+          ),
+          h(C.Btn, { h, disabled: !manualS[0].trim() || manualBad, onClick: addManual }, t("config.allowed.add"))
         ),
-        h("ul", { className: "wba-list" }, CONSTRAINTS.map(function(k) {
-          return h("li", { key: k }, t("config.c." + k));
-        }))
+        manualBad ? h("span", { className: "wba-err-text" }, t("config.allowed.invalid")) : null,
+        h("p", { className: "wba-hint" }, t("config.allowed.deniedNote"))
+      );
+    }
+    module2.exports = { ActionPicker, filterCatalog, groupByDomain };
+  }
+});
+
+// packages/addons/automation/client/views/config.cjs
+var require_config = __commonJS({
+  "packages/addons/automation/client/views/config.cjs"(exports2, module2) {
+    "use strict";
+    var C = require_common();
+    var copy = require_copy();
+    var picker = require_action_picker();
+    var NF = require_number_field();
+    var CONSTRAINTS = ["strategy", "concurrency", "event", "condition", "backup", "safety"];
+    function ConfigBody(props) {
+      var h = props.h;
+      var t = props.t;
+      var icon = props.icon;
+      var form = props.form || {};
+      var catalog = props.catalog || { items: [], error: "", loading: false };
+      return h(
+        "div",
+        { className: "wba-stack" },
+        h(
+          "div",
+          { className: "wba-panel" },
+          h(
+            "div",
+            { className: "wba-panel-h" },
+            h("p", { className: "wba-panel-title" }, t("config.limit.title")),
+            props.saved && !props.dirty ? h(C.Pill, { h, kind: "ok" }, t("common.saved")) : null
+          ),
+          h(
+            "div",
+            { className: "wba-grid-2" },
+            h(
+              "label",
+              { className: "wba-field" },
+              h("span", { className: "wba-label" }, t("config.limit.maxRules")),
+              h(NF.NumberField, {
+                h,
+                lang: props.lang,
+                value: form.maxRules === void 0 ? "" : form.maxRules,
+                min: 1,
+                max: 500,
+                integer: true,
+                ariaLabel: t("config.limit.maxRules"),
+                onCommit: function(next) {
+                  props.onChange("maxRules", next);
+                }
+              })
+            ),
+            h(
+              "label",
+              { className: "wba-field" },
+              h("span", { className: "wba-label" }, t("config.limit.perHour")),
+              h(NF.NumberField, {
+                h,
+                lang: props.lang,
+                value: form.perHour === void 0 ? "" : form.perHour,
+                min: 1,
+                max: 600,
+                integer: true,
+                ariaLabel: t("config.limit.perHour"),
+                onCommit: function(next) {
+                  props.onChange("perHour", next);
+                }
+              })
+            )
+          ),
+          h("p", { className: "wba-sub" }, t("config.limit.hint")),
+          h(
+            "div",
+            { className: "wba-inline" },
+            h(C.Btn, {
+              h,
+              kind: "primary",
+              disabled: props.busy || !props.dirty,
+              onClick: function() {
+                props.onSave({ maxRules: Number(form.maxRules), perHour: Number(form.perHour), allowedActions: form.allowedActions || [] });
+              }
+            }, props.busy ? t("common.loading") : t("common.save")),
+            props.dirty ? null : h("span", { className: "wba-hint" }, t("config.limit.unchanged"))
+          ),
+          h("hr", { className: "wba-sep" }),
+          h(
+            "div",
+            { className: "wba-panel-h" },
+            h("p", { className: "wba-panel-title" }, t("config.constraints.title")),
+            icon ? h("span", { className: "wba-card-ico" }, icon("shield-check", 16)) : null
+          ),
+          h("ul", { className: "wba-list" }, CONSTRAINTS.map(function(k) {
+            return h("li", { key: k }, t("config.c." + k));
+          }))
+        ),
+        h(picker.ActionPicker, {
+          h,
+          t,
+          icon,
+          React: props.React,
+          items: catalog.items,
+          error: catalog.error,
+          loading: catalog.loading,
+          selected: form.allowedActions || [],
+          onChange: function(list) {
+            props.onChange("allowedActions", list);
+          }
+        })
       );
     }
     module2.exports = function ConfigView(props) {
@@ -2960,18 +5115,23 @@ var require_config = __commonJS({
         return copy.t(lang, key, vars);
       };
       var cfg = C.useLoad(React, api, "automation.configGet", {}, []);
+      var catalog = C.useLoad(React, api, "automation.actionCatalog", {}, []);
       var formS = React.useState(null);
       var busyS = React.useState(false);
       var msgS = React.useState(null);
       var savedS = React.useState(false);
       React.useEffect(function() {
         if (cfg.data && !formS[0]) {
-          formS[1]({ maxRules: String(cfg.data.maxRules), perHour: String(cfg.data.perHour) });
+          formS[1]({
+            maxRules: String(cfg.data.maxRules),
+            perHour: String(cfg.data.perHour),
+            allowedActions: (cfg.data.allowedActions || []).slice()
+          });
         }
       }, [cfg.data]);
-      var form = formS[0] || { maxRules: "", perHour: "" };
+      var form = formS[0] || { maxRules: "", perHour: "", allowedActions: [] };
       var base = cfg.data || {};
-      var dirty = String(form.maxRules) !== String(base.maxRules) || String(form.perHour) !== String(base.perHour);
+      var dirty = String(form.maxRules) !== String(base.maxRules) || String(form.perHour) !== String(base.perHour) || (form.allowedActions || []).join(",") !== (base.allowedActions || []).join(",");
       function save(payload) {
         busyS[1](true);
         msgS[1](null);
@@ -3000,19 +5160,25 @@ var require_config = __commonJS({
           h(
             "div",
             { className: "wba-row" },
-            h(C.Btn, { h, onClick: cfg.refresh }, t("common.refresh"))
+            h(C.Btn, { h, onClick: function() {
+              cfg.refresh();
+              catalog.refresh();
+            } }, t("common.refresh"))
           )
         ),
         msgS[0] ? h(C.Notice, { h, kind: msgS[0].kind, text: msgS[0].text }) : null,
         cfg.error ? h(C.Notice, { h, kind: "error", text: cfg.error }) : null,
         cfg.loading && !cfg.data ? h("div", { className: "wba-panel" }, h("div", { className: "wba-skel" }), h("div", { className: "wba-skel" })) : h(ConfigBody, {
           h,
+          lang,
           t,
           icon: props.icon,
           form,
+          React,
           busy: busyS[0],
           dirty,
           saved: savedS[0],
+          catalog: { items: catalog.data && catalog.data.items || [], error: catalog.data && catalog.data.error || (catalog.error || ""), loading: catalog.loading && !catalog.data },
           onChange: function(k, v) {
             formS[1](Object.assign({}, form, { [k]: v }));
           },
@@ -3331,13 +5497,6 @@ var require_data_style = __commonJS({
         "." + P + "-search input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
         "." + P + "-select{border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;outline:none}",
         "." + P + "-select:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
-        "." + P + "-switch{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--cfg-muted);user-select:none;padding:4px 2px}",
-        "." + P + "-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-        "." + P + "-track{position:relative;width:34px;height:20px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-        "." + P + "-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-        "." + P + "-switch input:checked+." + P + "-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-        "." + P + "-switch input:checked+." + P + "-track::after{transform:translateX(14px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-        "." + P + "-switch input:focus-visible+." + P + "-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
         "." + P + "-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cfg-line);background:transparent;color:var(--cfg-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}",
         "." + P + "-btn:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
         "." + P + "-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
@@ -3366,8 +5525,8 @@ var require_data_style = __commonJS({
         "." + P + "-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;font-size:11.5px;color:var(--cfg-muted)}",
         "." + P + "-grow{flex:1}",
         "." + P + "-pageinfo{font-variant-numeric:tabular-nums}",
-        "." + P + "-jump{width:56px;border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:7px;padding:4px 7px;font:inherit;font-size:11.5px;text-align:right;outline:none}",
-        "." + P + "-jump:focus{border-color:var(--dsw-alias-brand-primary,currentColor)}",
+        "." + P + "-jump .wbctl-num-input{width:56px;padding:4px 7px;font-size:11.5px;text-align:right}",
+        "." + P + "-jump .wbctl-num-hint{display:none}",
         "." + P + "-empty{border:1px dashed var(--cfg-line);border-radius:11px;padding:44px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
         "." + P + "-err{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:9px 12px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12px;line-height:1.5}",
         "." + P + "-skwrap{display:flex;flex-direction:column;gap:1px;padding:2px}",
@@ -3405,7 +5564,7 @@ var require_data_style = __commonJS({
         "." + P + "-images img{width:36px;height:36px;object-fit:cover;border-radius:5px}",
         "." + P + "-gallery{display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}",
         "." + P + "-gallery img{width:100%;height:auto;object-fit:contain;border-radius:8px}"
-      ].join("\n");
+      ].concat(require_switch().styles).concat(require_number_field().styles).join("\n");
       if (DOMAIN === "storage") {
         var buttons = "." + P + " :is(button)";
         CSS += buttons + "{border:none;background:var(--wb-btn-bg);min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm)}" + buttons + ":enabled:hover{background:var(--wb-btn-hover-bg)}" + buttons + ":enabled:active{background:var(--wb-btn-active-bg)}" + buttons + ":disabled{background:var(--wb-btn-bg);color:var(--cfg-muted)}" + buttons + ":focus-visible{outline:var(--wb-btn-focus);outline-offset:var(--wb-btn-focus-offset)}." + P + "-fcell:has(button) input{padding-right:34px}";
@@ -3433,8 +5592,10 @@ var require_data_view = __commonJS({
   "packages/addons/lib/data-view.cjs"(exports2, module2) {
     "use strict";
     var React = require("react");
+    var NF = require_number_field();
     var h = React.createElement;
     var COPY = require_data_copy();
+    var SW = require_switch();
     module2.exports = function createDataView(options) {
       var DOMAIN = options.domain;
       function icon(name) {
@@ -3988,17 +6149,18 @@ var require_data_view = __commonJS({
             h("button", { type: "button", className: P + "-btn", disabled: !data || page >= pages, onClick: function() {
               setPage(Math.min(pages, page + 1));
             } }, t.next + " \u203A"),
-            h("input", {
+            h(NF.NumberField, {
+              h,
+              lang,
               className: P + "-jump",
-              type: "number",
+              value: page,
               min: 1,
               max: pages,
-              "aria-label": t.jump,
-              onKeyDown: function(e) {
-                if (e.key === "Enter") {
-                  var n = Math.floor(Number(e.target.value));
-                  if (n >= 1) setPage(Math.min(pages, n));
-                }
+              integer: true,
+              ariaLabel: t.jump,
+              hint: false,
+              onCommit: function(next) {
+                if (next !== null) setPage(next);
               }
             }),
             data && data.queryMs !== void 0 ? h("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
@@ -4095,25 +6257,23 @@ var require_data_view = __commonJS({
                     }
                   })
                 ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: includeDeleted, onChange: function(e) {
-                    setIncludeDeleted(e.target.checked);
+                h(SW.Switch, {
+                  h,
+                  checked: includeDeleted,
+                  label: t.includeDeleted,
+                  onChange: function(next) {
+                    setIncludeDeleted(next);
                     setPage(1);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.includeDeleted)
-                ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: showSystem, onChange: function(e) {
-                    setShowSystem(e.target.checked);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.showSystem)
-                ),
+                  }
+                }),
+                h(SW.Switch, {
+                  h,
+                  checked: showSystem,
+                  label: t.showSystem,
+                  onChange: function(next) {
+                    setShowSystem(next);
+                  }
+                }),
                 h("span", { className: P + "-grow" }),
                 h(
                   "label",
@@ -4271,16 +6431,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -4333,15 +6490,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -4355,6 +6517,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -4387,15 +6551,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -4409,6 +6580,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -4552,6 +6725,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React.useState("");
@@ -4607,38 +6782,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -4673,6 +6863,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -4688,33 +6879,45 @@ var require_action_schema_view = __commonJS({
             h("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h("span", { className: P + "-track", "aria-hidden": true }),
-            h("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h("span", null, originText[origin])
+              );
+            }),
+            busy ? h("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -4735,7 +6938,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h(
@@ -4858,6 +7061,21 @@ var require_action_schema_view = __commonJS({
                   return h("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -4881,6 +7099,7 @@ var require_actions = __commonJS({
 });
 
 // packages/addons/automation/client/client.src.cjs
+var GLYPHS = require_icons2().ICONS;
 (function() {
   var root = typeof window !== "undefined" ? window : null;
   var host = root && root.__WB_HOST__;
@@ -4894,27 +7113,34 @@ var require_actions = __commonJS({
   var h = host.h;
   var CSS = require_styles();
   var ICONS = {
-    activity: (init_activity(), __toCommonJS(activity_exports)).default,
-    zap: (init_zap(), __toCommonJS(zap_exports)).default,
-    history: (init_history(), __toCommonJS(history_exports)).default,
-    sliders: (init_sliders_horizontal(), __toCommonJS(sliders_horizontal_exports)).default,
-    database: (init_database(), __toCommonJS(database_exports)).default,
-    list: (init_list(), __toCommonJS(list_exports)).default,
-    timer: (init_timer(), __toCommonJS(timer_exports)).default,
-    "alarm-clock": (init_alarm_clock(), __toCommonJS(alarm_clock_exports)).default,
-    radio: (init_radio(), __toCommonJS(radio_exports)).default,
-    hand: (init_hand(), __toCommonJS(hand_exports)).default,
-    play: (init_play(), __toCommonJS(play_exports)).default,
-    pencil: (init_pencil(), __toCommonJS(pencil_exports)).default,
-    power: (init_power(), __toCommonJS(power_exports)).default,
-    "power-off": (init_power_off(), __toCommonJS(power_off_exports)).default,
-    "trash-2": (init_trash_2(), __toCommonJS(trash_2_exports)).default,
-    x: (init_x(), __toCommonJS(x_exports)).default,
-    "check-circle": (init_check_circle(), __toCommonJS(check_circle_exports)).default,
-    "alert-triangle": (init_alert_triangle(), __toCommonJS(alert_triangle_exports)).default,
-    "skip-forward": (init_skip_forward(), __toCommonJS(skip_forward_exports)).default,
-    layers: (init_layers(), __toCommonJS(layers_exports)).default,
-    "shield-check": (init_shield_check(), __toCommonJS(shield_check_exports)).default
+    activity: GLYPHS["activity"],
+    zap: GLYPHS["zap"],
+    history: GLYPHS["history"],
+    sliders: GLYPHS["sliders-horizontal"],
+    database: GLYPHS["database"],
+    list: GLYPHS["list"],
+    timer: GLYPHS["timer"],
+    "alarm-clock": GLYPHS["alarm-clock"],
+    radio: GLYPHS["radio"],
+    hand: GLYPHS["hand"],
+    play: GLYPHS["play"],
+    pencil: GLYPHS["pencil"],
+    power: GLYPHS["power"],
+    "power-off": GLYPHS["power-off"],
+    "trash-2": GLYPHS["trash-2"],
+    x: GLYPHS["x"],
+    "check-circle": GLYPHS["check-circle"],
+    "alert-triangle": GLYPHS["alert-triangle"],
+    "skip-forward": GLYPHS["skip-forward"],
+    layers: GLYPHS["layers"],
+    bot: GLYPHS["bot"],
+    sparkles: GLYPHS["sparkles"],
+    repeat: GLYPHS["repeat"],
+    "calendar-clock": GLYPHS["calendar-clock"],
+    hourglass: GLYPHS["hourglass"],
+    clock: GLYPHS["clock"],
+    send: GLYPHS["send"],
+    "shield-check": GLYPHS["shield-check"]
   };
   function Icon2(props) {
     var C = ICONS[props.name] || ICONS.zap;
@@ -4953,8 +7179,8 @@ var require_actions = __commonJS({
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-automation",
-    version: "0.2.2",
-    icon: (init_zap(), __toCommonJS(zap_exports)).default,
+    version: "0.4.3",
+    icon: GLYPHS["zap"],
     views: [
       { id: "stats", icon: tabIcon("activity"), title: { zh: "\u6982\u89C8", en: "Overview" }, component: withProps(require_stats(), "\u6982\u89C8") },
       { id: "rules", icon: tabIcon("zap"), title: { zh: "\u89C4\u5219", en: "Rules" }, component: withProps(require_rules(), "\u89C4\u5219") },

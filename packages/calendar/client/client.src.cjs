@@ -1,4 +1,6 @@
 "use strict";
+var GLYPHS = require("./ui/icons.cjs").ICONS;
+
 (function () {
   var root = typeof window !== "undefined" ? window : null;
   var host = root && root.__WB_HOST__;
@@ -11,11 +13,11 @@
   var h = host.h;
   var CSS = require("./ui/styles.cjs");
   var ICONS = {
-    calendar: require("lucide-react/icons/calendar-days").default,
-    grid: require("lucide-react/icons/calendar").default,
-    sliders: require("lucide-react/icons/sliders-horizontal").default,
-    database: require("lucide-react/icons/database").default,
-    list: require("lucide-react/icons/list").default,
+    calendar: GLYPHS["calendar-days"],
+    grid: GLYPHS["calendar"],
+    sliders: GLYPHS["sliders-horizontal"],
+    database: GLYPHS["database"],
+    list: GLYPHS["list"],
   };
   function Icon(props) { var C = ICONS[props.name] || ICONS.calendar; return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbg-svg" }); }
   function tabIcon(name) { return function () { return h(Icon, { name: name, size: 14 }); }; }
@@ -31,8 +33,8 @@
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-calendar",
-    version: "0.1.2",
-    icon: require("lucide-react/icons/calendar-days").default,
+    version: "0.1.7",
+    icon: GLYPHS["calendar-days"],
     views: [
       { id: "events", icon: tabIcon("calendar"), title: { zh: "日程", en: "Agenda" }, component: withProps(require("./views/events.cjs"), "日程") },
       { id: "calendars", icon: tabIcon("grid"), title: { zh: "日历", en: "Calendars" }, component: withProps(require("./views/calendars.cjs"), "日历") },

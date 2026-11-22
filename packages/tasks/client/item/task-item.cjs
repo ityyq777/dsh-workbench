@@ -8,6 +8,10 @@ module.exports = function (deps) {
   var statusInfo = deps.statusInfo, stars = deps.stars, pClass = deps.pClass;
   var today = deps.today, daysBetween = deps.daysBetween, cx = deps.cx;
   var Icon = deps.Icon, Countdown = deps.Countdown, PathCrumbs = deps.PathCrumbs;
+  // 来源回链走插槽：任务只提供落点与描述原文，由来源插件自己认出自己的标记并渲染按钮。
+  // 任务不再解析任何 `wb-*:` 前缀——新增来源（站点、日历、消息）时这里零改动。
+  var Slot = deps.Slot;
+
   function TaskItem(props) {
     var t = props.t;
     var initialMode = props.bodyMode === "text" ? "text" : "markdown";
@@ -91,6 +95,20 @@ module.exports = function (deps) {
     );
     var opsNode = h("div", { className: "wbt-ops", key: "ops" }, ops);
     var tagBlock = tagNodes.length ? h("div", { className: "wbt-tags", key: "tags" }, tagNodes) : null;
+    // 来源回链落点：描述原文作为纯文本透传（本地渲染，不过网），贡献方自己匹配自己的标记。
+    // 没有贡献方时落点渲染 null，元信息区不因此变空。
+    var sourceBlock = h(Slot, {
+      slot: "item.actions",
+      ownerId: "wb-addon-tasks",
+      lang: props.lang,
+      key: "source",
+      item: {
+        kind: "task",
+        id: String(task.id || ""),
+        title: String(task.title || ""),
+        description: String(task.description || ""),
+      },
+    });
     // 工作区 chip：目录只是保存的绝对路径，无目录时只显示标题，完整路径放 title。
     var wsList = Array.isArray(task.workspaces) ? task.workspaces : [];
     var wsBlock = wsList.length
@@ -100,8 +118,8 @@ module.exports = function (deps) {
       : null;
     var metaBlock = meta.length ? h("div", { className: "wbt-foot", key: "meta" }, h("div", { className: "wbt-meta" }, meta)) : null;
     var pathBlock = (task.path && task.path.length) ? h("div", { className: "wbt-taskpath", key: "path" }, h(PathCrumbs, { path: task.path, t: t, onPick: props.onPathPick })) : null;
-    var metaZone = (tagBlock || wsBlock || metaBlock || pathBlock)
-      ? h("div", { className: "wbt-metazone", key: "metazone" }, tagBlock, wsBlock, metaBlock, pathBlock)
+    var metaZone = (tagBlock || sourceBlock || wsBlock || metaBlock || pathBlock)
+      ? h("div", { className: "wbt-metazone", key: "metazone" }, tagBlock, sourceBlock, wsBlock, metaBlock, pathBlock)
       : null;
 
     // 卡片最下方一行任务 ID：可拖选复制；点击不冒泡，避免触发编辑或切换勾选。

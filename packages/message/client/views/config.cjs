@@ -7,6 +7,10 @@
 var React = require("react");
 var h = React.createElement;
 var notifier = require("../notify/notifier.cjs");
+// 布尔项统一使用共享开关控件。
+var SW = require("../../../lib/switch.cjs");
+// 整数项统一使用共享数字输入控件（输入自由、失焦校验）。
+var NF = require("../../../lib/number-field.cjs");
 var DOMAIN = "message";
 
   function unwrap(r) {
@@ -142,14 +146,41 @@ function ConfigView(props) {
         .catch(function (e) { toastOnce(String((e && e.message) || e)); });
     }
 
+    // 悬浮入口的「恢复默认位置」不是配置项本身，而是清空 float.customPos，
+    // 所以单独渲染一行（配置项定义仍由服务端 configGet 提供）。
+    function resetPositionRow() {
+      var custom = values()["float.customPos"];
+      return h(
+        "div",
+        { className: "wbm-field", key: "float.resetPos" },
+        h(
+          "div",
+          { className: "wbm-field-main" },
+          h("span", { className: "wbm-field-label" }, t.resetPos),
+          h("span", { className: "wbm-field-hint" }, t.resetPosHint),
+        ),
+        h(
+          "div",
+          { className: "wbm-field-ctl" },
+          h(
+            "button",
+            { type: "button", className: "wbm-btn", disabled: !custom, onClick: function () { save("float.customPos", ""); } },
+            props.Icon ? h(props.Icon, { name: "reset", size: 12 }) : null,
+            h("span", null, t.resetPos),
+          ),
+        ),
+      );
+    }
+
     function control(item) {
       var value = values()[item.id];
       if (item.type === "bool") {
-        return h("input", {
-          type: "checkbox",
-          "aria-label": labelOf(item, lang),
+        // 开关文本就是原 aria-label 的文案，标签与可读名称保持一致。
+        return h(SW.Switch, {
+          h: h,
           checked: value === true,
-          onChange: function (e) { save(item.id, e.target.checked); },
+          label: labelOf(item, lang),
+          onChange: function (next) { save(item.id, next); },
         });
       }
       if (item.type === "number") {
@@ -171,14 +202,15 @@ function ConfigView(props) {
         );
       }
       if (item.type === "int") {
-        return h("input", {
-          className: "wbm-num",
-          type: "number",
+        return h(NF.NumberField, {
+          h: h,
+          lang: lang,
+          value: value === undefined ? "" : value,
           min: item.min,
           max: item.max,
-          value: value === undefined ? "" : value,
-          "aria-label": labelOf(item, lang),
-          onChange: function (e) { save(item.id, Number(e.target.value)); },
+          integer: true,
+          ariaLabel: labelOf(item, lang),
+          onCommit: function (next) { save(item.id, next); },
         });
       }
       if (item.type === "time") {
@@ -298,6 +330,7 @@ function ConfigView(props) {
               ),
             );
           }),
+          group.id === "float" ? resetPositionRow() : null,
         );
       }),
       h("div", { className: "wbm-note" }, t.quietNote),

@@ -1,6 +1,14 @@
-var React = require("react");
-// Public lucide-react ./icons/* exports keep the bundle scoped to these glyphs.
-var ICONS = {
+"use strict";
+// 图标表：lucide 图标按需引入，用哪个引哪个——这些图标都会随本插件 client.js 打包。
+var icons = require("../../../lib/icons.cjs");
+
+// 装饰性图标不进 Tab 顺序；空态图例外允许 48。
+function sizeOf(props) {
+  if (props.name === "empty" && props.size === 48) return 48;
+  return [11, 14, 16].indexOf(props.size) >= 0 ? props.size : 14;
+}
+
+var set = icons.create("wbi", {
   box: require("lucide-react/icons/box").default,
   plus: require("lucide-react/icons/plus").default,
   search: require("lucide-react/icons/search").default,
@@ -26,10 +34,6 @@ var ICONS = {
   close: require("lucide-react/icons/x").default,
   table: require("lucide-react/icons/table").default,
   reset: require("lucide-react/icons/rotate-ccw").default,
-};
-function Icon(props) {
-  var size = props.name === "empty" && props.size === 48 ? 48 : [11,14,16].includes(props.size) ? props.size : 14;
-  return React.createElement(ICONS[props.name] || ICONS.box, { size: size, strokeWidth: 2,
-    "aria-hidden": true, focusable: false, className: "wbi-svg" });
-}
-module.exports = { ICONS: ICONS, Icon: Icon };
+}, { fallback: "box", focusable: true, sizeOf: sizeOf });
+
+module.exports = { ICONS: set.ICONS, Icon: set.Icon };

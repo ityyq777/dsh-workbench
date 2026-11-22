@@ -23,7 +23,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.setup", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "首次初始化保险箱：设置口令与解锁模式 A/B/C，默认 A（每次启动锁定）。口令包裹会上云。",
     input: {
       type: "object",
@@ -42,7 +42,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.unlock", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "用主口令解锁保险箱；连续 5 次失败锁定 5 分钟。",
     input: {
       type: "object",
@@ -57,7 +57,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.lock", {
-    agentLocked: true,
+    origins: ["ui", "plugin"],
     description: "立即清除内存中的 DEK；插件后台可用它主动锁定。",
     input: { type: "object", properties: {}, additionalProperties: false },
     execute: (_args, ctx) => {
@@ -68,7 +68,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.setUnlockMode", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "切换解锁模式：A 全锁 / B 自动解锁但查看需口令 / C 自动解锁且查看免口令。",
     input: {
       type: "object",
@@ -86,7 +86,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.changePassphrase", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "修改主口令：只重包 DEK 并让 passphrase_rev 加一，不重新加密所有 secret。",
     input: {
       type: "object",
@@ -122,7 +122,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.secretCreate", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "新增凭据；secret 只在内存加密后落库，审计中该字段显示为 ***。",
     input: {
       type: "object",
@@ -145,7 +145,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.secretUpdate", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "更新名称/类型/备注或轮换明文；改名称或类型会重加密，改归属不会。",
     input: {
       type: "object",
@@ -168,7 +168,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.secretDelete", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "软删除凭据；已绑定它的连接器会在下次运行时提示凭据失效。",
     input: {
       type: "object",
@@ -185,7 +185,7 @@ export function registerVaultActions(api, vault, groups) {
   registerSetActions({ api, sets, groups, vault, only, KINDS });
 
   api.action("vault.secretReveal", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "在界面上显示一条凭据明文；B 模式必须再输口令，agent/plugin 一律拒绝。",
     input: {
       type: "object",
@@ -203,7 +203,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.lease", {
-    agentLocked: true,
+    origins: ["plugin"],
     description: "后台插件租用凭据明文，ttl 30–300 秒；只允许 plugin origin，传 subject 时校验绑定。",
     input: {
       type: "object",
@@ -224,7 +224,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.rotateDeviceKey", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "重写自动解锁的 device key 包裹；B/C 模式可用，需要主口令。",
     input: {
       type: "object",
@@ -252,7 +252,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.groupCreate", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "新建凭据分组；组名唯一。",
     input: {
       type: "object",
@@ -271,7 +271,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.groupUpdate", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "改名/描述/色标；不改动组内凭据的密文。",
     input: {
       type: "object",
@@ -291,7 +291,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.groupDelete", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "软删除分组：组内凭据移到 moveTo，未指定则移出分组；组上的绑定一并软删。",
     input: {
       type: "object",
@@ -309,7 +309,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.subjectRegister", {
-    agentLocked: true,
+    origins: ["plugin"],
     description: "业务插件注册自己的关联类型（幂等），供组详情页显示可读标题。",
     input: {
       type: "object",
@@ -328,7 +328,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.bind", {
-    agentLocked: true,
+    origins: ["ui", "plugin"],
     description: "把业务对象关联到凭据分组（重复绑定幂等）；vault 不校验对象是否存在。",
     input: {
       type: "object",
@@ -347,7 +347,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.unbind", {
-    agentLocked: true,
+    origins: ["ui", "plugin"],
     description: "解除一个业务对象与分组的关联（软删）。",
     input: {
       type: "object",
@@ -398,7 +398,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.subjectSecrets", {
-    agentLocked: true,
+    origins: ["plugin"],
     description: "后台插件只读：某个业务对象经分组可见的凭据清单（不含明文），拿到 id 后再 lease。",
     input: {
       type: "object",
@@ -413,7 +413,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.bindingPurge", {
-    agentLocked: true,
+    origins: ["plugin"],
     description: "插件卸载/业务对象删除时清理自己的绑定引用（硬删）。",
     input: {
       type: "object",
@@ -447,7 +447,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.dataTables", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "只读：数据页表清单。",
     input: { type: "object", properties: {}, additionalProperties: false },
     execute: (_args, ctx) => {
@@ -481,7 +481,7 @@ export function registerVaultActions(api, vault, groups) {
   });
 
   api.action("vault.dataQuery", {
-    agentLocked: true,
+    origins: ["ui"],
     description: "只读：数据页查询；密文列一律掩码。",
     input: {
       type: "object",

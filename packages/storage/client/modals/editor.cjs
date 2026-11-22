@@ -1,7 +1,33 @@
 var React = require("react"),
   ui = require("../ui/ui.cjs");
+var staged = require("../../../lib/staged-dialog.cjs");
 var h = ui.h,
   tr = ui.tr;
+// 物品表单分两步半：基本信息 → 存放与图片 → 标签（标签插件不可用时不要这一步）。
+// 外壳与步骤条来自 lib/staged-dialog.cjs 与 lib/stepper.cjs，宽度统一 880px。
+var StagedModal = staged.createStagedDialog({
+  React: React,
+  tag: "section",
+  displayName: "StorageEditorDialog",
+  maskClass: "wbi-mask",
+  dialogClass: "wbi-modal",
+  ariaLabelOf: function (props) { return props.title; },
+  header: function (props) {
+    return h(
+      "header",
+      { className: "wbi-row" },
+      h("h2", null, props.title),
+      h("span", { className: "wbi-grow" }),
+      h(
+        ui.Button,
+        { icon: "close", iconOnly: true, onClick: props.onClose, disabled: !!props.submitting || !props.onClose, "aria-label": "关闭 / Close" },
+        "×",
+      ),
+    );
+  },
+  closeOnEscape: function (props) { return !props.submitting; },
+  closeOnMask: function (props) { return !props.submitting; },
+});
 function Editor(props) {
   var item = props.item || {},
     lang = props.lang;
@@ -146,8 +172,7 @@ function Editor(props) {
       }),
     );
   }
-  function save(e) {
-    e.preventDefault();
+  function save() {
     if (busy[0]) return;
     var images = form.images
       .split(/\r?\n/)
@@ -207,102 +232,135 @@ function Editor(props) {
       : hasMore[0]
         ? ""
         : tr(lang, "没有更多", "No more");
-  return h(
-    ui.Modal,
+  var steps = [
     {
-      title: item.id ? tr(lang, "编辑物品", "Edit item") : tr(lang, "新增物品", "New item"),
-      onClose: busy[0] ? null : props.onClose,
+      key: "basic",
+      label: tr(lang, "基本信息", "Basics"),
+      render: function (hh) {
+        return hh(
+          "div",
+          { className: "wbctl-form" },
+          field("name", "名称 *", "Name *", true),
+          field("brand", "品牌", "Brand"),
+          field("unit", "单位", "Unit"),
+          field("stock", "库存（可填写 1~2 等文字）", "Stock (text such as 1–2)", true),
+        );
+      },
+      validate: function () {
+        return form.name.trim() ? "" : tr(lang, "请填写物品名称", "Enter an item name");
+      },
     },
-    h(ui.ErrorBox, { error: err[0] }),
-    h(
-      "form",
-      { onSubmit: save },
-      h(
-        "div",
-        { className: "wbi-form" },
-        field("name", "名称 *", "Name *", true),
-        field("brand", "品牌", "Brand"),
-        field("unit", "单位", "Unit"),
-        field("stock", "库存（可填写 1~2 等文字）", "Stock (text such as 1–2)", true),
-        field("location", "存放位置", "Location"),
-        field("remark", "备注", "Notes", true, true),
-        field("images", "图片 URL（每行一个）", "Image URLs (one per line)", true, true),
-        h(
+    {
+      key: "place",
+      label: tr(lang, "存放与图片", "Place & images"),
+      render: function (hh) {
+        return hh(
+          "div",
+          { className: "wbctl-form" },
+          field("location", "存放位置", "Location", true),
+          field("remark", "备注", "Notes", true, true),
+          field("images", "图片 URL（每行一个）", "Image URLs (one per line)", true, true),
+        );
+      },
+      validate: function () {
+        var images = form.images
+          .split(/\r?\n/)
+          .map(function (s) {
+            return s.trim();
+          })
+          .filter(Boolean);
+        return images.some(function (s) {
+          return !ui.safeImage(s);
+        })
+          ? tr(lang, "图片地址必须是完整的 HTTP(S) URL", "Images must use full HTTP(S) URLs")
+          : "";
+      },
+    },
+  ];
+  if (props.tagsEnabled) {
+    steps.push({
+      key: "tags",
+      label: tr(lang, "标签", "Tags"),
+      optional: true,
+      render: function (hh) {
+        return hh(
           "div",
           { className: "wbi-field wbi-wide" },
-          h("span", null, tr(lang, "标签", "Tags")),
-          props.tagsEnabled
-            ? h(
-                React.Fragment,
-                null,
-                h("input", {
-                  type: "search",
-                  placeholder: tr(lang, "搜索已有标签", "Search existing tags"),
-                  "aria-label": tr(lang, "搜索已有标签", "Search existing tags"),
-                  value: query[0],
-                  disabled: busy[0],
-                  onChange: function (e) {
-                    query[1](e.target.value);
-                  },
-                }),
-                h(
-                  "div",
-                  { className: "wbi-tagoptions", onScroll: onListScroll },
-                  Array.from(candidates.values()).map(function (t) {
-                    return h(
-                      "label",
-                      { key: t.id },
-                      h("input", {
-                        type: "checkbox",
-                        checked: form.tagIds.includes(t.id),
-                        disabled: busy[0],
-                        onChange: function (e) {
-                          var checked = e.target.checked;
-                          update(
-                            "tagIds",
-                            checked
-                              ? form.tagIds.concat(t.id)
-                              : form.tagIds.filter(function (id) {
-                                  return id !== t.id;
-                                }),
-                          );
-                          selected[1](function (tags) {
-                            return checked
-                              ? tags
-                                  .filter(function (x) {
-                                    return x.id !== t.id;
-                                  })
-                                  .concat(t)
-                              : tags.filter(function (x) {
-                                  return x.id !== t.id;
-                                });
-                          });
-                        },
-                      }),
-                      names[0][String(t.id)] || t.name,
-                    );
+          hh("span", null, tr(lang, "标签", "Tags")),
+          hh(
+            React.Fragment,
+            null,
+            hh("input", {
+              type: "search",
+              placeholder: tr(lang, "搜索已有标签", "Search existing tags"),
+              "aria-label": tr(lang, "搜索已有标签", "Search existing tags"),
+              value: query[0],
+              disabled: busy[0],
+              onChange: function (e) {
+                query[1](e.target.value);
+              },
+            }),
+            hh(
+              "div",
+              { className: "wbi-tagoptions", onScroll: onListScroll },
+              Array.from(candidates.values()).map(function (t) {
+                return hh(
+                  "label",
+                  { key: t.id },
+                  hh("input", {
+                    type: "checkbox",
+                    checked: form.tagIds.includes(t.id),
+                    disabled: busy[0],
+                    onChange: function (e) {
+                      var checked = e.target.checked;
+                      update(
+                        "tagIds",
+                        checked
+                          ? form.tagIds.concat(t.id)
+                          : form.tagIds.filter(function (id) {
+                              return id !== t.id;
+                            }),
+                      );
+                      selected[1](function (tags) {
+                        return checked
+                          ? tags
+                              .filter(function (x) {
+                                return x.id !== t.id;
+                              })
+                              .concat(t)
+                          : tags.filter(function (x) {
+                              return x.id !== t.id;
+                            });
+                      });
+                    },
                   }),
-                ),
-                h("div", { className: "wbi-tagmore" }, tagsNote),
-              )
-            : h(
-                "span",
-                { className: "wbi-muted" },
-                tr(lang, "标签插件不可用，保存时保留原有关联", "Tags unavailable; existing links are preserved."),
-              ),
-        ),
-      ),
-      h(
-        "div",
-        { className: "wbi-formfoot" },
-        h(ui.Button, { onClick: props.onClose, disabled: busy[0] }, tr(lang, "取消", "Cancel")),
-        h(
-          ui.Button,
-          { type: "submit", disabled: busy[0], className: "wbi-btn wbi-primary" },
-          busy[0] ? tr(lang, "保存中…", "Saving…") : tr(lang, "保存", "Save"),
-        ),
-      ),
-    ),
-  );
+                  names[0][String(t.id)] || t.name,
+                );
+              }),
+            ),
+            hh("div", { className: "wbi-tagmore" }, tagsNote),
+          ),
+        );
+      },
+    });
+  }
+
+  return h(StagedModal, {
+    title: item.id ? tr(lang, "编辑物品", "Edit item") : tr(lang, "新增物品", "New item"),
+    // 打开时的起始步：正常从基本信息开始，测试可直达标签步。
+    initialStep: props.initialStep,
+    steps: steps,
+    submitting: busy[0],
+    error: err[0] ? String(err[0].message || err[0]) : "",
+    onClose: props.onClose,
+    onSubmit: function () {
+      save();
+    },
+    submitText: tr(lang, "保存", "Save"),
+    cancelText: tr(lang, "取消", "Cancel"),
+    nextText: tr(lang, "下一步", "Next"),
+    backText: tr(lang, "上一步", "Back"),
+  });
 }
+
 module.exports = { Editor: Editor };

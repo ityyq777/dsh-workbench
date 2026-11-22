@@ -22,7 +22,7 @@ var KIND_LABEL = {
     phone: "手机号",
     id_card: "身份证号",
     token: "Token",
-    app_password: "应用专用密码",
+    app_password: "授权码",
     api_key: "API Key",
     other: "其它",
 };
@@ -60,6 +60,8 @@ module.exports = function SecretPicker(props) {
     var React = props.React || require("react");
     var vault = props.vault || "ready";
     var disabled = props.disabled === true;
+    // 0.6.0：传了 accountSetId 就只列这个账号集合里的凭据；否则退回全库检索（兼容旧调用）。
+    var accountSetId = String(props.accountSetId || "").trim();
 
     var S = React.useState;
     var openS = S(false);
@@ -78,6 +80,21 @@ module.exports = function SecretPicker(props) {
     var value = String(props.value || "");
 
     function call(query) {
+        if (accountSetId) {
+            return C.call(api, "vault.setGet", { id: accountSetId }).then(function (r) {
+                var set = r && r.result !== undefined ? r.result : r;
+                var secrets = set && Array.isArray(set.secrets) ? set.secrets : [];
+                var q = String(query || "").trim().toLowerCase();
+                return secrets
+                    .filter(function (x) {
+                        if (!q) return true;
+                        return (String(x.name || "") + " " + String(x.kind || "")).toLowerCase().indexOf(q) >= 0;
+                    })
+                    .map(function (x) {
+                        return { id: x.id, name: x.name, kind: x.kind, meta: x.meta };
+                    });
+            });
+        }
         return C.call(api, "vault.secretList", { q: query || "" }).then(function (r) {
             var items = (r && Array.isArray(r.items) ? r.items : []).map(function (x) {
                 return { id: x.id, name: x.name, kind: x.kind, meta: x.meta };
@@ -112,7 +129,7 @@ module.exports = function SecretPicker(props) {
                 errS[1](C.errText(e));
             });
         return function () { alive = false; };
-    }, [vault]);
+    }, [vault, accountSetId]);
 
     // 展开面板时按关键字取数：入口唯一是 secretList 的 q（名称 / 备注模糊）。
     React.useEffect(function () {
@@ -140,7 +157,7 @@ module.exports = function SecretPicker(props) {
             alive = false;
             clearTimeout(timer);
         };
-    }, [open, qS[0]]);
+    }, [open, qS[0], accountSetId]);
 
     // 点外部 / Esc 收起。
     React.useEffect(function () {
@@ -168,7 +185,9 @@ module.exports = function SecretPicker(props) {
     var picked = known[value] || null;
     var missing = !!value && !picked && !loadS[0];
     var label = !value
-        ? t(lang, "选择保险箱凭据", "Choose a vault credential")
+        ? (accountSetId
+            ? t(lang, "选择集合里的授权码", "Choose a credential in this set")
+            : t(lang, "选择保险箱凭据", "Choose a vault credential"))
         : picked
             ? picked.name + " · " + kindText(lang, picked.kind)
             : t(lang, "凭据 " + value.slice(0, 8), "Credential " + value.slice(0, 8));
@@ -238,7 +257,9 @@ module.exports = function SecretPicker(props) {
                     loading: loadS[0],
                     hasMore: hasMore,
                     onLoadMore: function () { pageS[1](pageS[0] + 1); },
-                    emptyText: t(lang, "还没有凭据", "No credentials yet"),
+                    emptyText: accountSetId
+                        ? t(lang, "这个账号集合里还没有凭据", "This account set has no credentials yet")
+                        : t(lang, "还没有凭据", "No credentials yet"),
                     noMatchText: t(lang, "没有匹配的凭据", "No matching credential"),
                     noMoreText: rows.length > PAGE ? t(lang, "没有更多", "No more") : "",
                     loadingText: t(lang, "加载中…", "Loading…"),
@@ -250,7 +271,7 @@ module.exports = function SecretPicker(props) {
                         t(lang, "已加载 " + shown.length + " / 共 " + rows.length,
                             "Loaded " + shown.length + " of " + rows.length))
                     : null,
-                noRows && !qS[0]
+                noRows && !qS[0] && !accountSetId
                     ? h("div", { className: "wbml-picker-empty" },
                         h("span", null, t(lang, "还没有凭据，去保险箱新建", "No credentials yet — create one in the vault")),
                         h("button", { type: "button", className: "wbml-btn", onClick: goVault },

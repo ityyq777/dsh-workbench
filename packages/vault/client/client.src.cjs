@@ -1,4 +1,6 @@
 "use strict";
+var GLYPHS = require("./ui/icons.cjs").ICONS;
+
 // 凭据保险箱客户端：首页 / 凭据 / 分组与关联 / 设置 / 数据 / Action 六个视图。
 // 只调用本插件注册的 vault.* action。
 (function () {
@@ -15,13 +17,13 @@
   var CSS = Array.isArray(CSS_ARR) ? CSS_ARR.join("\n") : String(CSS_ARR || "");
 
   var ICONS = {
-    shield: require("lucide-react/icons/shield").default,
-    key: require("lucide-react/icons/key-round").default,
-    folder: require("lucide-react/icons/folder").default,
-    sliders: require("lucide-react/icons/sliders-horizontal").default,
-    database: require("lucide-react/icons/database").default,
-    list: require("lucide-react/icons/list").default,
-    layers: require("lucide-react/icons/layers").default,
+    shield: GLYPHS["shield"],
+    key: GLYPHS["key-round"],
+    folder: GLYPHS["folder"],
+    sliders: GLYPHS["sliders-horizontal"],
+    database: GLYPHS["database"],
+    list: GLYPHS["list"],
+    layers: GLYPHS["layers"],
   };
 
   function Icon(props) {
@@ -58,12 +60,12 @@
 
   host.registerAddon({
     id: "wb-addon-vault",
-    version: "0.3.7",
-    icon: require("lucide-react/icons/shield-check").default,
+    version: "0.4.2",
+    icon: GLYPHS["shield-check"],
     views: [
       { id: "status", icon: tabIcon("shield"), title: { zh: "保险箱", en: "Vault" }, component: withProps(require("./views/status.cjs"), "保险箱") },
       { id: "secrets", icon: tabIcon("key"), title: { zh: "凭据", en: "Secrets" }, component: withProps(require("./views/secrets.cjs"), "凭据") },
-      { id: "sets", icon: tabIcon("layers"), title: { zh: "集合", en: "Sets" }, component: withProps(require("./views/sets.cjs"), "集合") },
+      { id: "sets", icon: tabIcon("layers"), title: { zh: "集合与账号", en: "Sets & Accounts" }, component: withProps(require("./views/sets.cjs"), "集合与账号") },
       { id: "groups", icon: tabIcon("folder"), title: { zh: "分组与关联", en: "Groups" }, component: withProps(require("./views/groups.cjs"), "分组与关联") },
       { id: "config", icon: tabIcon("sliders"), title: { zh: "设置", en: "Settings" }, component: withProps(require("./views/config.cjs"), "设置") },
       { id: "data", icon: tabIcon("database"), title: { zh: "数据", en: "Data" }, component: withProps(require("./views/data.cjs"), "数据") },

@@ -35,6 +35,31 @@ export const TAX_KEYS = ["incomeTax", "postTaxDeduction"];
 export const CYCLE_VALUES = ["monthly", "daily"];
 export const CYCLE_LABELS = { monthly: "月结", daily: "日结" };
 
+/**
+ * 用工类型：与结算方式（月结/日结）相互独立。
+ * 只用于分类与统计切片，不参与金额推导；旧记录可为空（未设置）。
+ */
+export const EMPLOYMENT_TYPES = [
+  { value: "temp", label: "临时" },
+  { value: "parttime", label: "兼职" },
+  { value: "side", label: "外快" },
+  { value: "intern", label: "实习" },
+  { value: "probation", label: "试用" },
+  { value: "regular", label: "正式" },
+];
+export const EMPLOYMENT_VALUES = EMPLOYMENT_TYPES.map((t) => t.value);
+export const EMPLOYMENT_LABELS = Object.fromEntries(EMPLOYMENT_TYPES.map((t) => [t.value, t.label]));
+
+/** 空串/null 表示未设置；其它值必须在枚举内。 */
+export function normalizeEmploymentType(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const v = String(value).trim().toLowerCase();
+  if (!EMPLOYMENT_VALUES.includes(v)) {
+    throw new Error("用工类型只支持：" + EMPLOYMENT_TYPES.map((t) => t.label + "（" + t.value + "）").join("、"));
+  }
+  return v;
+}
+
 export function round2(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return 0;

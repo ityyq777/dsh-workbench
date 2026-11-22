@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-calendar",
-  "version": "0.1.2",
+  "version": "0.1.7",
   "description": "个人工作台日历插件：本地日历、事件、参与人与提醒",
   "type": "module",
   "main": "lib/index.js",
@@ -16,7 +16,7 @@
     "addon": {
       "id": "wb-addon-calendar",
       "title": "日历",
-      "version": "0.1.2",
+      "version": "0.1.7",
       "minShell": "0.8.0",
       "tables": [
         "calendar",
@@ -52,7 +52,7 @@
     }
   },
   "dependencies": {
-    "dsh-workbench-host": "^0.8.0"
+    "dsh-workbench-host": "^0.9.1"
   },
   "dsh": {
     "bundle": {

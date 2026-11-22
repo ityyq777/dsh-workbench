@@ -82,7 +82,7 @@ export function registerTaskActions(api) {
   };
 
   action("tasks.list", {
-    description: "统一检索任务：statuses 各状态与 urgent 紧急谓词 OR；不传 statuses/urgent 时不过滤状态，返回全部状态（含 3 已重启），空数组且 urgent=false 同样为全部。旧参数 tab 与 filterRestarted 已移除，传入会报错并给出等价写法。任务表/任务组/关键词（标题、描述、感受）/标签/优先级/目标日期/发布、完成、关闭日期范围之间 AND；完成范围限定 status=2，关闭范围限定 status=1，反序交换并返回 notices；sort 支持 priority/target/publish/updated/created（前缀 - 表示降序，例如 sort=-priority 是数值越大越紧急的在前）；不传 sort 时未分页按 priority 降序、分页时按 publishDate 降序；返回里带 filter 回显实际生效条件与排序；分页语义：total=筛选后真实总数、returned=本次返回条数、truncated=是否被截断，pageSize 上限 200（超出回显 filter.pageSizeCapped）",
+    description: "统一检索任务：statuses 各状态与 urgent 紧急谓词 OR；不传 statuses/urgent 时不过滤状态，返回全部状态（含 3 已重启），空数组且 urgent=false 同样为全部。旧参数 tab 与 filterRestarted 已移除，传入会报错并给出等价写法。任务表/任务组/关键词（标题、描述、感受、任务 ID）/标签/优先级/目标日期/发布、完成、关闭日期范围之间 AND；titleKey 传字符串是单关键词；传字符串数组（最多 10 个）时在同一次调用里对每个词各跑一遍完整筛选，返回 { keywords, groups:[{ keyword, records, total, filter, notices, failed?, error? }], total, returned }，groups 顺序与输入一致、每组独立分页与 notices，零命中的组给空 records，单词失败只影响该组并在 notices 里带 keyword_failed；完成范围限定 status=2，关闭范围限定 status=1，反序交换并返回 notices；sort 支持 priority/target/publish/updated/created（前缀 - 表示降序，例如 sort=-priority 是数值越大越紧急的在前）；不传 sort 时未分页按 priority 降序、分页时按 publishDate 降序；返回里带 filter 回显实际生效条件与排序；分页语义：total=筛选后真实总数、returned=本次返回条数、truncated=是否被截断，pageSize 上限 200（超出回显 filter.pageSizeCapped）",
     input: {
       type: "object",
       properties: {
@@ -91,7 +91,7 @@ export function registerTaskActions(api) {
         pageSize: { type: "number", description: "每页条数（默认 12，最大 200）；传 pageNumber 或 pageSize 即分页" },
       },
     },
-    examples: [{ statuses: [1, 2], urgent: true, pageSize: 50 }, { statuses: [2], doneFrom: "2026-07-01", doneTo: "2026-07-01" }, { statuses: [0, 4], priorityMin: 8, sort: "-priority", pageSize: 50 }, { tagIds: ["3"], status: "open" }],
+    examples: [{ statuses: [1, 2], urgent: true, pageSize: 50 }, { statuses: [2], doneFrom: "2026-07-01", doneTo: "2026-07-01" }, { statuses: [0, 4], priorityMin: 8, sort: "-priority", pageSize: 50 }, { tagIds: ["3"], status: "open" }, { titleKey: ["统计", "热力图"], statuses: [], pageSize: 20 }],
     execute: function (args) { return listTasks(db, args || {}, api); },
     render: renderList,
   });
@@ -287,7 +287,7 @@ export function registerTaskActions(api) {
   });
 
   action("tasks.export", {
-    description: "导出任务：format=json|csv|markdown；非空 ids 优先，否则复用 tasks.list 的过滤条件与 filter/notices（含 statuses/urgent OR、三日期范围 AND、标题/描述/感受关键词）。保持列表默认限制：未传分页参数时最多 500 条；不接受分页参数",
+    description: "导出任务：format=json|csv|markdown；非空 ids 优先，否则复用 tasks.list 的过滤条件与 filter/notices（含 statuses/urgent OR、三日期范围 AND、标题/描述/感受关键词）。保持列表默认限制：未传分页参数时最多 500 条；不接受分页参数；titleKey 只接受字符串，传数组会报错（分组结果无法直接拼成一份导出）",
     input: {
       type: "object",
       properties: {

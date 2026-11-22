@@ -3,7 +3,6 @@ module.exports = function (React, statusInfo) {
   var h = React.createElement, controls = require("./timeline-controls.cjs")(React);
   var MemberRows = require("./timeline-member-rows.cjs")(React, statusInfo);
   var splitTitle = require("./timeline-title.cjs");
-  var CSS = require("./timeline-styles.cjs");
   return function TaskTimelineModal(p) {
     var tr = require("./timeline-copy.cjs")(p.t), lang = p.t && p.t.timeline === "Timeline" ? "en" : "zh";
     var ts = React.useState(p.task), task = ts[0], setTask = ts[1];
@@ -87,7 +86,6 @@ module.exports = function (React, statusInfo) {
     var unlinkedBody = h("div", { className: "wbt-timeline-empty" }, h("strong", null, tr("当前未关联时间线")), h("p", null, tr("选择已有时间线，或新建一条；关闭弹窗不会自动关联。")));
     var attachButton = h("button", { type: "button", className: "wbt-btn primary", disabled: busy || !value, title: busy ? tr("加载中…") : !value ? tr("请选择已有时间线；无匹配时可新建") : selectedTitle, onClick: function () { change("taskTimelines.attach", { taskId: task.id, timelineId: value }); } }, tr("关联所选时间线"));
     return h("div", { className: "wbt-modal-mask", onKeyDown: onKeyDown },
-      h("style", null, CSS),
       h("div", { ref: dialog, tabIndex: -1, className: "wbt-modal wide wbt-timeline-modal", role: "dialog", "aria-modal": true, "aria-label": tr("任务时间线") },
         h("div", { className: "wbt-modal-head" }, h("h3", null, tr("任务时间线")), h("button", { type: "button", className: "wbt-icon", "aria-label": tr("关闭"), onClick: p.onClose }, "×")),
         h("div", { className: "wbt-timeline-modal-body", "aria-busy": busy },

@@ -34,6 +34,7 @@ import {
   requireVault,
   flagsOfSite,
   upsertAccountSecrets,
+  setAccountOf,
   deleteAccountField,
   deleteAccountSecrets,
 } from "../infra/vault-link.js";
@@ -113,7 +114,7 @@ export async function createAccount(db, args, origin) {
   try {
     const values = {};
     for (const item of fields) values[item.field] = item.value;
-    const writtenSet = await upsertAccountSecrets(siteId, id, values);
+    const writtenSet = await upsertAccountSecrets(siteId, id, values, account);
     if (writtenSet.setId) rememberSet(db, id, writtenSet.setId, origin);
   } catch (error) {
     // 敏感字段未能全部落进保险箱：撤掉刚插入的账号，避免“半条账号”。
@@ -149,6 +150,8 @@ export async function updateAccount(db, args, origin) {
     }
   }
   if (writtenSet.setId && !existing.vault_set_id) rememberSet(db, id, writtenSet.setId, origin);
+  // 登录名变了：集合上的「账号」展示值跟着改（集合不存在时静默忽略）。
+  if (account !== String(existing.account || "")) await setAccountOf(existing.site_id, id, account);
 
   const ts = now();
   tx(db, function () {

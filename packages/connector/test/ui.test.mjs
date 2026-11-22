@@ -94,6 +94,24 @@ test("来源表单：Webhook 的 9 个配置字段（含 select/boolean）都能
   assert.match(html, />否</);
 });
 
+test("来源表单：数字项走共享数字输入控件，不再用 type=number", () => {
+  const rssHtml = render(rss);
+  // 抓取间隔 + 单次最多条数，两处都是 wbctl-num-input
+  assert.equal((rssHtml.match(/wbctl-num-input/g) || []).length, 2);
+  assert.doesNotMatch(rssHtml, /type="number"/);
+  assert.match(rssHtml, /inputmode="numeric"/i);
+  // 范围只写成提示（0 表示只手动 / 最少 60），输入期不回灌边界
+  assert.match(rssHtml, /0 表示只手动/);
+
+  const webhookHtml = render(webhook);
+  // 抓取间隔 + 时间窗 + 每分钟上限
+  assert.equal((webhookHtml.match(/wbctl-num-input/g) || []).length, 3);
+  assert.doesNotMatch(webhookHtml, /type="number"/);
+  // Webhook 只等推送：抓取间隔禁用且固定显示 0
+  assert.match(webhookHtml, /class="wbctl-num-input"[^>]*disabled=""[^>]*value="0"/);
+  assert.match(webhookHtml, /Webhook 固定为推送，0/);
+});
+
 test("来源表单：编辑态标题与取消按钮", () => {
   const html = render(rss, { id: "src1", name: "少数派" });
   assert.match(html, /编辑来源/);

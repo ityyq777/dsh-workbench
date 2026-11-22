@@ -35,7 +35,71 @@ function rejectLegacyArgs(args) {
   }
 }
 
+/** 多关键词上限：每次调用最多并发（逐个）跑 10 个关键词，避免一次工具响应过载。 */
+const MAX_KEYWORDS = 10;
+
+/**
+ * 把 titleKey 归一成关键词数组；字符串/缺省返回 null 表示走原有单关键词路径。
+ * 数组的校验放在执行前，避免用户拿到「部分分组成功」才看出参数错了。
+ */
+function keywordWords(value) {
+  if (!Array.isArray(value)) return null;
+  const words = value.map(function (item) { return String(item === undefined || item === null ? "" : item).trim(); });
+  if (!words.length) throw new Error("titleKey 数组不能为空：至少给一个关键词，或整个字段不传");
+  words.forEach(function (word, index) {
+    if (!word) throw new Error("titleKey 第 " + (index + 1) + " 项是空白：数组里的关键词不能为空字符串");
+  });
+  if (words.length > MAX_KEYWORDS) {
+    throw new Error("titleKey 数组最多 " + MAX_KEYWORDS + " 个关键词，当前 " + words.length + " 个；请拆成多次调用");
+  }
+  const seen = new Set();
+  const repeated = [];
+  for (const word of words) {
+    if (seen.has(word)) repeated.push(word);
+    seen.add(word);
+  }
+  if (repeated.length) throw new Error("titleKey 数组有重复关键词：" + [...new Set(repeated)].join("、"));
+  return words;
+}
+
+/**
+ * 多关键词检索：每个关键词独立跑一遍完整筛选（状态、标签、日期、分页等条件各自 AND），
+ * 结果按输入顺序分组返回。底层 SQLite 是同步驱动，这里不是线程级并行，
+ * 而是在一次 action 调用里跑完 N 份查询，省掉 agent 端 N 次工具往返。
+ */
 export function listTasks(db, args, api) {
+  const words = keywordWords(args === undefined ? undefined : args.titleKey);
+  if (!words) return listTasksOnce(db, args, api);
+  const groups = [];
+  const notices = [];
+  let total = 0;
+  let returned = 0;
+  for (const word of words) {
+    try {
+      const out = listTasksOnce(db, Object.assign({}, args, { titleKey: word }), api);
+      groups.push(Object.assign({ keyword: word }, out));
+      total += out.total;
+      returned += out.returned;
+    } catch (error) {
+      // 单个关键词失败不影响其它分组，但要能认出是哪个词失败。
+      const message = error && error.message ? error.message : String(error);
+      groups.push({ keyword: word, failed: true, error: message, records: [], total: 0, returned: 0, filter: {} });
+      notices.push({ code: "keyword_failed", field: "titleKey", keyword: word, message: "关键词「" + word + "」检索失败：" + message });
+    }
+  }
+  const pageNumber = Math.max(1, Math.floor(Number(args.pageNumber) || 1));
+  const pageSize = Number(args.pageSize) > 0 ? Math.floor(Number(args.pageSize)) : null;
+  return {
+    keywords: words,
+    groups: groups,
+    total: total,
+    returned: returned,
+    filter: { multiKeyword: true, keywords: words.slice(), pageNumber: pageNumber, pageSize: pageSize },
+    notices: notices,
+  };
+}
+
+function listTasksOnce(db, args, api) {
   const activity = activityFilter(args.activityDate, args.activityType);
   const ranges = [
     dateRangeFilter(args.publishFrom, args.publishTo, "publish"),

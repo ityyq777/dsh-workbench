@@ -25,18 +25,36 @@ test("账户 CRUD 与状态", () => {
   assert.equal(m.listAccounts().items.length, 0);
 });
 
-test("本地邮件列表/搜索/已读/移动/删除", () => {
+test("账户绑定账号集合：account_set_id 落库、回显，改其它字段不清集合", () => {
+  const { m } = make();
+  const a = m.createAccount({ name: "A", email: "a@test", accountSetId: "set_1", imapHost: "i", smtpHost: "s" });
+  assert.equal(a.accountSetId, "set_1");
+  assert.equal(m.updateAccount({ id: a.id, accountSetId: "set_2" }).accountSetId, "set_2");
+  assert.equal(m.updateAccount({ id: a.id, name: "改名" }).accountSetId, "set_2");
+  assert.equal(m.listAccounts().items[0].accountSetId, "set_2");
+});
+
+test("远端邮件不能在没有凭据时假装已读、移动或删除", async () => {
   const { m, db } = make();
   const a = m.createAccount({ name: "A", email: "a@test", imapHost: "i", smtpHost: "s" });
   seedMessage(db, a.id);
   assert.equal(m.messages({}).items.length, 1);
   assert.equal(m.messages({ q: "你好" }).items.length, 1);
-  m.markRead({ id: "msg1" });
-  assert.equal(m.messages({ unread: true }).items.length, 0);
-  m.move({ id: "msg1", mailbox: "Archive" });
-  assert.equal(m.message("msg1").mailbox, "Archive");
-  m.remove({ id: "msg1" });
-  assert.equal(m.messages({}).items.length, 0);
+  await assert.rejects(() => m.markRead({ id: "msg1" }));
+  await assert.rejects(() => m.move({ id: "msg1", mailbox: "Archive" }));
+  await assert.rejects(() => m.remove({ id: "msg1" }));
+  assert.equal(m.messages({ unread: true }).items.length, 1);
+  assert.equal(m.message("msg1").mailbox, "INBOX");
+});
+
+test("已有远端缓存的账户可以轮换凭据，但不能把旧 UID 改绑到新邮箱", () => {
+  const { db, m } = make();
+  const a = m.createAccount({ name: "A", email: "a@test", imapHost: "imap.test" });
+  seedMessage(db, a.id);
+  for (const patch of [{ imapHost: "other.test" }, { username: "other" }, { imapPort: 1993 }]) {
+    assert.throws(() => m.updateAccount({ id: a.id, ...patch }), /新建账户/);
+  }
+  assert.equal(m.updateAccount({ id: a.id, secretId: "rotated" }).secretId, "rotated");
 });
 
 test("消息详情与 dataQuery 白名单", () => {
@@ -76,4 +94,23 @@ test("列表不返回大字段 body，详情才带", async () => {
   assert.equal(row.body, undefined);
   assert.equal(m.message("big1").body, "很长的正文");
   assert.equal(m.message("big1").bodyAt, 1);
+});
+
+test("老库升级：补 html/content_id 列且不动既有正文缓存", () => {
+  const db = new DatabaseSync(":memory:");
+  db.exec("CREATE TABLE mail_account (id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, imap_host TEXT NOT NULL DEFAULT '', imap_port INTEGER NOT NULL DEFAULT 993, imap_tls INTEGER NOT NULL DEFAULT 1, smtp_host TEXT NOT NULL DEFAULT '', smtp_port INTEGER NOT NULL DEFAULT 465, smtp_tls INTEGER NOT NULL DEFAULT 1, username TEXT NOT NULL DEFAULT '', secret_id TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, created_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0, rev INTEGER NOT NULL DEFAULT 0)");
+  db.exec("CREATE TABLE mail_message (id TEXT PRIMARY KEY, account_id TEXT NOT NULL, mailbox TEXT NOT NULL, uid INTEGER NOT NULL DEFAULT 0, message_id TEXT NOT NULL DEFAULT '', subject TEXT NOT NULL DEFAULT '', from_addr TEXT NOT NULL DEFAULT '', to_addr TEXT NOT NULL DEFAULT '', cc_addr TEXT NOT NULL DEFAULT '', date_at INTEGER NOT NULL DEFAULT 0, preview TEXT NOT NULL DEFAULT '', body TEXT NOT NULL DEFAULT '', body_at INTEGER NOT NULL DEFAULT 0, flags TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0)");
+  db.exec("CREATE TABLE mail_attachment (id TEXT PRIMARY KEY, message_id TEXT NOT NULL, filename TEXT NOT NULL DEFAULT '', mime TEXT NOT NULL DEFAULT '', size INTEGER NOT NULL DEFAULT 0)");
+  db.prepare("INSERT INTO mail_account (id,name,email) VALUES ('a1','旧库','old@test')").run();
+  db.prepare("INSERT INTO mail_message (id,account_id,mailbox,uid,subject,body,body_at) VALUES ('m_old','a1','INBOX',5,'旧信','旧正文',7)").run();
+  ensureSchema(db);
+  const col = (t, c) => db.prepare(`PRAGMA table_info(${t})`).all().map(x => x.name).includes(c);
+  for (const [t, c] of [["mail_message", "html"], ["mail_message", "html_at"], ["mail_attachment", "content_id"], ["mail_attachment", "inline"]]) {
+    assert.equal(col(t, c), true, `${t}.${c} 应被补上`);
+  }
+  const row = db.prepare("SELECT body,html,html_at FROM mail_message WHERE id='m_old'").get();
+  assert.equal(row.body, "旧正文");
+  assert.equal(row.html, "");
+  assert.equal(row.html_at, 0, "老缓存标记为未解析 HTML，供界面补拉一次");
+  db.close();
 });

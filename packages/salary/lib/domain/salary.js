@@ -7,6 +7,7 @@ import {
   hasValue,
   netFromGross,
   normalizeCycle,
+  normalizeEmploymentType,
   requireDate,
   round2,
   sumKeys,
@@ -16,6 +17,21 @@ import {
 
 const PAD = (n) => String(n).padStart(2, "0");
 const MONTH_OF = (date) => Number(String(date).slice(5, 7));
+
+function incomePeriod(value, payDate, cycle) {
+  if (value === null || value === "") return null;
+  if (value !== undefined) {
+    if (typeof value === "string" && /^\d{4}-\d{2}$/.test(value)) {
+      requireDate(`${value}-01`, "工资所属期");
+      return value;
+    }
+    return requireDate(value, "工资所属期");
+  }
+  if (cycle === "daily") return payDate;
+  const year = Number(payDate.slice(0, 4));
+  const month = MONTH_OF(payDate);
+  return month === 1 ? (year === 2000 ? null : `${year - 1}-12`) : `${year}-${PAD(month - 1)}`;
+}
 
 function yearNumber(value) {
   const year = Number(value) || new Date(now()).getFullYear();
@@ -49,7 +65,7 @@ export function createSalary({ db, host, log }) {
     const latest = one("SELECT * FROM salary_record WHERE deleted_at IS NULL ORDER BY pay_date DESC, created_at DESC LIMIT 1");
     const y = one("SELECT COUNT(*) n, COALESCE(SUM(net_pay),0) net FROM salary_record WHERE deleted_at IS NULL AND substr(pay_date,1,4)=?", String(year));
     return {
-      version: "0.1.0",
+      version: "0.4.0",
       records: total,
       latestDate: latest ? latest.pay_date : "",
       latestNetPay: latest ? round2(latest.net_pay) : 0,
@@ -78,6 +94,10 @@ export function createSalary({ db, host, log }) {
       where.push("cycle=?");
       params.push(normalizeCycle(input.cycle));
     }
+    if (hasValue(input.employmentType)) {
+      where.push("employment_type=?");
+      params.push(normalizeEmploymentType(input.employmentType));
+    }
     const clause = where.join(" AND ");
     const limit = Math.min(Math.max(Number(input.limit) || 200, 1), 500);
     const rows = all(`SELECT * FROM salary_record WHERE ${clause} ORDER BY pay_date DESC, created_at DESC LIMIT ?`, ...params, limit);
@@ -92,18 +112,22 @@ export function createSalary({ db, host, log }) {
   function create(input = {}) {
     const payDate = requireDate(input.payDate, "发薪日期");
     const cycle = normalizeCycle(input.cycle);
+    const employmentType = normalizeEmploymentType(input.employmentType);
+    const period = incomePeriod(input.incomePeriod, payDate, cycle);
     const money = moneyInput(input);
     const gross = hasValue(input.grossPay) ? money.grossPay : derivedTotals(money).gross;
     const net = hasValue(input.netPay) ? money.netPay : round2(Math.max(gross - sumKeys(money, SOCIAL_KEYS) - money.incomeTax - money.postTaxDeduction, 0));
     const id = newId("sal");
     const columns = MONEY_FIELDS.map((f) => f.column);
     const values = MONEY_FIELDS.map((f) => (f.key === "grossPay" ? gross : f.key === "netPay" ? net : money[f.key]));
-    const placeholders = Array.from({ length: columns.length + 6 }, () => "?").join(", ");
+    const placeholders = Array.from({ length: columns.length + 8 }, () => "?").join(", ");
     run(
-      `INSERT INTO salary_record (id, pay_date, cycle, ${columns.join(", ")}, note, created_at, updated_at) VALUES (${placeholders})`,
+      `INSERT INTO salary_record (id, pay_date, income_period, cycle, employment_type, ${columns.join(", ")}, note, created_at, updated_at) VALUES (${placeholders})`,
       id,
       payDate,
+      period,
       cycle,
+      employmentType,
       ...values,
       String(input.note === undefined ? "" : input.note).trim(),
       now(),
@@ -117,7 +141,9 @@ export function createSalary({ db, host, log }) {
     const row = record(input.id);
     const patch = {};
     if (input.payDate !== undefined) patch.payDate = requireDate(input.payDate, "发薪日期");
+    if (input.incomePeriod !== undefined) patch.incomePeriod = incomePeriod(input.incomePeriod);
     if (input.cycle !== undefined) patch.cycle = normalizeCycle(input.cycle);
+    if (input.employmentType !== undefined) patch.employmentType = normalizeEmploymentType(input.employmentType);
     if (input.note !== undefined) patch.note = String(input.note || "").trim();
     let moneyChanged = false;
     for (const field of MONEY_FIELDS) {
@@ -131,9 +157,11 @@ export function createSalary({ db, host, log }) {
     if (!hasValue(input.netPay) && (moneyChanged || hasValue(input.grossPay))) merged.netPay = netFromGross(merged);
     const assignments = MONEY_FIELDS.map((f) => f.column + "=?");
     run(
-      `UPDATE salary_record SET pay_date=?, cycle=?, ${assignments.join(", ")}, note=?, updated_at=?, rev=rev+1 WHERE id=? AND deleted_at IS NULL`,
+      `UPDATE salary_record SET pay_date=?, income_period=?, cycle=?, employment_type=?, ${assignments.join(", ")}, note=?, updated_at=?, rev=rev+1 WHERE id=? AND deleted_at IS NULL`,
       merged.payDate,
+      merged.incomePeriod,
       merged.cycle,
+      merged.employmentType ?? null,
       ...MONEY_FIELDS.map((f) => merged[f.key]),
       merged.note,
       now(),
@@ -157,7 +185,12 @@ export function createSalary({ db, host, log }) {
 
   function stats(input = {}) {
     const year = yearNumber(input.year);
-    const rows = all("SELECT * FROM salary_record WHERE deleted_at IS NULL AND substr(pay_date,1,4)=? ORDER BY pay_date, created_at", String(year)).map(salaryRow);
+    const basis = input.basis ?? "arrival";
+    if (basis !== "arrival" && basis !== "income") throw new Error("统计口径须为 arrival 或 income");
+    const dateColumn = basis === "income" ? "income_period" : "pay_date";
+    const groupDate = (row) => basis === "income" ? row.incomePeriod : row.payDate;
+    const rows = all(`SELECT * FROM salary_record WHERE deleted_at IS NULL AND ${dateColumn}>=? AND ${dateColumn}<? ORDER BY ${dateColumn}, pay_date, created_at, id`, `${year}-01`, `${year + 1}-01`).map(salaryRow);
+    const unassignedRecords = basis === "income" ? one("SELECT COUNT(*) n FROM salary_record WHERE deleted_at IS NULL AND income_period IS NULL").n : null;
     const monthly = Array.from({ length: 12 }, (_, i) => ({
       month: i + 1,
       period: `${year}-${PAD(i + 1)}`,
@@ -176,7 +209,7 @@ export function createSalary({ db, host, log }) {
       housingFund: 0,
     }));
     for (const row of rows) {
-      const bucket = monthly[MONTH_OF(row.payDate) - 1];
+      const bucket = monthly[MONTH_OF(groupDate(row)) - 1];
       bucket.records += 1;
       bucket.basePay = round2(bucket.basePay + row.basePay);
       bucket.performancePay = round2(bucket.performancePay + row.performancePay);
@@ -208,9 +241,71 @@ export function createSalary({ db, host, log }) {
     const mom = latestMonth && previousMonth
       ? { amount: diff, percent: previousMonth.netPay ? round2((diff / previousMonth.netPay) * 100) : null }
       : null;
-    const latestRows = latestMonth ? rows.filter((r) => MONTH_OF(r.payDate) === latestMonth.month) : [];
+    const latestRows = latestMonth ? rows.filter((r) => MONTH_OF(groupDate(r)) === latestMonth.month) : [];
+    // 年度/季度跨期聚合：口径与 monthly 完全一致（arrival 用 pay_date、income 用 income_period），
+    // 只对真实存在的年份/季度出点，空年空季不补 0，避免把「还没到的季度」画成 0。
+    const datedRows = all(
+      `SELECT * FROM salary_record WHERE deleted_at IS NULL AND ${dateColumn} IS NOT NULL ORDER BY ${dateColumn}, id`,
+    ).map(salaryRow);
+    const quarterOf = (date) => `${String(date).slice(0, 4)}-Q${Math.floor((Number(String(date).slice(5, 7)) - 1) / 3) + 1}`;
+    const aggregate = (bucketOf) => {
+      const map = new Map();
+      for (const row of datedRows) {
+        const bucket = bucketOf(basis === "income" ? row.incomePeriod : row.payDate);
+        if (!bucket) continue;
+        const acc = map.get(bucket) || { bucket, count: 0, netTotal: 0, grossTotal: 0, netMax: 0, grossMax: 0 };
+        acc.count += 1;
+        acc.netTotal = round2(acc.netTotal + row.netPay);
+        acc.grossTotal = round2(acc.grossTotal + row.grossPay);
+        acc.netMax = round2(Math.max(acc.netMax, row.netPay));
+        acc.grossMax = round2(Math.max(acc.grossMax, row.grossPay));
+        map.set(bucket, acc);
+      }
+      return [...map.values()]
+        .sort((a, b) => (a.bucket < b.bucket ? -1 : a.bucket > b.bucket ? 1 : 0))
+        .map((item) => ({ ...item, netAvg: round2(item.netTotal / item.count), grossAvg: round2(item.grossTotal / item.count) }));
+    };
+    const yearly = aggregate((date) => String(date).slice(0, 4));
+    // 季度折线默认展示最近 8 个有记录的季度，数据不足时就是实际有几个画几个。
+    const quarterly = aggregate(quarterOf).slice(-8);
+    // 同比：上一年同期 12 个月的实发/应发，用于「今年 vs 去年」对照线。
+    const priorYear = year - 1;
+    const priorRows = all(
+      `SELECT * FROM salary_record WHERE deleted_at IS NULL AND ${dateColumn}>=? AND ${dateColumn}<? ORDER BY ${dateColumn}, id`,
+      `${priorYear}-01`,
+      `${priorYear + 1}-01`,
+    ).map(salaryRow);
+    const priorMonthly = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, records: 0, netPay: 0, grossPay: 0 }));
+    for (const row of priorRows) {
+      const bucket = priorMonthly[MONTH_OF(groupDate(row)) - 1];
+      bucket.records += 1;
+      bucket.netPay = round2(bucket.netPay + row.netPay);
+      bucket.grossPay = round2(bucket.grossPay + row.grossPay);
+    }
+    // 单笔实发分布：按当前年份、当前口径的记录分档，档位边界写死便于核对。
+    const DIST_BUCKETS = [
+      { key: "lt5k", label: "5k 以下", upper: 5000 },
+      { key: "5to8k", label: "5k–8k", upper: 8000 },
+      { key: "8to12k", label: "8k–12k", upper: 12000 },
+      { key: "12to20k", label: "12k–20k", upper: 20000 },
+      { key: "gte20k", label: "20k 以上", upper: null },
+    ];
+    const distribution = DIST_BUCKETS.map((b, i) => ({ key: b.key, label: b.label, lower: i === 0 ? 0 : DIST_BUCKETS[i - 1].upper, upper: b.upper, count: 0 }));
+    for (const row of rows) {
+      const value = Math.max(0, row.netPay);
+      const hit = distribution.find((d) => d.upper === null || value < d.upper);
+      if (hit) hit.count += 1;
+    }
+    const peakMonth = monthsWithData.length
+      ? monthsWithData.reduce((best, b) => (b.netPay > best.netPay ? b : best), monthsWithData[0])
+      : null;
+    const lowestMonth = monthsWithData.length
+      ? monthsWithData.reduce((worst, b) => (b.netPay < worst.netPay ? b : worst), monthsWithData[0])
+      : null;
     return {
       year,
+      basis,
+      unassignedRecords,
       records: rows.length,
       months: monthsWithData.length,
       netTotal,
@@ -225,6 +320,13 @@ export function createSalary({ db, host, log }) {
       latestMonth: latestMonth ? { ...latestMonth, breakdown: breakdown(latestRows) } : null,
       previousMonth,
       mom,
+      yearly,
+      quarterly,
+      priorYear,
+      priorMonthly,
+      distribution,
+      peakMonth: peakMonth ? { month: peakMonth.month, period: peakMonth.period, netPay: peakMonth.netPay } : null,
+      lowestMonth: lowestMonth ? { month: lowestMonth.month, period: lowestMonth.period, netPay: lowestMonth.netPay } : null,
     };
   }
 

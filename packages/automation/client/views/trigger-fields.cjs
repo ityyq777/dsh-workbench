@@ -1,6 +1,11 @@
 "use strict";
 /** 触发类型分段器与四类触发字段；切换类型只改 form.kind，四组字段值各自保留。 */
 var copy = require("../ui/copy.cjs");
+// 数字项统一使用共享数字输入控件（输入自由、失焦校验、非法红字不提交）。
+var NF = require("../../../lib/number-field.cjs");
+
+/** 间隔分钟的取值范围；只用于提示与校验，不夹取键入值。 */
+var INTERVAL = { min: 1, max: 10080, integer: true };
 
 var TZ_LIST = ["Asia/Shanghai", "UTC", "Asia/Tokyo", "Europe/London", "America/New_York"];
 var DOMAIN_HINTS = ["wb-addon-connector", "wb-addon-message", "wb-addon-tasks", "wb-addon-sites"];
@@ -33,14 +38,26 @@ function TriggerFields(props) {
   var set = props.set;
   var errs = props.errs || {};
   var icon = props.icon;
+  var lang = props.lang;
   function unitOf(minutes) {
     var n = Number(minutes) || 60;
     return n >= 60 && n % 60 === 0 ? 60 : 1;
   }
+  // 换单位只做换算，不再用 Math.min/Math.max 把用户填的值夹回边界。
   function changeUnit(unit) {
-    var n = Number(form.everyMinutes) || 60;
-    if (unit === 60) set("everyMinutes", Math.max(1, Math.min(10080, Math.round(n / 60) * 60)));
-    else set("everyMinutes", Math.max(1, Math.min(10080, n)));
+    var n = Number(form.everyMinutes);
+    if (!isFinite(n)) return;
+    if (unit === 60) {
+      var hours = Math.round(n / 60);
+      set("everyMinutes", (hours < 1 ? 1 : hours) * 60);
+    } else set("everyMinutes", n);
+  }
+  // 把数字框的合法性报给上层，供保存按钮禁用（非法草稿不允许保存）。
+  function reportValid(ok) {
+    if (typeof props.onValidChange === "function") props.onValidChange(ok);
+  }
+  function reportDraft(raw) {
+    reportValid(NF.validateNumber(raw, { min: INTERVAL.min, max: INTERVAL.max, integer: INTERVAL.integer, lang: lang }).ok);
   }
   function toggleDay(day) {
     var days = daysOf(form.weekdays);
@@ -65,22 +82,31 @@ function TriggerFields(props) {
           key: k[0],
           type: "button",
           "aria-pressed": form.kind === k[0],
-          onClick: function () { set("kind", k[0]); },
+          onClick: function () {
+            // 切到别的触发类型时，数字项的非法状态不再影响保存。
+            reportValid(true);
+            set("kind", k[0]);
+          },
         }, icon ? h("span", { className: "wba-inline" }, icon(k[1], 12), k[2]) : k[2]);
       })),
     form.kind === "interval" ? h("div", { className: "wba-grid-2" },
       h("label", { className: "wba-field" },
         h("span", { className: "wba-label" }, t("trigger.every")),
         h("div", { className: "wba-inline" },
-          h("input", {
-            className: "wba-input wba-w-120" + (errs.everyMinutes ? " err" : ""),
-            type: "number",
-            min: 1,
-            max: 10080,
-            step: unit,
+          h(NF.NumberField, {
+            h: h,
+            lang: lang,
             value: form.everyMinutes,
-            "aria-label": t("trigger.every"),
-            onChange: function (e) { set("everyMinutes", e.target.value); },
+            min: INTERVAL.min,
+            max: INTERVAL.max,
+            integer: INTERVAL.integer,
+            className: "wba-num",
+            // 范围提示由本行下方的 wba-hint/wba-err-text 统一展示，避免出现两条提示。
+            hint: false,
+            ariaLabel: t("trigger.every"),
+            onCommit: function (next) { set("everyMinutes", next); },
+            onDraft: reportDraft,
+            onValidChange: function (ok) { reportValid(ok); },
           }),
           h("select", {
             className: "wba-input wba-w-96",

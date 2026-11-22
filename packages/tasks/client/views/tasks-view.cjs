@@ -3,6 +3,7 @@ module.exports = function createTasksView(deps) {
   var React = deps.React, configView = deps.configView, CFG_FALLBACK = deps.CFG_FALLBACK, COPY = deps.COPY, injectCss = deps.injectCss, allTables = deps.allTables, findFirstTable = deps.findFirstTable, treeWalk = deps.treeWalk, treeFlat = deps.treeFlat, cx = deps.cx, Icon = deps.Icon, TaskItem = deps.TaskItem, PathCrumbs = deps.PathCrumbs, TagFilter = deps.TagFilter, TreeNode = deps.TreeNode, CreateModal = deps.CreateModal, TimelineModal = deps.TimelineModal, NodeModal = deps.NodeModal, EditModal = deps.EditModal, DoneModal = deps.DoneModal, BatchModal = deps.BatchModal;
   var h = React.createElement, filters = require("./task-filter-model.cjs"), renderFilters = require("./task-filter-panel.cjs"), claimBatch = require("./claim-batch.cjs"), renderSelectionBar = require("./selection-bar.cjs");
   var TaskPreview = require("../modals/task-preview.cjs")(React, TaskItem);
+  var SW = require("../../../lib/switch.cjs");
   function TasksView(props) {
     var lang = props.lang === "en" ? "en" : "zh";
     var cfg = configView.useConfig(props.api, CFG_FALLBACK);
@@ -480,8 +481,8 @@ module.exports = function createTasksView(deps) {
         onChange: function (next) { setFilterTagIds(next); setPageNumber(1); } }),
       // 与难度区间互斥：两者同时生效必然是空集，勾选「仅未填难度」时清掉难度区间。
       api: api, t: t, Icon: Icon,
-      missing: h("label", { className: "wbt-check" }, h("input", { type: "checkbox", checked: difficultyMissing,
-        onChange: function (e) { var next = e.target.checked; setDifficultyMissing(next); if (next) setFilterValue(filters.clearDifficulty(filterValue)); setPageNumber(1); } }), t.difficultyMissing),
+      missing: h(SW.Switch, { h: h, checked: !!difficultyMissing, label: t.difficultyMissing,
+        onChange: function (next) { setDifficultyMissing(next); if (next) setFilterValue(filters.clearDifficulty(filterValue)); setPageNumber(1); } }),
     });
 
     var listBody = loading
@@ -635,7 +636,7 @@ module.exports = function createTasksView(deps) {
         onSaved: function (result) { setEditTask(null); refreshList(); bumpTimeline(); say(require("../modals/ownership.cjs").receipt(result)); },
       }) : null,
       doneTask ? h(DoneModal, {
-        key: doneTask.id, t: t, api: api, task: doneTask,
+        key: doneTask.id, t: t, api: api, task: doneTask, lang: props.lang,
         onClose: function () { setDoneTask(null); },
         onDone: function () { setDoneTask(null); refreshList(); bumpTimeline(); say(t.doneSuccess); },
         onError: function (e) { setDoneTask(null); say(e); },

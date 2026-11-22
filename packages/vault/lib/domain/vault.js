@@ -136,13 +136,13 @@ export function createVault({ db, log = () => {} }) {
     }
   }
 
-  /** 解锁后检查 schema_version：2 → 3 一次性迁移；失败回滚并保持 2。 */
+  /** 解锁后检查 schema_version：2 → 当前版本一次性迁移；失败回滚并保持 2。 */
   function runMigration() {
     const head = headerGet(db);
     if (!head || Number(head.schema_version || 0) >= SCHEMA_VERSION) return "";
     try {
       const result = migrateToV3({ db, dek: state.dek, log });
-      return result.migrated ? "保险箱已升级到集合层（schema 3）。" : "";
+      return result.migrated ? "保险箱已升级到「集合与账号」（schema " + SCHEMA_VERSION + "）。" : "";
     } catch (error) {
       log("保险箱迁移失败，已回滚", String(error && error.message));
       return "保险箱升级失败，已回滚；下次解锁会重试。";

@@ -20,6 +20,7 @@ var LEVELS = ["info", "success", "warning", "error"];
 var state = {
   running: false,
   source: null,
+  listeners: new Set(),
   cfg: { at: 0, values: null },
   audio: null,
   lastKey: "",
@@ -151,8 +152,33 @@ function maybePlay(values, message) {
   return playTone(level, values["sound.volume"]);
 }
 
+/** 订阅本域事件（message.created / message.read），浮层用它更新角标，共用同一条 SSE。 */
+function subscribe(fn) {
+  if (typeof fn !== "function") return function () {};
+  state.listeners.add(fn);
+  return function () { state.listeners.delete(fn); };
+}
+
+function broadcast(event, data) {
+  state.listeners.forEach(function (fn) {
+    try {
+      fn(event, data);
+    } catch (e) {
+      /* 单个订阅者出错不影响其它订阅者与提示音 */
+    }
+  });
+}
+
 function handleEvent(payload) {
-  if (!payload || payload.domainId !== DOMAIN || payload.event !== "message.created") return;
+  if (!payload || payload.domainId !== DOMAIN) return;
+  if (payload.event === "message.created") {
+    var created = payload.data && payload.data.message;
+    if (created && created.id) broadcast("message.created", { message: created });
+  } else if (payload.event === "message.read") {
+    broadcast("message.read", payload.data || {});
+    return;
+  }
+  if (payload.event !== "message.created") return;
   var message = payload.data && payload.data.message;
   if (!message || !message.id) return;
   var now = Date.now();
@@ -196,4 +222,16 @@ function preview(level) {
   });
 }
 
-module.exports = { start: start, stop: stop, preview: preview, refreshConfig: function () { return loadConfig(true); } };
+module.exports = {
+  start: start,
+  stop: stop,
+  subscribe: subscribe,
+  preview: preview,
+  refreshConfig: function () {
+    return loadConfig(true).then(function (values) {
+      // 配置页保存后广播一次：浮层据此立刻显示/隐藏或换边，不需要刷新页面。
+      broadcast("config", { values: values || {} });
+      return values;
+    });
+  },
+};

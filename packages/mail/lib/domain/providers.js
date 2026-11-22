@@ -59,7 +59,7 @@ export const PROVIDERS = [
     usernameMode: "full",
     secretKind: "app_password",
     hint: {
-      zh: "微软已对多数账户停用基础认证：请先在账户安全设置里创建「应用密码」；若仍失败，需要 OAuth（当前版本不支持）。",
+      zh: "微软已对多数账户停用基础认证：请先在账户安全设置里创建「授权码」；若仍失败，需要 OAuth（当前版本不支持）。",
       en: "Microsoft disabled basic auth for most accounts: create an app password first. If it still fails, OAuth is required (not supported yet).",
     },
     helpUrl: "https://support.microsoft.com/account-billing/using-app-passwords-with-apps-that-don-t-support-two-step-verification-5896ed9b-4263-e681-128a-a6f2979a7944",
@@ -77,7 +77,7 @@ export const PROVIDERS = [
     usernameMode: "full",
     secretKind: "app_password",
     hint: {
-      zh: "需先开启两步验证，再生成 16 位「应用专用密码」；直接填账号密码会被拒绝。",
+      zh: "需先开启两步验证，再生成 16 位「授权码」；直接填账号密码会被拒绝。",
       en: "Turn on 2-Step Verification and create a 16-character app password; your normal password is rejected.",
     },
     helpUrl: "https://support.google.com/accounts/answer/185833",
@@ -95,7 +95,7 @@ export const PROVIDERS = [
     usernameMode: "local",
     secretKind: "app_password",
     hint: {
-      zh: "登录名是 Apple ID 主名（不含 @icloud.com）；需在 Apple ID 安全设置里生成「App 专用密码」。",
+      zh: "登录名是 Apple ID 主名（不含 @icloud.com）；需在 Apple ID 安全设置里生成「授权码」。",
       en: "The login name is your Apple ID name without @icloud.com; create an app-specific password in Apple ID security settings.",
     },
     helpUrl: "https://support.apple.com/zh-cn/102654",

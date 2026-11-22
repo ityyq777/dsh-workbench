@@ -178,6 +178,9 @@ var PAGE = [
   ".wbsal-tip-row i.sum{background:color-mix(in oklab,var(--wb-muted,#8b94a6) 45%,var(--wb-accent,#2563eb))}",
   ".wbsal-tip em{display:block;margin-top:5px;font-size:11px;font-style:normal;color:var(--wb-muted,#8b94a6)}",
 
+  ".wbsal-stack{display:flex;flex-direction:column;gap:16px}",
+  ".wbsal-section-note{font-size:11.5px;color:var(--wb-muted,#8b94a6);font-variant-numeric:tabular-nums}",
+  ".wbsal-linechart .wbsalc-trend-wrap{width:100%}",
   ".wbsal-chart-hint{margin-top:8px;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--wb-muted,#8b94a6) 10%,transparent);color:var(--wb-muted,#8b94a6);font-size:12px}",
   ".wbsal-social-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap}",
   ".wbsal-linechart svg{display:block;width:100%;height:auto;overflow:visible}",
@@ -245,4 +248,13 @@ var PAGE = [
 
 var DATE = require("../../../lib/date-picker-styles.cjs")("wbsal");
 
-module.exports = BASE.concat(PAGE, [DATE]).join("\n");
+// 金额格子用共享数字控件：占满栅格列，数字右对齐更像账目。
+var AMOUNT = [
+  ".wbsal-form-grid .wbctl-num{width:100%}",
+  ".wbsal-form-grid .wbctl-num-box{width:100%}",
+  ".wbsal-form-grid .wbctl-num-input{width:100%;box-sizing:border-box;text-align:right}",
+  // 分阶段表单：每组金额之间留出间距，步骤内容区不再被外层卡片裁切。
+  ".wbsal-steps-groups{display:flex;flex-direction:column;gap:16px}",
+];
+
+module.exports = BASE.concat(PAGE, [DATE], AMOUNT, require("../../../lib/stepper.cjs").styles, require("../../../lib/staged-dialog.cjs").styles, require("../../../lib/number-field.cjs").styles).join("\n");

@@ -15,15 +15,17 @@ import { openDb, setSyncStateText } from "./core/index.js";
 import { SyncClock, } from "./sync/sync.js";
 import { AuditLog } from "./infra/audit.js";
 import { createActions } from "./actions/actions.js";
+import { createAgentRun } from "./actions/agent-run.js";
 import { installNetwork } from "./infra/network.js";
 import { createSearch } from "./infra/search.js";
+import { FALLBACK_CATEGORY_ID, resolveCategory } from "./infra/categories.js";
 export const name = "dsh-workbench";
 export const inject = ["webServer", "tools", "connection"];
 /** 本地库与云端配置路径（05 文档约定目录）。 */
 const WB_HOME = process.env.WB_HOME ?? join(homedir(), ".dsh", "workbench");
 const CLOUD_DEFAULT = process.env.WB_CLOUD_URL ?? "http://127.0.0.1:8791";
 /** 宿主 API 版本：业务插件用它做兼容判断。 */
-export const SHELL_VERSION = "0.8.0";
+export const SHELL_VERSION = "0.9.1";
 const DOMAIN_ID_RE = /^[a-z][a-z0-9_-]{2,63}$/;
 const ACTION_RE = /^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/i;
 function loadCreds() {
@@ -151,12 +153,15 @@ export function apply(ctx) {
         return {
             id: rec.def.id,
             title: rec.def.title,
+            category: rec.category,
             description: rec.def.description,
             version: rec.def.version,
             enabled: rec.error === null,
             error: rec.error,
             tables: rec.def.tables ?? [],
             views: rec.def.views ?? [],
+            slots: rec.def.slots ?? [],
+            slotHosts: rec.def.slotHosts ?? [],
             sync: {
                 tables: rec.def.sync?.tables?.map((t) => ({ name: t.name, mode: t.mode })) ??
                     (rec.def.tables ?? []).map((name) => ({ name, mode: "row" })),
@@ -167,6 +172,10 @@ export function apply(ctx) {
             },
         };
     }
+    // host.agentRun 要用 DSH 的会话服务，但服务是在后面 installService 才拿到的：
+    // 这里先给一个可写的持有者，action 定义通过闭包读它，拿到服务前后都能工作。
+    const sessionScope = { value: null };
+    const agentRun = createAgentRun({ getSessionController: () => sessionScope.value });
     const { invoke, actionNames, installTool, schemaSnapshot } = createActions({
         domains,
         SHELL_VERSION,
@@ -176,6 +185,7 @@ export function apply(ctx) {
         emit,
         db: state.db,
         search,
+        extraMetaActions: [["host.agentRun", agentRun]],
     });
     function registerAction(rec, action, def) {
         if (!ACTION_RE.test(action)) {
@@ -192,7 +202,15 @@ export function apply(ctx) {
             log("业务域已注册，忽略重复注册", def.id);
             return () => { };
         }
-        const rec = { def, actions: new Map(), hooks: new Map(), error: null, dispose: null };
+        // 栏目只做归组：未声明 / 空串 / 未知 id 落兜底栏目并打一条日志，不阻断注册。
+        const category = resolveCategory(def.category);
+        if (category.status === "missing") {
+            log("业务域未声明首页栏目，已归入兜底栏目", def.id, FALLBACK_CATEGORY_ID);
+        }
+        else if (category.status === "unknown") {
+            log("业务域声明了未知栏目 id，已归入兜底栏目", def.id, category.declared, "→", FALLBACK_CATEGORY_ID);
+        }
+        const rec = { def, category: category.id, actions: new Map(), hooks: new Map(), error: null, dispose: null };
         domains.set(def.id, rec);
         const setupApi = {
             addon: { id: def.id, version: def.version, dir: "" },
@@ -322,6 +340,11 @@ export function apply(ctx) {
             log("安装会话记录模式失败", deps.join(","), e);
         }
     };
+    // 「新建 agent 会话」用的会话控制器：宿主没加载时为 null，action 调用会给明确报错。
+    installService(["sessionController"], (scope) => {
+        const controller = scope.sessionController;
+        sessionScope.value = controller && typeof controller.create === "function" ? controller : null;
+    });
     installService(["systemPrompt"], (scope) => {
         const sp = scope.systemPrompt;
         if (!sp || typeof sp.section !== "function")

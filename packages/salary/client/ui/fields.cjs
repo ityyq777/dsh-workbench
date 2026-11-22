@@ -6,6 +6,23 @@ var GROUPS = [
   { id: "social", title: "社保与个税", hint: "再从应发中扣除", keys: ["pension", "medical", "unemployment", "housingFund", "incomeTax", "postTaxDeduction"] },
 ];
 
+var EMPLOYMENT_TYPES = [
+  { value: "", label: "未设置" },
+  { value: "temp", label: "临时" },
+  { value: "parttime", label: "兼职" },
+  { value: "side", label: "外快" },
+  { value: "intern", label: "实习" },
+  { value: "probation", label: "试用" },
+  { value: "regular", label: "正式" },
+];
+
+function employmentLabel(value) {
+  for (var i = 0; i < EMPLOYMENT_TYPES.length; i += 1) {
+    if (EMPLOYMENT_TYPES[i].value === value) return EMPLOYMENT_TYPES[i].label;
+  }
+  return "未设置";
+}
+
 var LABELS = {
   basePay: "基本工资", performancePay: "绩效工资", positionPay: "岗位工资", allowance: "补贴",
   performanceBonus: "绩效奖惩", otherPay: "其他收入", holidayOvertime: "法定假期加班工资",
@@ -91,6 +108,7 @@ function defaultNote(payDate, cycle) {
 
 module.exports = {
   GROUPS: GROUPS, KEYS: KEYS, LABELS: LABELS,
+  EMPLOYMENT_TYPES: EMPLOYMENT_TYPES, employmentLabel: employmentLabel,
   INCOME_KEYS: INCOME_KEYS, PRETAX_KEYS: PRETAX_KEYS, SOCIAL_KEYS: SOCIAL_KEYS, TAX_KEYS: TAX_KEYS,
   num: num, money: money, fmtAmount: fmtAmount, sumValues: sumValues, totals: totals,
   blankValues: blankValues, weekday: weekday, monthLabel: monthLabel,

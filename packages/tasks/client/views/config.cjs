@@ -2,6 +2,9 @@
 // 配置存在本机 meta 表，不参与云端同步，也不进入备份。
 var React = require("react");
 var h = React.createElement;
+var SW = require("../../../lib/switch.cjs");
+// 数字项统一使用共享数字输入控件（输入自由、失焦校验）。
+var NF = require("../../../lib/number-field.cjs");
 
 var DOMAIN = "tasks";
 var PREFIX = "wbt";
@@ -53,13 +56,6 @@ var CSS = [
   ".__P__-cfg-select:focus,.__P__-cfg-input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
   ".__P__-cfg-select{min-width:152px;padding-right:10px}",
   ".__P__-cfg-input{width:132px}",
-  ".__P__-cfg-switch{position:relative;display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--cfg-muted);user-select:none}",
-  ".__P__-cfg-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-  ".__P__-cfg-track{position:relative;width:38px;height:22px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-  ".__P__-cfg-track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-  ".__P__-cfg-switch input:checked+.__P__-cfg-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-  ".__P__-cfg-switch input:checked+.__P__-cfg-track::after{transform:translateX(16px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-  ".__P__-cfg-switch input:focus-visible+.__P__-cfg-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
   ".__P__-cfg-multi{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%}",
   ".__P__-cfg-multi label{position:relative;display:inline-flex;align-items:center;padding:5px 11px;border:1px solid var(--cfg-line);border-radius:999px;font-size:12px;color:var(--cfg-muted);cursor:pointer;line-height:1.4;transition:color .12s ease,border-color .12s ease,background .12s ease}",
   ".__P__-cfg-multi label:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
@@ -84,8 +80,8 @@ var CSS = [
   ".__P__-cfg-empty{border:1px dashed var(--cfg-line);border-radius:14px;padding:40px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
   ".__P__-cfg-error{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:10px 13px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12.5px;line-height:1.5}",
   "@media (max-width:820px){.__P__-cfg-row{grid-template-columns:1fr;gap:10px;padding:13px 16px}.__P__-cfg-control{justify-content:flex-start}.__P__-cfg-multi{justify-content:flex-start}.__P__-cfg-gtitle{padding:11px 16px}}",
-  "@media (prefers-reduced-motion:reduce){.__P__-cfg-track,.__P__-cfg-track::after,.__P__-cfg-sk{animation:none;transition:none}}",
-].join("\n").split("__P__").join(PREFIX);
+  "@media (prefers-reduced-motion:reduce){.__P__-cfg-sk{animation:none;transition:none}}",
+].concat(SW.styles).concat(NF.styles).join("\n").split("__P__").join(PREFIX);
 
 function injectCss() {
   if (typeof document === "undefined") return;
@@ -159,8 +155,6 @@ function ConfigView(props) {
   var notice = noticeS[0], setNotice = noticeS[1];
   var savingS = React.useState("");
   var savingId = savingS[0], setSavingId = savingS[1];
-  var draftsS = React.useState({});
-  var drafts = draftsS[0], setDrafts = draftsS[1];
   var busyS = React.useState(false);
   var busy = busyS[0], setBusy = busyS[1];
   // State disables controls after render; the ref also rejects same-render stale handlers.
@@ -265,35 +259,15 @@ function ConfigView(props) {
       }).finally(release);
   }
 
-  function commitDraft(item) {
-    if (requestLock.current) return;
-    var raw = drafts[item.id];
-    if (raw === undefined) return;
-    var next = String(raw).trim();
-    setDrafts(function (prev) {
-      var copy = Object.assign({}, prev);
-      delete copy[item.id];
-      return copy;
-    });
-    if (next === "") return;
-    var value = Number(next);
-    if (!Number.isFinite(value)) return;
-    if (sameValue(value, state.values[item.id])) return;
-    save(item.id, value);
-  }
-
   function renderControl(item) {
     var value = state.values[item.id];
     var label = lang === "en" ? item.en : item.zh;
     if (item.type === "bool") {
-      return h("label", { className: PREFIX + "-cfg-switch" },
-        h("input", {
-          type: "checkbox", disabled: locked, checked: value === true,
-          onChange: function (e) { save(item.id, e.target.checked); },
-        }),
-        h("span", { className: PREFIX + "-cfg-track", "aria-hidden": "true" }),
-        h("span", { className: PREFIX + "-cfg-switchstate" }, value === true ? t.on : t.off)
-      );
+      return h(SW.Switch, {
+        h: h, checked: value === true, disabled: locked, showState: true,
+        onText: t.on, offText: t.off,
+        onChange: function (next) { save(item.id, next); },
+      });
     }
     if (item.type === "enum") {
       return h("select", {
@@ -307,16 +281,11 @@ function ConfigView(props) {
       }));
     }
     if (item.type === "int") {
-      var draft = drafts[item.id] !== undefined ? drafts[item.id] : String(value);
-      return h("input", {
-        className: PREFIX + "-cfg-input", disabled: locked, type: "number", value: draft,
-        min: item.min, max: item.max, "aria-label": label,
-        onChange: function (e) {
-          var v = e.target.value;
-          setDrafts(function (prev) { var c = Object.assign({}, prev); c[item.id] = v; return c; });
-        },
-        onBlur: function () { commitDraft(item); },
-        onKeyDown: function (e) { if (e.key === "Enter") { e.preventDefault(); commitDraft(item); } },
+      return h(NF.NumberField, {
+        h: h, lang: lang, value: value === undefined ? "" : value,
+        min: item.min, max: item.max, integer: true, disabled: locked,
+        ariaLabel: label,
+        onCommit: function (next) { save(item.id, next); },
       });
     }
     if (item.type === "multi") {

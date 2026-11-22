@@ -1,5 +1,6 @@
 // 编辑任务独立组件；依赖由入口注入，保持原有 props 接口，无循环依赖。
 "use strict";
+var NF = require("../../../lib/number-field.cjs");
 module.exports = function createEditModal(React, statusInfo, stars) {
   var h = React.createElement;
   var difficultyField = require("../item/difficulty-field.cjs")(React);
@@ -50,23 +51,28 @@ module.exports = function createEditModal(React, statusInfo, stars) {
       setForm(function (prev) { var next = Object.assign({}, prev); next[k] = v; return next; });
     }
     var titleOk = String(form.title).trim().length > 0;
+    // 优先级 1–10 整数、难度 0–5 半档：只提示，不夹取；非法时禁止保存。
+    // 已关闭任务的优先级由后端清零，编辑时保留 0 合法，避免一改标题就被迫抬高优先级。
+    var priorityCheck = canPriority
+      ? NF.validateNumber(form.priority, { min: String(task.status) === "1" ? 0 : 1, max: 10, integer: true, lang: props.lang })
+      : { ok: true, value: 0, error: "" };
+    var difficultyCheck = NF.validateNumber(form.difficulty, { min: 0, max: 5, step: 0.5, allowEmpty: true, lang: props.lang });
     function submit() {
       if (isBusy || submission.pending) return;
       if (!titleOk) { setErr(t.needTitle); return; }
+      if (!priorityCheck.ok) { setErr(priorityCheck.error); return; }
+      if (!difficultyCheck.ok) { setErr(difficultyCheck.error); return; }
       var patch = { id: task.id, title: String(form.title).trim(), description: String(form.description || "") };
       if (form.tableId && form.tableId !== String(task.tableId || "")) {
         if (!ownership.tables(props.tree).some(function (x) { return x.id === form.tableId; })) { setErr("目标已失效，请重新选择"); return; }
         patch.tableId = form.tableId;
       }
       if (canPriority) {
-        var p = Math.round(Number(form.priority));
-        if (!isFinite(p)) p = 1;
-        if (!Number.isFinite(p)) p = 0;
-        patch.priority = Math.max(1, Math.min(10, p));
+        patch.priority = priorityCheck.value;
         // 计划完成日期只处理非空值；留空表示不改动（后端空串会回落到原值）。
         if (String(form.targetDate || "").trim()) patch.targetDate = String(form.targetDate).trim();
       }
-      patch.difficulty = Math.max(0, Math.min(5, Number(form.difficulty) || 0));
+      patch.difficulty = difficultyCheck.value || 0;
       patch.workspaceIds = (form.workspaceIds || []).slice();
       if (String(form.review) !== String(task.review || "")) patch.review = String(form.review);
       submission.pending = true; setBusy(true);
@@ -103,16 +109,19 @@ module.exports = function createEditModal(React, statusInfo, stars) {
           h("span", null, t.targetDate),
           h(DP.DatePicker, { React: React, h: h, prefix: "wbt", lang: props.lang, label: t.targetDate, value: form.targetDate, onChange: function (next) { set("targetDate", next); } })
         ) : null,
-        canPriority ? h("label", { className: "wbt-field" },
-          h("span", null, t.priority + "（1–10）"),
-          h("input", { className: "wbt-input", type: "number", min: 1, max: 10, step: 1, value: form.priority, onChange: function (e) { set("priority", e.target.value); } })
+        canPriority ? h("div", { className: "wbt-field" },
+          h("span", { className: "wbt-field-label" }, t.priority + "（1–10）"),
+          h(NF.NumberField, { h: h, lang: props.lang, value: form.priority, min: 1, max: 10, integer: true, hint: false, ariaLabel: t.priority,
+            // 键入即写草稿，合法性交给 priorityCheck（保存按钮据此禁用），绝不夹取。
+            onDraft: function (raw) { set("priority", raw); },
+            onCommit: function (next) { set("priority", String(next)); } })
         ) : null,
-        difficultyField(t, form.difficulty, function (value) { set("difficulty", value); }, "wbt-edit-difficulty"),
+        difficultyField(t, form.difficulty, function (value) { set("difficulty", value); }, "wbt-edit-difficulty", props.lang),
         h(WorkspaceSelect, { api: props.api, lang: props.lang, value: form.workspaceIds, onChange: function (ids) { set("workspaceIds", ids); } }),
         err ? h("div", { className: "wbt-err" }, err) : null,
         h("div", { className: "wbt-modal-foot" },
           h("button", { className: "wbt-btn ghost", disabled: isBusy, onClick: requestClose }, t.cancel),
-          h("button", { className: "wbt-btn primary", disabled: isBusy || !titleOk, onClick: submit }, isBusy ? "…" : t.save)
+          h("button", { className: "wbt-btn primary", disabled: isBusy || !titleOk || !priorityCheck.ok || !difficultyCheck.ok, onClick: submit }, isBusy ? "…" : t.save)
         )
       )
     );

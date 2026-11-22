@@ -1,8 +1,9 @@
 "use strict";
 /** 保险箱设置：解锁模式、改主口令、device key 轮换。 */
 var C = require("../ui/common.cjs");
+var P = require("../ui/page.cjs");
 var AskPassphrase = require("../ui/ask-passphrase.cjs");
-
+var SecretField = require("../../../lib/secret-field.cjs");
 var MODES = [
   { id: "A", title: "A 全锁（推荐）", desc: "每次 DSH 启动后需要输入主口令；明文只在当前进程内存。" },
   { id: "B", title: "B 自动解锁，查看需口令", desc: "启动时用本机 device key 自动解锁；每次查看/编辑凭据再输主口令。" },
@@ -21,6 +22,7 @@ module.exports = function ConfigView(props) {
   var busy = React.useState(false);
   var tick = React.useState(0);
   var askS = React.useState(null); // { kind: "mode" | "rotate", value, busy, error }
+  var show = React.useState({ old: false, next: false });
 
   React.useEffect(function () {
     C.call(api, "vault.status").then(function (s) {
@@ -66,7 +68,8 @@ module.exports = function ConfigView(props) {
 
   var status = st[0];
   var modal = askS[0] ? h(AskPassphrase, {
-    h: h, C: C,
+    h: h,
+    React: React, C: C,
     title: askS[0].kind === "mode" ? "切换到 " + mode[0] + " 模式" : "轮换 device key",
     hint: askS[0].kind === "mode" ? "切换解锁模式需要验证主口令。" : "旧 device key 文件会被覆盖，之后用新 key 自动解锁。",
     value: askS[0].value, busy: askS[0].busy, error: askS[0].error,
@@ -77,29 +80,55 @@ module.exports = function ConfigView(props) {
   }) : null;
 
   return h("div", { className: "wbv" },
-    h("h2", null, "保险箱设置"),
+    h(P.PageHead, {
+      h: h,
+      title: "保险箱设置",
+      sub: "解锁模式决定启动时要不要输主口令、查看明文要不要再验证；改主口令只重包 DEK。",
+      pill: status ? h("span", { className: "wbv-pill" + (status.locked ? " warn" : " ok") }, status.locked ? "已锁定" : "已解锁") : null,
+    }),
     h(C.Notice, { h: h, kind: "error", text: msg[0] }),
-    h("div", { className: "wbv-card" },
-      h("h3", null, "解锁模式"),
-      MODES.map(function (m) {
-        return h("label", { key: m.id, className: "wbv-row", style: { padding: "6px 0", alignItems: "flex-start", cursor: "pointer" } },
-          h("input", { type: "radio", name: "vault-mode", checked: mode[0] === m.id, onChange: function () { mode[1](m.id); } }),
-          h("span", null, h("strong", null, m.title), h("br"), h("span", { className: "wbv-muted" }, m.desc)));
-      }),
-      h("div", { className: "wbv-row" },
-        h("span", { className: "wbv-muted" }, status ? "当前：" + status.unlockMode + (status.locked ? "（已锁定）" : "（已解锁）") : ""),
-        h("span", { className: "wbv-grow" }),
-        h(C.Btn, { h: h, kind: "primary", disabled: busy[0], onClick: applyMode }, busy[0] ? "应用中…" : "应用模式"))),
-    h("div", { className: "wbv-card" },
-      h("h3", null, "修改主口令"),
-      h("p", { className: "wbv-muted" }, "只重包 DEK，不会重新加密所有凭据；device key 不受影响。"),
-      h("div", { className: "wbv-row" },
-        h(C.Field, { h: h, label: "当前口令" }, h("input", { type: "password", value: oldPass[0], onChange: function (e) { oldPass[1](e.target.value); } })),
-        h(C.Field, { h: h, label: "新口令（至少 10 位）" }, h("input", { type: "password", value: newPass[0], onChange: function (e) { newPass[1](e.target.value); } }))),
-      h(C.Btn, { h: h, disabled: busy[0], onClick: changePass }, "修改口令")),
-    h("div", { className: "wbv-card" },
-      h("h3", null, "Device key"),
-      h("p", { className: "wbv-muted" }, "B/C 模式用来在启动时自动解锁。key 文件位于 $WB_HOME/vault-device.key，权限 0600；删除它等同回到锁定状态。"),
-      h(C.Btn, { h: h, disabled: busy[0] || !status || status.unlockMode === "A", onClick: rotate }, "轮换 device key"))  , modal);
-};
 
+    h(P.Card, { h: h, title: "解锁模式" },
+      h("div", { className: "wbv-check-list" }, MODES.map(function (m) {
+        return h("label", { key: m.id, className: "wbv-choice" },
+          h("input", { type: "radio", name: "vault-mode", checked: mode[0] === m.id, onChange: function () { mode[1](m.id); } }),
+          h("span", { className: "wbv-choice-text" },
+            h("span", { className: "wbv-choice-title" }, m.title),
+            h("span", { className: "wbv-choice-desc" }, m.desc)));
+      })),
+      h("div", { className: "wbv-form-actions" },
+        h("span", { className: "wbv-muted wbv-grow" }, status ? "当前：" + status.unlockMode + (status.locked ? "（已锁定）" : "（已解锁）") : "读取中…"),
+        h(C.Btn, { h: h, kind: "primary", disabled: busy[0], onClick: applyMode }, busy[0] ? "应用中…" : "应用模式"))),
+
+    h(P.Card, { h: h, title: "修改主口令" },
+      h("p", { className: "wbv-sub" }, "只重包 DEK，不会重新加密所有凭据；device key 不受影响。"),
+      h("div", { className: "wbv-form-grid" },
+        h(C.Field, { h: h, label: "当前口令" },
+          h(SecretField, {
+            h: h,
+            show: show[0].old,
+            value: oldPass[0],
+            autoComplete: "current-password",
+            onChange: function (v) { oldPass[1](v); },
+            onToggle: function () { show[1](Object.assign({}, show[0], { old: !show[0].old })); },
+          })),
+        h(C.Field, { h: h, label: "新口令（至少 10 位）" },
+          h(SecretField, {
+            h: h,
+            show: show[0].next,
+            value: newPass[0],
+            autoComplete: "new-password",
+            onChange: function (v) { newPass[1](v); },
+            onToggle: function () { show[1](Object.assign({}, show[0], { next: !show[0].next })); },
+          }))),
+      h("div", { className: "wbv-form-actions" },
+        h(C.Btn, { h: h, kind: "primary", disabled: busy[0], onClick: changePass }, "修改口令"))),
+
+    h(P.Card, { h: h, title: "Device key" },
+      h("p", { className: "wbv-sub" }, "B/C 模式用来在启动时自动解锁。key 文件位于 $WB_HOME/vault-device.key，权限 0600；删除它等同回到锁定状态。"),
+      h("div", { className: "wbv-form-actions" },
+        h("span", { className: "wbv-muted wbv-grow" }, status && status.unlockMode === "A" ? "A 模式下不使用 device key" : ""),
+        h(C.Btn, { h: h, disabled: busy[0] || !status || status.unlockMode === "A", onClick: rotate }, "轮换 device key"))),
+
+    modal);
+};

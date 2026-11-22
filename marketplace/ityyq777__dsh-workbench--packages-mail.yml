@@ -2,5 +2,5 @@ url: https://github.com/ityyq777/dsh-workbench/tree/main/packages/mail
 name: ityyq777/dsh-workbench#mail
 category: tools
 description:
-  en: 'Mail client for DSH: IMAP fetches recent headers only, SMTP sends plain-text mail, and account passwords live in the vault as secret ids.'
-  zh: 'DSH 邮件：IMAP 只抓最近邮件头，SMTP 发纯文本，账户密码由保险箱托管（只存 secretId）。'
+  en: 'Browse IMAP folders and older mail over TLS, sync read status, download individual attachments, and reply or forward via SMTP with local drafts.'
+  zh: 'DSH 邮件：通过加密 IMAP 浏览文件夹与历史邮件，同步已读、移动和废纸篓；按需下载附件，从本地草稿回复或转发。'

@@ -92,7 +92,7 @@ function percentBytes(text) {
 }
 
 /** RFC 2231：`utf-8''%E4%B8%AD`；没有 charset 段时按原文返回。 */
-function decodeRfc2231(value) {
+export function decodeRfc2231(value) {
   const m = /^([\w-]*)'[^']*'(.*)$/.exec(value);
   if (!m) return value;
   return toText(percentBytes(m[2]), m[1] || DEFAULT_CHARSET);
@@ -142,7 +142,7 @@ export function decodeQuotedPrintable(buf) {
   return Buffer.from(out);
 }
 
-function decodeTransfer(buf, encoding) {
+export function decodeTransfer(buf, encoding) {
   const enc = String(encoding || "").trim().toLowerCase();
   if (enc === "base64") {
     const clean = buf.toString("latin1").replace(/[^A-Za-z0-9+/=]/g, "");
@@ -166,6 +166,11 @@ function decodedSize(buf, encoding) {
   }
   if (enc === "quoted-printable") return decodeQuotedPrintable(buf).length;
   return buf.length;
+}
+
+export function decodePartText(part, encoded) {
+  const decoded = decodeTransfer(encoded, part.encoding);
+  return toText(decoded, charsetOf({ params: { charset: part.charset } }, part.mime, decoded));
 }
 
 function charsetOf(ct, type, buf) {

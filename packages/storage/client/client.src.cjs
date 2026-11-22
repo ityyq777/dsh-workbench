@@ -8,12 +8,12 @@ if (host) {
     style.textContent = require("./ui/styles.cjs");
     document.head.appendChild(style);
   }
-  var h = require("react").createElement, Icon = require("./ui/icons.cjs").Icon;
+  var h = require("react").createElement, icons = require("./ui/icons.cjs"), Icon = icons.Icon, GLYPHS = icons.ICONS;
   function tabIcon(name) { return function StorageTabIcon() { return h(Icon, { name: name, size: 14 }); }; }
   host.registerAddon({
     id: "wb-addon-storage",
-    version: "1.5.6",
-    icon: require("lucide-react/icons/package").default,
+    version: "1.5.13",
+    icon: GLYPHS["stock"],
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "统计", en: "Statistics" }, component: require("./views/stats.cjs").Stats },
       { id: "storage", icon: tabIcon("list"), title: { zh: "记录", en: "Records" }, component: require("./views/records.cjs").Records },

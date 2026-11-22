@@ -30,6 +30,34 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
         }
         return { requires, missing };
     }
+    /**
+     * 插槽声明报告：谁贡献、谁提供落点。
+     * 贡献方声明了插槽但没有任何已启用域提供该落点时，必须明确说出来——否则用户装了一半插件
+     * 只会看到「按钮没出现」，而无从判断是没装、没启用还是坏了。
+     */
+    function slotInfo(rec) {
+        const uniq = (list) => {
+            const out = [];
+            for (const raw of Array.isArray(list) ? list : []) {
+                const id = String(raw ?? "").trim();
+                if (id && out.indexOf(id) < 0)
+                    out.push(id);
+            }
+            return out;
+        };
+        const renders = uniq(rec.def.slotHosts);
+        const contributes = uniq(rec.def.slots).map((slot) => {
+            const hosts = [];
+            for (const other of domains.values()) {
+                if (other.error !== null)
+                    continue;
+                if (uniq(other.def.slotHosts).indexOf(slot) >= 0)
+                    hosts.push(other.def.id);
+            }
+            return { slot, hosts, missingHost: hosts.length === 0 };
+        });
+        return { contributes, renders };
+    }
     /** 取业务域的能力清单；未声明时回退到域描述，保留 action 列表供 agent 自行判断。 */
     function capabilityOf(rec) {
         const declared = rec.def.capability;
@@ -130,6 +158,12 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
             const cap = capabilityOf(rec);
             if (kind && !cap.records.some((r) => r.kind === kind))
                 continue;
+            const slots = slotInfo(rec);
+            for (const row of slots.contributes) {
+                if (row.missingHost) {
+                    cap.warnings.push("插槽 " + row.slot + " 暂无落点：没有已启用的插件提供该界面，这个贡献不会显示");
+                }
+            }
             out.push({
                 id: rec.def.id,
                 title: rec.def.title,
@@ -150,10 +184,25 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
                     primaryAction: r.primaryAction,
                 })),
                 taskOwnership: await taskTargets.get(rec),
+                slots,
                 warnings: cap.warnings,
             });
         }
         return { shellVersion: SHELL_VERSION, kind, domains: out };
+    }
+    /** 插槽明细的文字渲染：贡献方写明落点属主，落点方写明自己在渲染哪些插槽。 */
+    function renderSlotLine(slots) {
+        if (!slots)
+            return [];
+        const lines = [];
+        if (Array.isArray(slots.renders) && slots.renders.length) {
+            lines.push("  提供落点：" + slots.renders.join("、"));
+        }
+        if (Array.isArray(slots.contributes) && slots.contributes.length) {
+            const parts = slots.contributes.map((row) => row.hosts && row.hosts.length ? row.slot + " → " + row.hosts.join("、") : row.slot + "（暂无落点）");
+            lines.push("  贡献插槽：" + parts.join("；"));
+        }
+        return lines;
     }
     function renderCapabilityList(meta) {
         const lines = [
@@ -164,6 +213,7 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
             lines.push("  " + d.summary);
             if (d.taskOwnership)
                 lines.push(renderTaskTarget(d.taskOwnership));
+            lines.push(...renderSlotLine(d.slots));
             if (!d.records.length) {
                 lines.push("  （未声明能力清单；可用 action 见 actions.list）");
             }
@@ -206,6 +256,7 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
                 fields: cap.fields ?? [],
                 requires: cap.requires ?? [],
                 missingRequires: cap.missingRequires ?? [],
+                slots: slotInfo(rec),
             },
             source: cap.source,
             // capabilities.get 也是 agent 的发现入口：被本机关闭的 action 不列给它（ui 仍看全量）。
@@ -231,6 +282,7 @@ export function createCapabilities({ domains, SHELL_VERSION, actionEntry, taskTa
                     .map((id) => id + (missing.indexOf(id) >= 0 ? "（未安装）" : ""))
                     .join("、"));
         }
+        lines.push(...renderSlotLine(cap.slots));
         if (meta.source === "fallback") {
             lines.push("", "该域未声明能力清单；以下 action 仍可直接调用。");
         }

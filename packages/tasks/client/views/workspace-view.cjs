@@ -5,6 +5,17 @@
 "use strict";
 module.exports = function (deps) {
   var React = deps.React, h = React.createElement;
+  // 视图不自己 require：外壳工厂由入口注入，测试沙箱里也能只注入依赖。
+  var createOverlay = deps.createOverlay;
+  var FormOverlay = createOverlay({
+    React: React,
+    maskClass: "wbt-modal-mask",
+    dialogClass: "wbt-modal",
+    ariaLabelOf: function (props) {
+      return props.mode === "edit" ? props.t.formEdit : props.t.formCreate;
+    },
+    closeOnMask: false,
+  });
   // 视图本身不 require：图标由入口注入；测试里没传时退化为无图标，结构不变。
   var Icon = typeof deps.Icon === "function" ? deps.Icon : null;
   function icon(name, size) { return Icon ? h(Icon, { name: name, size: size || 13 }) : null; }
@@ -111,8 +122,7 @@ module.exports = function (deps) {
         props.onSaved(props.mode);
       }, function (e) { setBusy(false); setErr(String((e && e.message) || e)); });
     }
-    return h("div", { className: "wbt-modal-mask", role: "dialog", "aria-modal": "true", "aria-label": props.mode === "edit" ? t.formEdit : t.formCreate },
-      h("div", { className: "wbt-modal" },
+    return h(FormOverlay, { t: t, mode: props.mode, onClose: props.onCancel, closeOnMask: false },
         h("div", { className: "wbt-modal-head" }, h("h3", null, props.mode === "edit" ? t.formEdit : t.formCreate)),
         h("div", { className: "wbt-ws-fields" },
           h("input", { className: "wbt-input", value: draft.title, placeholder: t.fTitle, "aria-label": t.fTitle, onChange: field("title") }),
@@ -122,7 +132,7 @@ module.exports = function (deps) {
         err ? h("div", { className: "wbt-err", role: "alert" }, err) : null,
         h("div", { className: "wbt-modal-foot" },
           h("button", { className: "wbt-btn primary", type: "button", disabled: busy, onClick: submit }, t.save),
-          h("button", { className: "wbt-btn ghost", type: "button", onClick: props.onCancel }, t.cancel))));
+          h("button", { className: "wbt-btn ghost", type: "button", onClick: props.onCancel }, t.cancel)));
   }
 
   function WorkspaceView(props) {

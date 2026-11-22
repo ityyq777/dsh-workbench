@@ -1,5 +1,5 @@
 "use strict";
-/** 概览：5 张 KPI 卡、白名单 chips（允许/拒绝）、触发方式说明与新建入口。 */
+/** 概览：5 张 KPI 卡、允许/硬底线 chips、触发方式说明与新建入口。 */
 var C = require("../ui/common.cjs");
 var copy = require("../ui/copy.cjs");
 
@@ -33,14 +33,18 @@ function StatsBody(props) {
       h("div", { className: "wba-panel-h" },
         h("p", { className: "wba-panel-title" }, t("stats.allowed")),
         h("span", { className: "wba-hint" }, t("stats.allowedHint"))),
-      h("div", { className: "wba-pills" }, (props.actions || []).map(function (a) {
-        return h("span", { key: a, className: "wba-chip static" }, h("code", null, a));
-      }))),
+      (props.actions || []).length
+        ? h("div", { className: "wba-pills" }, (props.actions || []).map(function (a) {
+            return h("span", { key: a, className: "wba-chip static" }, h("code", null, a));
+          }))
+        : h("div", { className: "wba-empty-inline" },
+            h("p", { className: "wba-hint" }, t("stats.allowedEmpty")),
+            h(C.Btn, { h: h, onClick: props.onSettings }, t("stats.gotoSettings")))),
     h("div", { className: "wba-panel" },
       h("div", { className: "wba-panel-h" },
         h("p", { className: "wba-panel-title" }, t("stats.denied")),
         h("span", { className: "wba-hint" }, t("stats.deniedHint"))),
-      h("div", { className: "wba-pills" }, DENIED.map(function (a) {
+      h("div", { className: "wba-pills" }, (props.denied || DENIED).map(function (a) {
         return h("span", { key: a, className: "wba-chip static wba-mono" }, a);
       }))),
     h("div", { className: "wba-panel" },
@@ -68,11 +72,20 @@ module.exports = function StatsView(props) {
         h(C.Btn, { h: h, onClick: function () { stats.refresh(); opts.refresh(); } }, t("common.refresh")),
         h(C.Btn, { h: h, kind: "primary", onClick: function () { if (props.onNavigate) props.onNavigate("rules", { new: true }); } }, t("common.create")))),
     stats.error ? h(C.Notice, { h: h, kind: "error", text: stats.error }) : null,
+    s.staleCount ? h(C.Notice, { h: h, kind: "warn", text: t("stats.staleWarning", { n: s.staleCount }) }) : null,
     stats.loading
       ? h("div", { className: "wba-cards" }, [0, 1, 2, 3, 4].map(function (i) {
           return h("div", { key: i, className: "wba-card" }, h("div", { className: "wba-skel" }));
         }))
-      : h(StatsBody, { h: h, t: t, icon: props.icon, s: s, actions: (opts.data && opts.data.actions) || [] }));
+      : h(StatsBody, {
+          h: h,
+          t: t,
+          icon: props.icon,
+          s: s,
+          actions: (opts.data && opts.data.actions) || [],
+          denied: (opts.data && opts.data.denied) || DENIED,
+          onSettings: function () { if (props.onNavigate) props.onNavigate("config"); },
+        }));
 };
 
 module.exports.StatsBody = StatsBody;

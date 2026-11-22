@@ -15,4 +15,4 @@ module.exports = require("../../../lib/client-base-styles.cjs")("wbca").concat([
   ".wbca-icon-btn{border:0;background:transparent;color:var(--wb-muted,#6b7280);font-size:16px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}",
   ".wbca-icon-btn:hover{background:#fef2f2;color:#b91c1c}",
   ".wbca-ul{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.7}",
-]);
+], require("../../../lib/number-field.cjs").styles);

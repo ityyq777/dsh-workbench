@@ -499,9 +499,10 @@ var require_date_picker_styles = __commonJS({
   }
 });
 
-// packages/addons/tags/client/stats/charts.cjs
-var require_charts = __commonJS({
-  "packages/addons/tags/client/stats/charts.cjs"(exports2, module2) {
+// packages/addons/lib/stats-charts.cjs
+var require_stats_charts = __commonJS({
+  "packages/addons/lib/stats-charts.cjs"(exports2, module2) {
+    "use strict";
     var React2 = require("react");
     var h2 = React2.createElement;
     var DP = require_date_picker();
@@ -513,7 +514,7 @@ var require_charts = __commonJS({
       "var(--dsw-alias-state-done-primary, #7c5cff)",
       "var(--dsw-alias-state-idle-primary, #8f959e)"
     ];
-    function css(prefix) {
+    function css(prefix, extra) {
       return [
         ".@-stats{display:flex;flex-direction:column;gap:14px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary,#1f2329)}",
         ".@-stoolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
@@ -527,22 +528,13 @@ var require_charts = __commonJS({
         ".@-clear{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:14px;line-height:1;padding:2px 4px;cursor:pointer;border-radius:4px}",
         ".@-clear:hover{color:var(--dsw-alias-state-error-primary,#d9534f);background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
         ".@-hint{font-size:11px;color:var(--dsw-alias-state-error-primary,#d9534f);white-space:nowrap}",
-        ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer}",
+        ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit}",
+        ".@-ghost:disabled{opacity:.6;cursor:progress}",
+        ".@-ico{display:block;flex:none}",
+        ".@-kpi-l .@-ico{opacity:.7}",
         ".@-ghost:hover{border-color:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-brand-primary,#4f6ef7)}",
         ".@-muted{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
         ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
-        ".@-stats-columns{display:flex;gap:12px;align-items:flex-start}",
-        ".@-top-column{flex:0 0 32%;min-width:0}.@-stats-main{flex:1;min-width:0}",
-        ".@-top-scroll{max-height:min(64vh,720px);overflow-y:auto;overscroll-behavior:contain}",
-        ".@-top-head,.@-top-row{display:grid;grid-template-columns:28px minmax(0,1fr) 44px;gap:6px;align-items:center;height:28px;box-sizing:border-box;font-size:12px;text-align:left}",
-        ".@-top-head{position:sticky;top:0;z-index:1;background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-tertiary,#8f959e);border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb)}",
-        ".@-top-row{appearance:none;width:100%;padding:0;border:0;background:transparent;color:inherit;cursor:pointer;font-family:inherit}",
-        ".@-top-row:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5)}.@-top-row:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:-2px}",
-        ".@-top-name{position:relative;min-width:0;height:24px;line-height:24px}.@-top-label{position:relative;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-        ".@-top-fill{position:absolute;left:0;top:3px;bottom:3px;border-radius:3px;background:color-mix(in srgb,var(--dsw-alias-brand-primary,#4f6ef7) 14%,transparent)}",
-        ".@-top-rank{color:var(--dsw-alias-label-tertiary,#8f959e);font-variant-numeric:tabular-nums}.@-top-count{text-align:right;font-variant-numeric:tabular-nums}",
-        ".@-stats-main>.@-span-6:first-child{grid-column:span 12}",
-        "@media(max-width:900px){.@-stats-columns{flex-direction:column}.@-top-column,.@-stats-main{width:100%;flex:auto}}",
         ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
         ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
         ".@-chead{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}",
@@ -562,7 +554,6 @@ var require_charts = __commonJS({
         ".@-legend{display:flex;flex-direction:column;gap:7px;min-width:120px;flex:1}",
         ".@-leg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dsw-alias-label-secondary,#646a73)}",
         ".@-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}",
-        ".@-leg-note{font-style:normal;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);margin-left:2px}",
         ".@-leg b{margin-left:auto;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
         ".@-bars{display:flex;flex-direction:column;gap:9px}",
         ".@-bar{display:grid;grid-template-columns:minmax(72px,1.2fr) 3fr auto;gap:8px;align-items:center;font-size:12px}",
@@ -582,6 +573,14 @@ var require_charts = __commonJS({
         ".@-hbar-l{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}",
         ".@-trend{width:100%;height:auto;display:block}",
         ".@-tlegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-trend-wrap{position:relative}",
+        ".@-trend-hit{fill:transparent}",
+        ".@-trend-slot{fill:transparent;cursor:crosshair}",
+        ".@-trend-cross{stroke:var(--dsw-alias-border-l2,#e5e6eb);stroke-width:1;stroke-dasharray:3 3}",
+        ".@-tlegend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-tleg-item{appearance:none;border:0;background:transparent;color:inherit;font:inherit;display:inline-flex;align-items:center;gap:5px;padding:2px 4px;border-radius:5px;cursor:pointer}",
+        ".@-tleg-item.off{opacity:.45;text-decoration:line-through}",
+        ".@-tleg-item:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
         ".@-table-scroll{max-width:100%;overflow-x:auto}.@-table{width:100%;border-collapse:collapse;font-size:12px}",
         ".@-table th{text-align:left;font-weight:500;color:var(--dsw-alias-label-tertiary,#8f959e);padding:6px 8px;border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb);white-space:nowrap}",
         ".@-table td{padding:7px 8px;border-bottom:1px solid var(--dsw-alias-border-l1,#f2f3f5);color:var(--dsw-alias-label-secondary,#646a73);vertical-align:top}",
@@ -594,16 +593,17 @@ var require_charts = __commonJS({
         "@keyframes @-pulse{0%,100%{opacity:.55}50%{opacity:1}}",
         "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}",
         "@media (max-width:600px){.@-stats{padding-bottom:16px}.@-hist{height:130px}.@-kpi-v{font-size:22px}}",
-        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}",
-        require_date_picker_styles()(prefix)
-      ].join("\n").replace(/@-/g, prefix + "-");
+        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}"
+      ].concat(extra || []).concat([require_date_picker_styles()(prefix)]).join("\n").replace(/@-/g, prefix + "-");
     }
-    function makeCharts(prefix) {
-      if (typeof document !== "undefined" && !document.getElementById(prefix + "-charts-css")) {
-        var el = document.createElement("style");
-        el.id = prefix + "-charts-css";
-        el.textContent = css(prefix);
-        document.head.appendChild(el);
+    function primitives(prefix, options) {
+      var opts = options || {};
+      var ICONS = opts.icons || {};
+      var showNote = !!opts.showNote;
+      function ico(name, size) {
+        var C = ICONS[name];
+        if (!C) return null;
+        return h2(C, { size: size || 13, strokeWidth: 2, "aria-hidden": "true", className: prefix + "-ico" });
       }
       function num(lang, n) {
         var v = Number(n);
@@ -654,7 +654,7 @@ var require_charts = __commonJS({
         return h2(
           "div",
           { className: prefix + "-kpi" + tone },
-          h2("div", { className: prefix + "-kpi-l" }, props.label),
+          h2("div", { className: prefix + "-kpi-l" }, ico(props.icon, 13), props.label),
           h2(
             "div",
             { className: prefix + "-kpi-v" },
@@ -663,9 +663,6 @@ var require_charts = __commonJS({
           ),
           props.hint ? h2("div", { className: prefix + "-kpi-h" }, props.hint) : null
         );
-      }
-      function donutTitle(d) {
-        return d.label + "\uFF1A" + d.count + (d.note ? "\uFF08" + d.note + "\uFF09" : "");
       }
       function Donut(props) {
         var data = (props.data || []).filter(function(d) {
@@ -700,7 +697,7 @@ var require_charts = __commonJS({
                 strokeDashoffset: -offset,
                 transform: "rotate(-90 " + size / 2 + " " + size / 2 + ")",
                 strokeLinecap: "butt"
-              }, h2("title", null, donutTitle(d)));
+              }, h2("title", null, d.label + "\uFF1A" + d.count + (showNote && d.note ? "\uFF08" + d.note + "\uFF09" : "")));
               offset += len;
               return seg;
             }) : null,
@@ -712,7 +709,7 @@ var require_charts = __commonJS({
               "div",
               { key: d.key || d.label || i, className: prefix + "-leg" },
               h2("span", { className: prefix + "-dot", style: { background: d.color || COLORS[i % COLORS.length] } }),
-              h2("span", null, d.label, d.note ? h2("i", { className: prefix + "-leg-note" }, "\xB7 " + d.note) : null),
+              h2("span", null, d.label, showNote && d.note ? h2("i", { className: prefix + "-leg-note" }, "\xB7 " + d.note) : null),
               h2("b", null, num(props.lang, d.count))
             );
           }))
@@ -756,83 +753,181 @@ var require_charts = __commonJS({
           );
         }));
       }
+      function useWidth() {
+        if (typeof React2.useRef !== "function" || typeof React2.useEffect !== "function") return [null, 0];
+        var state = React2.useState(0);
+        var ref = React2.useRef(null);
+        var setWidth = state[1];
+        var useIso = React2.useLayoutEffect || React2.useEffect;
+        useIso(function() {
+          var node = ref.current;
+          if (!node) return void 0;
+          function read() {
+            var w = node.clientWidth || 0;
+            if (w > 0) setWidth(w);
+          }
+          read();
+          if (typeof ResizeObserver === "undefined") return void 0;
+          var ro = new ResizeObserver(read);
+          ro.observe(node);
+          return function() {
+            ro.disconnect();
+          };
+        }, []);
+        return [ref, state[0]];
+      }
       function Trend(props) {
         var data = props.data || [];
         var series = props.series || [];
-        var width = 640;
+        var lang = props.lang;
+        var fmt = typeof props.format === "function" ? props.format : function(v) {
+          return num(lang, v);
+        };
+        var visible = props.visible || null;
+        var shown = series.filter(function(s) {
+          return !visible || visible[s.key] !== false;
+        });
+        if (!data.length) return h2("div", { className: prefix + "-empty" }, props.emptyText || "\u6682\u65E0\u6570\u636E");
+        var size = useWidth();
+        var width = Math.max(260, size[1] || props.width || 640);
         var height = props.height || 200;
-        var left = 30, right = 10, top = 12, bottom = 24;
+        var left = props.left || 60, right = 12, top = 14, bottom = 26;
         var pw = width - left - right, ph = height - top - bottom;
-        var max = 1;
+        var max = 0;
         data.forEach(function(d) {
-          series.forEach(function(s) {
-            max = Math.max(max, Number(d[s.key] || 0));
+          shown.forEach(function(s) {
+            max = Math.max(max, Math.abs(Number(d[s.key] || 0)));
           });
         });
-        max = Math.ceil(max * 1.15) || 1;
+        var raw = Math.max(max, 1) / 4;
+        var exp = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+        var norm = raw / exp;
+        var mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+        var step = mult * exp;
+        var axisMax = step * 4;
         function x(i2) {
           return left + (data.length <= 1 ? pw / 2 : i2 / (data.length - 1) * pw);
         }
         function y(v) {
-          return top + ph - Number(v || 0) / max * ph;
+          return top + ph - Math.max(0, Number(v) || 0) / axisMax * ph;
         }
-        var ticks = [];
-        for (var t = 0; t <= 3; t++) ticks.push(Math.round(max / 3 * t));
+        var active = typeof props.active === "number" ? props.active : null;
+        var band = data.length > 1 ? pw / (data.length - 1) : pw;
         var labelIdx = [];
-        if (data.length) {
-          var step = Math.max(1, Math.floor(data.length / 5));
-          for (var i = 0; i < data.length; i += step) labelIdx.push(i);
-          if (labelIdx[labelIdx.length - 1] !== data.length - 1) labelIdx.push(data.length - 1);
-        }
-        var aria = series.map(function(s) {
+        var labelStep = Math.max(1, Math.ceil(data.length / 8));
+        for (var i = 0; i < data.length; i += labelStep) labelIdx.push(i);
+        if (labelIdx[labelIdx.length - 1] !== data.length - 1) labelIdx.push(data.length - 1);
+        var aria = props.aria || shown.map(function(s) {
           return s.label + " " + data.reduce(function(n, d) {
             return n + Number(d[s.key] || 0);
           }, 0);
         }).join("\uFF0C");
+        var ticks = [];
+        for (var t = 0; t <= 4; t++) ticks.push(step * t);
+        var children = [];
+        if (typeof props.onHover === "function") {
+          children.push(h2("rect", {
+            key: "hit-area",
+            x: left,
+            y: top,
+            width: pw,
+            height: ph,
+            className: prefix + "-trend-hit",
+            onMouseLeave: function() {
+              props.onHover(null);
+            }
+          }));
+          data.forEach(function(d, di) {
+            children.push(h2("rect", {
+              key: "hit" + di,
+              x: x(di) - band / 2,
+              y: top,
+              width: band,
+              height: ph,
+              className: prefix + "-trend-slot",
+              onMouseEnter: function() {
+                props.onHover(di);
+              }
+            }));
+          });
+        }
+        ticks.forEach(function(v, ti) {
+          children.push(h2(
+            "g",
+            { key: "t" + ti },
+            h2("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
+            h2("text", { x: left - 8, y: y(v) + 3, textAnchor: "end", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, fmt(v))
+          ));
+        });
+        if (active !== null && data[active]) {
+          children.push(h2("line", {
+            key: "cross",
+            x1: x(active),
+            y1: top,
+            x2: x(active),
+            y2: top + ph,
+            className: prefix + "-trend-cross"
+          }));
+        }
+        shown.forEach(function(s, si) {
+          var color = s.color || COLORS[series.indexOf(s) % COLORS.length];
+          var pts = data.map(function(d, di) {
+            return x(di) + "," + y(d[s.key]);
+          }).join(" ");
+          if (data.length > 1) {
+            children.push(h2("polyline", {
+              key: "line" + s.key,
+              points: pts,
+              fill: "none",
+              stroke: color,
+              strokeWidth: 2,
+              strokeLinejoin: "round",
+              strokeLinecap: "round",
+              // className 供插件用自有色调样式挂靠，也方便测试按系列归类
+              className: prefix + "-trend-line" + (s.className ? " " + s.className : "")
+            }));
+          }
+          data.forEach(function(d, di) {
+            children.push(h2("circle", {
+              key: "dot" + s.key + di,
+              cx: x(di),
+              cy: y(d[s.key]),
+              fill: color,
+              r: di === active ? 5 : 3,
+              className: prefix + "-trend-dot" + (di === active ? " is-hot" : "")
+            }, h2("title", null, labelOf(d, di) + " \xB7 " + s.label + " " + fmt(d[s.key]) + (props.note ? " \xB7 " + props.note(d) : ""))));
+          });
+        });
+        function labelOf(d, di) {
+          if (typeof props.label === "function") return props.label(d, di);
+          return String(d.bucket === void 0 ? di + 1 : d.bucket).slice(5);
+        }
+        labelIdx.forEach(function(di) {
+          children.push(h2("text", { key: "x" + di, x: x(di), y: height - 8, textAnchor: "middle", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, labelOf(data[di], di)));
+        });
+        var legend = props.showLegend === false ? null : h2("div", { className: prefix + "-tlegend" }, series.map(function(s, si) {
+          var off = !!(visible && visible[s.key] === false);
+          var color = s.color || COLORS[si % COLORS.length];
+          var inner = [h2("span", { key: "d", className: prefix + "-dot", style: { background: color } }), s.label];
+          if (typeof props.onToggle !== "function") {
+            return h2("span", { key: s.key, className: prefix + "-tleg-item" + (off ? " off" : "") }, inner);
+          }
+          return h2("button", {
+            key: s.key,
+            type: "button",
+            className: prefix + "-tleg-item" + (off ? " off" : ""),
+            "aria-pressed": !off,
+            title: (off ? "\u663E\u793A" : "\u9690\u85CF") + s.label,
+            onClick: function() {
+              props.onToggle(s.key);
+            }
+          }, inner);
+        }));
         return h2(
           "div",
-          null,
-          h2(
-            "svg",
-            { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": props.aria || aria },
-            ticks.map(function(v, i2) {
-              return h2(
-                "g",
-                { key: "t" + i2 },
-                h2("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
-                h2("text", { x: left - 5, y: y(v) + 3, textAnchor: "end", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, num(props.lang, v))
-              );
-            }),
-            series.map(function(s, si) {
-              var pts = data.map(function(d, i2) {
-                return x(i2) + "," + y(d[s.key]);
-              }).join(" ");
-              return h2(
-                "g",
-                { key: s.key },
-                h2("polyline", { points: pts, fill: "none", stroke: s.color || COLORS[si % COLORS.length], strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round" }),
-                data.map(function(d, i2) {
-                  if (data.length > 40 && i2 % 3 !== 0) return null;
-                  return h2(
-                    "circle",
-                    { key: i2, cx: x(i2), cy: y(d[s.key]), r: 2.4, fill: s.color || COLORS[si % COLORS.length] },
-                    h2("title", null, d.bucket + "\uFF1A" + s.label + " " + (d[s.key] || 0))
-                  );
-                })
-              );
-            }),
-            labelIdx.map(function(i2) {
-              return h2("text", { key: "x" + i2, x: x(i2), y: height - 6, textAnchor: "middle", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i2].bucket).slice(5));
-            })
-          ),
-          h2("div", { className: prefix + "-tlegend" }, series.map(function(s, i2) {
-            return h2(
-              "span",
-              { key: s.key, style: { display: "inline-flex", alignItems: "center", gap: 5 } },
-              h2("span", { className: prefix + "-dot", style: { background: s.color || COLORS[i2 % COLORS.length] } }),
-              s.label
-            );
-          }))
+          { className: prefix + "-trend-wrap", ref: size[0] },
+          h2("svg", { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, width, height, role: "img", "aria-label": aria }, children),
+          legend
         );
       }
       function Histogram(props) {
@@ -925,7 +1020,7 @@ var require_charts = __commonJS({
             }, "\xD7") : null
           ),
           props.customHint ? h2("span", { className: prefix + "-hint", role: "status" }, props.customHint) : null,
-          h2("button", { type: "button", className: prefix + "-ghost", disabled: !!props.loading, onClick: props.onRefresh }, props.refreshLabel || "\u5237\u65B0"),
+          h2("button", { type: "button", className: prefix + "-ghost", disabled: !!props.loading, onClick: props.onRefresh }, ico("refresh", 13), props.refreshLabel || "\u5237\u65B0"),
           h2("span", { className: prefix + "-muted" }, props.generatedAt ? (props.timeLabel || "\u622A\u81F3") + " " + timeText(props.generatedAt) : ""),
           props.right ? h2("span", { style: { marginLeft: "auto" } }, props.right) : null
         );
@@ -988,10 +1083,301 @@ var require_charts = __commonJS({
         pct,
         timeText,
         dateText,
-        colors: COLORS
+        colors: COLORS,
+        useWidth
       };
     }
-    module2.exports = { makeCharts };
+    function makeCharts(prefix, options) {
+      var opts = options || {};
+      if (typeof document !== "undefined" && !document.getElementById(prefix + "-charts-css")) {
+        var el = document.createElement("style");
+        el.id = prefix + "-charts-css";
+        el.textContent = css(prefix, opts.styles);
+        document.head.appendChild(el);
+      }
+      return primitives(prefix, opts);
+    }
+    module2.exports = { makeCharts, primitives, css, colors: COLORS };
+  }
+});
+
+// packages/addons/tags/client/stats/charts.cjs
+var require_charts = __commonJS({
+  "packages/addons/tags/client/stats/charts.cjs"(exports2, module2) {
+    "use strict";
+    var lib = require_stats_charts();
+    var EXTRA_STYLES = [
+      ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer}",
+      ".@-stats-columns{display:flex;gap:12px;align-items:flex-start}",
+      ".@-top-column{flex:0 0 32%;min-width:0}.@-stats-main{flex:1;min-width:0}",
+      ".@-top-scroll{max-height:min(64vh,720px);overflow-y:auto;overscroll-behavior:contain}",
+      ".@-top-head,.@-top-row{display:grid;grid-template-columns:28px minmax(0,1fr) 44px;gap:6px;align-items:center;height:28px;box-sizing:border-box;font-size:12px;text-align:left}",
+      ".@-top-head{position:sticky;top:0;z-index:1;background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-tertiary,#8f959e);border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb)}",
+      ".@-top-row{appearance:none;width:100%;padding:0;border:0;background:transparent;color:inherit;cursor:pointer;font-family:inherit}",
+      ".@-top-row:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5)}.@-top-row:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4f6ef7);outline-offset:-2px}",
+      ".@-top-name{position:relative;min-width:0;height:24px;line-height:24px}.@-top-label{position:relative;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".@-top-fill{position:absolute;left:0;top:3px;bottom:3px;border-radius:3px;background:color-mix(in srgb,var(--dsw-alias-brand-primary,#4f6ef7) 14%,transparent)}",
+      ".@-top-rank{color:var(--dsw-alias-label-tertiary,#8f959e);font-variant-numeric:tabular-nums}.@-top-count{text-align:right;font-variant-numeric:tabular-nums}",
+      ".@-stats-main>.@-span-6:first-child{grid-column:span 12}",
+      ".@-leg-note{font-style:normal;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);margin-left:2px}",
+      // ghost 按钮在本页沿用原inline-block外观，避免基件的 inline-flex 改变基线对齐。
+      ".@-ghost{display:inline-block}"
+    ];
+    module2.exports = {
+      colors: lib.colors,
+      makeCharts: function(prefix) {
+        return lib.makeCharts(prefix, { styles: EXTRA_STYLES, showNote: true });
+      }
+    };
+  }
+});
+
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
+    ];
+    function Switch(props) {
+      var h2 = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h2(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h2(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h2("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h2("span", { className: "wbctl-switch-text" }, text) : null
+      );
+    }
+    module2.exports = { Switch, styles: SWITCH_STYLES };
+  }
+});
+
+// packages/addons/lib/number-field.cjs
+var require_number_field = __commonJS({
+  "packages/addons/lib/number-field.cjs"(exports2, module2) {
+    "use strict";
+    var React2 = require("react");
+    var NUM = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    var TEXT = {
+      zh: {
+        required: "\u8BF7\u586B\u5199\u6570\u5B57",
+        invalid: "\u8BF7\u8F93\u5165\u6570\u5B57",
+        integer: "\u9700\u8981\u662F\u6574\u6570",
+        min: "\u4E0D\u80FD\u5C0F\u4E8E {min}",
+        max: "\u4E0D\u80FD\u5927\u4E8E {max}",
+        range: "\u9700\u8981\u5728 {min}\u2013{max} \u4E4B\u95F4",
+        step: "\u9700\u8981\u662F {step} \u7684\u500D\u6570",
+        unit: "\u5355\u4F4D"
+      },
+      en: {
+        required: "Please enter a number",
+        invalid: "Please enter a number",
+        integer: "Must be a whole number",
+        min: "Must be at least {min}",
+        max: "Must be at most {max}",
+        range: "Must be between {min} and {max}",
+        step: "Must be a multiple of {step}",
+        unit: "unit"
+      }
+    };
+    function messages(lang) {
+      return lang === "en" ? TEXT.en : TEXT.zh;
+    }
+    function fill(text, vars) {
+      return String(text).replace(/\{(\w+)\}/g, function(m, key) {
+        return vars && vars[key] !== void 0 ? String(vars[key]) : m;
+      });
+    }
+    function validateNumber(raw, opts) {
+      var o = opts || {};
+      var M = messages(o.lang);
+      var text = raw === null || raw === void 0 ? "" : String(raw).trim();
+      if (text === "") {
+        return o.allowEmpty ? { ok: true, value: null, error: "" } : { ok: false, value: null, error: M.required };
+      }
+      if (!NUM.test(text)) return { ok: false, value: null, error: M.invalid };
+      var n = Number(text);
+      if (!isFinite(n)) return { ok: false, value: null, error: M.invalid };
+      if (o.integer && Math.round(n) !== n) return { ok: false, value: null, error: M.integer };
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      if (hasMin && hasMax && n >= o.min && n <= o.max) {
+      } else if (hasMin && hasMax) {
+        return { ok: false, value: null, error: fill(M.range, { min: o.min, max: o.max }) };
+      } else if (hasMin && n < o.min) {
+        return { ok: false, value: null, error: fill(M.min, { min: o.min }) };
+      } else if (hasMax && n > o.max) {
+        return { ok: false, value: null, error: fill(M.max, { max: o.max }) };
+      }
+      if (o.step && Number(o.step) > 0) {
+        var q = n / Number(o.step);
+        if (Math.abs(q - Math.round(q)) > 1e-9) {
+          return { ok: false, value: null, error: fill(M.step, { step: o.step }) };
+        }
+      }
+      return { ok: true, value: n, error: "" };
+    }
+    function rangeHint(opts, lang) {
+      var o = opts || {};
+      var M = messages(lang);
+      var en = lang === "en";
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      var parts = [];
+      if (hasMin && hasMax) parts.push(String(o.min) + "\u2013" + String(o.max));
+      else if (hasMin) parts.push((en ? "\u2265 " : "\u2265 ") + String(o.min));
+      else if (hasMax) parts.push((en ? "\u2264 " : "\u2264 ") + String(o.max));
+      if (o.integer) parts.push(en ? "whole numbers" : "\u6574\u6570");
+      else if (o.step && Number(o.step) > 0) parts.push((en ? "step " : "\u6B65\u957F ") + String(o.step));
+      return parts.join(en ? ", " : "\uFF0C");
+    }
+    function NumberField(props) {
+      var h2 = props.h || React2.createElement;
+      var lang = props.lang;
+      var M = messages(lang);
+      var text = props.value === null || props.value === void 0 ? "" : String(props.value);
+      var draftS = React2.useState(text);
+      var draft = draftS[0];
+      var setDraft = draftS[1];
+      var focusS = React2.useState(false);
+      var focused = focusS[0];
+      var setFocused = focusS[1];
+      var errS = React2.useState("");
+      var err = errS[0];
+      var setErr = errS[1];
+      var lastRef = React2.useRef(text);
+      var skipBlurRef = React2.useRef(false);
+      React2.useEffect(
+        function() {
+          if (focused) return;
+          if (lastRef.current === text) return;
+          lastRef.current = text;
+          setDraft(text);
+          setErr("");
+        },
+        [text, focused]
+      );
+      function commit(raw) {
+        var r = validateNumber(raw, props);
+        if (!r.ok) {
+          setErr(r.error);
+          if (typeof props.onValidChange === "function") props.onValidChange(false, r.error);
+          return false;
+        }
+        setErr("");
+        if (typeof props.onValidChange === "function") props.onValidChange(true, "");
+        var cur = props.value === null || props.value === void 0 ? null : Number(props.value);
+        if (r.value !== cur) {
+          lastRef.current = r.value === null ? "" : String(r.value);
+          if (typeof props.onCommit === "function") props.onCommit(r.value);
+        }
+        return true;
+      }
+      var hint = props.hint !== void 0 ? props.hint : rangeHint(props, lang);
+      var shown = props.hint === false ? "" : hint;
+      return h2(
+        "span",
+        { className: "wbctl-num" + (props.wide ? " is-wide" : "") + (props.className ? " " + props.className : "") },
+        h2(
+          "span",
+          { className: "wbctl-num-box" },
+          h2("input", {
+            className: "wbctl-num-input" + (err ? " is-invalid" : ""),
+            type: "text",
+            inputMode: props.integer || Number(props.step) === 1 ? "numeric" : "decimal",
+            value: draft,
+            disabled: !!props.disabled,
+            placeholder: props.placeholder,
+            title: props.title,
+            "aria-label": props.ariaLabel,
+            "aria-invalid": err ? "true" : void 0,
+            onFocus: function() {
+              setFocused(true);
+            },
+            onChange: function(e) {
+              setDraft(e.target.value);
+              if (err) setErr("");
+              if (typeof props.onDraft === "function") props.onDraft(e.target.value);
+            },
+            onBlur: function() {
+              setFocused(false);
+              if (skipBlurRef.current) {
+                skipBlurRef.current = false;
+                return;
+              }
+              commit(draft);
+            },
+            onKeyDown: function(e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.target && e.target.blur) e.target.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                skipBlurRef.current = true;
+                setDraft(text);
+                setErr("");
+                if (e.target && e.target.blur) e.target.blur();
+              }
+            }
+          }),
+          props.unit ? h2("span", { className: "wbctl-num-unit" }, props.unit) : null
+        ),
+        err ? h2("span", { className: "wbctl-num-err", role: "alert" }, err) : shown ? h2("span", { className: "wbctl-num-hint" }, shown) : null
+      );
+    }
+    var NUMBER_STYLES = [
+      ".wbctl-num{display:inline-flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}",
+      ".wbctl-num.is-wide{display:flex;width:100%}",
+      ".wbctl-num-box{display:inline-flex;align-items:center;gap:6px;min-width:0}",
+      ".wbctl-num-input{box-sizing:border-box;width:96px;min-width:0;padding:6px 9px;border:1px solid var(--wb-line,rgba(127,127,127,.35));border-radius:6px;background:var(--wb-surface,var(--wb-card,transparent));color:inherit;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,outline-color .14s ease}",
+      ".wbctl-num-input:hover:not(:disabled){border-color:var(--wb-border,var(--wb-line))}",
+      ".wbctl-num-input:focus{outline:2px solid color-mix(in oklab,var(--wb-accent,#2563eb) 55%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbctl-num-input.is-invalid{border-color:var(--wb-danger,#dc2626)}",
+      ".wbctl-num-input.is-invalid:focus{outline-color:color-mix(in oklab,var(--wb-danger,#dc2626) 55%,transparent)}",
+      ".wbctl-num-input:disabled{opacity:.5;cursor:not-allowed}",
+      ".wbctl-num-unit{color:var(--wb-muted,inherit);font-size:12px;white-space:nowrap}",
+      ".wbctl-num-hint{color:var(--wb-muted,inherit);font-size:11px;line-height:1.4}",
+      ".wbctl-num-err{color:var(--wb-danger,#dc2626);font-size:11px;line-height:1.4}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-num-input{transition:none}}"
+    ];
+    module2.exports = {
+      NumberField,
+      validateNumber,
+      rangeHint,
+      messages,
+      styles: NUMBER_STYLES
+    };
   }
 });
 
@@ -1000,6 +1386,8 @@ var require_config = __commonJS({
   "packages/addons/tags/client/views/config.cjs"(exports2, module2) {
     var React2 = require("react");
     var h2 = React2.createElement;
+    var SW = require_switch();
+    var NF = require_number_field();
     var DOMAIN = "tags";
     var PREFIX = "wbg";
     var COPY = {
@@ -1074,13 +1462,6 @@ var require_config = __commonJS({
       ".__P__-cfg-select:focus,.__P__-cfg-input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
       ".__P__-cfg-select{min-width:152px;padding-right:10px}",
       ".__P__-cfg-input{width:132px}",
-      ".__P__-cfg-switch{position:relative;display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--cfg-muted);user-select:none}",
-      ".__P__-cfg-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-      ".__P__-cfg-track{position:relative;width:38px;height:22px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-      ".__P__-cfg-track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track::after{transform:translateX(16px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-      ".__P__-cfg-switch input:focus-visible+.__P__-cfg-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
       ".__P__-cfg-multi{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%}",
       ".__P__-cfg-multi label{position:relative;display:inline-flex;align-items:center;padding:5px 11px;border:1px solid var(--cfg-line);border-radius:999px;font-size:12px;color:var(--cfg-muted);cursor:pointer;line-height:1.4;transition:color .12s ease,border-color .12s ease,background .12s ease}",
       ".__P__-cfg-multi label:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
@@ -1105,8 +1486,8 @@ var require_config = __commonJS({
       ".__P__-cfg-empty{border:1px dashed var(--cfg-line);border-radius:14px;padding:40px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
       ".__P__-cfg-error{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:10px 13px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12.5px;line-height:1.5}",
       "@media (max-width:820px){.__P__-cfg-row{grid-template-columns:1fr;gap:10px;padding:13px 16px}.__P__-cfg-control{justify-content:flex-start}.__P__-cfg-multi{justify-content:flex-start}.__P__-cfg-gtitle{padding:11px 16px}}",
-      "@media (prefers-reduced-motion:reduce){.__P__-cfg-track,.__P__-cfg-track::after,.__P__-cfg-sk{animation:none;transition:none}}"
-    ].join("\n").split("__P__").join(PREFIX);
+      "@media (prefers-reduced-motion:reduce){.__P__-cfg-sk{animation:none;transition:none}}"
+    ].concat(SW.styles).concat(NF.styles).join("\n").split("__P__").join(PREFIX);
     function injectCss() {
       if (typeof document === "undefined") return;
       var old = document.getElementById("wb-addon-" + DOMAIN + "-config-css");
@@ -1189,8 +1570,6 @@ var require_config = __commonJS({
       var notice = noticeS[0], setNotice = noticeS[1];
       var savingS = React2.useState("");
       var savingId = savingS[0], setSavingId = savingS[1];
-      var draftsS = React2.useState({});
-      var drafts = draftsS[0], setDrafts = draftsS[1];
       var busyS = React2.useState(false);
       var busy = busyS[0], setBusy = busyS[1];
       React2.useEffect(function() {
@@ -1276,38 +1655,20 @@ var require_config = __commonJS({
           setNotice({ id: "", text: String(e && e.message || e), error: true });
         });
       }
-      function commitDraft(item) {
-        var raw = drafts[item.id];
-        if (raw === void 0) return;
-        var next = String(raw).trim();
-        setDrafts(function(prev) {
-          var copy = Object.assign({}, prev);
-          delete copy[item.id];
-          return copy;
-        });
-        if (next === "") return;
-        var value = Number(next);
-        if (!Number.isFinite(value)) return;
-        if (sameValue(value, state.values[item.id])) return;
-        save(item.id, value);
-      }
       function renderControl(item) {
         var value = state.values[item.id];
         var label = lang === "en" ? item.en : item.zh;
         if (item.type === "bool") {
-          return h2(
-            "label",
-            { className: PREFIX + "-cfg-switch" },
-            h2("input", {
-              type: "checkbox",
-              checked: value === true,
-              onChange: function(e) {
-                save(item.id, e.target.checked);
-              }
-            }),
-            h2("span", { className: PREFIX + "-cfg-track", "aria-hidden": "true" }),
-            h2("span", { className: PREFIX + "-cfg-switchstate" }, value === true ? t.on : t.off)
-          );
+          return h2(SW.Switch, {
+            h: h2,
+            checked: value === true,
+            showState: true,
+            onText: t.on,
+            offText: t.off,
+            onChange: function(next) {
+              save(item.id, next);
+            }
+          });
         }
         if (item.type === "enum") {
           return h2("select", {
@@ -1324,30 +1685,16 @@ var require_config = __commonJS({
           }));
         }
         if (item.type === "int") {
-          var draft = drafts[item.id] !== void 0 ? drafts[item.id] : String(value);
-          return h2("input", {
-            className: PREFIX + "-cfg-input",
-            type: "number",
-            value: draft,
+          return h2(NF.NumberField, {
+            h: h2,
+            lang,
+            value: value === void 0 ? "" : value,
             min: item.min,
             max: item.max,
-            "aria-label": label,
-            onChange: function(e) {
-              var v = e.target.value;
-              setDrafts(function(prev) {
-                var c = Object.assign({}, prev);
-                c[item.id] = v;
-                return c;
-              });
-            },
-            onBlur: function() {
-              commitDraft(item);
-            },
-            onKeyDown: function(e) {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                commitDraft(item);
-              }
+            integer: true,
+            ariaLabel: label,
+            onCommit: function(next) {
+              save(item.id, next);
             }
           });
         }
@@ -2180,13 +2527,6 @@ var require_data_style = __commonJS({
         "." + P + "-search input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
         "." + P + "-select{border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;outline:none}",
         "." + P + "-select:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
-        "." + P + "-switch{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--cfg-muted);user-select:none;padding:4px 2px}",
-        "." + P + "-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-        "." + P + "-track{position:relative;width:34px;height:20px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-        "." + P + "-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-        "." + P + "-switch input:checked+." + P + "-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-        "." + P + "-switch input:checked+." + P + "-track::after{transform:translateX(14px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-        "." + P + "-switch input:focus-visible+." + P + "-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
         "." + P + "-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cfg-line);background:transparent;color:var(--cfg-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}",
         "." + P + "-btn:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
         "." + P + "-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
@@ -2215,8 +2555,8 @@ var require_data_style = __commonJS({
         "." + P + "-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;font-size:11.5px;color:var(--cfg-muted)}",
         "." + P + "-grow{flex:1}",
         "." + P + "-pageinfo{font-variant-numeric:tabular-nums}",
-        "." + P + "-jump{width:56px;border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:7px;padding:4px 7px;font:inherit;font-size:11.5px;text-align:right;outline:none}",
-        "." + P + "-jump:focus{border-color:var(--dsw-alias-brand-primary,currentColor)}",
+        "." + P + "-jump .wbctl-num-input{width:56px;padding:4px 7px;font-size:11.5px;text-align:right}",
+        "." + P + "-jump .wbctl-num-hint{display:none}",
         "." + P + "-empty{border:1px dashed var(--cfg-line);border-radius:11px;padding:44px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
         "." + P + "-err{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:9px 12px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12px;line-height:1.5}",
         "." + P + "-skwrap{display:flex;flex-direction:column;gap:1px;padding:2px}",
@@ -2254,7 +2594,7 @@ var require_data_style = __commonJS({
         "." + P + "-images img{width:36px;height:36px;object-fit:cover;border-radius:5px}",
         "." + P + "-gallery{display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}",
         "." + P + "-gallery img{width:100%;height:auto;object-fit:contain;border-radius:8px}"
-      ].join("\n");
+      ].concat(require_switch().styles).concat(require_number_field().styles).join("\n");
       if (DOMAIN === "storage") {
         var buttons = "." + P + " :is(button)";
         CSS += buttons + "{border:none;background:var(--wb-btn-bg);min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm)}" + buttons + ":enabled:hover{background:var(--wb-btn-hover-bg)}" + buttons + ":enabled:active{background:var(--wb-btn-active-bg)}" + buttons + ":disabled{background:var(--wb-btn-bg);color:var(--cfg-muted)}" + buttons + ":focus-visible{outline:var(--wb-btn-focus);outline-offset:var(--wb-btn-focus-offset)}." + P + "-fcell:has(button) input{padding-right:34px}";
@@ -2282,8 +2622,10 @@ var require_data_view = __commonJS({
   "packages/addons/lib/data-view.cjs"(exports2, module2) {
     "use strict";
     var React2 = require("react");
+    var NF = require_number_field();
     var h2 = React2.createElement;
     var COPY = require_data_copy();
+    var SW = require_switch();
     module2.exports = function createDataView(options) {
       var DOMAIN = options.domain;
       function icon(name) {
@@ -2837,17 +3179,18 @@ var require_data_view = __commonJS({
             h2("button", { type: "button", className: P + "-btn", disabled: !data || page >= pages, onClick: function() {
               setPage(Math.min(pages, page + 1));
             } }, t.next + " \u203A"),
-            h2("input", {
+            h2(NF.NumberField, {
+              h: h2,
+              lang,
               className: P + "-jump",
-              type: "number",
+              value: page,
               min: 1,
               max: pages,
-              "aria-label": t.jump,
-              onKeyDown: function(e) {
-                if (e.key === "Enter") {
-                  var n = Math.floor(Number(e.target.value));
-                  if (n >= 1) setPage(Math.min(pages, n));
-                }
+              integer: true,
+              ariaLabel: t.jump,
+              hint: false,
+              onCommit: function(next) {
+                if (next !== null) setPage(next);
               }
             }),
             data && data.queryMs !== void 0 ? h2("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
@@ -2944,25 +3287,23 @@ var require_data_view = __commonJS({
                     }
                   })
                 ),
-                h2(
-                  "label",
-                  { className: P + "-switch" },
-                  h2("input", { type: "checkbox", checked: includeDeleted, onChange: function(e) {
-                    setIncludeDeleted(e.target.checked);
+                h2(SW.Switch, {
+                  h: h2,
+                  checked: includeDeleted,
+                  label: t.includeDeleted,
+                  onChange: function(next) {
+                    setIncludeDeleted(next);
                     setPage(1);
-                  } }),
-                  h2("span", { className: P + "-track" }),
-                  h2("span", null, t.includeDeleted)
-                ),
-                h2(
-                  "label",
-                  { className: P + "-switch" },
-                  h2("input", { type: "checkbox", checked: showSystem, onChange: function(e) {
-                    setShowSystem(e.target.checked);
-                  } }),
-                  h2("span", { className: P + "-track" }),
-                  h2("span", null, t.showSystem)
-                ),
+                  }
+                }),
+                h2(SW.Switch, {
+                  h: h2,
+                  checked: showSystem,
+                  label: t.showSystem,
+                  onChange: function(next) {
+                    setShowSystem(next);
+                  }
+                }),
                 h2("span", { className: P + "-grow" }),
                 h2(
                   "label",
@@ -3043,6 +3384,42 @@ var require_data = __commonJS({
       tables: ["tag", "tag_mapping"],
       useConfig: require_config().useConfig
     });
+  }
+});
+
+// packages/addons/lib/icons.cjs
+var require_icons = __commonJS({
+  "packages/addons/lib/icons.cjs"(exports2, module2) {
+    "use strict";
+    var h2 = require("react").createElement;
+    function create(prefix, glyphs, options) {
+      var opts = options || {};
+      var ICONS = Object.assign({}, glyphs);
+      function Icon2(props) {
+        var C = ICONS[props.name] || (opts.fallback ? ICONS[opts.fallback] : null);
+        if (!C) return null;
+        var size = typeof opts.sizeOf === "function" ? opts.sizeOf(props) : props.size || 14;
+        var cls = prefix + "-svg" + (opts.classNameAppend && props.className ? " " + props.className : "");
+        var attrs = {
+          size,
+          strokeWidth: props.strokeWidth || 2,
+          "aria-hidden": "true",
+          className: cls
+        };
+        if (opts.focusable) attrs.focusable = false;
+        return h2(C, attrs);
+      }
+      var set = { ICONS, Icon: Icon2 };
+      if (opts.tabIcon) {
+        set.tabIcon = function(name) {
+          return function TabIcon() {
+            return h2(Icon2, { name, size: 14 });
+          };
+        };
+      }
+      return set;
+    }
+    module2.exports = { create };
   }
 });
 
@@ -3676,6 +4053,30 @@ var init_tag = __esm({
   }
 });
 
+// packages/addons/tags/client/ui/icons.cjs
+var require_icons2 = __commonJS({
+  "packages/addons/tags/client/ui/icons.cjs"(exports2, module2) {
+    "use strict";
+    var icons = require_icons();
+    var set = icons.create("wbg", {
+      search: (init_search(), __toCommonJS(search_exports)).default,
+      x: (init_x(), __toCommonJS(x_exports)).default,
+      plus: (init_plus(), __toCommonJS(plus_exports)).default,
+      trash: (init_trash_2(), __toCommonJS(trash_2_exports)).default,
+      pencil: (init_pencil(), __toCommonJS(pencil_exports)).default,
+      check: (init_check(), __toCommonJS(check_exports)).default,
+      refresh: (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default,
+      chart: (init_chart_column(), __toCommonJS(chart_column_exports)).default,
+      settings: (init_settings(), __toCommonJS(settings_exports)).default,
+      database: (init_database(), __toCommonJS(database_exports)).default,
+      tags: (init_tags(), __toCommonJS(tags_exports)).default,
+      "code-2": (init_code_xml(), __toCommonJS(code_xml_exports)).default,
+      tag: (init_tag(), __toCommonJS(tag_exports)).default
+    }, { tabIcon: true });
+    module2.exports = { ICONS: set.ICONS, Icon: set.Icon, tabIcon: set.tabIcon };
+  }
+});
+
 // packages/addons/lib/highlight.cjs
 var require_highlight = __commonJS({
   "packages/addons/lib/highlight.cjs"(exports2, module2) {
@@ -3745,16 +4146,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -3807,15 +4205,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -3829,6 +4232,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -3861,15 +4266,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -3883,6 +4295,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -4026,6 +4440,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React2.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React2.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React2.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React2.useState("");
@@ -4081,38 +4497,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -4147,6 +4578,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -4162,33 +4594,45 @@ var require_action_schema_view = __commonJS({
             h2("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h2("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h2("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h2(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h2("span", { className: P + "-track", "aria-hidden": true }),
-            h2("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h2("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h2(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h2("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h2("span", null, originText[origin])
+              );
+            }),
+            busy ? h2("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -4209,7 +4653,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h2("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h2("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h2(
@@ -4332,6 +4776,21 @@ var require_action_schema_view = __commonJS({
                   return h2("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h2(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h2(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h2("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h2("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -4371,30 +4830,7 @@ var h = React.createElement;
   var statsView = require_stats();
   var configView = require_config();
   var dataView = require_data();
-  var ICONS = {
-    "search": (init_search(), __toCommonJS(search_exports)).default,
-    "x": (init_x(), __toCommonJS(x_exports)).default,
-    "plus": (init_plus(), __toCommonJS(plus_exports)).default,
-    "trash": (init_trash_2(), __toCommonJS(trash_2_exports)).default,
-    "pencil": (init_pencil(), __toCommonJS(pencil_exports)).default,
-    "check": (init_check(), __toCommonJS(check_exports)).default,
-    "refresh": (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default,
-    "chart": (init_chart_column(), __toCommonJS(chart_column_exports)).default,
-    "settings": (init_settings(), __toCommonJS(settings_exports)).default,
-    "database": (init_database(), __toCommonJS(database_exports)).default,
-    "tags": (init_tags(), __toCommonJS(tags_exports)).default,
-    "code-2": (init_code_xml(), __toCommonJS(code_xml_exports)).default
-  };
-  function tabIcon(name) {
-    return function TagsTabIcon() {
-      return h2(Icon2, { name, size: 14 });
-    };
-  }
-  function Icon2(props) {
-    var C = ICONS[props.name];
-    if (!C) return null;
-    return h2(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbg-svg" });
-  }
+  var icons = require_icons2(), ICONS = icons.ICONS, Icon2 = icons.Icon, tabIcon = icons.tabIcon;
   var COPY = {
     zh: {
       title: "\u6807\u7B7E",
@@ -4519,7 +4955,8 @@ var h = React.createElement;
     ".wbg-hint{font-size:11.5px;opacity:.55;line-height:1.5}",
     ".wbg-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:820;background:var(--dsw-alias-toast-bg,rgba(20,20,20,.88));color:var(--dsw-alias-toast-label,#fff);border-radius:9px;padding:9px 14px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.18);pointer-events:none}",
     "@media (max-width:760px){.wbg-search{width:100%;max-width:none}.wbg-toolbar .wbg-grow{display:none}.wbg-time{display:none}.wbg-row{padding:9px 10px}.wbg-ops .wbg-btn{padding:6px 8px}}",
-    require_date_picker_styles()("wbg")
+    require_date_picker_styles()("wbg"),
+    require_switch().styles
   ].join("\n");
   function injectCss() {
     if (typeof document === "undefined") return;
@@ -5036,8 +5473,8 @@ var h = React.createElement;
   }
   host.registerAddon({
     id: "wb-addon-tags",
-    version: "1.7.3",
-    icon: (init_tag(), __toCommonJS(tag_exports)).default,
+    version: "1.7.7",
+    icon: ICONS.tag,
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.TagsStatsView },
       { id: "tags", icon: tabIcon("tags"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: TagsView },

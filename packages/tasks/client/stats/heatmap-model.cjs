@@ -4,8 +4,8 @@ var FILTER_TYPES = ["done", "publish", "shutdown", "claimed"];
 var TYPES = FILTER_TYPES.concat(["target"]);
 var LEVELS = [{min:1,max:1,label:"1"},{min:2,max:3,label:"2–3"},{min:4,max:6,label:"4–6"},{min:7,max:null,label:"7+"}];
 var COPY = {
-  zh: { title: "年度活动", previous: "上一年", next: "下一年", done: "完成", publish: "发布", shutdown: "关闭", claimed: "接取", target: "目标", empty: {done:"本年度没有完成记录",publish:"本年度没有发布记录",shutdown:"本年度没有关闭记录",claimed:"本年度没有接取记录",target:"本年度没有目标计划"}, loading: "正在加载年度活动", error: "年度活动加载失败", retry: "重试", future: "未来日期", none: "无活动", clear: "清除活动筛选", filter: "活动筛选", total: "活动总数", dailyCount: "每日次数", weekdays: ["一", "二", "三", "四", "五", "六", "日"], claimedNote: "已接取/已完成任务；历史任务未记录接取时间，按发布日期计", targetNote: "按目标计划日期统计，属于计划口径，不计入活动总数", targetTotal: "目标总数" },
-  en: { title: "Annual task activity", previous: "Previous year", next: "Next year", done: "Done", publish: "Published", shutdown: "Closed", claimed: "Claimed", target: "Target", empty: {done:"No completed tasks this year",publish:"No published tasks this year",shutdown:"No closed tasks this year",claimed:"No claimed tasks this year",target:"No target dates this year"}, loading: "Loading annual activity", error: "Could not load annual activity", retry: "Retry", future: "Future date", none: "No activity", clear: "Clear activity filter", filter: "Activity filter", total: "Total events", dailyCount: "Daily count", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], claimedNote: "claimed or completed tasks; historical tasks without a claim time use the publish date", targetNote: "counted by target plan date; planning scope, not included in total events", targetTotal: "Planned" }
+  zh: { title: "年度活动", previous: "上一年", next: "下一年", done: "完成", publish: "发布", shutdown: "关闭", claimed: "接取", target: "目标", empty: {done:"本年度没有完成记录",publish:"本年度没有发布记录",shutdown:"本年度没有关闭记录",claimed:"本年度没有接取记录",target:"本年度没有目标计划"}, loading: "正在加载年度活动", error: "年度活动加载失败", retry: "重试", future: "未来日期", none: "无活动", nonePlan: "无计划", clear: "清除活动筛选", filter: "活动筛选", total: "活动总数", dailyCount: "每日次数", weekdays: ["一", "二", "三", "四", "五", "六", "日"], claimedNote: "已接取/已完成任务；历史任务未记录接取时间，按发布日期计", targetNote: "按目标计划日期统计，属于计划口径，不计入活动总数", targetTotal: "目标总数" },
+  en: { title: "Annual task activity", previous: "Previous year", next: "Next year", done: "Done", publish: "Published", shutdown: "Closed", claimed: "Claimed", target: "Target", empty: {done:"No completed tasks this year",publish:"No published tasks this year",shutdown:"No closed tasks this year",claimed:"No claimed tasks this year",target:"No target dates this year"}, loading: "Loading annual activity", error: "Could not load annual activity", retry: "Retry", future: "Future date", none: "No activity", nonePlan: "No plan", clear: "Clear activity filter", filter: "Activity filter", total: "Total events", dailyCount: "Daily count", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], claimedNote: "claimed or completed tasks; historical tasks without a claim time use the publish date", targetNote: "counted by target plan date; planning scope, not included in total events", targetTotal: "Planned" }
 };
 function localDay(d) { return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
 function calendar(year) {
@@ -24,6 +24,10 @@ function legendLabel(lang) {
   }).join(lang === "en" ? "; " : "；");
 }
 function count(day,type) { return Number(day[type])||0; }
+// 「未来日期留空」只适用于四类事件：它们记录已发生的事，未来不该有值。
+// target 是计划口径（target_date 排期），未来日期正是计划的主要形态，必须照常显示。
+function suppressFuture(type) { return FILTER_TYPES.indexOf(type) >= 0; }
+function isFuture(date,today,type) { return !!suppressFuture(type) && date > today; }
 function background(day,type) { return count(day,type) ? "var(--hm-"+type+"-"+level(count(day,type))+")" : "var(--hm-empty)"; }
 function label(date,day,t,type) { return date+" · "+t[type]+" "+count(day,type); }
 function activityParams(params) {
@@ -31,4 +35,4 @@ function activityParams(params) {
   // 只有四类事件能拼活动筛选；target 是计划口径，点击不跳转，这里也回落到 done。
   return { activityDate:params.activityDate, activityType:FILTER_TYPES.indexOf(params.activityType)>=0 ? params.activityType : "done" };
 }
-module.exports = { TYPES:TYPES, FILTER_TYPES:FILTER_TYPES, LEVELS:LEVELS, COPY:COPY, legendLabel:legendLabel, localDay:localDay, calendar:calendar, level:level, count:count, background:background, label:label, activityParams:activityParams };
+module.exports = { TYPES:TYPES, FILTER_TYPES:FILTER_TYPES, LEVELS:LEVELS, COPY:COPY, legendLabel:legendLabel, localDay:localDay, calendar:calendar, level:level, count:count, suppressFuture:suppressFuture, isFuture:isFuture, background:background, label:label, activityParams:activityParams };

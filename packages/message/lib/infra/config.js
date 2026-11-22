@@ -16,6 +16,7 @@ const GROUPS = [
   { id: "quiet", zh: "免打扰", en: "Quiet hours" },
   { id: "retention", zh: "保留期", en: "Retention" },
   { id: "list", zh: "列表", en: "List" },
+  { id: "float", zh: "悬浮入口", en: "Floating button" },
 ];
 
 const ITEMS = [
@@ -64,6 +65,36 @@ const ITEMS = [
     id: "retention.readDays", group: "retention", type: "int", surface: "api", apply: "api", default: 30, min: 0, max: 3650,
     zh: "已读保留天数", en: "Keep read messages (days)",
     hintZh: "已读消息超过该天数自动清理；未读永不按时间清理，0 表示不按时间清理", hintEn: "Read messages older than this are pruned; unread never expires by time, 0 disables",
+  },
+  {
+    id: "float.enabled", group: "float", type: "bool", surface: "ui", apply: "mount", default: true,
+    zh: "显示消息悬浮入口", en: "Show floating message button",
+    hintZh: "任意页面右下角常驻消息按钮，带未读角标；关闭后该按钮立即隐藏", hintEn: "A persistent message button in the corner with unread badge; turning it off hides it",
+  },
+  {
+    id: "float.position", group: "float", type: "enum", surface: "ui", apply: "mount", default: "bottom-right",
+    zh: "悬浮入口位置", en: "Floating position",
+    hintZh: "右下角默认避开输入区；与其它浮层冲突时可换到左下角", hintEn: "Bottom right avoids the input area; switch to bottom left when it collides",
+    values: [
+      { value: "bottom-right", zh: "右下角", en: "Bottom right" },
+      { value: "bottom-left", zh: "左下角", en: "Bottom left" },
+    ],
+  },
+  {
+    id: "float.customPos", group: "float", type: "string", surface: "ui", apply: "mount", default: "", maxLength: 32,
+    zh: "自定义位置", en: "Custom position",
+    hintZh: "拖拽后自动写入「rx,ry」归一化中心；清空即回到默认角，一般无需手改",
+    hintEn: "Written after a drag as normalized center \"rx,ry\"; clear it to return to the default corner",
+  },
+  {
+    id: "float.idleSeconds", group: "float", type: "int", surface: "ui", apply: "mount", default: 3, min: 0, max: 60,
+    zh: "空闲多久贴边收起（秒）", en: "Idle seconds before edge collapse",
+    hintZh: "0 表示不自动收起；只在按钮靠近左右边缘时生效", hintEn: "0 disables; only applies near the left or right edge",
+  },
+  {
+    id: "float.edgeSnap", group: "float", type: "bool", surface: "ui", apply: "mount", default: true,
+    zh: "靠近边缘自动半隐藏", en: "Auto collapse at the edge",
+    hintZh: "关闭后空闲也不会贴边，按钮始终完整显示", hintEn: "When off the button never collapses at the edge",
   },
   {
     id: "list.pageSize", group: "list", type: "enum", surface: "ui", apply: "mount", default: 20,
@@ -248,7 +279,7 @@ export function resetConfig(db, ids) {
 export function registerConfigActions(api) {
   const action = api.action;
   action("message.configGet", {
-    description: "只读：消息插件的配置项定义、当前值与覆盖项（含提示音、免打扰、保留期、列表分页）",
+    description: "只读：消息插件的配置项定义、当前值与覆盖项（含提示音、免打扰、保留期、悬浮入口与列表分页）",
     input: { type: "object", properties: {}, additionalProperties: false },
     execute: () => configState(api.db),
     render: (r) =>

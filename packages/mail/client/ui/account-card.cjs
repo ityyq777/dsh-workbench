@@ -30,6 +30,12 @@ module.exports = function AccountCard(props) {
       { className: "wbml-card-main" },
       h("div", { className: "wbml-card-title" }, a.name || a.email),
       h("div", { className: "wbml-card-sub" }, a.email, a.username && a.username !== a.email ? " · " + a.username : ""),
+      h("div", { className: "wbml-card-meta" },
+        a.accountSetName
+          ? t(lang, "账号集合：", "Account set: ") + a.accountSetName
+          : a.accountSetId
+            ? t(lang, "账号集合已失效，请重选", "The account set is gone — pick another one")
+            : t(lang, "未绑定账号集合", "No account set bound")),
       h("div", { className: "wbml-card-meta" }, (a.imapHost || "—") + ":" + a.imapPort + " · " + (a.smtpHost || "—") + ":" + a.smtpPort),
       h("div", { className: "wbml-card-meta" }, t(lang, "最近来信：", "Last mail: ") + last),
     ),

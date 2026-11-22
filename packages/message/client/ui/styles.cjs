@@ -1,5 +1,9 @@
 "use strict";
 // 消息插件的样式：类名统一 wbm- 前缀，颜色走宿主 alias token，跟随明暗主题。
+// 布尔开关的统一外观来自共享控件，直接追加其规则。
+var SW = require("../../../lib/switch.cjs");
+// 数字输入框的外观同样来自共享控件。
+var NF = require("../../../lib/number-field.cjs");
 module.exports = [
   ".wbm-root{--wbm-line:var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent));--wbm-surface:var(--dsw-alias-bg-layer-1,color-mix(in oklab,currentColor 4%,transparent));--wbm-accent:var(--dsw-alias-brand-primary,#11a89b);display:flex;flex-direction:column;gap:12px;min-height:0;color:inherit;font-size:13px}",
   ".wbm-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}",
@@ -57,7 +61,6 @@ module.exports = [
   ".wbm-range{width:130px}",
   ".wbm-note{font-size:11.5px;opacity:.62;line-height:1.5}",
   ".wbm-time{width:86px;border:1px solid var(--wbm-line);border-radius:7px;background:transparent;color:inherit;padding:4px 6px;font-size:12px}",
-  ".wbm-num{width:74px;border:1px solid var(--wbm-line);border-radius:7px;background:transparent;color:inherit;padding:4px 6px;font-size:12px}",
   ".wbm-multis{display:flex;gap:6px;flex-wrap:wrap}",
   "@media (max-width:760px){.wbm-toolbar{gap:6px}.wbm-input{max-width:none}.wbm-bar{grid-template-columns:70px 1fr 38px}}",
-].join("");
+].concat(SW.styles).concat(NF.styles).join("");

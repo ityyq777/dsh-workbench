@@ -178,149 +178,865 @@ var require_filter_checklist = __commonJS({
   }
 });
 
+// packages/addons/lib/search-picker.cjs
+var require_search_picker = __commonJS({
+  "packages/addons/lib/search-picker.cjs"(exports2, module2) {
+    "use strict";
+    var React2 = require("react");
+    var h2 = React2.createElement;
+    var FilterChecklist = require_filter_checklist();
+    var DEFAULT_TEXTS = {
+      all: "\u5168\u90E8",
+      selected: "\u5DF2\u9009",
+      clear: "\u6E05\u7A7A",
+      searchPlaceholder: "\u641C\u7D22",
+      empty: "\u6682\u65E0\u6570\u636E",
+      noMatch: "\u6CA1\u6709\u5339\u914D\u9879",
+      loading: "\u52A0\u8F7D\u4E2D\u2026",
+      noMore: "\u6CA1\u6709\u66F4\u591A"
+    };
+    function asText(x) {
+      return String(x == null ? "" : x).toLowerCase();
+    }
+    function filterLocal(items, query) {
+      var q = String(query || "").trim();
+      if (!q) return items;
+      var needle = asText(q);
+      return items.filter(function(x) {
+        return asText(x.name).indexOf(needle) >= 0 || asText(x.meta).indexOf(needle) >= 0;
+      });
+    }
+    function useRemoteSource(conf) {
+      var RT = conf.React || React2;
+      var open = conf.open;
+      var query = conf.query;
+      var fetchPage = conf.fetchPage;
+      var pageSize = conf.pageSize;
+      var debounce = conf.debounce;
+      var dedupe = conf.dedupe;
+      var mapPage = conf.mapPage;
+      var reloadKey = conf.reloadKey;
+      var rowsS = RT.useState([]);
+      var totalS = RT.useState(0);
+      var pageS = RT.useState(0);
+      var moreS = RT.useState(false);
+      var loadS = RT.useState(false);
+      var seq = RT.useRef ? RT.useRef(0) : { current: 0 };
+      function load(q, pageNumber, append) {
+        var mine = ++seq.current;
+        loadS[1](true);
+        return Promise.resolve(fetchPage(q, pageNumber)).then(function(raw) {
+          if (mine !== seq.current) return;
+          loadS[1](false);
+          var next = mapPage ? mapPage(raw, pageNumber) : raw || {};
+          var list = next.rows || [];
+          rowsS[1](function(prev) {
+            if (!append) return list;
+            var joined = dedupe === false ? prev.concat(list) : prev.concat(list);
+            if (dedupe === false) return joined;
+            var seen = {};
+            return joined.filter(function(x) {
+              var key = String(x.id);
+              if (seen[key]) return false;
+              seen[key] = true;
+              return true;
+            });
+          });
+          totalS[1](typeof next.total === "number" ? next.total : list.length);
+          pageS[1](next.page || pageNumber);
+          moreS[1](!!next.hasMore);
+        }).catch(function() {
+          if (mine === seq.current) loadS[1](false);
+        });
+      }
+      RT.useEffect(
+        function() {
+          if (!open) return void 0;
+          var timer = setTimeout(
+            function() {
+              load(query, 1, false);
+            },
+            query ? debounce : 0
+          );
+          return function() {
+            clearTimeout(timer);
+          };
+        },
+        [open, query, reloadKey]
+      );
+      return {
+        rows: rowsS[0],
+        total: totalS[0],
+        page: pageS[0],
+        hasMore: moreS[0],
+        loading: loadS[0],
+        loadQuery: load,
+        reset: function() {
+          seq.current += 1;
+          rowsS[1]([]);
+          totalS[1](0);
+          pageS[1](0);
+          moreS[1](false);
+          loadS[1](false);
+        }
+      };
+    }
+    function SearchPicker(props) {
+      var RT = props.React || React2;
+      var texts = Object.assign({}, DEFAULT_TEXTS, props.texts || {});
+      var classes = props.classes || {};
+      var mode = props.mode === "single" ? "single" : "multi";
+      var disabled = props.disabled === true;
+      var selected = (props.selected || []).map(String);
+      var items = props.items || null;
+      var fetchPage = props.fetchPage || null;
+      var pageSize = props.pageSize || 20;
+      var debounce = props.debounce === void 0 ? 200 : props.debounce;
+      var allItems = items || [];
+      var openS = RT.useState(false);
+      var open = openS[0];
+      var queryS = RT.useState("");
+      var query = queryS[0];
+      var boxRef = RT.useRef ? RT.useRef(null) : { current: null };
+      var remote = fetchPage ? useRemoteSource({
+        React: RT,
+        open,
+        query,
+        fetchPage,
+        pageSize,
+        debounce,
+        dedupe: props.dedupe,
+        mapPage: props.mapPage,
+        reloadKey: props.reloadKey
+      }) : null;
+      var rows = remote ? remote.rows : filterLocal(allItems, query);
+      var loading = remote ? remote.loading : false;
+      var total = remote ? remote.total : rows.length;
+      var hasMore = remote ? remote.hasMore : false;
+      RT.useEffect(function() {
+        if (!open || typeof document === "undefined") return void 0;
+        function onDown(e) {
+          var box = boxRef.current;
+          if (box && !box.contains(e.target)) openS[1](false);
+        }
+        function onKey(e) {
+          if (e.key === "Escape") openS[1](false);
+        }
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return function() {
+          document.removeEventListener("mousedown", onDown);
+          document.removeEventListener("keydown", onKey);
+        };
+      }, [open]);
+      function commit(next) {
+        if (props.onChange) props.onChange(next);
+      }
+      function toggle(id) {
+        if (disabled) return;
+        var key = String(id);
+        if (mode === "single") {
+          openS[1](false);
+          if (props.onPick) props.onPick(key, rowOf(key));
+          commit([key]);
+          return;
+        }
+        var next = selected.slice();
+        var i = next.indexOf(key);
+        if (i >= 0) next.splice(i, 1);
+        else next.push(key);
+        commit(next);
+      }
+      function rowOf(id) {
+        var hit = rows.filter(function(x) {
+          return String(x.id) === String(id);
+        })[0];
+        if (hit) return hit;
+        return (allItems || []).filter(function(x) {
+          return String(x.id) === String(id);
+        })[0] || null;
+      }
+      var label = props.label || texts.all;
+      var caret = props.caret === void 0 ? "\u25BE" : props.caret;
+      var count = selected.length;
+      var chips = props.renderSelected ? props.renderSelected({ ids: selected, toggle, nameOf: props.nameOf || rowOf, texts }) : null;
+      return h2(
+        "div",
+        { className: classes.root, ref: boxRef },
+        h2(
+          "button",
+          {
+            type: "button",
+            className: classes.btn + (count ? " " + (classes.btnOn || "is-on") : ""),
+            "aria-haspopup": "dialog",
+            "aria-expanded": open ? "true" : "false",
+            disabled,
+            onClick: function(e) {
+              if (props.stopPropagation) e.stopPropagation();
+              openS[1](!open);
+            }
+          },
+          props.icon ? props.icon : null,
+          label + (count ? " \xB7 " + count : ""),
+          typeof caret === "function" ? caret : caret
+        ),
+        chips,
+        open ? h2(
+          "div",
+          {
+            className: classes.menu,
+            role: props.menuRole,
+            style: props.menuStyle,
+            onClick: props.stopPropagation ? function(e) {
+              e.stopPropagation();
+            } : void 0
+          },
+          h2(FilterChecklist, {
+            mode,
+            items: rows,
+            selected,
+            onToggle: toggle,
+            onPick: toggle,
+            query,
+            onQuery: queryS[1],
+            title: props.title || label,
+            total,
+            selectedText: texts.selected,
+            clearText: texts.clear,
+            onClear: function() {
+              commit([]);
+              queryS[1]("");
+            },
+            searchPlaceholder: texts.searchPlaceholder,
+            loading,
+            hasMore,
+            onLoadMore: remote ? function() {
+              remote.loadQuery(query, (remote.page || 1) + 1, true);
+            } : void 0,
+            emptyText: texts.empty,
+            noMatchText: texts.noMatch,
+            loadingText: texts.loading,
+            noMoreText: texts.noMore,
+            groupLabel: props.title || label,
+            autoFocus: props.autoFocus,
+            beforeHead: props.beforeHead || null
+          }),
+          props.footer || null
+        ) : null
+      );
+    }
+    module2.exports = SearchPicker;
+    module2.exports.filterLocal = filterLocal;
+    module2.exports.DEFAULT_TEXTS = DEFAULT_TEXTS;
+  }
+});
+
+// packages/addons/lib/tag-filter.cjs
+var require_tag_filter = __commonJS({
+  "packages/addons/lib/tag-filter.cjs"(exports2, module2) {
+    "use strict";
+    var React2 = require("react");
+    var h2 = React2.createElement;
+    var SearchPicker = require_search_picker();
+    module2.exports = function createTagFilter(options) {
+      var conf = options || {};
+      var classes = conf.classes || {};
+      var pageSize = conf.pageSize || 20;
+      var debounce = conf.debounce === void 0 ? 200 : conf.debounce;
+      var dedupe = conf.dedupe !== false;
+      var mapPage = conf.mapPage || function(out, pageNumber) {
+        return {
+          rows: out.records || [],
+          total: out.total || 0,
+          page: out.current || pageNumber,
+          hasMore: !!out.hasNext
+        };
+      };
+      var items = conf.items || function(rows) {
+        return rows.map(function(x) {
+          return { id: x.id, name: x.name };
+        });
+      };
+      var text = conf.text || function() {
+        return {};
+      };
+      var icon = conf.icon || function() {
+        return null;
+      };
+      var caret = conf.caret === void 0 ? "\u25BE" : conf.caret;
+      var enabled = conf.enabled || function() {
+        return true;
+      };
+      var renderSelected = conf.renderSelected || null;
+      return function TagFilter2(props) {
+        var api = props.api;
+        var ids = props.ids || [];
+        var onChange = props.onChange || function() {
+        };
+        var tx = text(props);
+        var namesS = React2.useState({});
+        var names = namesS[0];
+        function mergeNames(rows) {
+          if (!rows || !rows.length) return;
+          namesS[1](function(prev) {
+            var next = Object.assign({}, prev);
+            var changed = false;
+            rows.forEach(function(x) {
+              if (next[String(x.id)] !== x.name) {
+                next[String(x.id)] = x.name;
+                changed = true;
+              }
+            });
+            return changed ? next : prev;
+          });
+        }
+        React2.useEffect(
+          function() {
+            if (!ids.length || !conf.names) return;
+            var wanted = ids.filter(function(id) {
+              return !names[String(id)];
+            });
+            if (!wanted.length) return;
+            var args = conf.names.args ? conf.names.args(wanted) : { ids: wanted };
+            api.call(conf.names.action, args).then(function(r) {
+              if (!r || !r.ok) return;
+              mergeNames(r.result && r.result.records || []);
+            }).catch(function() {
+            });
+          },
+          [ids.join(",")]
+        );
+        function fetchPage(q, pageNumber) {
+          return api.call(conf.action, { text: q || "", pageNumber, pageSize }).then(function(r) {
+            if (!r || !r.ok) return { rows: [], total: 0, page: pageNumber, hasMore: false };
+            var next = mapPage(r.result || {}, pageNumber);
+            mergeNames(next.rows);
+            return { rows: items(next.rows), total: next.total, page: next.page, hasMore: next.hasMore };
+          });
+        }
+        function nameOf(id) {
+          return names[String(id)] || String(id).slice(0, 6);
+        }
+        if (!enabled(props)) return null;
+        return h2(SearchPicker, {
+          h: h2,
+          React: React2,
+          mode: "multi",
+          label: tx.label,
+          title: tx.all,
+          fetchPage,
+          pageSize,
+          debounce,
+          dedupe,
+          classes,
+          menuRole: conf.menuRole,
+          menuStyle: conf.menuStyle,
+          stopPropagation: conf.stopPropagation,
+          reloadKey: props.reloadKey,
+          texts: {
+            all: tx.all,
+            selected: tx.selected,
+            clear: tx.clear,
+            searchPlaceholder: tx.searchPlaceholder,
+            empty: tx.empty,
+            noMatch: tx.noMatch,
+            loading: tx.loading,
+            noMore: tx.noMore
+          },
+          icon: icon(props, "tag", 13),
+          caret: typeof caret === "function" ? caret(props) : caret,
+          selected: ids,
+          onChange,
+          nameOf,
+          renderSelected: renderSelected ? function(ctx) {
+            return renderSelected({
+              ids: ctx.ids,
+              names,
+              toggle: ctx.toggle,
+              text: tx,
+              classes,
+              h: h2
+            });
+          } : null
+        });
+      };
+    };
+  }
+});
+
 // packages/addons/sites/client/ui/tagfilter.cjs
 var require_tagfilter = __commonJS({
   "packages/addons/sites/client/ui/tagfilter.cjs"(exports2, module2) {
     var React2 = require("react");
     var h2 = React2.createElement;
-    var useState = React2.useState;
-    var useEffect = React2.useEffect;
-    var useCallback = React2.useCallback;
-    var FilterChecklist = require_filter_checklist();
-    module2.exports = function TagFilter2(props) {
-      var api = props.api;
-      var text = props.text;
-      var Icon2 = props.Icon;
-      var ids = props.ids || [];
-      var onChange = props.onChange;
-      var visible = props.visible !== false;
-      var [open, setOpen] = useState(false);
-      var [query, setQuery] = useState("");
-      var [rows, setRows] = useState([]);
-      var [total, setTotal] = useState(0);
-      var [page, setPage] = useState(0);
-      var [hasMore, setHasMore] = useState(false);
-      var [loading, setLoading] = useState(false);
-      var [names, setNames] = useState({});
-      var load = useCallback(function(q, pageNumber, append) {
-        setLoading(true);
-        return api.call("siteTags.search", { text: q || "", pageNumber, pageSize: 20 }).then(function(r) {
-          setLoading(false);
-          if (!r || !r.ok) return;
-          var out = r.result || {};
-          var records = out.records || [];
-          setRows(function(prev) {
-            if (!append) return records;
-            var seen = {};
-            var out2 = [];
-            prev.concat(records).forEach(function(x) {
-              var key = String(x.id);
-              if (seen[key]) return;
-              seen[key] = true;
-              out2.push(x);
-            });
-            return out2;
-          });
-          setTotal(out.total || 0);
-          setPage(out.current || pageNumber);
-          setHasMore(!!out.hasNext || (out.current || pageNumber) * 20 < (out.total || 0));
-          setNames(function(prev) {
-            var next = Object.assign({}, prev);
-            records.forEach(function(x) {
-              next[String(x.id)] = x.name;
-            });
-            return next;
-          });
-        }).catch(function() {
-          setLoading(false);
-        });
-      }, [api]);
-      useEffect(function() {
-        if (!open) return void 0;
-        var timer = setTimeout(function() {
-          load(query, 1, false);
-        }, query ? 200 : 0);
-        return function() {
-          clearTimeout(timer);
+    var createTagFilter = require_tag_filter();
+    module2.exports = createTagFilter({
+      action: "siteTags.search",
+      stopPropagation: true,
+      classes: { root: "wbs-tagfilter", btn: "wbs-btn", btnOn: "on", menu: "wbs-tagmenu" },
+      menuStyle: { width: 260 },
+      enabled: function(props) {
+        return props.visible !== false;
+      },
+      text: function(props) {
+        var text = props.text || function() {
+          return "";
         };
-      }, [open, query, load, props.reloadKey]);
-      useEffect(function() {
-        if (!open) return void 0;
-        function onKey(e) {
-          if (e.key === "Escape") setOpen(false);
-        }
-        document.addEventListener("keydown", onKey);
-        return function() {
-          document.removeEventListener("keydown", onKey);
+        return {
+          label: text("tagFilter"),
+          selected: text("tagSelected"),
+          all: text("allTags"),
+          clear: text("clear"),
+          searchPlaceholder: text("tagSearchPlaceholder"),
+          empty: text("noTags"),
+          noMatch: text("tagNoMatch"),
+          loading: text("loadingMore"),
+          noMore: text("noMore"),
+          remove: text("tagSelected")
         };
-      }, [open]);
-      if (!visible) return null;
-      function toggle(id) {
-        var key = String(id);
-        var next = ids.slice();
-        var i = next.indexOf(key);
-        if (i >= 0) next.splice(i, 1);
-        else next.push(key);
-        onChange(next);
-      }
-      return h2(
-        "div",
-        { className: "wbs-tagfilter" },
-        h2("button", {
-          className: "wbs-btn" + (ids.length ? " on" : ""),
-          onClick: function(e) {
-            e.stopPropagation();
-            setOpen(!open);
-          }
-        }, h2(Icon2, { name: "tag", size: 13 }), text("tagFilter") + (ids.length ? " \xB7 " + ids.length : ""), h2(Icon2, { name: "chevron-down", size: 12 })),
-        open ? h2(
+      },
+      icon: function(props, name, size) {
+        return h2(props.Icon, { name, size });
+      },
+      caret: function(props) {
+        return h2(props.Icon, { name: "chevron-down", size: 12 });
+      },
+      mapPage: function(out, pageNumber) {
+        var current = out.current || pageNumber;
+        return {
+          rows: out.records || [],
+          total: out.total || 0,
+          page: current,
+          hasMore: !!out.hasNext || current * 20 < (out.total || 0)
+        };
+      },
+      renderSelected: function(ctx) {
+        if (!ctx.ids.length) return null;
+        return h2(
           "div",
-          { className: "wbs-tagmenu", style: { width: 260 }, onClick: function(e) {
-            e.stopPropagation();
-          } },
-          h2(FilterChecklist, {
-            beforeHead: ids.length ? h2(
-              "div",
-              { style: { padding: "0 4px 4px" } },
-              h2("div", { className: "wbs-tagmenu-head" }, h2("span", null, text("tagSelected") + " " + ids.length)),
-              ids.map(function(id) {
-                return h2(
-                  "button",
-                  { key: id, className: "wbs-mini", style: { justifyContent: "space-between" }, onClick: function() {
-                    toggle(id);
-                  } },
-                  h2("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, names[String(id)] || "#" + id),
-                  h2("span", null, "\xD7")
-                );
-              })
-            ) : null,
-            items: rows.map(function(x) {
-              return { id: x.id, name: x.name };
-            }),
-            selected: ids,
-            onToggle: toggle,
-            query,
-            onQuery: setQuery,
-            title: text("allTags"),
-            total,
-            clearText: text("clear"),
-            onClear: function() {
-              onChange([]);
-              setQuery("");
-            },
-            searchPlaceholder: text("tagSearchPlaceholder"),
-            loading,
-            hasMore,
-            onLoadMore: function() {
-              load(query, (page || 1) + 1, true);
-            },
-            emptyText: text("noTags"),
-            noMatchText: text("tagNoMatch"),
-            loadingText: text("loadingMore"),
-            noMoreText: text("noMore")
+          { style: { padding: "0 4px 4px" } },
+          h2("div", { className: "wbs-tagmenu-head" }, h2("span", null, ctx.text.selected + " " + ctx.ids.length)),
+          ctx.ids.map(function(id) {
+            return h2(
+              "button",
+              {
+                key: id,
+                className: "wbs-mini",
+                style: { justifyContent: "space-between" },
+                onClick: function() {
+                  ctx.toggle(id);
+                }
+              },
+              h2(
+                "span",
+                { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } },
+                ctx.names[String(id)] || "#" + id
+              ),
+              h2("span", null, "\xD7")
+            );
           })
-        ) : null
+        );
+      }
+    });
+  }
+});
+
+// packages/addons/lib/overlay.cjs
+var require_overlay = __commonJS({
+  "packages/addons/lib/overlay.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var FOCUSABLE = "button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]";
+    module2.exports = function createOverlay2(options) {
+      var opts = options || {};
+      var React2 = opts.React || defaultReact;
+      var h2 = React2.createElement;
+      var tag = opts.tag || "section";
+      var maskClass = opts.maskClass;
+      var dialogClass = opts.dialogClass;
+      var dialogClassOf = opts.dialogClassOf || function() {
+        return "";
+      };
+      var ariaLabelOf = opts.ariaLabelOf || function(props) {
+        return props["aria-label"] || props.title;
+      };
+      var ariaLabelledByOf = opts.ariaLabelledByOf || function() {
+        return null;
+      };
+      var header = opts.header || null;
+      var closeOnEscape = opts.closeOnEscape || function() {
+        return true;
+      };
+      var closeOnMask = opts.closeOnMask || function() {
+        return true;
+      };
+      var extraKeyDown = opts.onKeyDown || null;
+      var autoFocusDialog = opts.autoFocusDialog !== false;
+      var focusableSelector = opts.focusableSelector || FOCUSABLE;
+      function Modal(props) {
+        var R = props.React || React2;
+        var ref = R.useRef(null);
+        R.useEffect(function() {
+          var previous = typeof document !== "undefined" ? document.activeElement : null;
+          var focusIt = props.autoFocus !== void 0 ? props.autoFocus : autoFocusDialog;
+          if (focusIt && ref.current) ref.current.focus();
+          return function() {
+            if (previous && previous.isConnected) previous.focus();
+          };
+        }, []);
+        function onKeyDown(e) {
+          if (extraKeyDown && extraKeyDown(e, props, ref)) return;
+          if (e.key === "Escape") {
+            if (!(props.closeOnEscape !== void 0 ? props.closeOnEscape : closeOnEscape(props))) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (props.onClose) props.onClose();
+            return;
+          }
+          if (e.key !== "Tab" || !ref.current) return;
+          var els = ref.current.querySelectorAll(focusableSelector);
+          if (!els.length) {
+            e.preventDefault();
+            return;
+          }
+          var first = els[0];
+          var last = els[els.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+            e.preventDefault();
+            last.focus();
+          }
+          if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+        var labelledBy = ariaLabelledByOf(props);
+        return h2(
+          "div",
+          {
+            className: maskClass,
+            onMouseDown: function(e) {
+              var allowed = props.closeOnMask !== void 0 ? props.closeOnMask : closeOnMask(props);
+              if (e.target === e.currentTarget && props.onClose && allowed) props.onClose();
+            }
+          },
+          h2(
+            tag,
+            {
+              className: dialogClass + dialogClassOf(props),
+              role: "dialog",
+              "aria-modal": true,
+              "aria-label": labelledBy ? null : ariaLabelOf(props),
+              "aria-labelledby": labelledBy || null,
+              ref,
+              tabIndex: -1,
+              onKeyDown
+            },
+            header ? header(props) : null,
+            props.children
+          )
+        );
+      }
+      return Modal;
+    };
+  }
+});
+
+// packages/addons/lib/stepper.cjs
+var require_stepper = __commonJS({
+  "packages/addons/lib/stepper.cjs"(exports2, module2) {
+    "use strict";
+    function stepState(index, current, maxVisited) {
+      if (index === current) return "current";
+      if (index < current) return "done";
+      if (index <= maxVisited) return "visited";
+      return "todo";
+    }
+    function Steps(props) {
+      var h2 = props.h;
+      var steps = props.steps || [];
+      var current = props.current || 0;
+      var maxVisited = props.maxVisited === void 0 ? current : props.maxVisited;
+      var invalid = props.invalid || {};
+      var disabled = !!props.disabled;
+      var label = props.label || "\u6B65\u9AA4";
+      return h2(
+        "nav",
+        { className: "wbctl-steps" + (props.className ? " " + props.className : ""), "aria-label": label },
+        h2(
+          "ol",
+          { className: "wbctl-step-list" },
+          steps.map(function(step, index) {
+            var state = stepState(index, current, maxVisited);
+            var canJump = !disabled && typeof props.onJump === "function" && state !== "current" && state !== "todo";
+            var isInvalid = !!invalid[index] || !!invalid[step.key];
+            return h2(
+              "li",
+              { key: step.key || index, className: "wbctl-step-item" },
+              h2(
+                "button",
+                {
+                  type: "button",
+                  className: "wbctl-step",
+                  "data-state": state,
+                  "data-invalid": isInvalid ? "true" : null,
+                  "aria-current": state === "current" ? "step" : void 0,
+                  "aria-label": index + 1 + " \xB7 " + step.label + (state === "done" ? "\uFF08\u5DF2\u5B8C\u6210\uFF09" : ""),
+                  disabled: disabled || state === "todo",
+                  title: step.hint || "",
+                  onClick: function() {
+                    if (canJump) props.onJump(index);
+                  }
+                },
+                h2("span", { className: "wbctl-step-index", "aria-hidden": "true" }, state === "done" ? "\u2713" : String(index + 1)),
+                h2("span", { className: "wbctl-step-label" }, step.label),
+                step.hint ? h2("span", { className: "wbctl-step-hint" }, step.hint) : null,
+                step.optional ? h2("span", { className: "wbctl-step-opt" }, "\u53EF\u9009") : null
+              )
+            );
+          })
+        )
       );
+    }
+    var STYLES = [
+      ".wbctl-steps{display:block;min-width:0}",
+      ".wbctl-step-list{display:flex;align-items:stretch;gap:6px;list-style:none;margin:0 0 14px;padding:0;min-width:0}",
+      ".wbctl-step-item{display:flex;flex:1 1 0;min-width:0}",
+      ".wbctl-step{display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;padding:7px 9px;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;background:transparent;color:var(--wb-muted,inherit);font:inherit;font-size:12px;line-height:1.35;text-align:left;cursor:default;transition:background .14s ease,border-color .14s ease,color .14s ease}",
+      ".wbctl-step[data-state=done],.wbctl-step[data-state=visited]{color:inherit;cursor:pointer}",
+      ".wbctl-step[data-state=done]{border-color:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 36%,var(--wb-border))}",
+      ".wbctl-step[data-state=current]{border-color:color-mix(in oklab,var(--wb-accent,#2563eb) 58%,var(--wb-border));background:color-mix(in oklab,var(--wb-accent,#2563eb) 8%,transparent);color:inherit;font-weight:600}",
+      ".wbctl-step[data-state=visited]:hover,.wbctl-step[data-state=done]:hover{background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-step[data-invalid=true]{border-color:var(--wb-danger,#d33)}",
+      ".wbctl-step:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-step:disabled{cursor:default;opacity:.72}",
+      ".wbctl-step-index{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;border-radius:50%;font-size:11px;font-variant-numeric:tabular-nums;background:color-mix(in oklab,currentColor 15%,transparent)}",
+      ".wbctl-step[data-state=current] .wbctl-step-index{background:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff)}",
+      ".wbctl-step[data-state=done] .wbctl-step-index{background:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 20%,transparent);color:var(--wb-ok,var(--wb-accent,#2563eb))}",
+      ".wbctl-step-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbctl-step-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:400;opacity:.62}",
+      ".wbctl-step-opt{flex:none;font-size:10px;font-weight:400;opacity:.55}",
+      "@media (max-width:760px){.wbctl-step{padding:6px 7px;font-size:11.5px}.wbctl-step-hint,.wbctl-step-opt{display:none}.wbctl-step-index{width:18px;height:18px;font-size:10px}}",
+      "@media (max-width:520px){.wbctl-step-list{gap:4px}.wbctl-step-label{white-space:normal}.wbctl-step{gap:5px}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-step{transition:none}}"
+    ];
+    module2.exports = { Steps, stepState, styles: STYLES };
+  }
+});
+
+// packages/addons/lib/staged-dialog.cjs
+var require_staged_dialog = __commonJS({
+  "packages/addons/lib/staged-dialog.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var overlayFactory = require_overlay();
+    var stepper = require_stepper();
+    function validateStep(step) {
+      if (!step || typeof step.validate !== "function") return "";
+      var message = step.validate();
+      return message ? String(message) : "";
+    }
+    function firstFailing(steps) {
+      var list = steps || [];
+      for (var i = 0; i < list.length; i += 1) {
+        var message = validateStep(list[i]);
+        if (message) return { index: i, key: list[i] && list[i].key, message };
+      }
+      return null;
+    }
+    function createStagedDialog(options) {
+      var opts = options || {};
+      var React2 = opts.React || defaultReact;
+      var h2 = React2.createElement;
+      var dialogClass = ((opts.dialogClass || "") + " wbctl-dialog").trim();
+      var Overlay = overlayFactory(
+        Object.assign({}, opts, {
+          React: React2,
+          dialogClass,
+          // 首焦点由外壳送进对话框，字段由 focusStep 负责，避免打开瞬间落进第一个输入框。
+          autoFocusDialog: opts.autoFocusDialog !== false
+        })
+      );
+      function StagedDialog(props) {
+        var R = props.React || React2;
+        var steps = props.steps || [];
+        var count = steps.length;
+        var busy = !!props.submitting || !!props.busy;
+        var indexState = R.useState(props.initialStep || 0);
+        var rawIndex = indexState[0];
+        var setIndex = indexState[1];
+        var index = count === 0 ? 0 : Math.min(Math.max(rawIndex, 0), count - 1);
+        var visitedState = R.useState(props.initialStep || 0);
+        var maxVisited = count === 0 ? 0 : Math.min(Math.max(visitedState[0], index), count - 1);
+        var setMaxVisited = visitedState[1];
+        var errorState = R.useState("");
+        var stepError = errorState[0];
+        var setStepError = errorState[1];
+        var invalidState = R.useState({});
+        var invalid = invalidState[0];
+        var setInvalid = invalidState[1];
+        var bodyRef = R.useRef(null);
+        var mounted = R.useRef(true);
+        function runValidate(step) {
+          return validateStep(step);
+        }
+        function markInvalid(i, bad) {
+          setInvalid(function(prev) {
+            var next2 = Object.assign({}, prev);
+            if (bad) next2[i] = true;
+            else delete next2[i];
+            return next2;
+          });
+        }
+        function focusBody() {
+          var el = bodyRef.current;
+          if (el && typeof el.focus === "function") el.focus();
+        }
+        R.useEffect(
+          function() {
+            if (!mounted.current) return;
+            focusBody();
+          },
+          [index]
+        );
+        R.useEffect(function() {
+          mounted.current = true;
+          return function() {
+            mounted.current = false;
+          };
+        }, []);
+        function goTo(i) {
+          if (busy || i < 0 || i >= count) return;
+          setIndex(i);
+          if (i > maxVisited) setMaxVisited(i);
+          setStepError("");
+        }
+        function fail(i, message) {
+          markInvalid(i, true);
+          goTo(i);
+          setStepError(message);
+          focusBody();
+        }
+        function next() {
+          if (busy) return;
+          var message = runValidate(steps[index]);
+          if (message) {
+            fail(index, message);
+            return;
+          }
+          markInvalid(index, false);
+          goTo(Math.min(index + 1, count - 1));
+        }
+        function back() {
+          if (busy || index === 0) return;
+          goTo(index - 1);
+        }
+        function jump(i) {
+          if (busy || i > maxVisited) return;
+          goTo(i);
+        }
+        function submit() {
+          if (busy) return;
+          var bad = firstFailing(steps);
+          if (bad) {
+            fail(bad.index, bad.message);
+            return;
+          }
+          for (var i = 0; i < count; i++) markInvalid(i, false);
+          setStepError("");
+          if (typeof props.onSubmit === "function") props.onSubmit();
+        }
+        function cancel() {
+          if (busy) return;
+          if (typeof props.onClose === "function") props.onClose();
+        }
+        var current = steps[index];
+        var isLast = index >= count - 1;
+        var saveText = props.submitText || "\u4FDD\u5B58";
+        var shownError = stepError || props.error || "";
+        return h2(
+          Overlay,
+          props,
+          count > 1 ? h2(stepper.Steps, {
+            h: h2,
+            steps: steps.map(function(step) {
+              return { key: step.key, label: step.label, hint: step.hint, optional: step.optional };
+            }),
+            current: index,
+            maxVisited,
+            onJump: jump,
+            invalid,
+            disabled: busy,
+            label: props.stepsLabel || "\u521B\u5EFA\u6B65\u9AA4"
+          }) : null,
+          h2(
+            "div",
+            {
+              className: "wbctl-dialog-body" + (props.bodyClassName ? " " + props.bodyClassName : ""),
+              ref: bodyRef,
+              tabIndex: -1
+            },
+            current ? current.render(h2, props) : null
+          ),
+          props.footerExtra || null,
+          shownError ? h2("div", { className: "wbctl-dialog-err", role: "alert" }, shownError) : null,
+          h2(
+            "div",
+            { className: "wbctl-dialog-foot" },
+            count > 1 ? h2("span", { className: "wbctl-dialog-progress" }, index + 1 + " / " + count) : null,
+            props.footerNote ? h2("span", { className: "wbctl-dialog-note" }, props.footerNote) : null,
+            h2("span", { className: "wbctl-dialog-spacer" }),
+            index > 0 ? h2(
+              "button",
+              { type: "button", className: "wbctl-btn", onClick: back, disabled: busy },
+              props.backText || "\u4E0A\u4E00\u6B65"
+            ) : null,
+            h2("button", { type: "button", className: "wbctl-btn", onClick: cancel, disabled: busy }, props.cancelText || "\u53D6\u6D88"),
+            h2(
+              "button",
+              {
+                type: "button",
+                className: "wbctl-btn wbctl-btn-p",
+                onClick: isLast ? submit : next,
+                // submitDisabled 只作用于末步的保存：插件据此把「结构性不合法」（JSON 语法、无可选 action）
+                // 提前反映成禁用态，避免用户点到保存才被弹回第一步。
+                disabled: busy || isLast && !!props.submitDisabled
+              },
+              busy ? saveText + "\u4E2D\u2026" : isLast ? saveText : props.nextText || "\u4E0B\u4E00\u6B65"
+            )
+          )
+        );
+      }
+      StagedDialog.displayName = opts.displayName || "StagedDialog";
+      return StagedDialog;
+    }
+    var STYLES = [
+      // 宽表单：内容多时给足横向空间，窄屏留 16px 边距后铺满。
+      ".wbctl-dialog{width:min(880px,calc(100vw - 32px));max-height:min(92vh,760px);display:flex;flex-direction:column;overflow:hidden}",
+      ".wbctl-dialog-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 10px;outline:none}",
+      ".wbctl-dialog-body:focus-visible{outline:none}",
+      ".wbctl-dialog-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:10px;margin-top:10px;border-top:1px solid var(--wb-line,var(--wb-border))}",
+      ".wbctl-dialog-progress{font-size:11.5px;color:var(--wb-muted,#666);font-variant-numeric:tabular-nums}",
+      ".wbctl-dialog-note{font-size:11.5px;color:var(--wb-muted,#666);min-width:0}",
+      ".wbctl-dialog-spacer{flex:1 1 auto}",
+      ".wbctl-dialog-err{margin-top:8px;padding:7px 10px;border-radius:8px;border:1px solid color-mix(in oklab,var(--wb-danger,#d33) 45%,transparent);background:color-mix(in oklab,var(--wb-danger,#d33) 8%,transparent);color:var(--wb-danger,#d33);font-size:12px}",
+      ".wbctl-btn{padding:6px 14px;border:1px solid var(--wb-border,#d0d5dd);border-radius:8px;background:var(--wb-card,#fff);color:inherit;font:inherit;font-size:12.5px;cursor:pointer}",
+      ".wbctl-btn:hover:not(:disabled){background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-btn:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-btn:disabled{opacity:.55;cursor:default}",
+      ".wbctl-btn.wbctl-btn-p{background:var(--wb-accent,#2563eb);border-color:transparent;color:var(--wb-on-accent,#fff)}",
+      ".wbctl-btn.wbctl-btn-p:hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent,#2563eb) 86%,#000)}",
+      // 确认步：键值对清单，各插件共用，避免再各写一套只读摘要。\n  ".wbctl-review{display:flex;flex-direction:column;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;overflow:hidden}",\n  ".wbctl-review-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 12px;font-size:12.5px;background:var(--wb-surface,transparent)}",\n  ".wbctl-review-row+.wbctl-review-row{border-top:1px solid var(--wb-line,var(--wb-border))}",\n  ".wbctl-review-k{color:var(--wb-muted,inherit);font-size:11.5px;line-height:1.6}",\n  ".wbctl-review-v{min-width:0;word-break:break-word;line-height:1.6}",\n  ".wbctl-note{margin:10px 0 0;font-size:11.5px;color:var(--wb-muted,inherit)}",\n  // 两列字段布局：内容多的弹窗不再单列拉长，窄屏回落单列。
+      ".wbctl-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}",
+      ".wbctl-form>.full{grid-column:1/-1}",
+      "@media (max-width:760px){.wbctl-dialog{width:calc(100vw - 16px);max-height:94vh}.wbctl-form{grid-template-columns:1fr}.wbctl-form>.full{grid-column:auto}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-btn{transition:none}}"
+    ];
+    module2.exports = {
+      createStagedDialog,
+      validateStep,
+      firstFailing,
+      styles: STYLES
     };
   }
 });
@@ -738,6 +1454,692 @@ var require_date_picker = __commonJS({
   }
 });
 
+// packages/addons/lib/date-picker-styles.cjs
+var require_date_picker_styles = __commonJS({
+  "packages/addons/lib/date-picker-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function datePickerStyles(prefix) {
+      var p = String(prefix || "wb");
+      return [
+        ".{p}-dp,.{p}-dr{position:relative;min-width:0}",
+        ".{p}-dp-field{display:flex;align-items:center;gap:6px;min-width:0}",
+        ".{p}-dp-trigger{display:flex;align-items:center;gap:8px;min-width:0;width:100%;padding:8px 10px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:var(--wb-text,inherit);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s}",
+        ".{p}-dp-trigger:hover{border-color:var(--wb-accent)}",
+        ".{p}-dp-trigger:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
+        ".{p}-dp-trigger[disabled]{opacity:.55;cursor:not-allowed}",
+        ".{p}-dp-glyph{width:13px;height:13px;flex:none;border:1.5px solid currentColor;border-radius:3px;position:relative;opacity:.72}",
+        '.{p}-dp-glyph::before{content:"";position:absolute;left:-1.5px;right:-1.5px;top:3px;border-top:1.5px solid currentColor}',
+        '.{p}-dp-glyph::after{content:"";position:absolute;left:3px;top:-3px;width:1.5px;height:3px;background:currentColor;box-shadow:4px 0 currentColor}',
+        ".{p}-dp-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}",
+        ".{p}-dp-value.is-empty{color:var(--wb-muted)}",
+        ".{p}-dp-clear{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--wb-muted) 14%,transparent);color:var(--wb-muted);font:inherit;line-height:1;cursor:pointer}",
+        ".{p}-dp-clear:hover{color:var(--wb-danger);background:color-mix(in srgb,var(--wb-danger) 16%,transparent)}",
+        ".{p}-dp-pop{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:272px;padding:10px;border:1px solid var(--wb-border);border-radius:12px;background:var(--wb-card);box-shadow:0 16px 40px color-mix(in srgb,var(--wb-text,var(--wb-border)) 18%,transparent);animation:{p}-dp-in .14s ease-out}",
+        ".{p}-dp-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}",
+        ".{p}-dp-title{flex:1;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}",
+        ".{p}-dp-nav{width:26px;height:26px;padding:0;border:1px solid var(--wb-border);border-radius:7px;background:transparent;color:inherit;font:inherit;line-height:1;cursor:pointer}",
+        ".{p}-dp-nav:hover{border-color:var(--wb-accent);color:var(--wb-accent)}",
+        ".{p}-dp-weekdays,.{p}-dp-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}",
+        ".{p}-dp-weekdays{margin-bottom:4px;font-size:11px;color:var(--wb-muted);text-align:center}",
+        ".{p}-dp-day{min-width:0;height:30px;padding:0;border:0;border-radius:7px;background:transparent;color:inherit;font:inherit;font-variant-numeric:tabular-nums;cursor:pointer}",
+        ".{p}-dp-day:hover{background:color-mix(in srgb,var(--wb-accent) 12%,transparent)}",
+        ".{p}-dp-day.is-between{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);border-radius:0}",
+        ".{p}-dp-day.is-today{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--wb-accent) 55%,transparent)}",
+        ".{p}-dp-day.is-on{background:var(--wb-accent);color:var(--wb-on-accent,inherit);font-weight:600}",
+        ".{p}-dp-day:disabled{opacity:.35;cursor:not-allowed}",
+        ".{p}-dp-day:focus-visible{outline:2px solid var(--wb-accent);outline-offset:-2px}",
+        ".{p}-dp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--wb-line)}",
+        ".{p}-dp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}",
+        ".{p}-dp-link{padding:4px 8px;border:0;border-radius:6px;background:color-mix(in srgb,var(--wb-muted) 12%,transparent);color:inherit;font:inherit;font-size:12px;cursor:pointer}",
+        ".{p}-dp-link:hover{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);color:var(--wb-accent)}",
+        ".{p}-dp-hint{margin:6px 0 0;font-size:11px;color:var(--wb-muted)}",
+        ".{p}-dp-pop.is-months{width:248px}",
+        ".{p}-dp-months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:6px}",
+        ".{p}-dp-months .{p}-dp-day{height:34px}",
+        "@keyframes {p}-dp-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}"
+      ].join("\n").replace(/\{p\}/g, p);
+    };
+  }
+});
+
+// packages/addons/lib/stats-charts.cjs
+var require_stats_charts = __commonJS({
+  "packages/addons/lib/stats-charts.cjs"(exports2, module2) {
+    "use strict";
+    var React2 = require("react");
+    var h2 = React2.createElement;
+    var DP = require_date_picker();
+    var COLORS = [
+      "var(--dsw-alias-state-business-primary, #4f6ef7)",
+      "var(--dsw-alias-state-success-primary, #2f9e6e)",
+      "var(--dsw-alias-state-warn-primary, #d99100)",
+      "var(--dsw-alias-state-error-primary, #d9534f)",
+      "var(--dsw-alias-state-done-primary, #7c5cff)",
+      "var(--dsw-alias-state-idle-primary, #8f959e)"
+    ];
+    function css(prefix, extra) {
+      return [
+        ".@-stats{display:flex;flex-direction:column;gap:14px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-stoolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+        ".@-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,#fff)}",
+        ".@-seg button{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-size:12px;padding:6px 10px;cursor:pointer;white-space:nowrap}",
+        ".@-seg button.@-on{background:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-label-primary-inverted,#fff)}",
+        ".@-range{display:inline-flex;align-items:center;gap:4px}",
+        ".@-date{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-family:inherit;font-size:12px;padding:4px 2px;width:116px;outline:none}",
+        ".@-date::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}",
+        ".@-dash{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-clear{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:14px;line-height:1;padding:2px 4px;cursor:pointer;border-radius:4px}",
+        ".@-clear:hover{color:var(--dsw-alias-state-error-primary,#d9534f);background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-hint{font-size:11px;color:var(--dsw-alias-state-error-primary,#d9534f);white-space:nowrap}",
+        ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit}",
+        ".@-ghost:disabled{opacity:.6;cursor:progress}",
+        ".@-ico{display:block;flex:none}",
+        ".@-kpi-l .@-ico{opacity:.7}",
+        ".@-ghost:hover{border-color:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-brand-primary,#4f6ef7)}",
+        ".@-muted{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
+        ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
+        ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
+        ".@-chead{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}",
+        ".@-ctitle{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-cnote{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-kpis{grid-column:span 12;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}",
+        ".@-kpi{background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:12px 14px;min-width:0}",
+        ".@-kpi-l{font-size:12px;color:var(--dsw-alias-label-tertiary,#8f959e);display:flex;align-items:center;gap:6px}",
+        ".@-kpi-v{font-size:26px;line-height:1.25;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}",
+        ".@-kpi-u{font-size:12px;font-weight:400;color:var(--dsw-alias-label-tertiary,#8f959e);margin-left:3px}",
+        ".@-kpi-h{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);margin-top:3px}",
+        ".@-kpi.@-danger .@-kpi-v{color:var(--dsw-alias-state-error-primary,#d9534f)}",
+        ".@-kpi.@-warn .@-kpi-v{color:var(--dsw-alias-state-warn-primary,#d99100)}",
+        ".@-kpi.@-ok .@-kpi-v{color:var(--dsw-alias-state-success-primary,#2f9e6e)}",
+        ".@-donut{display:flex;align-items:center;gap:16px;flex-wrap:wrap}",
+        ".@-donut svg{flex:0 0 auto}",
+        ".@-legend{display:flex;flex-direction:column;gap:7px;min-width:120px;flex:1}",
+        ".@-leg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dsw-alias-label-secondary,#646a73)}",
+        ".@-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}",
+        ".@-leg b{margin-left:auto;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
+        ".@-bars{display:flex;flex-direction:column;gap:9px}",
+        ".@-bar{display:grid;grid-template-columns:minmax(72px,1.2fr) 3fr auto;gap:8px;align-items:center;font-size:12px}",
+        ".@-bar-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary,#646a73)}",
+        ".@-bar-t{display:block;height:8px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);overflow:hidden}",
+        ".@-bar-f{display:block;height:100%;border-radius:6px;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-width:2px}",
+        ".@-bar-v{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-primary,#1f2329);font-weight:600;min-width:34px;text-align:right}",
+        ".@-stack{display:flex;flex-direction:column;gap:10px}",
+        ".@-srow-l{font-size:12px;color:var(--dsw-alias-label-secondary,#646a73);margin-bottom:4px;display:flex}",
+        ".@-srow-l b{margin-left:auto;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
+        ".@-strack{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-seg-f{height:100%}",
+        ".@-hist{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:16px}",
+        ".@-hbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;min-width:0;height:100%}",
+        ".@-hbar-v{font-size:11px;color:var(--dsw-alias-label-secondary,#646a73);font-variant-numeric:tabular-nums}",
+        ".@-hbar-f{width:100%;max-width:44px;border-radius:5px 5px 0 0;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-height:2px}",
+        ".@-hbar-l{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}",
+        ".@-trend{width:100%;height:auto;display:block}",
+        ".@-tlegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-trend-wrap{position:relative}",
+        ".@-trend-hit{fill:transparent}",
+        ".@-trend-slot{fill:transparent;cursor:crosshair}",
+        ".@-trend-cross{stroke:var(--dsw-alias-border-l2,#e5e6eb);stroke-width:1;stroke-dasharray:3 3}",
+        ".@-tlegend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-tleg-item{appearance:none;border:0;background:transparent;color:inherit;font:inherit;display:inline-flex;align-items:center;gap:5px;padding:2px 4px;border-radius:5px;cursor:pointer}",
+        ".@-tleg-item.off{opacity:.45;text-decoration:line-through}",
+        ".@-tleg-item:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-table-scroll{max-width:100%;overflow-x:auto}.@-table{width:100%;border-collapse:collapse;font-size:12px}",
+        ".@-table th{text-align:left;font-weight:500;color:var(--dsw-alias-label-tertiary,#8f959e);padding:6px 8px;border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb);white-space:nowrap}",
+        ".@-table td{padding:7px 8px;border-bottom:1px solid var(--dsw-alias-border-l1,#f2f3f5);color:var(--dsw-alias-label-secondary,#646a73);vertical-align:top}",
+        ".@-table tr:last-child td{border-bottom:0}",
+        ".@-table th.@-num,.@-table td.@-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}",
+        ".@-empty{padding:26px 8px;text-align:center;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-err{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 8%,transparent);border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 30%,transparent);color:var(--dsw-alias-state-error-primary,#d9534f);border-radius:10px;padding:10px 12px;font-size:12px}",
+        ".@-warn{grid-column:span 12;border:1px dashed var(--dsw-alias-state-warn-primary,#d99100);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--dsw-alias-state-warn-primary,#d99100);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#d99100) 6%,transparent)}",
+        ".@-sk{height:14px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);margin:7px 0;animation:@-pulse 1.2s ease-in-out infinite}",
+        "@keyframes @-pulse{0%,100%{opacity:.55}50%{opacity:1}}",
+        "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}",
+        "@media (max-width:600px){.@-stats{padding-bottom:16px}.@-hist{height:130px}.@-kpi-v{font-size:22px}}",
+        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}"
+      ].concat(extra || []).concat([require_date_picker_styles()(prefix)]).join("\n").replace(/@-/g, prefix + "-");
+    }
+    function primitives(prefix, options) {
+      var opts = options || {};
+      var ICONS = opts.icons || {};
+      var showNote = !!opts.showNote;
+      function ico(name, size) {
+        var C = ICONS[name];
+        if (!C) return null;
+        return h2(C, { size: size || 13, strokeWidth: 2, "aria-hidden": "true", className: prefix + "-ico" });
+      }
+      function num(lang, n) {
+        var v = Number(n);
+        if (!isFinite(v)) return "\u2014";
+        try {
+          return new Intl.NumberFormat(lang === "en" ? "en-US" : "zh-CN").format(v);
+        } catch (e) {
+          return String(v);
+        }
+      }
+      function pct(v, digits) {
+        if (v === null || v === void 0 || !isFinite(Number(v))) return "\u2014";
+        return (Number(v) * 100).toFixed(digits === void 0 ? 1 : digits) + "%";
+      }
+      function timeText(ms) {
+        if (!ms) return "";
+        var d = new Date(Number(ms));
+        function p(n) {
+          return String(n).padStart(2, "0");
+        }
+        return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+      }
+      function dateText(ms) {
+        if (!ms) return "\u2014";
+        var d = new Date(Number(ms));
+        function p(n) {
+          return String(n).padStart(2, "0");
+        }
+        return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+      }
+      function Card(props) {
+        var cls = prefix + "-scard" + (props.span ? " " + prefix + "-span-" + props.span : "");
+        return h2(
+          "section",
+          { className: cls },
+          props.title || props.right ? h2(
+            "div",
+            { className: prefix + "-chead" },
+            h2("span", { className: prefix + "-ctitle" }, props.title),
+            props.note ? h2("span", { className: prefix + "-cnote" }, props.note) : null,
+            props.right ? h2("span", { style: { marginLeft: "auto" } }, props.right) : null
+          ) : null,
+          props.children
+        );
+      }
+      function Kpi(props) {
+        var tone = props.tone ? " " + prefix + "-" + props.tone : "";
+        return h2(
+          "div",
+          { className: prefix + "-kpi" + tone },
+          h2("div", { className: prefix + "-kpi-l" }, ico(props.icon, 13), props.label),
+          h2(
+            "div",
+            { className: prefix + "-kpi-v" },
+            props.value === null || props.value === void 0 ? "\u2014" : typeof props.value === "number" ? num(props.lang, props.value) : props.value,
+            props.unit ? h2("span", { className: prefix + "-kpi-u" }, props.unit) : null
+          ),
+          props.hint ? h2("div", { className: prefix + "-kpi-h" }, props.hint) : null
+        );
+      }
+      function Donut(props) {
+        var data = (props.data || []).filter(function(d) {
+          return Number(d.count) > 0;
+        });
+        var total = Number(props.total || 0);
+        var size = props.size || 168;
+        var r = size / 2 - 16;
+        var c = 2 * Math.PI * r;
+        var offset = 0;
+        var aria = props.aria || data.map(function(d) {
+          return d.label + " " + d.count;
+        }).join("\uFF0C");
+        return h2(
+          "div",
+          { className: prefix + "-donut" },
+          h2(
+            "svg",
+            { width: size, height: size, viewBox: "0 0 " + size + " " + size, role: "img", "aria-label": aria },
+            h2("circle", { cx: size / 2, cy: size / 2, r, fill: "none", stroke: "var(--dsw-alias-bg-skeleton,#f2f3f5)", strokeWidth: 18 }),
+            total > 0 ? data.map(function(d, i) {
+              var len = Number(d.count) / total * c;
+              var seg = h2("circle", {
+                key: d.key || d.label || i,
+                cx: size / 2,
+                cy: size / 2,
+                r,
+                fill: "none",
+                stroke: d.color || COLORS[i % COLORS.length],
+                strokeWidth: 18,
+                strokeDasharray: len + " " + (c - len),
+                strokeDashoffset: -offset,
+                transform: "rotate(-90 " + size / 2 + " " + size / 2 + ")",
+                strokeLinecap: "butt"
+              }, h2("title", null, d.label + "\uFF1A" + d.count + (showNote && d.note ? "\uFF08" + d.note + "\uFF09" : "")));
+              offset += len;
+              return seg;
+            }) : null,
+            h2("text", { x: size / 2, y: size / 2 - 2, textAnchor: "middle", fill: "var(--dsw-alias-label-primary,#1f2329)", fontSize: 24, fontWeight: 650 }, num(props.lang, total)),
+            h2("text", { x: size / 2, y: size / 2 + 18, textAnchor: "middle", fill: "var(--dsw-alias-label-tertiary,#8f959e)", fontSize: 11 }, props.centerLabel || "")
+          ),
+          h2("div", { className: prefix + "-legend" }, (props.data || []).map(function(d, i) {
+            return h2(
+              "div",
+              { key: d.key || d.label || i, className: prefix + "-leg" },
+              h2("span", { className: prefix + "-dot", style: { background: d.color || COLORS[i % COLORS.length] } }),
+              h2("span", null, d.label, showNote && d.note ? h2("i", { className: prefix + "-leg-note" }, "\xB7 " + d.note) : null),
+              h2("b", null, num(props.lang, d.count))
+            );
+          }))
+        );
+      }
+      function BarList(props) {
+        var data = props.data || [];
+        var max = Number(props.max || 0) || data.reduce(function(m, d) {
+          return Math.max(m, Number(d.value || 0));
+        }, 0) || 1;
+        return h2("div", { className: prefix + "-bars" }, data.map(function(d, i) {
+          var v = Number(d.value || 0);
+          return h2(
+            "div",
+            { key: d.key || d.label || i, className: prefix + "-bar" },
+            h2("span", { className: prefix + "-bar-l", title: d.title || d.label }, d.label),
+            h2("span", { className: prefix + "-bar-t" }, h2("span", { className: prefix + "-bar-f", style: { width: Math.max(2, v / max * 100) + "%", background: d.color || props.color || COLORS[0] } })),
+            h2("span", { className: prefix + "-bar-v" }, props.format ? props.format(v) : num(props.lang, v))
+          );
+        }));
+      }
+      function StackedRows(props) {
+        var rows = props.rows || [];
+        var keys = props.keys || [];
+        return h2("div", { className: prefix + "-stack" }, rows.map(function(row, ri) {
+          var total = Number(row.total || 0) || 1;
+          return h2(
+            "div",
+            { key: row.key || ri },
+            h2("div", { className: prefix + "-srow-l" }, h2("span", null, row.label), h2("b", null, num(props.lang, row.total))),
+            h2("div", { className: prefix + "-strack" }, keys.map(function(k, i) {
+              var v = Number(row.parts && row.parts[k.key] || 0);
+              if (v <= 0) return null;
+              return h2("span", {
+                key: k.key,
+                className: prefix + "-seg-f",
+                title: k.label + " " + v,
+                style: { width: v / total * 100 + "%", background: k.color || COLORS[i % COLORS.length] }
+              });
+            }))
+          );
+        }));
+      }
+      function useWidth() {
+        if (typeof React2.useRef !== "function" || typeof React2.useEffect !== "function") return [null, 0];
+        var state = React2.useState(0);
+        var ref = React2.useRef(null);
+        var setWidth = state[1];
+        var useIso = React2.useLayoutEffect || React2.useEffect;
+        useIso(function() {
+          var node = ref.current;
+          if (!node) return void 0;
+          function read() {
+            var w = node.clientWidth || 0;
+            if (w > 0) setWidth(w);
+          }
+          read();
+          if (typeof ResizeObserver === "undefined") return void 0;
+          var ro = new ResizeObserver(read);
+          ro.observe(node);
+          return function() {
+            ro.disconnect();
+          };
+        }, []);
+        return [ref, state[0]];
+      }
+      function Trend(props) {
+        var data = props.data || [];
+        var series = props.series || [];
+        var lang = props.lang;
+        var fmt = typeof props.format === "function" ? props.format : function(v) {
+          return num(lang, v);
+        };
+        var visible = props.visible || null;
+        var shown = series.filter(function(s) {
+          return !visible || visible[s.key] !== false;
+        });
+        if (!data.length) return h2("div", { className: prefix + "-empty" }, props.emptyText || "\u6682\u65E0\u6570\u636E");
+        var size = useWidth();
+        var width = Math.max(260, size[1] || props.width || 640);
+        var height = props.height || 200;
+        var left = props.left || 60, right = 12, top = 14, bottom = 26;
+        var pw = width - left - right, ph = height - top - bottom;
+        var max = 0;
+        data.forEach(function(d) {
+          shown.forEach(function(s) {
+            max = Math.max(max, Math.abs(Number(d[s.key] || 0)));
+          });
+        });
+        var raw = Math.max(max, 1) / 4;
+        var exp = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+        var norm = raw / exp;
+        var mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+        var step = mult * exp;
+        var axisMax = step * 4;
+        function x(i2) {
+          return left + (data.length <= 1 ? pw / 2 : i2 / (data.length - 1) * pw);
+        }
+        function y(v) {
+          return top + ph - Math.max(0, Number(v) || 0) / axisMax * ph;
+        }
+        var active = typeof props.active === "number" ? props.active : null;
+        var band = data.length > 1 ? pw / (data.length - 1) : pw;
+        var labelIdx = [];
+        var labelStep = Math.max(1, Math.ceil(data.length / 8));
+        for (var i = 0; i < data.length; i += labelStep) labelIdx.push(i);
+        if (labelIdx[labelIdx.length - 1] !== data.length - 1) labelIdx.push(data.length - 1);
+        var aria = props.aria || shown.map(function(s) {
+          return s.label + " " + data.reduce(function(n, d) {
+            return n + Number(d[s.key] || 0);
+          }, 0);
+        }).join("\uFF0C");
+        var ticks = [];
+        for (var t = 0; t <= 4; t++) ticks.push(step * t);
+        var children = [];
+        if (typeof props.onHover === "function") {
+          children.push(h2("rect", {
+            key: "hit-area",
+            x: left,
+            y: top,
+            width: pw,
+            height: ph,
+            className: prefix + "-trend-hit",
+            onMouseLeave: function() {
+              props.onHover(null);
+            }
+          }));
+          data.forEach(function(d, di) {
+            children.push(h2("rect", {
+              key: "hit" + di,
+              x: x(di) - band / 2,
+              y: top,
+              width: band,
+              height: ph,
+              className: prefix + "-trend-slot",
+              onMouseEnter: function() {
+                props.onHover(di);
+              }
+            }));
+          });
+        }
+        ticks.forEach(function(v, ti) {
+          children.push(h2(
+            "g",
+            { key: "t" + ti },
+            h2("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
+            h2("text", { x: left - 8, y: y(v) + 3, textAnchor: "end", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, fmt(v))
+          ));
+        });
+        if (active !== null && data[active]) {
+          children.push(h2("line", {
+            key: "cross",
+            x1: x(active),
+            y1: top,
+            x2: x(active),
+            y2: top + ph,
+            className: prefix + "-trend-cross"
+          }));
+        }
+        shown.forEach(function(s, si) {
+          var color = s.color || COLORS[series.indexOf(s) % COLORS.length];
+          var pts = data.map(function(d, di) {
+            return x(di) + "," + y(d[s.key]);
+          }).join(" ");
+          if (data.length > 1) {
+            children.push(h2("polyline", {
+              key: "line" + s.key,
+              points: pts,
+              fill: "none",
+              stroke: color,
+              strokeWidth: 2,
+              strokeLinejoin: "round",
+              strokeLinecap: "round",
+              // className 供插件用自有色调样式挂靠，也方便测试按系列归类
+              className: prefix + "-trend-line" + (s.className ? " " + s.className : "")
+            }));
+          }
+          data.forEach(function(d, di) {
+            children.push(h2("circle", {
+              key: "dot" + s.key + di,
+              cx: x(di),
+              cy: y(d[s.key]),
+              fill: color,
+              r: di === active ? 5 : 3,
+              className: prefix + "-trend-dot" + (di === active ? " is-hot" : "")
+            }, h2("title", null, labelOf(d, di) + " \xB7 " + s.label + " " + fmt(d[s.key]) + (props.note ? " \xB7 " + props.note(d) : ""))));
+          });
+        });
+        function labelOf(d, di) {
+          if (typeof props.label === "function") return props.label(d, di);
+          return String(d.bucket === void 0 ? di + 1 : d.bucket).slice(5);
+        }
+        labelIdx.forEach(function(di) {
+          children.push(h2("text", { key: "x" + di, x: x(di), y: height - 8, textAnchor: "middle", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, labelOf(data[di], di)));
+        });
+        var legend = props.showLegend === false ? null : h2("div", { className: prefix + "-tlegend" }, series.map(function(s, si) {
+          var off = !!(visible && visible[s.key] === false);
+          var color = s.color || COLORS[si % COLORS.length];
+          var inner = [h2("span", { key: "d", className: prefix + "-dot", style: { background: color } }), s.label];
+          if (typeof props.onToggle !== "function") {
+            return h2("span", { key: s.key, className: prefix + "-tleg-item" + (off ? " off" : "") }, inner);
+          }
+          return h2("button", {
+            key: s.key,
+            type: "button",
+            className: prefix + "-tleg-item" + (off ? " off" : ""),
+            "aria-pressed": !off,
+            title: (off ? "\u663E\u793A" : "\u9690\u85CF") + s.label,
+            onClick: function() {
+              props.onToggle(s.key);
+            }
+          }, inner);
+        }));
+        return h2(
+          "div",
+          { className: prefix + "-trend-wrap", ref: size[0] },
+          h2("svg", { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, width, height, role: "img", "aria-label": aria }, children),
+          legend
+        );
+      }
+      function Histogram(props) {
+        var data = props.data || [];
+        var max = data.reduce(function(m, d) {
+          return Math.max(m, Number(d.count || 0));
+        }, 0) || 1;
+        return h2(
+          "div",
+          { className: prefix + "-hist", role: "img", "aria-label": props.aria || data.map(function(d) {
+            return d.label + " " + d.count;
+          }).join("\uFF0C") },
+          data.map(function(d, i) {
+            return h2(
+              "div",
+              { key: d.key || d.label || i, className: prefix + "-hbar", title: d.label + "\uFF1A" + d.count },
+              h2("span", { className: prefix + "-hbar-v" }, num(props.lang, d.count)),
+              h2("span", { className: prefix + "-hbar-f", style: { height: Math.max(2, Number(d.count || 0) / max * 100) + "%", background: d.color || props.color || COLORS[0] } }),
+              h2("span", { className: prefix + "-hbar-l" }, d.label)
+            );
+          })
+        );
+      }
+      function DataTable(props) {
+        var cols = props.columns || [];
+        var rows = props.rows || [];
+        if (!rows.length) return h2("div", { className: prefix + "-empty" }, props.empty || "\u6682\u65E0\u6570\u636E");
+        return h2("div", { className: prefix + "-table-scroll", tabIndex: 0, role: "region", "aria-label": props.lang === "en" ? "Data table" : "\u6570\u636E\u8868\u683C" }, h2(
+          "table",
+          { className: prefix + "-table" },
+          h2("thead", null, h2("tr", null, cols.map(function(c) {
+            return h2("th", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.label);
+          }))),
+          h2("tbody", null, rows.map(function(row, ri) {
+            return h2("tr", { key: row.id || row.key || ri }, cols.map(function(c) {
+              return h2("td", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.render ? c.render(row) : row[c.key]);
+            }));
+          }))
+        ));
+      }
+      function RangeSwitch(props) {
+        var custom = props.custom || null;
+        var from = custom && custom.from ? custom.from : "";
+        var to = custom && custom.to ? custom.to : "";
+        function setDate(key, value) {
+          if (typeof props.onCustomChange !== "function") return;
+          var next = { from, to };
+          next[key] = value;
+          props.onCustomChange(next);
+        }
+        return h2(
+          "div",
+          { className: prefix + "-stoolbar" },
+          h2("div", { className: prefix + "-seg", role: "group", "aria-label": props.aria || "\u65F6\u95F4\u8303\u56F4" }, (props.options || []).map(function(o) {
+            return h2("button", {
+              key: o.key,
+              type: "button",
+              className: o.key === props.value ? prefix + "-on" : "",
+              "aria-pressed": !!props.value && o.key === props.value,
+              onClick: function() {
+                props.onChange(o.key);
+              }
+            }, o.label);
+          })),
+          h2(
+            "div",
+            { className: prefix + "-range", role: "group", "aria-label": props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4" },
+            h2(DP.RangePicker, {
+              React: React2,
+              h: h2,
+              prefix,
+              lang: props.lang,
+              label: props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4",
+              value: { from, to },
+              max: props.today || void 0,
+              clearable: false,
+              onChange: function(next) {
+                if (typeof props.onCustomChange !== "function") return;
+                props.onCustomChange({ from: next.from, to: next.to });
+              }
+            }),
+            from || to ? h2("button", {
+              type: "button",
+              className: prefix + "-clear",
+              "aria-label": props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
+              title: props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
+              onClick: function() {
+                if (props.onCustomClear) props.onCustomClear();
+              }
+            }, "\xD7") : null
+          ),
+          props.customHint ? h2("span", { className: prefix + "-hint", role: "status" }, props.customHint) : null,
+          h2("button", { type: "button", className: prefix + "-ghost", disabled: !!props.loading, onClick: props.onRefresh }, ico("refresh", 13), props.refreshLabel || "\u5237\u65B0"),
+          h2("span", { className: prefix + "-muted" }, props.generatedAt ? (props.timeLabel || "\u622A\u81F3") + " " + timeText(props.generatedAt) : ""),
+          props.right ? h2("span", { style: { marginLeft: "auto" } }, props.right) : null
+        );
+      }
+      function Empty(props) {
+        return h2("div", { className: prefix + "-empty" }, props.text || "\u6682\u65E0\u6570\u636E");
+      }
+      function Skeleton() {
+        return h2(
+          "div",
+          { className: prefix + "-sgrid" },
+          h2("div", { className: prefix + "-kpis" }, [0, 1, 2, 3].map(function(i) {
+            return h2(
+              "div",
+              { key: i, className: prefix + "-kpi" },
+              h2("div", { className: prefix + "-sk", style: { width: "40%" } }),
+              h2("div", { className: prefix + "-sk", style: { width: "65%", height: 26 } })
+            );
+          })),
+          [0, 1].map(function(i) {
+            return h2(
+              "div",
+              { key: "c" + i, className: prefix + "-scard " + prefix + "-span-6" },
+              h2("div", { className: prefix + "-sk", style: { width: "30%" } }),
+              h2("div", { className: prefix + "-sk", style: { height: 120 } })
+            );
+          })
+        );
+      }
+      function ErrorBar(props) {
+        return h2(
+          "div",
+          { className: prefix + "-err", role: "alert" },
+          h2("span", null, props.message),
+          props.onRetry ? h2("button", { type: "button", className: prefix + "-ghost", onClick: props.onRetry }, props.retryLabel || "\u91CD\u8BD5") : null
+        );
+      }
+      function Warnings(props) {
+        var items = props.items || [];
+        if (!items.length) return null;
+        return h2("div", { className: prefix + "-warn", role: "status" }, items.map(function(w) {
+          return w.message;
+        }).join("\uFF1B"));
+      }
+      return {
+        Card,
+        Kpi,
+        Donut,
+        BarList,
+        StackedRows,
+        Trend,
+        Histogram,
+        DataTable,
+        RangeSwitch,
+        Empty,
+        Skeleton,
+        ErrorBar,
+        Warnings,
+        num,
+        pct,
+        timeText,
+        dateText,
+        colors: COLORS,
+        useWidth
+      };
+    }
+    function makeCharts(prefix, options) {
+      var opts = options || {};
+      if (typeof document !== "undefined" && !document.getElementById(prefix + "-charts-css")) {
+        var el = document.createElement("style");
+        el.id = prefix + "-charts-css";
+        el.textContent = css(prefix, opts.styles);
+        document.head.appendChild(el);
+      }
+      return primitives(prefix, opts);
+    }
+    module2.exports = { makeCharts, primitives, css, colors: COLORS };
+  }
+});
+
+// packages/addons/lib/icons.cjs
+var require_icons = __commonJS({
+  "packages/addons/lib/icons.cjs"(exports2, module2) {
+    "use strict";
+    var h2 = require("react").createElement;
+    function create(prefix, glyphs, options) {
+      var opts = options || {};
+      var ICONS = Object.assign({}, glyphs);
+      function Icon2(props) {
+        var C = ICONS[props.name] || (opts.fallback ? ICONS[opts.fallback] : null);
+        if (!C) return null;
+        var size = typeof opts.sizeOf === "function" ? opts.sizeOf(props) : props.size || 14;
+        var cls = prefix + "-svg" + (opts.classNameAppend && props.className ? " " + props.className : "");
+        var attrs = {
+          size,
+          strokeWidth: props.strokeWidth || 2,
+          "aria-hidden": "true",
+          className: cls
+        };
+        if (opts.focusable) attrs.focusable = false;
+        return h2(C, attrs);
+      }
+      var set = { ICONS, Icon: Icon2 };
+      if (opts.tabIcon) {
+        set.tabIcon = function(name) {
+          return function TabIcon() {
+            return h2(Icon2, { name, size: 14 });
+          };
+        };
+      }
+      return set;
+    }
+    module2.exports = { create };
+  }
+});
+
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/shared/src/utils/toKebabCase.mjs
 var toKebabCase;
 var init_toKebabCase = __esm({
@@ -1026,155 +2428,231 @@ var init_createLucideIcon = __esm({
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs
-var refresh_cw_exports = {};
-__export(refresh_cw_exports, {
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs
+var x_exports = {};
+__export(x_exports, {
   __iconData: () => __iconData,
-  default: () => RefreshCw
+  default: () => X
 });
-var __iconData, RefreshCw;
-var init_refresh_cw = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs"() {
+var __iconData, X;
+var init_x = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs"() {
     init_createLucideIcon();
     __iconData = {
-      name: "refresh-cw",
+      name: "x",
       size: 24,
       node: [
-        ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
-        ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
-        ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
-        ["path", { d: "M8 16H3v5", key: "1cv678" }]
+        ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+        ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
       ]
     };
     __iconData.node;
-    RefreshCw = createLucideIcon(__iconData);
+    X = createLucideIcon(__iconData);
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/globe.mjs
-var globe_exports = {};
-__export(globe_exports, {
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/plus.mjs
+var plus_exports = {};
+__export(plus_exports, {
   __iconData: () => __iconData2,
-  default: () => Globe
+  default: () => Plus
 });
-var __iconData2, Globe;
-var init_globe = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/globe.mjs"() {
+var __iconData2, Plus;
+var init_plus = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/plus.mjs"() {
     init_createLucideIcon();
     __iconData2 = {
-      name: "globe",
+      name: "plus",
       size: 24,
       node: [
-        ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-        ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
-        ["path", { d: "M2 12h20", key: "9i4pu4" }]
+        ["path", { d: "M5 12h14", key: "1ays0h" }],
+        ["path", { d: "M12 5v14", key: "s699le" }]
       ]
     };
     __iconData2.node;
-    Globe = createLucideIcon(__iconData2);
+    Plus = createLucideIcon(__iconData2);
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/link-2.mjs
-var link_2_exports = {};
-__export(link_2_exports, {
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check.mjs
+var check_exports = {};
+__export(check_exports, {
   __iconData: () => __iconData3,
-  default: () => Link2
+  default: () => Check
 });
-var __iconData3, Link2;
-var init_link_2 = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/link-2.mjs"() {
+var __iconData3, Check;
+var init_check = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check.mjs"() {
     init_createLucideIcon();
     __iconData3 = {
-      name: "link-2",
+      name: "check",
       size: 24,
-      node: [
-        ["path", { d: "M9 17H7A5 5 0 0 1 7 7h2", key: "8i5ue5" }],
-        ["path", { d: "M15 7h2a5 5 0 1 1 0 10h-2", key: "1b9ql8" }],
-        ["line", { x1: "8", x2: "16", y1: "12", y2: "12", key: "1jonct" }]
-      ]
+      node: [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]]
     };
     __iconData3.node;
-    Link2 = createLucideIcon(__iconData3);
+    Check = createLucideIcon(__iconData3);
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs
-var tag_exports = {};
-__export(tag_exports, {
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs
+var pencil_exports = {};
+__export(pencil_exports, {
   __iconData: () => __iconData4,
-  default: () => Tag
+  default: () => Pencil
 });
-var __iconData4, Tag;
-var init_tag = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs"() {
+var __iconData4, Pencil;
+var init_pencil = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs"() {
     init_createLucideIcon();
     __iconData4 = {
-      name: "tag",
+      name: "pencil",
       size: 24,
       node: [
         [
           "path",
           {
-            d: "M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z",
-            key: "vktsd0"
+            d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+            key: "1a8usu"
           }
         ],
-        ["circle", { cx: "7.5", cy: "7.5", r: ".5", fill: "currentColor", key: "kqv944" }]
+        ["path", { d: "m15 5 4 4", key: "1mk7zo" }]
       ]
     };
     __iconData4.node;
-    Tag = createLucideIcon(__iconData4);
+    Pencil = createLucideIcon(__iconData4);
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-pie.mjs
-var __iconData5, ChartPie;
-var init_chart_pie = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-pie.mjs"() {
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs
+var __iconData5, Trash;
+var init_trash = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs"() {
     init_createLucideIcon();
     __iconData5 = {
-      name: "chart-pie",
+      name: "trash",
+      size: 24,
+      node: [
+        ["path", { d: "M10 11v6", key: "nco0om" }],
+        ["path", { d: "M14 11v6", key: "outv1u" }],
+        ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
+        ["path", { d: "M3 6h18", key: "d0wm0j" }],
+        ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
+      ],
+      aliases: ["trash-2"]
+    };
+    __iconData5.node;
+    Trash = createLucideIcon(__iconData5);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs
+var trash_2_exports = {};
+__export(trash_2_exports, {
+  default: () => Trash
+});
+var init_trash_2 = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs"() {
+    init_trash();
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder.mjs
+var folder_exports = {};
+__export(folder_exports, {
+  __iconData: () => __iconData6,
+  default: () => Folder
+});
+var __iconData6, Folder;
+var init_folder = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder.mjs"() {
+    init_createLucideIcon();
+    __iconData6 = {
+      name: "folder",
       size: 24,
       node: [
         [
           "path",
           {
-            d: "M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z",
-            key: "pzmjnu"
+            d: "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z",
+            key: "1kt360"
           }
-        ],
-        ["path", { d: "M21.21 15.89A10 10 0 1 1 8 2.83", key: "k2fpak" }]
-      ],
-      aliases: ["pie-chart"]
+        ]
+      ]
     };
-    __iconData5.node;
-    ChartPie = createLucideIcon(__iconData5);
+    __iconData6.node;
+    Folder = createLucideIcon(__iconData6);
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pie-chart.mjs
-var pie_chart_exports = {};
-__export(pie_chart_exports, {
-  default: () => ChartPie
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-open.mjs
+var folder_open_exports = {};
+__export(folder_open_exports, {
+  __iconData: () => __iconData7,
+  default: () => FolderOpen
 });
-var init_pie_chart = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pie-chart.mjs"() {
-    init_chart_pie();
+var __iconData7, FolderOpen;
+var init_folder_open = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-open.mjs"() {
+    init_createLucideIcon();
+    __iconData7 = {
+      name: "folder-open",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2",
+            key: "usdka0"
+          }
+        ]
+      ]
+    };
+    __iconData7.node;
+    FolderOpen = createLucideIcon(__iconData7);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-plus.mjs
+var folder_plus_exports = {};
+__export(folder_plus_exports, {
+  __iconData: () => __iconData8,
+  default: () => FolderPlus
+});
+var __iconData8, FolderPlus;
+var init_folder_plus = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-plus.mjs"() {
+    init_createLucideIcon();
+    __iconData8 = {
+      name: "folder-plus",
+      size: 24,
+      node: [
+        ["path", { d: "M12 10v6", key: "1bos4e" }],
+        ["path", { d: "M9 13h6", key: "1uhe8q" }],
+        [
+          "path",
+          {
+            d: "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z",
+            key: "1kt360"
+          }
+        ]
+      ]
+    };
+    __iconData8.node;
+    FolderPlus = createLucideIcon(__iconData8);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-tree.mjs
 var folder_tree_exports = {};
 __export(folder_tree_exports, {
-  __iconData: () => __iconData6,
+  __iconData: () => __iconData9,
   default: () => FolderTree
 });
-var __iconData6, FolderTree;
+var __iconData9, FolderTree;
 var init_folder_tree = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-tree.mjs"() {
     init_createLucideIcon();
-    __iconData6 = {
+    __iconData9 = {
       name: "folder-tree",
       size: 24,
       node: [
@@ -1196,660 +2674,884 @@ var init_folder_tree = __esm({
         ["path", { d: "M3 3v13a2 2 0 0 0 2 2h3", key: "k8epm1" }]
       ]
     };
-    __iconData6.node;
-    FolderTree = createLucideIcon(__iconData6);
+    __iconData9.node;
+    FolderTree = createLucideIcon(__iconData9);
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/unlink.mjs
-var unlink_exports = {};
-__export(unlink_exports, {
-  __iconData: () => __iconData7,
-  default: () => Unlink
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/house.mjs
+var house_exports = {};
+__export(house_exports, {
+  __iconData: () => __iconData10,
+  default: () => House
 });
-var __iconData7, Unlink;
-var init_unlink = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/unlink.mjs"() {
+var __iconData10, House;
+var init_house = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/house.mjs"() {
     init_createLucideIcon();
-    __iconData7 = {
-      name: "unlink",
+    __iconData10 = {
+      name: "house",
       size: 24,
       node: [
+        ["path", { d: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8", key: "5wwlr5" }],
         [
           "path",
           {
-            d: "m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71",
-            key: "yqzxt4"
-          }
-        ],
-        [
-          "path",
-          {
-            d: "m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71",
-            key: "4qinb0"
-          }
-        ],
-        ["line", { x1: "8", x2: "8", y1: "2", y2: "5", key: "1041cp" }],
-        ["line", { x1: "2", x2: "5", y1: "8", y2: "8", key: "14m1p5" }],
-        ["line", { x1: "16", x2: "16", y1: "19", y2: "22", key: "rzdirn" }],
-        ["line", { x1: "19", x2: "22", y1: "16", y2: "16", key: "ox905f" }]
-      ]
-    };
-    __iconData7.node;
-    Unlink = createLucideIcon(__iconData7);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/layers.mjs
-var layers_exports = {};
-__export(layers_exports, {
-  __iconData: () => __iconData8,
-  default: () => Layers
-});
-var __iconData8, Layers;
-var init_layers = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/layers.mjs"() {
-    init_createLucideIcon();
-    __iconData8 = {
-      name: "layers",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z",
-            key: "zw3jo"
-          }
-        ],
-        [
-          "path",
-          {
-            d: "M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12",
-            key: "1wduqc"
-          }
-        ],
-        [
-          "path",
-          {
-            d: "M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17",
-            key: "kqbvx6"
+            d: "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+            key: "r6nss1"
           }
         ]
       ],
-      aliases: ["layers-3"]
+      aliases: ["home"]
     };
-    __iconData8.node;
-    Layers = createLucideIcon(__iconData8);
+    __iconData10.node;
+    House = createLucideIcon(__iconData10);
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/plus.mjs
-var plus_exports = {};
-__export(plus_exports, {
-  __iconData: () => __iconData9,
-  default: () => Plus
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/link-2.mjs
+var link_2_exports = {};
+__export(link_2_exports, {
+  __iconData: () => __iconData11,
+  default: () => Link2
 });
-var __iconData9, Plus;
-var init_plus = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/plus.mjs"() {
+var __iconData11, Link2;
+var init_link_2 = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/link-2.mjs"() {
     init_createLucideIcon();
-    __iconData9 = {
-      name: "plus",
+    __iconData11 = {
+      name: "link-2",
       size: 24,
       node: [
-        ["path", { d: "M5 12h14", key: "1ays0h" }],
-        ["path", { d: "M12 5v14", key: "s699le" }]
+        ["path", { d: "M9 17H7A5 5 0 0 1 7 7h2", key: "8i5ue5" }],
+        ["path", { d: "M15 7h2a5 5 0 1 1 0 10h-2", key: "1b9ql8" }],
+        ["line", { x1: "8", x2: "16", y1: "12", y2: "12", key: "1jonct" }]
       ]
     };
-    __iconData9.node;
-    Plus = createLucideIcon(__iconData9);
+    __iconData11.node;
+    Link2 = createLucideIcon(__iconData11);
   }
 });
 
-// packages/addons/lib/date-picker-styles.cjs
-var require_date_picker_styles = __commonJS({
-  "packages/addons/lib/date-picker-styles.cjs"(exports2, module2) {
-    "use strict";
-    module2.exports = function datePickerStyles(prefix) {
-      var p = String(prefix || "wb");
-      return [
-        ".{p}-dp,.{p}-dr{position:relative;min-width:0}",
-        ".{p}-dp-field{display:flex;align-items:center;gap:6px;min-width:0}",
-        ".{p}-dp-trigger{display:flex;align-items:center;gap:8px;min-width:0;width:100%;padding:8px 10px;border:1px solid var(--wb-border);border-radius:8px;background:var(--wb-surface);color:var(--wb-text,inherit);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s}",
-        ".{p}-dp-trigger:hover{border-color:var(--wb-accent)}",
-        ".{p}-dp-trigger:focus-visible{outline:2px solid var(--wb-accent);outline-offset:1px}",
-        ".{p}-dp-trigger[disabled]{opacity:.55;cursor:not-allowed}",
-        ".{p}-dp-glyph{width:13px;height:13px;flex:none;border:1.5px solid currentColor;border-radius:3px;position:relative;opacity:.72}",
-        '.{p}-dp-glyph::before{content:"";position:absolute;left:-1.5px;right:-1.5px;top:3px;border-top:1.5px solid currentColor}',
-        '.{p}-dp-glyph::after{content:"";position:absolute;left:3px;top:-3px;width:1.5px;height:3px;background:currentColor;box-shadow:4px 0 currentColor}',
-        ".{p}-dp-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}",
-        ".{p}-dp-value.is-empty{color:var(--wb-muted)}",
-        ".{p}-dp-clear{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--wb-muted) 14%,transparent);color:var(--wb-muted);font:inherit;line-height:1;cursor:pointer}",
-        ".{p}-dp-clear:hover{color:var(--wb-danger);background:color-mix(in srgb,var(--wb-danger) 16%,transparent)}",
-        ".{p}-dp-pop{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:272px;padding:10px;border:1px solid var(--wb-border);border-radius:12px;background:var(--wb-card);box-shadow:0 16px 40px color-mix(in srgb,var(--wb-text,var(--wb-border)) 18%,transparent);animation:{p}-dp-in .14s ease-out}",
-        ".{p}-dp-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}",
-        ".{p}-dp-title{flex:1;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}",
-        ".{p}-dp-nav{width:26px;height:26px;padding:0;border:1px solid var(--wb-border);border-radius:7px;background:transparent;color:inherit;font:inherit;line-height:1;cursor:pointer}",
-        ".{p}-dp-nav:hover{border-color:var(--wb-accent);color:var(--wb-accent)}",
-        ".{p}-dp-weekdays,.{p}-dp-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}",
-        ".{p}-dp-weekdays{margin-bottom:4px;font-size:11px;color:var(--wb-muted);text-align:center}",
-        ".{p}-dp-day{min-width:0;height:30px;padding:0;border:0;border-radius:7px;background:transparent;color:inherit;font:inherit;font-variant-numeric:tabular-nums;cursor:pointer}",
-        ".{p}-dp-day:hover{background:color-mix(in srgb,var(--wb-accent) 12%,transparent)}",
-        ".{p}-dp-day.is-between{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);border-radius:0}",
-        ".{p}-dp-day.is-today{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--wb-accent) 55%,transparent)}",
-        ".{p}-dp-day.is-on{background:var(--wb-accent);color:var(--wb-on-accent,inherit);font-weight:600}",
-        ".{p}-dp-day:disabled{opacity:.35;cursor:not-allowed}",
-        ".{p}-dp-day:focus-visible{outline:2px solid var(--wb-accent);outline-offset:-2px}",
-        ".{p}-dp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--wb-line)}",
-        ".{p}-dp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}",
-        ".{p}-dp-link{padding:4px 8px;border:0;border-radius:6px;background:color-mix(in srgb,var(--wb-muted) 12%,transparent);color:inherit;font:inherit;font-size:12px;cursor:pointer}",
-        ".{p}-dp-link:hover{background:color-mix(in srgb,var(--wb-accent) 16%,transparent);color:var(--wb-accent)}",
-        ".{p}-dp-hint{margin:6px 0 0;font-size:11px;color:var(--wb-muted)}",
-        ".{p}-dp-pop.is-months{width:248px}",
-        ".{p}-dp-months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:6px}",
-        ".{p}-dp-months .{p}-dp-day{height:34px}",
-        "@keyframes {p}-dp-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}"
-      ].join("\n").replace(/\{p\}/g, p);
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs
+var tag_exports = {};
+__export(tag_exports, {
+  __iconData: () => __iconData12,
+  default: () => Tag
+});
+var __iconData12, Tag;
+var init_tag = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs"() {
+    init_createLucideIcon();
+    __iconData12 = {
+      name: "tag",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z",
+            key: "vktsd0"
+          }
+        ],
+        ["circle", { cx: "7.5", cy: "7.5", r: ".5", fill: "currentColor", key: "kqv944" }]
+      ]
     };
+    __iconData12.node;
+    Tag = createLucideIcon(__iconData12);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/star.mjs
+var star_exports = {};
+__export(star_exports, {
+  __iconData: () => __iconData13,
+  default: () => Star
+});
+var __iconData13, Star;
+var init_star = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/star.mjs"() {
+    init_createLucideIcon();
+    __iconData13 = {
+      name: "star",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z",
+            key: "r04s7s"
+          }
+        ]
+      ]
+    };
+    __iconData13.node;
+    Star = createLucideIcon(__iconData13);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/search.mjs
+var search_exports = {};
+__export(search_exports, {
+  __iconData: () => __iconData14,
+  default: () => Search
+});
+var __iconData14, Search;
+var init_search = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/search.mjs"() {
+    init_createLucideIcon();
+    __iconData14 = {
+      name: "search",
+      size: 24,
+      node: [
+        ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
+        ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
+      ]
+    };
+    __iconData14.node;
+    Search = createLucideIcon(__iconData14);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs
+var refresh_cw_exports = {};
+__export(refresh_cw_exports, {
+  __iconData: () => __iconData15,
+  default: () => RefreshCw
+});
+var __iconData15, RefreshCw;
+var init_refresh_cw = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs"() {
+    init_createLucideIcon();
+    __iconData15 = {
+      name: "refresh-cw",
+      size: 24,
+      node: [
+        ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
+        ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
+        ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
+        ["path", { d: "M8 16H3v5", key: "1cv678" }]
+      ]
+    };
+    __iconData15.node;
+    RefreshCw = createLucideIcon(__iconData15);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-left.mjs
+var chevron_left_exports = {};
+__export(chevron_left_exports, {
+  __iconData: () => __iconData16,
+  default: () => ChevronLeft
+});
+var __iconData16, ChevronLeft;
+var init_chevron_left = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-left.mjs"() {
+    init_createLucideIcon();
+    __iconData16 = {
+      name: "chevron-left",
+      size: 24,
+      node: [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]]
+    };
+    __iconData16.node;
+    ChevronLeft = createLucideIcon(__iconData16);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-right.mjs
+var chevron_right_exports = {};
+__export(chevron_right_exports, {
+  __iconData: () => __iconData17,
+  default: () => ChevronRight
+});
+var __iconData17, ChevronRight;
+var init_chevron_right = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-right.mjs"() {
+    init_createLucideIcon();
+    __iconData17 = {
+      name: "chevron-right",
+      size: 24,
+      node: [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]]
+    };
+    __iconData17.node;
+    ChevronRight = createLucideIcon(__iconData17);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-down.mjs
+var chevron_down_exports = {};
+__export(chevron_down_exports, {
+  __iconData: () => __iconData18,
+  default: () => ChevronDown
+});
+var __iconData18, ChevronDown;
+var init_chevron_down = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-down.mjs"() {
+    init_createLucideIcon();
+    __iconData18 = {
+      name: "chevron-down",
+      size: 24,
+      node: [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]]
+    };
+    __iconData18.node;
+    ChevronDown = createLucideIcon(__iconData18);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up.mjs
+var arrow_up_exports = {};
+__export(arrow_up_exports, {
+  __iconData: () => __iconData19,
+  default: () => ArrowUp
+});
+var __iconData19, ArrowUp;
+var init_arrow_up = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up.mjs"() {
+    init_createLucideIcon();
+    __iconData19 = {
+      name: "arrow-up",
+      size: 24,
+      node: [
+        ["path", { d: "m5 12 7-7 7 7", key: "hav0vg" }],
+        ["path", { d: "M12 19V5", key: "x0mq9r" }]
+      ]
+    };
+    __iconData19.node;
+    ArrowUp = createLucideIcon(__iconData19);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-down.mjs
+var arrow_down_exports = {};
+__export(arrow_down_exports, {
+  __iconData: () => __iconData20,
+  default: () => ArrowDown
+});
+var __iconData20, ArrowDown;
+var init_arrow_down = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-down.mjs"() {
+    init_createLucideIcon();
+    __iconData20 = {
+      name: "arrow-down",
+      size: 24,
+      node: [
+        ["path", { d: "M12 5v14", key: "s699le" }],
+        ["path", { d: "m19 12-7 7-7-7", key: "1idqje" }]
+      ]
+    };
+    __iconData20.node;
+    ArrowDown = createLucideIcon(__iconData20);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up-down.mjs
+var arrow_up_down_exports = {};
+__export(arrow_up_down_exports, {
+  __iconData: () => __iconData21,
+  default: () => ArrowUpDown
+});
+var __iconData21, ArrowUpDown;
+var init_arrow_up_down = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up-down.mjs"() {
+    init_createLucideIcon();
+    __iconData21 = {
+      name: "arrow-up-down",
+      size: 24,
+      node: [
+        ["path", { d: "m21 16-4 4-4-4", key: "f6ql7i" }],
+        ["path", { d: "M17 20V4", key: "1ejh1v" }],
+        ["path", { d: "m3 8 4-4 4 4", key: "11wl7u" }],
+        ["path", { d: "M7 4v16", key: "1glfcx" }]
+      ]
+    };
+    __iconData21.node;
+    ArrowUpDown = createLucideIcon(__iconData21);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/key-round.mjs
+var key_round_exports = {};
+__export(key_round_exports, {
+  __iconData: () => __iconData22,
+  default: () => KeyRound
+});
+var __iconData22, KeyRound;
+var init_key_round = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/key-round.mjs"() {
+    init_createLucideIcon();
+    __iconData22 = {
+      name: "key-round",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z",
+            key: "1s6t7t"
+          }
+        ],
+        ["circle", { cx: "16.5", cy: "7.5", r: ".5", fill: "currentColor", key: "w0ekpg" }]
+      ]
+    };
+    __iconData22.node;
+    KeyRound = createLucideIcon(__iconData22);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/lock.mjs
+var lock_exports = {};
+__export(lock_exports, {
+  __iconData: () => __iconData23,
+  default: () => Lock
+});
+var __iconData23, Lock;
+var init_lock = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/lock.mjs"() {
+    init_createLucideIcon();
+    __iconData23 = {
+      name: "lock",
+      size: 24,
+      node: [
+        ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
+        ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
+      ]
+    };
+    __iconData23.node;
+    Lock = createLucideIcon(__iconData23);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye.mjs
+var eye_exports = {};
+__export(eye_exports, {
+  __iconData: () => __iconData24,
+  default: () => Eye
+});
+var __iconData24, Eye;
+var init_eye = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye.mjs"() {
+    init_createLucideIcon();
+    __iconData24 = {
+      name: "eye",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
+            key: "1nclc0"
+          }
+        ],
+        ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+      ]
+    };
+    __iconData24.node;
+    Eye = createLucideIcon(__iconData24);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye-off.mjs
+var eye_off_exports = {};
+__export(eye_off_exports, {
+  __iconData: () => __iconData25,
+  default: () => EyeOff
+});
+var __iconData25, EyeOff;
+var init_eye_off = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye-off.mjs"() {
+    init_createLucideIcon();
+    __iconData25 = {
+      name: "eye-off",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49",
+            key: "ct8e1f"
+          }
+        ],
+        ["path", { d: "M14.084 14.158a3 3 0 0 1-4.242-4.242", key: "151rxh" }],
+        [
+          "path",
+          {
+            d: "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143",
+            key: "13bj9a"
+          }
+        ],
+        ["path", { d: "m2 2 20 20", key: "1ooewy" }]
+      ]
+    };
+    __iconData25.node;
+    EyeOff = createLucideIcon(__iconData25);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs
+var chart_column_exports = {};
+__export(chart_column_exports, {
+  __iconData: () => __iconData26,
+  default: () => ChartColumn
+});
+var __iconData26, ChartColumn;
+var init_chart_column = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs"() {
+    init_createLucideIcon();
+    __iconData26 = {
+      name: "chart-column",
+      size: 24,
+      node: [
+        ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
+        ["path", { d: "M18 17V9", key: "2bz60n" }],
+        ["path", { d: "M13 17V5", key: "1frdt8" }],
+        ["path", { d: "M8 17v-3", key: "17ska0" }]
+      ],
+      aliases: ["bar-chart-3"]
+    };
+    __iconData26.node;
+    ChartColumn = createLucideIcon(__iconData26);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/settings.mjs
+var settings_exports = {};
+__export(settings_exports, {
+  __iconData: () => __iconData27,
+  default: () => Settings
+});
+var __iconData27, Settings;
+var init_settings = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/settings.mjs"() {
+    init_createLucideIcon();
+    __iconData27 = {
+      name: "settings",
+      size: 24,
+      node: [
+        [
+          "path",
+          {
+            d: "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
+            key: "1i5ecw"
+          }
+        ],
+        ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+      ]
+    };
+    __iconData27.node;
+    Settings = createLucideIcon(__iconData27);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs
+var database_exports = {};
+__export(database_exports, {
+  __iconData: () => __iconData28,
+  default: () => Database
+});
+var __iconData28, Database;
+var init_database = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs"() {
+    init_createLucideIcon();
+    __iconData28 = {
+      name: "database",
+      size: 24,
+      node: [
+        ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
+        ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
+        ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
+      ]
+    };
+    __iconData28.node;
+    Database = createLucideIcon(__iconData28);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/code-xml.mjs
+var code_xml_exports = {};
+__export(code_xml_exports, {
+  __iconData: () => __iconData29,
+  default: () => CodeXml
+});
+var __iconData29, CodeXml;
+var init_code_xml = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/code-xml.mjs"() {
+    init_createLucideIcon();
+    __iconData29 = {
+      name: "code-xml",
+      size: 24,
+      node: [
+        ["path", { d: "m18 16 4-4-4-4", key: "1inbqp" }],
+        ["path", { d: "m6 8-4 4 4 4", key: "15zrgr" }],
+        ["path", { d: "m14.5 4-5 16", key: "e7oirm" }]
+      ],
+      aliases: ["code-2"]
+    };
+    __iconData29.node;
+    CodeXml = createLucideIcon(__iconData29);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/globe.mjs
+var globe_exports = {};
+__export(globe_exports, {
+  __iconData: () => __iconData30,
+  default: () => Globe
+});
+var __iconData30, Globe;
+var init_globe = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/globe.mjs"() {
+    init_createLucideIcon();
+    __iconData30 = {
+      name: "globe",
+      size: 24,
+      node: [
+        ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+        ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
+        ["path", { d: "M2 12h20", key: "9i4pu4" }]
+      ]
+    };
+    __iconData30.node;
+    Globe = createLucideIcon(__iconData30);
+  }
+});
+
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/copy.mjs
+var copy_exports = {};
+__export(copy_exports, {
+  __iconData: () => __iconData31,
+  default: () => Copy
+});
+var __iconData31, Copy;
+var init_copy = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/copy.mjs"() {
+    init_createLucideIcon();
+    __iconData31 = {
+      name: "copy",
+      size: 24,
+      node: [
+        ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
+        ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
+      ]
+    };
+    __iconData31.node;
+    Copy = createLucideIcon(__iconData31);
+  }
+});
+
+// packages/addons/sites/client/ui/icons.cjs
+var require_icons2 = __commonJS({
+  "packages/addons/sites/client/ui/icons.cjs"(exports2, module2) {
+    "use strict";
+    var icons = require_icons();
+    var set = icons.create("wbs", {
+      x: (init_x(), __toCommonJS(x_exports)).default,
+      plus: (init_plus(), __toCommonJS(plus_exports)).default,
+      check: (init_check(), __toCommonJS(check_exports)).default,
+      edit: (init_pencil(), __toCommonJS(pencil_exports)).default,
+      trash: (init_trash_2(), __toCommonJS(trash_2_exports)).default,
+      folder: (init_folder(), __toCommonJS(folder_exports)).default,
+      "folder-open": (init_folder_open(), __toCommonJS(folder_open_exports)).default,
+      "folder-plus": (init_folder_plus(), __toCommonJS(folder_plus_exports)).default,
+      "folder-tree": (init_folder_tree(), __toCommonJS(folder_tree_exports)).default,
+      house: (init_house(), __toCommonJS(house_exports)).default,
+      link: (init_link_2(), __toCommonJS(link_2_exports)).default,
+      tag: (init_tag(), __toCommonJS(tag_exports)).default,
+      star: (init_star(), __toCommonJS(star_exports)).default,
+      search: (init_search(), __toCommonJS(search_exports)).default,
+      refresh: (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default,
+      "chevron-left": (init_chevron_left(), __toCommonJS(chevron_left_exports)).default,
+      "chevron-right": (init_chevron_right(), __toCommonJS(chevron_right_exports)).default,
+      "chevron-down": (init_chevron_down(), __toCommonJS(chevron_down_exports)).default,
+      "arrow-up": (init_arrow_up(), __toCommonJS(arrow_up_exports)).default,
+      "arrow-down": (init_arrow_down(), __toCommonJS(arrow_down_exports)).default,
+      "arrow-up-down": (init_arrow_up_down(), __toCommonJS(arrow_up_down_exports)).default,
+      key: (init_key_round(), __toCommonJS(key_round_exports)).default,
+      lock: (init_lock(), __toCommonJS(lock_exports)).default,
+      eye: (init_eye(), __toCommonJS(eye_exports)).default,
+      "eye-off": (init_eye_off(), __toCommonJS(eye_off_exports)).default,
+      chart: (init_chart_column(), __toCommonJS(chart_column_exports)).default,
+      settings: (init_settings(), __toCommonJS(settings_exports)).default,
+      database: (init_database(), __toCommonJS(database_exports)).default,
+      "code-2": (init_code_xml(), __toCommonJS(code_xml_exports)).default,
+      globe: (init_globe(), __toCommonJS(globe_exports)).default,
+      copy: (init_copy(), __toCommonJS(copy_exports)).default
+    }, { classNameAppend: true, tabIcon: true });
+    module2.exports = { ICONS: set.ICONS, Icon: set.Icon, tabIcon: set.tabIcon };
   }
 });
 
 // packages/addons/sites/client/stats/charts.cjs
 var require_charts = __commonJS({
   "packages/addons/sites/client/stats/charts.cjs"(exports2, module2) {
-    var React2 = require("react");
-    var h2 = React2.createElement;
-    var DP = require_date_picker();
+    "use strict";
+    var lib = require_stats_charts();
+    var G = require_icons2().ICONS;
     var ICONS = {
-      "refresh": (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default,
-      "globe": (init_globe(), __toCommonJS(globe_exports)).default,
-      "link": (init_link_2(), __toCommonJS(link_2_exports)).default,
-      "tag": (init_tag(), __toCommonJS(tag_exports)).default,
-      "pie": (init_pie_chart(), __toCommonJS(pie_chart_exports)).default,
-      "folder": (init_folder_tree(), __toCommonJS(folder_tree_exports)).default,
-      "unlink": (init_unlink(), __toCommonJS(unlink_exports)).default,
-      "layers": (init_layers(), __toCommonJS(layers_exports)).default,
-      "plus": (init_plus(), __toCommonJS(plus_exports)).default
+      "refresh": G["refresh"],
+      "globe": G["globe"],
+      "link": G["link"],
+      "tag": G["tag"],
+      "pie": G["pie-chart"],
+      "folder": G["folder-tree"],
+      "unlink": G["unlink"],
+      "layers": G["layers"],
+      "plus": G["plus"]
     };
-    var COLORS = [
-      "var(--dsw-alias-state-business-primary, #4f6ef7)",
-      "var(--dsw-alias-state-success-primary, #2f9e6e)",
-      "var(--dsw-alias-state-warn-primary, #d99100)",
-      "var(--dsw-alias-state-error-primary, #d9534f)",
-      "var(--dsw-alias-state-done-primary, #7c5cff)",
-      "var(--dsw-alias-state-idle-primary, #8f959e)"
+    module2.exports = {
+      colors: lib.colors,
+      makeCharts: function(prefix) {
+        return lib.makeCharts(prefix, { icons: ICONS });
+      }
+    };
+  }
+});
+
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
     ];
-    function css(prefix) {
-      return [
-        ".@-stats{display:flex;flex-direction:column;gap:14px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary,#1f2329)}",
-        ".@-stoolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-        ".@-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,#fff)}",
-        ".@-seg button{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-size:12px;padding:6px 10px;cursor:pointer;white-space:nowrap}",
-        ".@-seg button.@-on{background:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-label-primary-inverted,#fff)}",
-        ".@-range{display:inline-flex;align-items:center;gap:4px}",
-        ".@-date{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-family:inherit;font-size:12px;padding:4px 2px;width:116px;outline:none}",
-        ".@-date::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}",
-        ".@-dash{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
-        ".@-clear{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:14px;line-height:1;padding:2px 4px;cursor:pointer;border-radius:4px}",
-        ".@-clear:hover{color:var(--dsw-alias-state-error-primary,#d9534f);background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
-        ".@-hint{font-size:11px;color:var(--dsw-alias-state-error-primary,#d9534f);white-space:nowrap}",
-        ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit}",
-        ".@-ghost:disabled{opacity:.6;cursor:progress}",
-        ".@-ico{display:block;flex:none}",
-        ".@-kpi-l .@-ico{opacity:.7}",
-        ".@-ghost:hover{border-color:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-brand-primary,#4f6ef7)}",
-        ".@-muted{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
-        ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
-        ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
-        ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
-        ".@-chead{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}",
-        ".@-ctitle{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329)}",
-        ".@-cnote{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
-        ".@-kpis{grid-column:span 12;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}",
-        ".@-kpi{background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:12px 14px;min-width:0}",
-        ".@-kpi-l{font-size:12px;color:var(--dsw-alias-label-tertiary,#8f959e);display:flex;align-items:center;gap:6px}",
-        ".@-kpi-v{font-size:26px;line-height:1.25;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}",
-        ".@-kpi-u{font-size:12px;font-weight:400;color:var(--dsw-alias-label-tertiary,#8f959e);margin-left:3px}",
-        ".@-kpi-h{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);margin-top:3px}",
-        ".@-kpi.@-danger .@-kpi-v{color:var(--dsw-alias-state-error-primary,#d9534f)}",
-        ".@-kpi.@-warn .@-kpi-v{color:var(--dsw-alias-state-warn-primary,#d99100)}",
-        ".@-kpi.@-ok .@-kpi-v{color:var(--dsw-alias-state-success-primary,#2f9e6e)}",
-        ".@-donut{display:flex;align-items:center;gap:16px;flex-wrap:wrap}",
-        ".@-donut svg{flex:0 0 auto}",
-        ".@-legend{display:flex;flex-direction:column;gap:7px;min-width:120px;flex:1}",
-        ".@-leg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dsw-alias-label-secondary,#646a73)}",
-        ".@-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}",
-        ".@-leg b{margin-left:auto;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
-        ".@-bars{display:flex;flex-direction:column;gap:9px}",
-        ".@-bar{display:grid;grid-template-columns:minmax(72px,1.2fr) 3fr auto;gap:8px;align-items:center;font-size:12px}",
-        ".@-bar-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary,#646a73)}",
-        ".@-bar-t{display:block;height:8px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);overflow:hidden}",
-        ".@-bar-f{display:block;height:100%;border-radius:6px;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-width:2px}",
-        ".@-bar-v{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-primary,#1f2329);font-weight:600;min-width:34px;text-align:right}",
-        ".@-stack{display:flex;flex-direction:column;gap:10px}",
-        ".@-srow-l{font-size:12px;color:var(--dsw-alias-label-secondary,#646a73);margin-bottom:4px;display:flex}",
-        ".@-srow-l b{margin-left:auto;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
-        ".@-strack{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
-        ".@-seg-f{height:100%}",
-        ".@-hist{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:16px}",
-        ".@-hbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;min-width:0;height:100%}",
-        ".@-hbar-v{font-size:11px;color:var(--dsw-alias-label-secondary,#646a73);font-variant-numeric:tabular-nums}",
-        ".@-hbar-f{width:100%;max-width:44px;border-radius:5px 5px 0 0;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-height:2px}",
-        ".@-hbar-l{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}",
-        ".@-trend{width:100%;height:auto;display:block}",
-        ".@-tlegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
-        ".@-table-scroll{max-width:100%;overflow-x:auto}.@-table{width:100%;border-collapse:collapse;font-size:12px}",
-        ".@-table th{text-align:left;font-weight:500;color:var(--dsw-alias-label-tertiary,#8f959e);padding:6px 8px;border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb);white-space:nowrap}",
-        ".@-table td{padding:7px 8px;border-bottom:1px solid var(--dsw-alias-border-l1,#f2f3f5);color:var(--dsw-alias-label-secondary,#646a73);vertical-align:top}",
-        ".@-table tr:last-child td{border-bottom:0}",
-        ".@-table th.@-num,.@-table td.@-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}",
-        ".@-empty{padding:26px 8px;text-align:center;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
-        ".@-err{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 8%,transparent);border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 30%,transparent);color:var(--dsw-alias-state-error-primary,#d9534f);border-radius:10px;padding:10px 12px;font-size:12px}",
-        ".@-warn{grid-column:span 12;border:1px dashed var(--dsw-alias-state-warn-primary,#d99100);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--dsw-alias-state-warn-primary,#d99100);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#d99100) 6%,transparent)}",
-        ".@-sk{height:14px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);margin:7px 0;animation:@-pulse 1.2s ease-in-out infinite}",
-        "@keyframes @-pulse{0%,100%{opacity:.55}50%{opacity:1}}",
-        "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-        "@media (max-width:600px){.@-stats{padding-bottom:16px}.@-hist{height:130px}.@-kpi-v{font-size:22px}}",
-        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}",
-        require_date_picker_styles()(prefix)
-      ].join("\n").replace(/@-/g, prefix + "-");
+    function Switch(props) {
+      var h2 = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h2(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h2(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h2("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h2("span", { className: "wbctl-switch-text" }, text) : null
+      );
     }
-    function makeCharts(prefix) {
-      if (typeof document !== "undefined" && !document.getElementById(prefix + "-charts-css")) {
-        var el = document.createElement("style");
-        el.id = prefix + "-charts-css";
-        el.textContent = css(prefix);
-        document.head.appendChild(el);
+    module2.exports = { Switch, styles: SWITCH_STYLES };
+  }
+});
+
+// packages/addons/lib/number-field.cjs
+var require_number_field = __commonJS({
+  "packages/addons/lib/number-field.cjs"(exports2, module2) {
+    "use strict";
+    var React2 = require("react");
+    var NUM = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    var TEXT = {
+      zh: {
+        required: "\u8BF7\u586B\u5199\u6570\u5B57",
+        invalid: "\u8BF7\u8F93\u5165\u6570\u5B57",
+        integer: "\u9700\u8981\u662F\u6574\u6570",
+        min: "\u4E0D\u80FD\u5C0F\u4E8E {min}",
+        max: "\u4E0D\u80FD\u5927\u4E8E {max}",
+        range: "\u9700\u8981\u5728 {min}\u2013{max} \u4E4B\u95F4",
+        step: "\u9700\u8981\u662F {step} \u7684\u500D\u6570",
+        unit: "\u5355\u4F4D"
+      },
+      en: {
+        required: "Please enter a number",
+        invalid: "Please enter a number",
+        integer: "Must be a whole number",
+        min: "Must be at least {min}",
+        max: "Must be at most {max}",
+        range: "Must be between {min} and {max}",
+        step: "Must be a multiple of {step}",
+        unit: "unit"
       }
-      function ico(name, size) {
-        var C = ICONS[name];
-        if (!C) return null;
-        return h2(C, { size: size || 13, strokeWidth: 2, "aria-hidden": "true", className: prefix + "-ico" });
-      }
-      function num(lang, n) {
-        var v = Number(n);
-        if (!isFinite(v)) return "\u2014";
-        try {
-          return new Intl.NumberFormat(lang === "en" ? "en-US" : "zh-CN").format(v);
-        } catch (e) {
-          return String(v);
-        }
-      }
-      function pct(v, digits) {
-        if (v === null || v === void 0 || !isFinite(Number(v))) return "\u2014";
-        return (Number(v) * 100).toFixed(digits === void 0 ? 1 : digits) + "%";
-      }
-      function timeText(ms) {
-        if (!ms) return "";
-        var d = new Date(Number(ms));
-        function p(n) {
-          return String(n).padStart(2, "0");
-        }
-        return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-      }
-      function dateText(ms) {
-        if (!ms) return "\u2014";
-        var d = new Date(Number(ms));
-        function p(n) {
-          return String(n).padStart(2, "0");
-        }
-        return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
-      }
-      function Card(props) {
-        var cls = prefix + "-scard" + (props.span ? " " + prefix + "-span-" + props.span : "");
-        return h2(
-          "section",
-          { className: cls },
-          props.title || props.right ? h2(
-            "div",
-            { className: prefix + "-chead" },
-            h2("span", { className: prefix + "-ctitle" }, props.title),
-            props.note ? h2("span", { className: prefix + "-cnote" }, props.note) : null,
-            props.right ? h2("span", { style: { marginLeft: "auto" } }, props.right) : null
-          ) : null,
-          props.children
-        );
-      }
-      function Kpi(props) {
-        var tone = props.tone ? " " + prefix + "-" + props.tone : "";
-        return h2(
-          "div",
-          { className: prefix + "-kpi" + tone },
-          h2("div", { className: prefix + "-kpi-l" }, ico(props.icon, 13), props.label),
-          h2(
-            "div",
-            { className: prefix + "-kpi-v" },
-            props.value === null || props.value === void 0 ? "\u2014" : typeof props.value === "number" ? num(props.lang, props.value) : props.value,
-            props.unit ? h2("span", { className: prefix + "-kpi-u" }, props.unit) : null
-          ),
-          props.hint ? h2("div", { className: prefix + "-kpi-h" }, props.hint) : null
-        );
-      }
-      function Donut(props) {
-        var data = (props.data || []).filter(function(d) {
-          return Number(d.count) > 0;
-        });
-        var total = Number(props.total || 0);
-        var size = props.size || 168;
-        var r = size / 2 - 16;
-        var c = 2 * Math.PI * r;
-        var offset = 0;
-        var aria = props.aria || data.map(function(d) {
-          return d.label + " " + d.count;
-        }).join("\uFF0C");
-        return h2(
-          "div",
-          { className: prefix + "-donut" },
-          h2(
-            "svg",
-            { width: size, height: size, viewBox: "0 0 " + size + " " + size, role: "img", "aria-label": aria },
-            h2("circle", { cx: size / 2, cy: size / 2, r, fill: "none", stroke: "var(--dsw-alias-bg-skeleton,#f2f3f5)", strokeWidth: 18 }),
-            total > 0 ? data.map(function(d, i) {
-              var len = Number(d.count) / total * c;
-              var seg = h2("circle", {
-                key: d.key || d.label || i,
-                cx: size / 2,
-                cy: size / 2,
-                r,
-                fill: "none",
-                stroke: d.color || COLORS[i % COLORS.length],
-                strokeWidth: 18,
-                strokeDasharray: len + " " + (c - len),
-                strokeDashoffset: -offset,
-                transform: "rotate(-90 " + size / 2 + " " + size / 2 + ")",
-                strokeLinecap: "butt"
-              }, h2("title", null, d.label + "\uFF1A" + d.count));
-              offset += len;
-              return seg;
-            }) : null,
-            h2("text", { x: size / 2, y: size / 2 - 2, textAnchor: "middle", fill: "var(--dsw-alias-label-primary,#1f2329)", fontSize: 24, fontWeight: 650 }, num(props.lang, total)),
-            h2("text", { x: size / 2, y: size / 2 + 18, textAnchor: "middle", fill: "var(--dsw-alias-label-tertiary,#8f959e)", fontSize: 11 }, props.centerLabel || "")
-          ),
-          h2("div", { className: prefix + "-legend" }, (props.data || []).map(function(d, i) {
-            return h2(
-              "div",
-              { key: d.key || d.label || i, className: prefix + "-leg" },
-              h2("span", { className: prefix + "-dot", style: { background: d.color || COLORS[i % COLORS.length] } }),
-              h2("span", null, d.label),
-              h2("b", null, num(props.lang, d.count))
-            );
-          }))
-        );
-      }
-      function BarList(props) {
-        var data = props.data || [];
-        var max = Number(props.max || 0) || data.reduce(function(m, d) {
-          return Math.max(m, Number(d.value || 0));
-        }, 0) || 1;
-        return h2("div", { className: prefix + "-bars" }, data.map(function(d, i) {
-          var v = Number(d.value || 0);
-          return h2(
-            "div",
-            { key: d.key || d.label || i, className: prefix + "-bar" },
-            h2("span", { className: prefix + "-bar-l", title: d.title || d.label }, d.label),
-            h2("span", { className: prefix + "-bar-t" }, h2("span", { className: prefix + "-bar-f", style: { width: Math.max(2, v / max * 100) + "%", background: d.color || props.color || COLORS[0] } })),
-            h2("span", { className: prefix + "-bar-v" }, props.format ? props.format(v) : num(props.lang, v))
-          );
-        }));
-      }
-      function StackedRows(props) {
-        var rows = props.rows || [];
-        var keys = props.keys || [];
-        return h2("div", { className: prefix + "-stack" }, rows.map(function(row, ri) {
-          var total = Number(row.total || 0) || 1;
-          return h2(
-            "div",
-            { key: row.key || ri },
-            h2("div", { className: prefix + "-srow-l" }, h2("span", null, row.label), h2("b", null, num(props.lang, row.total))),
-            h2("div", { className: prefix + "-strack" }, keys.map(function(k, i) {
-              var v = Number(row.parts && row.parts[k.key] || 0);
-              if (v <= 0) return null;
-              return h2("span", {
-                key: k.key,
-                className: prefix + "-seg-f",
-                title: k.label + " " + v,
-                style: { width: v / total * 100 + "%", background: k.color || COLORS[i % COLORS.length] }
-              });
-            }))
-          );
-        }));
-      }
-      function Trend(props) {
-        var data = props.data || [];
-        var series = props.series || [];
-        var width = 640;
-        var height = props.height || 200;
-        var left = 30, right = 10, top = 12, bottom = 24;
-        var pw = width - left - right, ph = height - top - bottom;
-        var max = 1;
-        data.forEach(function(d) {
-          series.forEach(function(s) {
-            max = Math.max(max, Number(d[s.key] || 0));
-          });
-        });
-        max = Math.ceil(max * 1.15) || 1;
-        function x(i2) {
-          return left + (data.length <= 1 ? pw / 2 : i2 / (data.length - 1) * pw);
-        }
-        function y(v) {
-          return top + ph - Number(v || 0) / max * ph;
-        }
-        var ticks = [];
-        for (var t = 0; t <= 3; t++) ticks.push(Math.round(max / 3 * t));
-        var labelIdx = [];
-        if (data.length) {
-          var step = Math.max(1, Math.floor(data.length / 5));
-          for (var i = 0; i < data.length; i += step) labelIdx.push(i);
-          if (labelIdx[labelIdx.length - 1] !== data.length - 1) labelIdx.push(data.length - 1);
-        }
-        var aria = series.map(function(s) {
-          return s.label + " " + data.reduce(function(n, d) {
-            return n + Number(d[s.key] || 0);
-          }, 0);
-        }).join("\uFF0C");
-        return h2(
-          "div",
-          null,
-          h2(
-            "svg",
-            { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": props.aria || aria },
-            ticks.map(function(v, i2) {
-              return h2(
-                "g",
-                { key: "t" + i2 },
-                h2("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
-                h2("text", { x: left - 5, y: y(v) + 3, textAnchor: "end", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, num(props.lang, v))
-              );
-            }),
-            series.map(function(s, si) {
-              var pts = data.map(function(d, i2) {
-                return x(i2) + "," + y(d[s.key]);
-              }).join(" ");
-              return h2(
-                "g",
-                { key: s.key },
-                h2("polyline", { points: pts, fill: "none", stroke: s.color || COLORS[si % COLORS.length], strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round" }),
-                data.map(function(d, i2) {
-                  if (data.length > 40 && i2 % 3 !== 0) return null;
-                  return h2(
-                    "circle",
-                    { key: i2, cx: x(i2), cy: y(d[s.key]), r: 2.4, fill: s.color || COLORS[si % COLORS.length] },
-                    h2("title", null, d.bucket + "\uFF1A" + s.label + " " + (d[s.key] || 0))
-                  );
-                })
-              );
-            }),
-            labelIdx.map(function(i2) {
-              return h2("text", { key: "x" + i2, x: x(i2), y: height - 6, textAnchor: "middle", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, String(data[i2].bucket).slice(5));
-            })
-          ),
-          h2("div", { className: prefix + "-tlegend" }, series.map(function(s, i2) {
-            return h2(
-              "span",
-              { key: s.key, style: { display: "inline-flex", alignItems: "center", gap: 5 } },
-              h2("span", { className: prefix + "-dot", style: { background: s.color || COLORS[i2 % COLORS.length] } }),
-              s.label
-            );
-          }))
-        );
-      }
-      function Histogram(props) {
-        var data = props.data || [];
-        var max = data.reduce(function(m, d) {
-          return Math.max(m, Number(d.count || 0));
-        }, 0) || 1;
-        return h2(
-          "div",
-          { className: prefix + "-hist", role: "img", "aria-label": props.aria || data.map(function(d) {
-            return d.label + " " + d.count;
-          }).join("\uFF0C") },
-          data.map(function(d, i) {
-            return h2(
-              "div",
-              { key: d.key || d.label || i, className: prefix + "-hbar", title: d.label + "\uFF1A" + d.count },
-              h2("span", { className: prefix + "-hbar-v" }, num(props.lang, d.count)),
-              h2("span", { className: prefix + "-hbar-f", style: { height: Math.max(2, Number(d.count || 0) / max * 100) + "%", background: d.color || props.color || COLORS[0] } }),
-              h2("span", { className: prefix + "-hbar-l" }, d.label)
-            );
-          })
-        );
-      }
-      function DataTable(props) {
-        var cols = props.columns || [];
-        var rows = props.rows || [];
-        if (!rows.length) return h2("div", { className: prefix + "-empty" }, props.empty || "\u6682\u65E0\u6570\u636E");
-        return h2("div", { className: prefix + "-table-scroll", tabIndex: 0, role: "region", "aria-label": props.lang === "en" ? "Data table" : "\u6570\u636E\u8868\u683C" }, h2(
-          "table",
-          { className: prefix + "-table" },
-          h2("thead", null, h2("tr", null, cols.map(function(c) {
-            return h2("th", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.label);
-          }))),
-          h2("tbody", null, rows.map(function(row, ri) {
-            return h2("tr", { key: row.id || row.key || ri }, cols.map(function(c) {
-              return h2("td", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.render ? c.render(row) : row[c.key]);
-            }));
-          }))
-        ));
-      }
-      function RangeSwitch(props) {
-        var custom = props.custom || null;
-        var from = custom && custom.from ? custom.from : "";
-        var to = custom && custom.to ? custom.to : "";
-        function setDate(key, value) {
-          if (typeof props.onCustomChange !== "function") return;
-          var next = { from, to };
-          next[key] = value;
-          props.onCustomChange(next);
-        }
-        return h2(
-          "div",
-          { className: prefix + "-stoolbar" },
-          h2("div", { className: prefix + "-seg", role: "group", "aria-label": props.aria || "\u65F6\u95F4\u8303\u56F4" }, (props.options || []).map(function(o) {
-            return h2("button", {
-              key: o.key,
-              type: "button",
-              className: o.key === props.value ? prefix + "-on" : "",
-              "aria-pressed": !!props.value && o.key === props.value,
-              onClick: function() {
-                props.onChange(o.key);
-              }
-            }, o.label);
-          })),
-          h2(
-            "div",
-            { className: prefix + "-range", role: "group", "aria-label": props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4" },
-            h2(DP.RangePicker, {
-              React: React2,
-              h: h2,
-              prefix,
-              lang: props.lang,
-              label: props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4",
-              value: { from, to },
-              max: props.today || void 0,
-              clearable: false,
-              onChange: function(next) {
-                if (typeof props.onCustomChange !== "function") return;
-                props.onCustomChange({ from: next.from, to: next.to });
-              }
-            }),
-            from || to ? h2("button", {
-              type: "button",
-              className: prefix + "-clear",
-              "aria-label": props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
-              title: props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
-              onClick: function() {
-                if (props.onCustomClear) props.onCustomClear();
-              }
-            }, "\xD7") : null
-          ),
-          props.customHint ? h2("span", { className: prefix + "-hint", role: "status" }, props.customHint) : null,
-          h2("button", { type: "button", className: prefix + "-ghost", disabled: !!props.loading, onClick: props.onRefresh }, ico("refresh", 13), props.refreshLabel || "\u5237\u65B0"),
-          h2("span", { className: prefix + "-muted" }, props.generatedAt ? (props.timeLabel || "\u622A\u81F3") + " " + timeText(props.generatedAt) : ""),
-          props.right ? h2("span", { style: { marginLeft: "auto" } }, props.right) : null
-        );
-      }
-      function Empty(props) {
-        return h2("div", { className: prefix + "-empty" }, props.text || "\u6682\u65E0\u6570\u636E");
-      }
-      function Skeleton() {
-        return h2(
-          "div",
-          { className: prefix + "-sgrid" },
-          h2("div", { className: prefix + "-kpis" }, [0, 1, 2, 3].map(function(i) {
-            return h2(
-              "div",
-              { key: i, className: prefix + "-kpi" },
-              h2("div", { className: prefix + "-sk", style: { width: "40%" } }),
-              h2("div", { className: prefix + "-sk", style: { width: "65%", height: 26 } })
-            );
-          })),
-          [0, 1].map(function(i) {
-            return h2(
-              "div",
-              { key: "c" + i, className: prefix + "-scard " + prefix + "-span-6" },
-              h2("div", { className: prefix + "-sk", style: { width: "30%" } }),
-              h2("div", { className: prefix + "-sk", style: { height: 120 } })
-            );
-          })
-        );
-      }
-      function ErrorBar(props) {
-        return h2(
-          "div",
-          { className: prefix + "-err", role: "alert" },
-          h2("span", null, props.message),
-          props.onRetry ? h2("button", { type: "button", className: prefix + "-ghost", onClick: props.onRetry }, props.retryLabel || "\u91CD\u8BD5") : null
-        );
-      }
-      function Warnings(props) {
-        var items = props.items || [];
-        if (!items.length) return null;
-        return h2("div", { className: prefix + "-warn", role: "status" }, items.map(function(w) {
-          return w.message;
-        }).join("\uFF1B"));
-      }
-      return {
-        Card,
-        Kpi,
-        Donut,
-        BarList,
-        StackedRows,
-        Trend,
-        Histogram,
-        DataTable,
-        RangeSwitch,
-        Empty,
-        Skeleton,
-        ErrorBar,
-        Warnings,
-        num,
-        pct,
-        timeText,
-        dateText,
-        colors: COLORS
-      };
+    };
+    function messages(lang) {
+      return lang === "en" ? TEXT.en : TEXT.zh;
     }
-    module2.exports = { makeCharts };
+    function fill(text, vars) {
+      return String(text).replace(/\{(\w+)\}/g, function(m, key) {
+        return vars && vars[key] !== void 0 ? String(vars[key]) : m;
+      });
+    }
+    function validateNumber(raw, opts) {
+      var o = opts || {};
+      var M = messages(o.lang);
+      var text = raw === null || raw === void 0 ? "" : String(raw).trim();
+      if (text === "") {
+        return o.allowEmpty ? { ok: true, value: null, error: "" } : { ok: false, value: null, error: M.required };
+      }
+      if (!NUM.test(text)) return { ok: false, value: null, error: M.invalid };
+      var n = Number(text);
+      if (!isFinite(n)) return { ok: false, value: null, error: M.invalid };
+      if (o.integer && Math.round(n) !== n) return { ok: false, value: null, error: M.integer };
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      if (hasMin && hasMax && n >= o.min && n <= o.max) {
+      } else if (hasMin && hasMax) {
+        return { ok: false, value: null, error: fill(M.range, { min: o.min, max: o.max }) };
+      } else if (hasMin && n < o.min) {
+        return { ok: false, value: null, error: fill(M.min, { min: o.min }) };
+      } else if (hasMax && n > o.max) {
+        return { ok: false, value: null, error: fill(M.max, { max: o.max }) };
+      }
+      if (o.step && Number(o.step) > 0) {
+        var q = n / Number(o.step);
+        if (Math.abs(q - Math.round(q)) > 1e-9) {
+          return { ok: false, value: null, error: fill(M.step, { step: o.step }) };
+        }
+      }
+      return { ok: true, value: n, error: "" };
+    }
+    function rangeHint(opts, lang) {
+      var o = opts || {};
+      var M = messages(lang);
+      var en = lang === "en";
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      var parts = [];
+      if (hasMin && hasMax) parts.push(String(o.min) + "\u2013" + String(o.max));
+      else if (hasMin) parts.push((en ? "\u2265 " : "\u2265 ") + String(o.min));
+      else if (hasMax) parts.push((en ? "\u2264 " : "\u2264 ") + String(o.max));
+      if (o.integer) parts.push(en ? "whole numbers" : "\u6574\u6570");
+      else if (o.step && Number(o.step) > 0) parts.push((en ? "step " : "\u6B65\u957F ") + String(o.step));
+      return parts.join(en ? ", " : "\uFF0C");
+    }
+    function NumberField(props) {
+      var h2 = props.h || React2.createElement;
+      var lang = props.lang;
+      var M = messages(lang);
+      var text = props.value === null || props.value === void 0 ? "" : String(props.value);
+      var draftS = React2.useState(text);
+      var draft = draftS[0];
+      var setDraft = draftS[1];
+      var focusS = React2.useState(false);
+      var focused = focusS[0];
+      var setFocused = focusS[1];
+      var errS = React2.useState("");
+      var err = errS[0];
+      var setErr = errS[1];
+      var lastRef = React2.useRef(text);
+      var skipBlurRef = React2.useRef(false);
+      React2.useEffect(
+        function() {
+          if (focused) return;
+          if (lastRef.current === text) return;
+          lastRef.current = text;
+          setDraft(text);
+          setErr("");
+        },
+        [text, focused]
+      );
+      function commit(raw) {
+        var r = validateNumber(raw, props);
+        if (!r.ok) {
+          setErr(r.error);
+          if (typeof props.onValidChange === "function") props.onValidChange(false, r.error);
+          return false;
+        }
+        setErr("");
+        if (typeof props.onValidChange === "function") props.onValidChange(true, "");
+        var cur = props.value === null || props.value === void 0 ? null : Number(props.value);
+        if (r.value !== cur) {
+          lastRef.current = r.value === null ? "" : String(r.value);
+          if (typeof props.onCommit === "function") props.onCommit(r.value);
+        }
+        return true;
+      }
+      var hint = props.hint !== void 0 ? props.hint : rangeHint(props, lang);
+      var shown = props.hint === false ? "" : hint;
+      return h2(
+        "span",
+        { className: "wbctl-num" + (props.wide ? " is-wide" : "") + (props.className ? " " + props.className : "") },
+        h2(
+          "span",
+          { className: "wbctl-num-box" },
+          h2("input", {
+            className: "wbctl-num-input" + (err ? " is-invalid" : ""),
+            type: "text",
+            inputMode: props.integer || Number(props.step) === 1 ? "numeric" : "decimal",
+            value: draft,
+            disabled: !!props.disabled,
+            placeholder: props.placeholder,
+            title: props.title,
+            "aria-label": props.ariaLabel,
+            "aria-invalid": err ? "true" : void 0,
+            onFocus: function() {
+              setFocused(true);
+            },
+            onChange: function(e) {
+              setDraft(e.target.value);
+              if (err) setErr("");
+              if (typeof props.onDraft === "function") props.onDraft(e.target.value);
+            },
+            onBlur: function() {
+              setFocused(false);
+              if (skipBlurRef.current) {
+                skipBlurRef.current = false;
+                return;
+              }
+              commit(draft);
+            },
+            onKeyDown: function(e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.target && e.target.blur) e.target.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                skipBlurRef.current = true;
+                setDraft(text);
+                setErr("");
+                if (e.target && e.target.blur) e.target.blur();
+              }
+            }
+          }),
+          props.unit ? h2("span", { className: "wbctl-num-unit" }, props.unit) : null
+        ),
+        err ? h2("span", { className: "wbctl-num-err", role: "alert" }, err) : shown ? h2("span", { className: "wbctl-num-hint" }, shown) : null
+      );
+    }
+    var NUMBER_STYLES = [
+      ".wbctl-num{display:inline-flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}",
+      ".wbctl-num.is-wide{display:flex;width:100%}",
+      ".wbctl-num-box{display:inline-flex;align-items:center;gap:6px;min-width:0}",
+      ".wbctl-num-input{box-sizing:border-box;width:96px;min-width:0;padding:6px 9px;border:1px solid var(--wb-line,rgba(127,127,127,.35));border-radius:6px;background:var(--wb-surface,var(--wb-card,transparent));color:inherit;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,outline-color .14s ease}",
+      ".wbctl-num-input:hover:not(:disabled){border-color:var(--wb-border,var(--wb-line))}",
+      ".wbctl-num-input:focus{outline:2px solid color-mix(in oklab,var(--wb-accent,#2563eb) 55%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbctl-num-input.is-invalid{border-color:var(--wb-danger,#dc2626)}",
+      ".wbctl-num-input.is-invalid:focus{outline-color:color-mix(in oklab,var(--wb-danger,#dc2626) 55%,transparent)}",
+      ".wbctl-num-input:disabled{opacity:.5;cursor:not-allowed}",
+      ".wbctl-num-unit{color:var(--wb-muted,inherit);font-size:12px;white-space:nowrap}",
+      ".wbctl-num-hint{color:var(--wb-muted,inherit);font-size:11px;line-height:1.4}",
+      ".wbctl-num-err{color:var(--wb-danger,#dc2626);font-size:11px;line-height:1.4}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-num-input{transition:none}}"
+    ];
+    module2.exports = {
+      NumberField,
+      validateNumber,
+      rangeHint,
+      messages,
+      styles: NUMBER_STYLES
+    };
   }
 });
 
@@ -1858,6 +3560,8 @@ var require_config = __commonJS({
   "packages/addons/sites/client/views/config.cjs"(exports2, module2) {
     var React2 = require("react");
     var h2 = React2.createElement;
+    var SW = require_switch();
+    var NF = require_number_field();
     var DOMAIN = "sites";
     var PREFIX = "wbs";
     var COPY = {
@@ -1932,13 +3636,6 @@ var require_config = __commonJS({
       ".__P__-cfg-select:focus,.__P__-cfg-input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
       ".__P__-cfg-select{min-width:152px;padding-right:10px}",
       ".__P__-cfg-input{width:132px}",
-      ".__P__-cfg-switch{position:relative;display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--cfg-muted);user-select:none}",
-      ".__P__-cfg-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-      ".__P__-cfg-track{position:relative;width:38px;height:22px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-      ".__P__-cfg-track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track::after{transform:translateX(16px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-      ".__P__-cfg-switch input:focus-visible+.__P__-cfg-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
       ".__P__-cfg-multi{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%}",
       ".__P__-cfg-multi label{position:relative;display:inline-flex;align-items:center;padding:5px 11px;border:1px solid var(--cfg-line);border-radius:999px;font-size:12px;color:var(--cfg-muted);cursor:pointer;line-height:1.4;transition:color .12s ease,border-color .12s ease,background .12s ease}",
       ".__P__-cfg-multi label:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
@@ -1963,8 +3660,8 @@ var require_config = __commonJS({
       ".__P__-cfg-empty{border:1px dashed var(--cfg-line);border-radius:14px;padding:40px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
       ".__P__-cfg-error{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:10px 13px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12.5px;line-height:1.5}",
       "@media (max-width:820px){.__P__-cfg-row{grid-template-columns:1fr;gap:10px;padding:13px 16px}.__P__-cfg-control{justify-content:flex-start}.__P__-cfg-multi{justify-content:flex-start}.__P__-cfg-gtitle{padding:11px 16px}}",
-      "@media (prefers-reduced-motion:reduce){.__P__-cfg-track,.__P__-cfg-track::after,.__P__-cfg-sk{animation:none;transition:none}}"
-    ].join("\n").split("__P__").join(PREFIX);
+      "@media (prefers-reduced-motion:reduce){.__P__-cfg-sk{animation:none;transition:none}}"
+    ].concat(SW.styles).concat(NF.styles).join("\n").split("__P__").join(PREFIX);
     function injectCss() {
       if (typeof document === "undefined") return;
       var old = document.getElementById("wb-addon-" + DOMAIN + "-config-css");
@@ -2047,8 +3744,6 @@ var require_config = __commonJS({
       var notice = noticeS[0], setNotice = noticeS[1];
       var savingS = React2.useState("");
       var savingId = savingS[0], setSavingId = savingS[1];
-      var draftsS = React2.useState({});
-      var drafts = draftsS[0], setDrafts = draftsS[1];
       var busyS = React2.useState(false);
       var busy = busyS[0], setBusy = busyS[1];
       React2.useEffect(function() {
@@ -2134,38 +3829,20 @@ var require_config = __commonJS({
           setNotice({ id: "", text: String(e && e.message || e), error: true });
         });
       }
-      function commitDraft(item) {
-        var raw = drafts[item.id];
-        if (raw === void 0) return;
-        var next = String(raw).trim();
-        setDrafts(function(prev) {
-          var copy = Object.assign({}, prev);
-          delete copy[item.id];
-          return copy;
-        });
-        if (next === "") return;
-        var value = Number(next);
-        if (!Number.isFinite(value)) return;
-        if (sameValue(value, state.values[item.id])) return;
-        save(item.id, value);
-      }
       function renderControl(item) {
         var value = state.values[item.id];
         var label = lang === "en" ? item.en : item.zh;
         if (item.type === "bool") {
-          return h2(
-            "label",
-            { className: PREFIX + "-cfg-switch" },
-            h2("input", {
-              type: "checkbox",
-              checked: value === true,
-              onChange: function(e) {
-                save(item.id, e.target.checked);
-              }
-            }),
-            h2("span", { className: PREFIX + "-cfg-track", "aria-hidden": "true" }),
-            h2("span", { className: PREFIX + "-cfg-switchstate" }, value === true ? t.on : t.off)
-          );
+          return h2(SW.Switch, {
+            h: h2,
+            checked: value === true,
+            showState: true,
+            onText: t.on,
+            offText: t.off,
+            onChange: function(next) {
+              save(item.id, next);
+            }
+          });
         }
         if (item.type === "enum") {
           return h2("select", {
@@ -2182,30 +3859,16 @@ var require_config = __commonJS({
           }));
         }
         if (item.type === "int") {
-          var draft = drafts[item.id] !== void 0 ? drafts[item.id] : String(value);
-          return h2("input", {
-            className: PREFIX + "-cfg-input",
-            type: "number",
-            value: draft,
+          return h2(NF.NumberField, {
+            h: h2,
+            lang,
+            value: value === void 0 ? "" : value,
             min: item.min,
             max: item.max,
-            "aria-label": label,
-            onChange: function(e) {
-              var v = e.target.value;
-              setDrafts(function(prev) {
-                var c = Object.assign({}, prev);
-                c[item.id] = v;
-                return c;
-              });
-            },
-            onBlur: function() {
-              commitDraft(item);
-            },
-            onKeyDown: function(e) {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                commitDraft(item);
-              }
+            integer: true,
+            ariaLabel: label,
+            onCommit: function(next) {
+              save(item.id, next);
             }
           });
         }
@@ -2978,13 +4641,6 @@ var require_data_style = __commonJS({
         "." + P + "-search input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
         "." + P + "-select{border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;outline:none}",
         "." + P + "-select:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
-        "." + P + "-switch{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--cfg-muted);user-select:none;padding:4px 2px}",
-        "." + P + "-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-        "." + P + "-track{position:relative;width:34px;height:20px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-        "." + P + "-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-        "." + P + "-switch input:checked+." + P + "-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-        "." + P + "-switch input:checked+." + P + "-track::after{transform:translateX(14px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-        "." + P + "-switch input:focus-visible+." + P + "-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
         "." + P + "-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cfg-line);background:transparent;color:var(--cfg-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}",
         "." + P + "-btn:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
         "." + P + "-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
@@ -3013,8 +4669,8 @@ var require_data_style = __commonJS({
         "." + P + "-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;font-size:11.5px;color:var(--cfg-muted)}",
         "." + P + "-grow{flex:1}",
         "." + P + "-pageinfo{font-variant-numeric:tabular-nums}",
-        "." + P + "-jump{width:56px;border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:7px;padding:4px 7px;font:inherit;font-size:11.5px;text-align:right;outline:none}",
-        "." + P + "-jump:focus{border-color:var(--dsw-alias-brand-primary,currentColor)}",
+        "." + P + "-jump .wbctl-num-input{width:56px;padding:4px 7px;font-size:11.5px;text-align:right}",
+        "." + P + "-jump .wbctl-num-hint{display:none}",
         "." + P + "-empty{border:1px dashed var(--cfg-line);border-radius:11px;padding:44px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
         "." + P + "-err{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:9px 12px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12px;line-height:1.5}",
         "." + P + "-skwrap{display:flex;flex-direction:column;gap:1px;padding:2px}",
@@ -3052,7 +4708,7 @@ var require_data_style = __commonJS({
         "." + P + "-images img{width:36px;height:36px;object-fit:cover;border-radius:5px}",
         "." + P + "-gallery{display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}",
         "." + P + "-gallery img{width:100%;height:auto;object-fit:contain;border-radius:8px}"
-      ].join("\n");
+      ].concat(require_switch().styles).concat(require_number_field().styles).join("\n");
       if (DOMAIN === "storage") {
         var buttons = "." + P + " :is(button)";
         CSS += buttons + "{border:none;background:var(--wb-btn-bg);min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm)}" + buttons + ":enabled:hover{background:var(--wb-btn-hover-bg)}" + buttons + ":enabled:active{background:var(--wb-btn-active-bg)}" + buttons + ":disabled{background:var(--wb-btn-bg);color:var(--cfg-muted)}" + buttons + ":focus-visible{outline:var(--wb-btn-focus);outline-offset:var(--wb-btn-focus-offset)}." + P + "-fcell:has(button) input{padding-right:34px}";
@@ -3080,8 +4736,10 @@ var require_data_view = __commonJS({
   "packages/addons/lib/data-view.cjs"(exports2, module2) {
     "use strict";
     var React2 = require("react");
+    var NF = require_number_field();
     var h2 = React2.createElement;
     var COPY = require_data_copy();
+    var SW = require_switch();
     module2.exports = function createDataView(options) {
       var DOMAIN = options.domain;
       function icon(name) {
@@ -3635,17 +5293,18 @@ var require_data_view = __commonJS({
             h2("button", { type: "button", className: P + "-btn", disabled: !data || page >= pages, onClick: function() {
               setPage(Math.min(pages, page + 1));
             } }, t.next + " \u203A"),
-            h2("input", {
+            h2(NF.NumberField, {
+              h: h2,
+              lang,
               className: P + "-jump",
-              type: "number",
+              value: page,
               min: 1,
               max: pages,
-              "aria-label": t.jump,
-              onKeyDown: function(e) {
-                if (e.key === "Enter") {
-                  var n = Math.floor(Number(e.target.value));
-                  if (n >= 1) setPage(Math.min(pages, n));
-                }
+              integer: true,
+              ariaLabel: t.jump,
+              hint: false,
+              onCommit: function(next) {
+                if (next !== null) setPage(next);
               }
             }),
             data && data.queryMs !== void 0 ? h2("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
@@ -3742,25 +5401,23 @@ var require_data_view = __commonJS({
                     }
                   })
                 ),
-                h2(
-                  "label",
-                  { className: P + "-switch" },
-                  h2("input", { type: "checkbox", checked: includeDeleted, onChange: function(e) {
-                    setIncludeDeleted(e.target.checked);
+                h2(SW.Switch, {
+                  h: h2,
+                  checked: includeDeleted,
+                  label: t.includeDeleted,
+                  onChange: function(next) {
+                    setIncludeDeleted(next);
                     setPage(1);
-                  } }),
-                  h2("span", { className: P + "-track" }),
-                  h2("span", null, t.includeDeleted)
-                ),
-                h2(
-                  "label",
-                  { className: P + "-switch" },
-                  h2("input", { type: "checkbox", checked: showSystem, onChange: function(e) {
-                    setShowSystem(e.target.checked);
-                  } }),
-                  h2("span", { className: P + "-track" }),
-                  h2("span", null, t.showSystem)
-                ),
+                  }
+                }),
+                h2(SW.Switch, {
+                  h: h2,
+                  checked: showSystem,
+                  label: t.showSystem,
+                  onChange: function(next) {
+                    setShowSystem(next);
+                  }
+                }),
                 h2("span", { className: P + "-grow" }),
                 h2(
                   "label",
@@ -3841,711 +5498,6 @@ var require_data = __commonJS({
       tables: ["site", "site_node", "site_node_mapping", "site_account", "site_account_external"],
       useConfig: require_config().useConfig
     });
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs
-var x_exports = {};
-__export(x_exports, {
-  __iconData: () => __iconData10,
-  default: () => X
-});
-var __iconData10, X;
-var init_x = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs"() {
-    init_createLucideIcon();
-    __iconData10 = {
-      name: "x",
-      size: 24,
-      node: [
-        ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
-        ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
-      ]
-    };
-    __iconData10.node;
-    X = createLucideIcon(__iconData10);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check.mjs
-var check_exports = {};
-__export(check_exports, {
-  __iconData: () => __iconData11,
-  default: () => Check
-});
-var __iconData11, Check;
-var init_check = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/check.mjs"() {
-    init_createLucideIcon();
-    __iconData11 = {
-      name: "check",
-      size: 24,
-      node: [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]]
-    };
-    __iconData11.node;
-    Check = createLucideIcon(__iconData11);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs
-var pencil_exports = {};
-__export(pencil_exports, {
-  __iconData: () => __iconData12,
-  default: () => Pencil
-});
-var __iconData12, Pencil;
-var init_pencil = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs"() {
-    init_createLucideIcon();
-    __iconData12 = {
-      name: "pencil",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
-            key: "1a8usu"
-          }
-        ],
-        ["path", { d: "m15 5 4 4", key: "1mk7zo" }]
-      ]
-    };
-    __iconData12.node;
-    Pencil = createLucideIcon(__iconData12);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs
-var __iconData13, Trash;
-var init_trash = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs"() {
-    init_createLucideIcon();
-    __iconData13 = {
-      name: "trash",
-      size: 24,
-      node: [
-        ["path", { d: "M10 11v6", key: "nco0om" }],
-        ["path", { d: "M14 11v6", key: "outv1u" }],
-        ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
-        ["path", { d: "M3 6h18", key: "d0wm0j" }],
-        ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
-      ],
-      aliases: ["trash-2"]
-    };
-    __iconData13.node;
-    Trash = createLucideIcon(__iconData13);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs
-var trash_2_exports = {};
-__export(trash_2_exports, {
-  default: () => Trash
-});
-var init_trash_2 = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash-2.mjs"() {
-    init_trash();
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder.mjs
-var folder_exports = {};
-__export(folder_exports, {
-  __iconData: () => __iconData14,
-  default: () => Folder
-});
-var __iconData14, Folder;
-var init_folder = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder.mjs"() {
-    init_createLucideIcon();
-    __iconData14 = {
-      name: "folder",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z",
-            key: "1kt360"
-          }
-        ]
-      ]
-    };
-    __iconData14.node;
-    Folder = createLucideIcon(__iconData14);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-open.mjs
-var folder_open_exports = {};
-__export(folder_open_exports, {
-  __iconData: () => __iconData15,
-  default: () => FolderOpen
-});
-var __iconData15, FolderOpen;
-var init_folder_open = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-open.mjs"() {
-    init_createLucideIcon();
-    __iconData15 = {
-      name: "folder-open",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2",
-            key: "usdka0"
-          }
-        ]
-      ]
-    };
-    __iconData15.node;
-    FolderOpen = createLucideIcon(__iconData15);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-plus.mjs
-var folder_plus_exports = {};
-__export(folder_plus_exports, {
-  __iconData: () => __iconData16,
-  default: () => FolderPlus
-});
-var __iconData16, FolderPlus;
-var init_folder_plus = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-plus.mjs"() {
-    init_createLucideIcon();
-    __iconData16 = {
-      name: "folder-plus",
-      size: 24,
-      node: [
-        ["path", { d: "M12 10v6", key: "1bos4e" }],
-        ["path", { d: "M9 13h6", key: "1uhe8q" }],
-        [
-          "path",
-          {
-            d: "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z",
-            key: "1kt360"
-          }
-        ]
-      ]
-    };
-    __iconData16.node;
-    FolderPlus = createLucideIcon(__iconData16);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/house.mjs
-var house_exports = {};
-__export(house_exports, {
-  __iconData: () => __iconData17,
-  default: () => House
-});
-var __iconData17, House;
-var init_house = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/house.mjs"() {
-    init_createLucideIcon();
-    __iconData17 = {
-      name: "house",
-      size: 24,
-      node: [
-        ["path", { d: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8", key: "5wwlr5" }],
-        [
-          "path",
-          {
-            d: "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
-            key: "r6nss1"
-          }
-        ]
-      ],
-      aliases: ["home"]
-    };
-    __iconData17.node;
-    House = createLucideIcon(__iconData17);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/star.mjs
-var star_exports = {};
-__export(star_exports, {
-  __iconData: () => __iconData18,
-  default: () => Star
-});
-var __iconData18, Star;
-var init_star = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/star.mjs"() {
-    init_createLucideIcon();
-    __iconData18 = {
-      name: "star",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z",
-            key: "r04s7s"
-          }
-        ]
-      ]
-    };
-    __iconData18.node;
-    Star = createLucideIcon(__iconData18);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/search.mjs
-var search_exports = {};
-__export(search_exports, {
-  __iconData: () => __iconData19,
-  default: () => Search
-});
-var __iconData19, Search;
-var init_search = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/search.mjs"() {
-    init_createLucideIcon();
-    __iconData19 = {
-      name: "search",
-      size: 24,
-      node: [
-        ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
-        ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
-      ]
-    };
-    __iconData19.node;
-    Search = createLucideIcon(__iconData19);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-left.mjs
-var chevron_left_exports = {};
-__export(chevron_left_exports, {
-  __iconData: () => __iconData20,
-  default: () => ChevronLeft
-});
-var __iconData20, ChevronLeft;
-var init_chevron_left = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-left.mjs"() {
-    init_createLucideIcon();
-    __iconData20 = {
-      name: "chevron-left",
-      size: 24,
-      node: [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]]
-    };
-    __iconData20.node;
-    ChevronLeft = createLucideIcon(__iconData20);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-right.mjs
-var chevron_right_exports = {};
-__export(chevron_right_exports, {
-  __iconData: () => __iconData21,
-  default: () => ChevronRight
-});
-var __iconData21, ChevronRight;
-var init_chevron_right = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-right.mjs"() {
-    init_createLucideIcon();
-    __iconData21 = {
-      name: "chevron-right",
-      size: 24,
-      node: [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]]
-    };
-    __iconData21.node;
-    ChevronRight = createLucideIcon(__iconData21);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-down.mjs
-var chevron_down_exports = {};
-__export(chevron_down_exports, {
-  __iconData: () => __iconData22,
-  default: () => ChevronDown
-});
-var __iconData22, ChevronDown;
-var init_chevron_down = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-down.mjs"() {
-    init_createLucideIcon();
-    __iconData22 = {
-      name: "chevron-down",
-      size: 24,
-      node: [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]]
-    };
-    __iconData22.node;
-    ChevronDown = createLucideIcon(__iconData22);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up.mjs
-var arrow_up_exports = {};
-__export(arrow_up_exports, {
-  __iconData: () => __iconData23,
-  default: () => ArrowUp
-});
-var __iconData23, ArrowUp;
-var init_arrow_up = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up.mjs"() {
-    init_createLucideIcon();
-    __iconData23 = {
-      name: "arrow-up",
-      size: 24,
-      node: [
-        ["path", { d: "m5 12 7-7 7 7", key: "hav0vg" }],
-        ["path", { d: "M12 19V5", key: "x0mq9r" }]
-      ]
-    };
-    __iconData23.node;
-    ArrowUp = createLucideIcon(__iconData23);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-down.mjs
-var arrow_down_exports = {};
-__export(arrow_down_exports, {
-  __iconData: () => __iconData24,
-  default: () => ArrowDown
-});
-var __iconData24, ArrowDown;
-var init_arrow_down = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-down.mjs"() {
-    init_createLucideIcon();
-    __iconData24 = {
-      name: "arrow-down",
-      size: 24,
-      node: [
-        ["path", { d: "M12 5v14", key: "s699le" }],
-        ["path", { d: "m19 12-7 7-7-7", key: "1idqje" }]
-      ]
-    };
-    __iconData24.node;
-    ArrowDown = createLucideIcon(__iconData24);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up-down.mjs
-var arrow_up_down_exports = {};
-__export(arrow_up_down_exports, {
-  __iconData: () => __iconData25,
-  default: () => ArrowUpDown
-});
-var __iconData25, ArrowUpDown;
-var init_arrow_up_down = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/arrow-up-down.mjs"() {
-    init_createLucideIcon();
-    __iconData25 = {
-      name: "arrow-up-down",
-      size: 24,
-      node: [
-        ["path", { d: "m21 16-4 4-4-4", key: "f6ql7i" }],
-        ["path", { d: "M17 20V4", key: "1ejh1v" }],
-        ["path", { d: "m3 8 4-4 4 4", key: "11wl7u" }],
-        ["path", { d: "M7 4v16", key: "1glfcx" }]
-      ]
-    };
-    __iconData25.node;
-    ArrowUpDown = createLucideIcon(__iconData25);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/key-round.mjs
-var key_round_exports = {};
-__export(key_round_exports, {
-  __iconData: () => __iconData26,
-  default: () => KeyRound
-});
-var __iconData26, KeyRound;
-var init_key_round = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/key-round.mjs"() {
-    init_createLucideIcon();
-    __iconData26 = {
-      name: "key-round",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z",
-            key: "1s6t7t"
-          }
-        ],
-        ["circle", { cx: "16.5", cy: "7.5", r: ".5", fill: "currentColor", key: "w0ekpg" }]
-      ]
-    };
-    __iconData26.node;
-    KeyRound = createLucideIcon(__iconData26);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/lock.mjs
-var lock_exports = {};
-__export(lock_exports, {
-  __iconData: () => __iconData27,
-  default: () => Lock
-});
-var __iconData27, Lock;
-var init_lock = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/lock.mjs"() {
-    init_createLucideIcon();
-    __iconData27 = {
-      name: "lock",
-      size: 24,
-      node: [
-        ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
-        ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
-      ]
-    };
-    __iconData27.node;
-    Lock = createLucideIcon(__iconData27);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye.mjs
-var eye_exports = {};
-__export(eye_exports, {
-  __iconData: () => __iconData28,
-  default: () => Eye
-});
-var __iconData28, Eye;
-var init_eye = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye.mjs"() {
-    init_createLucideIcon();
-    __iconData28 = {
-      name: "eye",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
-            key: "1nclc0"
-          }
-        ],
-        ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
-      ]
-    };
-    __iconData28.node;
-    Eye = createLucideIcon(__iconData28);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye-off.mjs
-var eye_off_exports = {};
-__export(eye_off_exports, {
-  __iconData: () => __iconData29,
-  default: () => EyeOff
-});
-var __iconData29, EyeOff;
-var init_eye_off = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/eye-off.mjs"() {
-    init_createLucideIcon();
-    __iconData29 = {
-      name: "eye-off",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49",
-            key: "ct8e1f"
-          }
-        ],
-        ["path", { d: "M14.084 14.158a3 3 0 0 1-4.242-4.242", key: "151rxh" }],
-        [
-          "path",
-          {
-            d: "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143",
-            key: "13bj9a"
-          }
-        ],
-        ["path", { d: "m2 2 20 20", key: "1ooewy" }]
-      ]
-    };
-    __iconData29.node;
-    EyeOff = createLucideIcon(__iconData29);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs
-var chart_column_exports = {};
-__export(chart_column_exports, {
-  __iconData: () => __iconData30,
-  default: () => ChartColumn
-});
-var __iconData30, ChartColumn;
-var init_chart_column = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chart-column.mjs"() {
-    init_createLucideIcon();
-    __iconData30 = {
-      name: "chart-column",
-      size: 24,
-      node: [
-        ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
-        ["path", { d: "M18 17V9", key: "2bz60n" }],
-        ["path", { d: "M13 17V5", key: "1frdt8" }],
-        ["path", { d: "M8 17v-3", key: "17ska0" }]
-      ],
-      aliases: ["bar-chart-3"]
-    };
-    __iconData30.node;
-    ChartColumn = createLucideIcon(__iconData30);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/settings.mjs
-var settings_exports = {};
-__export(settings_exports, {
-  __iconData: () => __iconData31,
-  default: () => Settings
-});
-var __iconData31, Settings;
-var init_settings = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/settings.mjs"() {
-    init_createLucideIcon();
-    __iconData31 = {
-      name: "settings",
-      size: 24,
-      node: [
-        [
-          "path",
-          {
-            d: "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
-            key: "1i5ecw"
-          }
-        ],
-        ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
-      ]
-    };
-    __iconData31.node;
-    Settings = createLucideIcon(__iconData31);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs
-var database_exports = {};
-__export(database_exports, {
-  __iconData: () => __iconData32,
-  default: () => Database
-});
-var __iconData32, Database;
-var init_database = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/database.mjs"() {
-    init_createLucideIcon();
-    __iconData32 = {
-      name: "database",
-      size: 24,
-      node: [
-        ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
-        ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
-        ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
-      ]
-    };
-    __iconData32.node;
-    Database = createLucideIcon(__iconData32);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/code-xml.mjs
-var code_xml_exports = {};
-__export(code_xml_exports, {
-  __iconData: () => __iconData33,
-  default: () => CodeXml
-});
-var __iconData33, CodeXml;
-var init_code_xml = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/code-xml.mjs"() {
-    init_createLucideIcon();
-    __iconData33 = {
-      name: "code-xml",
-      size: 24,
-      node: [
-        ["path", { d: "m18 16 4-4-4-4", key: "1inbqp" }],
-        ["path", { d: "m6 8-4 4 4 4", key: "15zrgr" }],
-        ["path", { d: "m14.5 4-5 16", key: "e7oirm" }]
-      ],
-      aliases: ["code-2"]
-    };
-    __iconData33.node;
-    CodeXml = createLucideIcon(__iconData33);
-  }
-});
-
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/copy.mjs
-var copy_exports = {};
-__export(copy_exports, {
-  __iconData: () => __iconData34,
-  default: () => Copy
-});
-var __iconData34, Copy;
-var init_copy = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/copy.mjs"() {
-    init_createLucideIcon();
-    __iconData34 = {
-      name: "copy",
-      size: 24,
-      node: [
-        ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
-        ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
-      ]
-    };
-    __iconData34.node;
-    Copy = createLucideIcon(__iconData34);
-  }
-});
-
-// packages/addons/sites/client/ui/icons.cjs
-var require_icons = __commonJS({
-  "packages/addons/sites/client/ui/icons.cjs"(exports2, module2) {
-    "use strict";
-    var h2 = require("react").createElement;
-    var ICONS = {
-      "x": (init_x(), __toCommonJS(x_exports)).default,
-      "plus": (init_plus(), __toCommonJS(plus_exports)).default,
-      "check": (init_check(), __toCommonJS(check_exports)).default,
-      "edit": (init_pencil(), __toCommonJS(pencil_exports)).default,
-      "trash": (init_trash_2(), __toCommonJS(trash_2_exports)).default,
-      "folder": (init_folder(), __toCommonJS(folder_exports)).default,
-      "folder-open": (init_folder_open(), __toCommonJS(folder_open_exports)).default,
-      "folder-plus": (init_folder_plus(), __toCommonJS(folder_plus_exports)).default,
-      "folder-tree": (init_folder_tree(), __toCommonJS(folder_tree_exports)).default,
-      "house": (init_house(), __toCommonJS(house_exports)).default,
-      "link": (init_link_2(), __toCommonJS(link_2_exports)).default,
-      "tag": (init_tag(), __toCommonJS(tag_exports)).default,
-      "star": (init_star(), __toCommonJS(star_exports)).default,
-      "search": (init_search(), __toCommonJS(search_exports)).default,
-      "refresh": (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default,
-      "chevron-left": (init_chevron_left(), __toCommonJS(chevron_left_exports)).default,
-      "chevron-right": (init_chevron_right(), __toCommonJS(chevron_right_exports)).default,
-      "chevron-down": (init_chevron_down(), __toCommonJS(chevron_down_exports)).default,
-      "arrow-up": (init_arrow_up(), __toCommonJS(arrow_up_exports)).default,
-      "arrow-down": (init_arrow_down(), __toCommonJS(arrow_down_exports)).default,
-      "arrow-up-down": (init_arrow_up_down(), __toCommonJS(arrow_up_down_exports)).default,
-      "key": (init_key_round(), __toCommonJS(key_round_exports)).default,
-      "lock": (init_lock(), __toCommonJS(lock_exports)).default,
-      "eye": (init_eye(), __toCommonJS(eye_exports)).default,
-      "eye-off": (init_eye_off(), __toCommonJS(eye_off_exports)).default,
-      "chart": (init_chart_column(), __toCommonJS(chart_column_exports)).default,
-      "settings": (init_settings(), __toCommonJS(settings_exports)).default,
-      "database": (init_database(), __toCommonJS(database_exports)).default,
-      "code-2": (init_code_xml(), __toCommonJS(code_xml_exports)).default,
-      "globe": (init_globe(), __toCommonJS(globe_exports)).default,
-      "copy": (init_copy(), __toCommonJS(copy_exports)).default
-    };
-    function Icon2(props) {
-      var C = ICONS[props.name];
-      if (!C) return null;
-      return h2(C, {
-        size: props.size || 14,
-        strokeWidth: props.strokeWidth || 2,
-        "aria-hidden": "true",
-        className: "wbs-svg" + (props.className ? " " + props.className : "")
-      });
-    }
-    function tabIcon(name) {
-      return function SitesTabIcon() {
-        return h2(Icon2, { name, size: 14 });
-      };
-    }
-    module2.exports = { ICONS, Icon: Icon2, tabIcon };
   }
 });
 
@@ -4651,7 +5603,6 @@ var require_copy = __commonJS({
         externalAdd: "\u6DFB\u52A0\u5916\u8054",
         unlink: "\u89E3\u9664\u5916\u8054",
         accountEmpty: "\u8FD9\u4E2A\u7AD9\u70B9\u8FD8\u6CA1\u6709\u8D26\u53F7",
-        cancel: "\u53D6\u6D88",
         close: "\u5173\u95ED",
         sensitiveHint: "\u5BC6\u7801/\u624B\u673A\u53F7/\u8EAB\u4EFD\u8BC1\u5199\u5E93\u524D\u52A0\u5BC6\uFF0C\u4EC5\u5728\u754C\u9762\u89E3\u9501\u4FDD\u9669\u7BB1\u540E\u53EF\u67E5\u770B\u4E0E\u590D\u5236\u3002",
         vaultInvalid: "\u51ED\u636E\u96C6\u5408\u5DF2\u5931\u6548\uFF08\u96C6\u5408\u88AB\u5220\u9664\uFF09\uFF0C\u4FDD\u5B58\u4EFB\u4E00\u654F\u611F\u5B57\u6BB5\u5373\u53EF\u91CD\u5EFA\u3002",
@@ -4765,7 +5716,6 @@ var require_copy = __commonJS({
         externalAdd: "Add link",
         unlink: "Unlink",
         accountEmpty: "No accounts yet",
-        cancel: "Cancel",
         close: "Close",
         sensitiveHint: "Password / phone / ID card are encrypted before writing and can only be read after unlocking the vault.",
         vaultInvalid: "The credential set is gone (deleted); saving any sensitive field rebuilds it.",
@@ -4991,7 +5941,7 @@ var require_styles = __commonJS({
       ".wbs-toast{position:fixed;left:50%;bottom:38px;transform:translateX(-50%);z-index:1200;background:var(--dsw-alias-toast-bg,#26302d);color:var(--dsw-alias-toast-label,#fff);border-radius:8px;padding:8px 14px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.22);max-width:80vw}",
       ".wbs-toast.err{background:var(--dsw-alias-state-error-primary,#9d332b)}",
       ".wbs-mask{position:fixed;inset:0;z-index:900;background:rgba(24,28,26,.34);display:flex;align-items:center;justify-content:center;padding:22px}",
-      ".wbs-modal{width:min(700px,96vw);max-height:88vh;overflow:auto;background:var(--dsw-alias-bg-layer-1,#fffdf7);border:1px solid var(--wbs-line);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.24);padding:18px}",
+      // 分步表单的字段容器：两列排布，窄屏回落单列（宽度与步骤条来自 lib/staged-dialog.cjs）。\n    ".wbs-field{display:flex;flex-direction:column;gap:5px;min-width:0}",\n    ".wbs-field.full{grid-column:1 / -1}",\n    ".wbs-field .wbs-label{margin:0}",\n    ".wbs-modal{width:min(700px,96vw);max-height:88vh;overflow:auto;background:var(--dsw-alias-bg-layer-1,#fffdf7);border:1px solid var(--wbs-line);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.24);padding:18px}",
       ".wbs-modal.small{width:min(430px,94vw)}",
       ".wbs-modal-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:650;margin-bottom:4px}",
       ".wbs-modal-title .wbs-svg{color:var(--wbs-accent);opacity:.85;flex:none}",
@@ -5023,7 +5973,7 @@ var require_styles = __commonJS({
       ".wbs-note{font-size:11px;color:var(--wbs-muted);line-height:1.6}",
       "@media(max-width:860px){.wbs-body{flex-direction:column}.wbs-tree{width:100%;max-height:220px}.wbs-table{min-width:760px}.wbs-root{min-height:0}}",
       "@media(max-width:600px){.wbs-head h2{font-size:18px}.wbs-linkrow{grid-template-columns:1fr 1fr}.wbs-modal{padding:14px}}"
-    ].concat(require_filter_checklist_styles()).concat(require_client_base_styles().secretFieldStyles).concat([require_date_picker_styles()("wbs")]).join("\n");
+    ].concat(require_stepper().styles, require_staged_dialog().styles).concat(require_filter_checklist_styles()).concat(require_client_base_styles().secretFieldStyles).concat([require_date_picker_styles()("wbs")]).concat(require_switch().styles).join("\n");
   }
 });
 
@@ -5446,7 +6396,7 @@ var require_accounts_modal = __commonJS({
         }
         return h2(
           Modal,
-          { onClose: props.onClose },
+          { "aria-label": text(lang, "accountsTitle", { name: site.siteName }), onClose: props.onClose },
           h2(
             "div",
             { className: "wbs-modal-title" },
@@ -5633,16 +6583,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -5695,15 +6642,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -5717,6 +6669,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -5749,15 +6703,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -5771,6 +6732,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -5914,6 +6877,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React2.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React2.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React2.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React2.useState("");
@@ -5969,38 +6934,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -6035,6 +7015,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -6050,33 +7031,45 @@ var require_action_schema_view = __commonJS({
             h2("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h2("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h2("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h2(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h2("span", { className: P + "-track", "aria-hidden": true }),
-            h2("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h2("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h2(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h2("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h2("span", null, originText[origin])
+              );
+            }),
+            busy ? h2("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -6097,7 +7090,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h2("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h2("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h2(
@@ -6220,6 +7213,21 @@ var require_action_schema_view = __commonJS({
                   return h2("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h2(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h2(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h2("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h2("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -6246,6 +7254,8 @@ var require_actions = __commonJS({
 var React = require("react");
 var h = React.createElement;
 var TagFilter = require_tagfilter();
+var createOverlay = require_overlay();
+var staged = require_staged_dialog();
 (function() {
   var host = window.__WB_HOST__;
   if (!host) {
@@ -6259,7 +7269,7 @@ var TagFilter = require_tagfilter();
   var statsView = require_stats();
   var configView = require_config();
   var dataView = require_data();
-  var icons = require_icons(), Icon2 = icons.Icon, tabIcon = icons.tabIcon;
+  var icons = require_icons2(), Icon2 = icons.Icon, tabIcon = icons.tabIcon;
   var useState = React2.useState;
   var useEffect = React2.useEffect;
   var useRef = React2.useRef;
@@ -6316,14 +7326,36 @@ var TagFilter = require_tagfilter();
     });
     return out;
   }
-  function Modal(props) {
-    return h2("div", {
-      className: "wbs-mask",
-      onMouseDown: function(e) {
-        if (e.target === e.currentTarget && props.onClose) props.onClose();
-      }
-    }, h2("div", { className: "wbs-modal" + (props.small ? " small" : "") }, props.children));
-  }
+  var Modal = createOverlay({
+    tag: "div",
+    maskClass: "wbs-mask",
+    dialogClass: "wbs-modal",
+    dialogClassOf: function(props) {
+      return props.small ? " small" : "";
+    }
+  });
+  var SiteFormDialog = staged.createStagedDialog({
+    React: React2,
+    tag: "div",
+    displayName: "SiteFormDialog",
+    maskClass: "wbs-mask",
+    dialogClass: "wbs-modal",
+    header: function(p) {
+      return h2(
+        "div",
+        { className: "wbs-modal-title" },
+        h2(Icon2, { name: p.mode === "edit" ? "edit" : "plus", size: 15 }),
+        p.title,
+        h2("button", { type: "button", className: "wbs-mini wbs-modal-x", title: p.cancelLabel, disabled: !!p.submitting, onClick: p.onClose }, h2(Icon2, { name: "x", size: 15 }))
+      );
+    },
+    closeOnEscape: function(p) {
+      return !p.submitting;
+    },
+    closeOnMask: function(p) {
+      return !p.submitting;
+    }
+  });
   function SiteFormModal(props) {
     var api = props.api;
     var lang = props.lang || "zh";
@@ -6331,8 +7363,6 @@ var TagFilter = require_tagfilter();
     var site = props.site;
     var current = props.current || { id: "0", path: [] };
     var tagOn = !!props.tagOn;
-    var maxStep = tagOn ? 2 : 1;
-    var [step, setStep] = useState(0);
     var [name, setName] = useState(site ? site.siteName : "");
     var [desc, setDesc] = useState(site ? site.description : "");
     var [links, setLinks] = useState(function() {
@@ -6426,33 +7456,23 @@ var TagFilter = require_tagfilter();
     }
     function removeLink(index) {
       setLinks(function(prev) {
-        var next2 = prev.filter(function(_, i) {
+        var next = prev.filter(function(_, i) {
           return i !== index;
         });
-        return next2.length ? next2 : [{ description: "", link: "" }];
+        return next.length ? next : [{ description: "", link: "" }];
       });
       if (defaultIdx === index) setDefaultIdx(0);
       else if (defaultIdx > index) setDefaultIdx(defaultIdx - 1);
     }
-    function validate(toStep) {
-      if (toStep >= 1 && !String(name).trim()) {
-        setError(text(lang, "requiredName"));
-        return false;
-      }
-      if (toStep >= 2 && !dirIds.length) {
-        setError(text(lang, "requiredDirs"));
-        return false;
-      }
-      setError("");
-      return true;
-    }
-    function next() {
-      if (step >= maxStep) return;
-      if (!validate(step + 1)) return;
-      setStep(step + 1);
-    }
     function save() {
-      if (!validate(2)) return;
+      if (!String(name).trim()) {
+        setError(text(lang, "requiredName"));
+        return;
+      }
+      if (!dirIds.length) {
+        setError(text(lang, "requiredDirs"));
+        return;
+      }
       setSaving(true);
       setError("");
       var siteLinks = links.filter(function(l) {
@@ -6483,170 +7503,199 @@ var TagFilter = require_tagfilter();
         setError(errText(e));
       });
     }
-    var steps = tagOn ? [text(lang, "step1"), text(lang, "step2"), text(lang, "step3")] : [text(lang, "step1"), text(lang, "step2")];
     var title = mode === "edit" ? text(lang, "editTitle") : text(lang, "createTitle");
-    return h2(
-      Modal,
-      { onClose: saving ? null : props.onClose },
-      h2(
-        "div",
-        { className: "wbs-modal-title" },
-        h2(Icon2, { name: mode === "edit" ? "edit" : "plus", size: 15 }),
-        title,
-        h2("button", { type: "button", className: "wbs-mini wbs-modal-x", title: text(lang, "cancel"), onClick: props.onClose }, h2(Icon2, { name: "x", size: 15 }))
-      ),
-      h2("div", { className: "wbs-steps" }, steps.map(function(s, i) {
-        return h2("span", { key: i, className: "wbs-step" + (i === step ? " on" : "") }, i + 1 + " \xB7 " + s);
-      })),
-      step === 0 ? h2(
-        "div",
-        null,
-        h2("label", { className: "wbs-label" }, text(lang, "siteName")),
-        h2("input", {
-          className: "wbs-input",
-          value: name,
-          autoFocus: true,
-          placeholder: text(lang, "siteNamePh"),
-          onChange: function(e) {
-            setName(e.target.value);
-          }
-        }),
-        h2("label", { className: "wbs-label" }, text(lang, "desc")),
-        h2("textarea", {
-          className: "wbs-textarea",
-          value: desc,
-          placeholder: text(lang, "descPh"),
-          onChange: function(e) {
-            setDesc(e.target.value);
-          }
-        }),
-        h2("label", { className: "wbs-label" }, text(lang, "linkList")),
-        links.map(function(l, i) {
-          return h2(
+    var steps = [
+      {
+        key: "basic",
+        label: text(lang, "step1"),
+        render: function(hh) {
+          return hh(
             "div",
-            { className: "wbs-linkrow", key: i },
-            h2("input", {
-              className: "wbs-input",
-              value: l.description,
-              placeholder: text(lang, "linkDesc"),
-              onChange: function(e) {
-                updateLink(i, "description", e.target.value);
-              }
-            }),
-            h2("input", {
-              className: "wbs-input",
-              value: l.link,
-              placeholder: text(lang, "linkUrl"),
-              onChange: function(e) {
-                updateLink(i, "link", e.target.value);
-              }
-            }),
-            h2(
-              "label",
-              { className: "wbs-radio", title: text(lang, "setDefault") },
-              h2("input", {
-                type: "radio",
-                name: "wbs-default-link",
-                checked: defaultIdx === i,
-                onChange: function() {
-                  setDefaultIdx(i);
+            { className: "wbctl-form" },
+            hh(
+              "div",
+              { className: "wbs-field" },
+              hh("label", { className: "wbs-label" }, text(lang, "siteName")),
+              hh("input", {
+                className: "wbs-input",
+                value: name,
+                placeholder: text(lang, "siteNamePh"),
+                onChange: function(e) {
+                  setName(e.target.value);
                 }
-              }),
-              text(lang, "default")
+              })
             ),
-            h2("button", { type: "button", className: "wbs-mini", title: text(lang, "removeLink"), onClick: function() {
-              removeLink(i);
-            } }, h2(Icon2, { name: "x", size: 13 }))
-          );
-        }),
-        h2("button", { type: "button", className: "wbs-btn sm", onClick: addLink }, h2(Icon2, { name: "plus", size: 13 }), text(lang, "addLink"))
-      ) : null,
-      step === 1 ? h2(
-        "div",
-        null,
-        h2("div", { className: "wbs-label" }, text(lang, "chooseDirs")),
-        !flatDirs.length ? h2("div", { className: "wbs-note" }, text(lang, "noDirs")) : h2(
-          "div",
-          { className: "wbs-dirlist" },
-          flatDirs.map(function(item) {
-            var id = String(item.node.id);
-            return h2(
-              "label",
-              {
-                key: id,
-                className: "wbs-dircheck",
-                style: { paddingLeft: 6 + item.depth * 16 }
-              },
-              h2("input", {
-                type: "checkbox",
-                checked: dirIds.indexOf(id) >= 0,
-                onChange: function() {
-                  toggleDir(id);
+            hh(
+              "div",
+              { className: "wbs-field" },
+              hh("label", { className: "wbs-label" }, text(lang, "desc")),
+              hh("textarea", {
+                className: "wbs-textarea",
+                rows: 3,
+                value: desc,
+                placeholder: text(lang, "descPh"),
+                onChange: function(e) {
+                  setDesc(e.target.value);
                 }
+              })
+            ),
+            hh(
+              "div",
+              { className: "wbs-field full" },
+              hh("label", { className: "wbs-label" }, text(lang, "linkList")),
+              links.map(function(l, i) {
+                return hh(
+                  "div",
+                  { className: "wbs-linkrow", key: i },
+                  hh("input", {
+                    className: "wbs-input",
+                    value: l.description,
+                    placeholder: text(lang, "linkDesc"),
+                    onChange: function(e) {
+                      updateLink(i, "description", e.target.value);
+                    }
+                  }),
+                  hh("input", {
+                    className: "wbs-input",
+                    value: l.link,
+                    placeholder: text(lang, "linkUrl"),
+                    onChange: function(e) {
+                      updateLink(i, "link", e.target.value);
+                    }
+                  }),
+                  hh(
+                    "label",
+                    { className: "wbs-radio", title: text(lang, "setDefault") },
+                    hh("input", {
+                      type: "radio",
+                      name: "wbs-default-link",
+                      checked: defaultIdx === i,
+                      onChange: function() {
+                        setDefaultIdx(i);
+                      }
+                    }),
+                    text(lang, "default")
+                  ),
+                  hh("button", { type: "button", className: "wbs-mini", title: text(lang, "removeLink"), onClick: function() {
+                    removeLink(i);
+                  } }, hh(Icon2, { name: "x", size: 13 }))
+                );
               }),
-              h2("span", null, item.node.name)
-            );
-          })
-        ),
-        h2("div", { className: "wbs-note", style: { marginTop: 8 } }, "\u7AD9\u70B9\u53EF\u540C\u65F6\u6302\u5728\u591A\u4E2A\u76EE\u5F55\u4E0B\uFF1B\u5217\u8868\u4F1A\u6309\u76EE\u5F55\u5B50\u6811\u8FC7\u6EE4\u3002")
-      ) : null,
-      tagOn && step === 2 ? h2(
-        "div",
-        null,
-        h2("div", { className: "wbs-label" }, text(lang, "chooseTags")),
-        tags.length ? h2("div", { className: "wbs-chips" }, tags.map(function(t) {
-          return h2(
-            "span",
-            { className: "wbs-chip", key: t.id },
-            t.name,
-            h2("button", { type: "button", onClick: function() {
-              toggleTag(t);
-            }, title: "\u79FB\u9664" }, h2(Icon2, { name: "x", size: 12 }))
+              hh("button", { type: "button", className: "wbs-btn sm", onClick: addLink }, hh(Icon2, { name: "plus", size: 13 }), text(lang, "addLink"))
+            )
           );
-        })) : h2("div", { className: "wbs-note" }, "\u6682\u672A\u9009\u62E9\u6807\u7B7E"),
-        h2(
-          "div",
-          { className: "wbs-tagsearch", style: { marginTop: 10 } },
-          h2("input", {
-            className: "wbs-input",
-            value: tagQuery,
-            placeholder: text(lang, "tagSearch"),
-            onChange: function(e) {
-              setTagQuery(e.target.value);
-            }
-          })
-        ),
-        h2("div", { className: "wbs-tagresults" }, tagResults.length ? tagResults.map(function(t) {
-          var on = tags.some(function(x) {
-            return x.id === t.id;
-          });
-          return h2(
-            "button",
-            {
-              key: t.id,
-              type: "button",
-              className: "wbs-tagresult" + (on ? " on" : ""),
-              onClick: function() {
-                toggleTag(t);
-              }
-            },
-            h2(Icon2, { name: on ? "check" : "plus", size: 12 }),
-            h2("span", null, t.name)
+        },
+        validate: function() {
+          return String(name).trim() ? "" : text(lang, "requiredName");
+        }
+      },
+      {
+        key: "dirs",
+        label: text(lang, "step2"),
+        render: function(hh) {
+          return hh(
+            "div",
+            { className: "wbs-field" },
+            hh("div", { className: "wbs-label" }, text(lang, "chooseDirs")),
+            !flatDirs.length ? hh("div", { className: "wbs-note" }, text(lang, "noDirs")) : hh(
+              "div",
+              { className: "wbs-dirlist" },
+              flatDirs.map(function(item) {
+                var id = String(item.node.id);
+                return hh(
+                  "label",
+                  {
+                    key: id,
+                    className: "wbs-dircheck",
+                    style: { paddingLeft: 6 + item.depth * 16 }
+                  },
+                  hh("input", {
+                    type: "checkbox",
+                    checked: dirIds.indexOf(id) >= 0,
+                    onChange: function() {
+                      toggleDir(id);
+                    }
+                  }),
+                  hh("span", null, item.node.name)
+                );
+              })
+            ),
+            hh("div", { className: "wbs-note", style: { marginTop: 8 } }, "\u7AD9\u70B9\u53EF\u540C\u65F6\u6302\u5728\u591A\u4E2A\u76EE\u5F55\u4E0B\uFF1B\u5217\u8868\u4F1A\u6309\u76EE\u5F55\u5B50\u6811\u8FC7\u6EE4\u3002")
           );
-        }) : h2("div", { className: "wbs-note", style: { padding: 6 } }, text(lang, "noTags"))),
-        h2("div", { className: "wbs-note", style: { marginTop: 8 } }, "\u6807\u7B7E\u7531\u6807\u7B7E\u5B50\u63D2\u4EF6\u63D0\u4F9B\uFF0C\u53EF\u591A\u9009\u3002")
-      ) : null,
-      h2(
-        "div",
-        { className: "wbs-formfoot" },
-        h2("div", { className: "wbs-formerr" }, error || ""),
-        step > 0 ? h2("button", { type: "button", className: "wbs-btn", disabled: saving, onClick: function() {
-          setStep(step - 1);
-        } }, h2(Icon2, { name: "chevron-left", size: 13 }), text(lang, "back")) : null,
-        h2("button", { type: "button", className: "wbs-btn", disabled: saving, onClick: props.onClose }, text(lang, "cancel")),
-        step < maxStep ? h2("button", { type: "button", className: "wbs-btn primary", onClick: next }, text(lang, "nextStep"), h2(Icon2, { name: "chevron-right", size: 13 })) : h2("button", { type: "button", className: "wbs-btn primary", disabled: saving, onClick: save }, h2(Icon2, { name: "check", size: 13 }), saving ? text(lang, "saving") : text(lang, "save"))
-      )
-    );
+        },
+        validate: function() {
+          return dirIds.length ? "" : text(lang, "requiredDirs");
+        }
+      },
+      tagOn ? {
+        key: "tags",
+        label: text(lang, "step3"),
+        optional: true,
+        render: function(hh) {
+          return hh(
+            "div",
+            { className: "wbs-field" },
+            hh("div", { className: "wbs-label" }, text(lang, "chooseTags")),
+            tags.length ? hh("div", { className: "wbs-chips" }, tags.map(function(t) {
+              return hh(
+                "span",
+                { className: "wbs-chip", key: t.id },
+                t.name,
+                hh("button", { type: "button", onClick: function() {
+                  toggleTag(t);
+                }, title: "\u79FB\u9664" }, hh(Icon2, { name: "x", size: 12 }))
+              );
+            })) : hh("div", { className: "wbs-note" }, "\u6682\u672A\u9009\u62E9\u6807\u7B7E"),
+            hh(
+              "div",
+              { className: "wbs-tagsearch", style: { marginTop: 10 } },
+              hh("input", {
+                className: "wbs-input",
+                value: tagQuery,
+                placeholder: text(lang, "tagSearch"),
+                onChange: function(e) {
+                  setTagQuery(e.target.value);
+                }
+              })
+            ),
+            hh("div", { className: "wbs-tagresults" }, tagResults.length ? tagResults.map(function(t) {
+              var on = tags.some(function(x) {
+                return x.id === t.id;
+              });
+              return hh(
+                "button",
+                {
+                  key: t.id,
+                  type: "button",
+                  className: "wbs-tagresult" + (on ? " on" : ""),
+                  onClick: function() {
+                    toggleTag(t);
+                  }
+                },
+                hh(Icon2, { name: on ? "check" : "plus", size: 12 }),
+                hh("span", null, t.name)
+              );
+            }) : hh("div", { className: "wbs-note", style: { padding: 6 } }, text(lang, "noTags"))),
+            hh("div", { className: "wbs-note", style: { marginTop: 8 } }, "\u6807\u7B7E\u7531\u6807\u7B7E\u5B50\u63D2\u4EF6\u63D0\u4F9B\uFF0C\u53EF\u591A\u9009\u3002")
+          );
+        }
+      } : null
+    ].filter(Boolean);
+    return h2(SiteFormDialog, {
+      title,
+      mode,
+      cancelLabel: text(lang, "cancel"),
+      steps,
+      submitting: saving,
+      error,
+      onClose: props.onClose,
+      onSubmit: save,
+      submitText: text(lang, "save"),
+      cancelText: text(lang, "cancel"),
+      nextText: text(lang, "nextStep"),
+      backText: text(lang, "back"),
+      stepsLabel: text(lang, "createTitle")
+    });
   }
   function DirModal(props) {
     var api = props.api;
@@ -6678,7 +7727,7 @@ var TagFilter = require_tagfilter();
     }
     return h2(
       Modal,
-      { small: true, onClose: saving ? null : props.onClose },
+      { small: true, "aria-label": title, onClose: saving ? null : props.onClose },
       h2(
         "div",
         { className: "wbs-modal-title" },
@@ -6747,7 +7796,7 @@ var TagFilter = require_tagfilter();
     }
     return h2(
       Modal,
-      { small: true, onClose: saving ? null : props.onClose },
+      { small: true, "aria-label": text(lang, "deleteTitle"), onClose: saving ? null : props.onClose },
       h2(
         "div",
         { className: "wbs-modal-title" },
@@ -7473,8 +8522,8 @@ var TagFilter = require_tagfilter();
   injectCss();
   host.registerAddon({
     id: "wb-addon-sites",
-    version: "1.12.4",
-    icon: (init_globe(), __toCommonJS(globe_exports)).default,
+    version: "1.12.11",
+    icon: icons.ICONS["globe"],
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.SitesStatsView },
       { id: "sites", icon: tabIcon("globe"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: SitesView },

@@ -2,8 +2,9 @@
  * 0.2.x → 0.3.0 数据迁移：把「分组直属凭据」收进集合，并把站点专属 kind 收口。
  * 只有解锁拿到 DEK 后才能重加密，因此入口是 unlock() 成功之后。
  * 整批一个事务：任一步失败回滚，schema_version 保持 2，下次解锁重试。
+ * 0.4.0 起迁移完成直接标 SCHEMA_VERSION（4）：account 列已由 ensureSchema 的 migrateV4 补齐。
  */
-import { hasColumn, headerGet, headerSet, now, tx } from "../db/db.js";
+import { SCHEMA_VERSION, hasColumn, headerGet, headerSet, now, tx } from "../db/db.js";
 import { open, seal, secretAad } from "../infra/crypto.js";
 import { createSets } from "./sets.js";
 
@@ -120,9 +121,9 @@ export function migrateToV3({ db, dek, log = () => {} }) {
 
     // 3) 收口：去掉凭据上的单列归属
     if (hasGroupColumn) db.exec("ALTER TABLE vault_secret DROP COLUMN group_id");
-    headerSet(db, { schema_version: 3 });
+    headerSet(db, { schema_version: SCHEMA_VERSION });
   });
 
-  log("保险箱已迁移到 schema 3", JSON.stringify(stats));
+  log("保险箱已迁移到 schema " + SCHEMA_VERSION, JSON.stringify(stats));
   return { migrated: true, ...stats };
 }

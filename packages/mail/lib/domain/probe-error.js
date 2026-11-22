@@ -5,7 +5,7 @@
  * 不对，用户要做的事完全不同。这里把底层异常收敛成固定几类，文案在客户端按类出。
  * 判定顺序有讲究：先看协议层显式信号（STARTTLS 不支持、证书），再按 errno 走。
  */
-export const ERROR_CLASSES = ["auth", "dns", "refused", "timeout", "tls", "starttls", "unknown"];
+export const ERROR_CLASSES = ["auth", "dns", "refused", "timeout", "tls", "starttls", "eframe", "unknown"];
 
 const AUTH_RE = /authenticationfailed|invalid credentials|login failed|imap 登录失败|smtp (用户名|密码) 失败|\b535\b|\b5\.7\.8\b|\bauth(?:entication)? failed\b/i;
 const TLS_CODE = new Set([
@@ -32,13 +32,15 @@ export function classifyProbeError(e) {
   if (REFUSED_CODE.has(code) || /econnrefused|连接被拒绝|connection refused/i.test(s)) return "refused";
   if (code === "ETIMEDOUT" || /超时|timed?\s?out/i.test(s)) return "timeout";
   if (AUTH_RE.test(s)) return "auth";
+  // 分段/结构层面的尺寸不一致：不是网络问题，重试同一条命令也不会变好，需要重新同步这封信。
+  if (code === "EFRAME" || /分段长度与服务器声明不符|尺寸与声明|分段不存在|邮件结构(?:已改变|不完整)|无法解析 IMAP 分段/.test(msg)) return "eframe";
   return "unknown";
 }
 
 /** 归类 → 中英文案；客户端只用这份表，避免两处各写一套说法。 */
 export const ERROR_TEXT = {
   auth: {
-    zh: "账号或授权码不对。QQ/网易/Gmail/iCloud 需要「授权码 / App 专用密码」，不是网页登录密码。",
+    zh: "账号或授权码不对。QQ/网易/Gmail/iCloud 需要「授权码」，不是网页登录密码。",
     en: "Wrong account or password. QQ/NetEase/Gmail/iCloud need an app password, not your web login password.",
   },
   dns: {
@@ -60,6 +62,10 @@ export const ERROR_TEXT = {
   starttls: {
     zh: "服务器不支持 STARTTLS，请改用 993/465 的隐式 TLS 端口。",
     en: "The server does not support STARTTLS; use an implicit-TLS port such as 993 or 465.",
+  },
+  eframe: {
+    zh: "服务器返回的正文尺寸与它声明的结构不一致，这封邮件需要重新同步一次。",
+    en: "The server returned body bytes that do not match the declared structure; re-sync this mail.",
   },
   unknown: {
     zh: "连接失败，请检查服务器地址、端口与授权码。",

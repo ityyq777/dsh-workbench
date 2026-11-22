@@ -1,4 +1,6 @@
 "use strict";
+var GLYPHS = require("./ui/icons.cjs").ICONS;
+
 (function () {
   var root = typeof window !== "undefined" ? window : null;
   var host = root && root.__WB_HOST__;
@@ -11,10 +13,10 @@
   var h = host.h;
   var CSS = require("./ui/styles.cjs");
   var ICONS = {
-    records: require("lucide-react/icons/wallet").default,
-    stats: require("lucide-react/icons/chart-column").default,
-    data: require("lucide-react/icons/database").default,
-    actions: require("lucide-react/icons/list").default,
+    records: GLYPHS["wallet"],
+    stats: GLYPHS["chart-column"],
+    data: GLYPHS["database"],
+    actions: GLYPHS["list"],
   };
   function Icon(props) { var C = ICONS[props.name] || ICONS.records; return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbsal-svg" }); }
   function tabIcon(name) { return function () { return h(Icon, { name: name, size: 14 }); }; }
@@ -30,8 +32,8 @@
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-salary",
-    version: "0.2.4",
-    icon: require("lucide-react/icons/wallet").default,
+    version: "0.4.5",
+    icon: GLYPHS["wallet"],
     views: [
       { id: "stats", icon: tabIcon("stats"), title: { zh: "统计", en: "Stats" }, component: withProps(require("./views/stats.cjs"), "统计") },
       { id: "records", icon: tabIcon("records"), title: { zh: "记录", en: "Records" }, component: withProps(require("./views/records.cjs"), "记录") },

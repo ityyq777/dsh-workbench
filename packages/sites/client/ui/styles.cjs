@@ -121,7 +121,7 @@ module.exports = [
     ".wbs-toast{position:fixed;left:50%;bottom:38px;transform:translateX(-50%);z-index:1200;background:var(--dsw-alias-toast-bg,#26302d);color:var(--dsw-alias-toast-label,#fff);border-radius:8px;padding:8px 14px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.22);max-width:80vw}",
     ".wbs-toast.err{background:var(--dsw-alias-state-error-primary,#9d332b)}",
     ".wbs-mask{position:fixed;inset:0;z-index:900;background:rgba(24,28,26,.34);display:flex;align-items:center;justify-content:center;padding:22px}",
-    ".wbs-modal{width:min(700px,96vw);max-height:88vh;overflow:auto;background:var(--dsw-alias-bg-layer-1,#fffdf7);border:1px solid var(--wbs-line);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.24);padding:18px}",
+    // 分步表单的字段容器：两列排布，窄屏回落单列（宽度与步骤条来自 lib/staged-dialog.cjs）。\n    ".wbs-field{display:flex;flex-direction:column;gap:5px;min-width:0}",\n    ".wbs-field.full{grid-column:1 / -1}",\n    ".wbs-field .wbs-label{margin:0}",\n    ".wbs-modal{width:min(700px,96vw);max-height:88vh;overflow:auto;background:var(--dsw-alias-bg-layer-1,#fffdf7);border:1px solid var(--wbs-line);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.24);padding:18px}",
     ".wbs-modal.small{width:min(430px,94vw)}",
     ".wbs-modal-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:650;margin-bottom:4px}",
     ".wbs-modal-title .wbs-svg{color:var(--wbs-accent);opacity:.85;flex:none}",
@@ -153,4 +153,4 @@ module.exports = [
     ".wbs-note{font-size:11px;color:var(--wbs-muted);line-height:1.6}",
     "@media(max-width:860px){.wbs-body{flex-direction:column}.wbs-tree{width:100%;max-height:220px}.wbs-table{min-width:760px}.wbs-root{min-height:0}}",
     "@media(max-width:600px){.wbs-head h2{font-size:18px}.wbs-linkrow{grid-template-columns:1fr 1fr}.wbs-modal{padding:14px}}"
-].concat(require("../../../lib/filter-checklist-styles.cjs")).concat(require("../../../lib/client-base-styles.cjs").secretFieldStyles).concat([require("../../../lib/date-picker-styles.cjs")("wbs")]).join("\n");
+].concat(require("../../../lib/stepper.cjs").styles, require("../../../lib/staged-dialog.cjs").styles).concat(require("../../../lib/filter-checklist-styles.cjs")).concat(require("../../../lib/client-base-styles.cjs").secretFieldStyles).concat([require("../../../lib/date-picker-styles.cjs")("wbs")]).concat(require("../../../lib/switch.cjs").styles).join("\n");

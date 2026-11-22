@@ -1,4 +1,6 @@
 "use strict";
+var GLYPHS = require("./ui/icons.cjs").ICONS;
+
 // 自动化客户端：概览 / 规则 / 运行记录 / 设置 / 数据 / Action 六个视图。
 (function () {
   var root = typeof window !== "undefined" ? window : null;
@@ -12,27 +14,34 @@
   var h = host.h;
   var CSS = require("./ui/styles.cjs");
   var ICONS = {
-    activity: require("lucide-react/icons/activity").default,
-    zap: require("lucide-react/icons/zap").default,
-    history: require("lucide-react/icons/history").default,
-    sliders: require("lucide-react/icons/sliders-horizontal").default,
-    database: require("lucide-react/icons/database").default,
-    list: require("lucide-react/icons/list").default,
-    timer: require("lucide-react/icons/timer").default,
-    "alarm-clock": require("lucide-react/icons/alarm-clock").default,
-    radio: require("lucide-react/icons/radio").default,
-    hand: require("lucide-react/icons/hand").default,
-    play: require("lucide-react/icons/play").default,
-    pencil: require("lucide-react/icons/pencil").default,
-    power: require("lucide-react/icons/power").default,
-    "power-off": require("lucide-react/icons/power-off").default,
-    "trash-2": require("lucide-react/icons/trash-2").default,
-    x: require("lucide-react/icons/x").default,
-    "check-circle": require("lucide-react/icons/check-circle").default,
-    "alert-triangle": require("lucide-react/icons/alert-triangle").default,
-    "skip-forward": require("lucide-react/icons/skip-forward").default,
-    layers: require("lucide-react/icons/layers").default,
-    "shield-check": require("lucide-react/icons/shield-check").default,
+    activity: GLYPHS["activity"],
+    zap: GLYPHS["zap"],
+    history: GLYPHS["history"],
+    sliders: GLYPHS["sliders-horizontal"],
+    database: GLYPHS["database"],
+    list: GLYPHS["list"],
+    timer: GLYPHS["timer"],
+    "alarm-clock": GLYPHS["alarm-clock"],
+    radio: GLYPHS["radio"],
+    hand: GLYPHS["hand"],
+    play: GLYPHS["play"],
+    pencil: GLYPHS["pencil"],
+    power: GLYPHS["power"],
+    "power-off": GLYPHS["power-off"],
+    "trash-2": GLYPHS["trash-2"],
+    x: GLYPHS["x"],
+    "check-circle": GLYPHS["check-circle"],
+    "alert-triangle": GLYPHS["alert-triangle"],
+    "skip-forward": GLYPHS["skip-forward"],
+    layers: GLYPHS["layers"],
+    bot: GLYPHS["bot"],
+    sparkles: GLYPHS["sparkles"],
+    repeat: GLYPHS["repeat"],
+    "calendar-clock": GLYPHS["calendar-clock"],
+    hourglass: GLYPHS["hourglass"],
+    clock: GLYPHS["clock"],
+    send: GLYPHS["send"],
+    "shield-check": GLYPHS["shield-check"],
   };
   function Icon(props) { var C = ICONS[props.name] || ICONS.zap; return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wba-svg" }); }
   function icon(name, size) { return h(Icon, { name: name, size: size || 14 }); }
@@ -62,8 +71,8 @@
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-automation",
-    version: "0.2.2",
-    icon: require("lucide-react/icons/zap").default,
+    version: "0.4.3",
+    icon: GLYPHS["zap"],
     views: [
       { id: "stats", icon: tabIcon("activity"), title: { zh: "概览", en: "Overview" }, component: withProps(require("./views/stats.cjs"), "概览") },
       { id: "rules", icon: tabIcon("zap"), title: { zh: "规则", en: "Rules" }, component: withProps(require("./views/rules.cjs"), "规则") },

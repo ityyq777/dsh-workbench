@@ -3,6 +3,7 @@
  *
  * sites 不持有任何密钥，也不直接读写 vault_* 表；所有动作走 vault 的 plugin 接口。
  * 0.3.0 起一个账号 = 一个集合（集合名就是 accountId），密码/手机号/证件号是集合里的三条凭据；
+ * 0.4.0 起集合额外带 account 展示值（站点登录名，可空、可重复），幂等键仍是 accountId；
  * 站点行只记 vault_set_id，用来发现「集合被删」这种失效状态。
  */
 
@@ -93,9 +94,10 @@ export async function accountSet(siteId, accountId) {
   return (reply && reply.set) || null;
 }
 
-/** 把账号的若干敏感字段写进集合（按集合名幂等建集合）；返回集合 id。 */
-export async function upsertAccountSecrets(siteId, accountId, values) {
+/** 把账号的若干敏感字段写进集合（按集合名幂等建集合，新建时带上账号展示值）；返回集合 id。 */
+export async function upsertAccountSecrets(siteId, accountId, values, account) {
   const groupId = await groupOfSite(siteId);
+  const setAccount = String(account == null ? "" : account);
   let setId = "";
   for (const spec of ACCOUNT_FIELDS) {
     if (values[spec.field] === undefined) continue;
@@ -106,6 +108,7 @@ export async function upsertAccountSecrets(siteId, accountId, values) {
       subjectId: String(siteId),
       groupId,
       setName: String(accountId),
+      setAccount,
       name: accountSecretName(accountId, spec.field),
       kind: spec.kind,
       secret: text,
@@ -114,6 +117,16 @@ export async function upsertAccountSecrets(siteId, accountId, values) {
     if (reply && reply.setId) setId = String(reply.setId);
   }
   return { setId };
+}
+
+/** 站点账号改名后同步集合上的「账号」展示值；集合尚不存在时静默忽略。 */
+export async function setAccountOf(siteId, accountId, account) {
+  return call("vault.pluginSetAccount", {
+    subjectType: "site",
+    subjectId: String(siteId),
+    setName: String(accountId),
+    account: String(account == null ? "" : account),
+  });
 }
 
 /** 摘掉账号集合里的一个字段（凭据不再属于任何集合时才被软删）。 */

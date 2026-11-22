@@ -73,14 +73,36 @@ var require_locale = __commonJS({
         back_home: "\u8FD4\u56DE\u9996\u9875",
         open: "\u6253\u5F00",
         manage: "\u5DE5\u4F5C\u53F0\u7BA1\u7406",
+        // 首页栏目名：与宿主 packages/shell/src/infra/categories.ts 的 id 一一对应；宿主没下发文案时的兜底。
+        cat_work: "\u5DE5\u4F5C\u4E0E\u8BA1\u5212",
+        cat_comm: "\u6C9F\u901A\u4E0E\u6D88\u606F",
+        cat_assets: "\u8D44\u4EA7\u4E0E\u8D44\u6599",
+        cat_finance: "\u8D22\u52A1",
+        cat_auto: "\u81EA\u52A8\u5316\u4E0E\u96C6\u6210",
+        cat_other: "\u5176\u4ED6",
         home_hint: "\u70B9\u5F00\u5361\u7247\u8FDB\u5165\u4E1A\u52A1\u63D2\u4EF6\uFF1B\u5B89\u88C5\u4E0E\u5378\u8F7D\u5728 DSH \u63D2\u4EF6\u7BA1\u7406\u91CC",
         search_placeholder: "\u641C\u7D22\u4EFB\u52A1\u3001\u6807\u7B7E\u3001\u7AD9\u70B9\u3001\u8FDE\u63A5\u5668\u5185\u5BB9\u2026\uFF08\u2318K\uFF09",
         searching: "\u641C\u7D22\u4E2D\u2026",
         search_none: "\u6CA1\u6709\u547D\u4E2D",
         search_partial: "\u90E8\u5206\u57DF\u641C\u7D22\u5931\u8D25",
         account_desc: "\u767B\u5F55\u4E91\u7AEF\u8D26\u53F7\uFF0C\u5907\u4EFD\u4E0E\u540C\u6B65\u6570\u636E",
-        tab_agent: "Agent \u6743\u9650",
-        agent_desc: "\u9010\u4E2A action \u63A7\u5236 agent \u80FD\u5426\u8C03\u7528\uFF1B\u5F00\u5173\u53EA\u5B58\u672C\u673A\u3001\u7ACB\u5373\u751F\u6548\uFF0C\u754C\u9762\u64CD\u4F5C\u4E0E\u6570\u636E\u540C\u6B65\u90FD\u4E0D\u53D7\u5F71\u54CD",
+        tab_agent: "\u5BBF\u4E3B action \u6743\u9650",
+        tab_agent_list: "Agent \u6743\u9650\u6E05\u5355",
+        agent_list_desc: "\u53EA\u8BFB\uFF1A\u5F53\u524D\u6240\u6709\u5BF9 agent \u5F00\u653E\u7684 action\uFF0C\u6309\u57DF\u6C47\u603B\uFF0C\u4FBF\u4E8E\u4E00\u773C\u770B\u6E05 agent \u80FD\u505A\u4EC0\u4E48\u3002",
+        agent_list_count: "{n} \u4E2A action \u5BF9 agent \u5F00\u653E\uFF08\u5171 {all} \u4E2A\uFF0C\u8986\u76D6 {d} \u4E2A\u57DF\uFF09",
+        agent_list_readonly: "\u53EA\u8BFB\u9875\uFF1B\u8981\u6539\u6765\u6E90\u8BF7\u5230\u5BF9\u5E94\u63D2\u4EF6\u7684 Action \u9875\u6216\u300C\u5BBF\u4E3B action \u6743\u9650\u300D\u9875",
+        agent_list_search: "\u641C\u7D22",
+        agent_list_search_ph: "action \u540D\u79F0 / \u57DF / \u8BF4\u660E",
+        agent_list_domain: "\u57DF",
+        agent_list_all_domains: "\u5168\u90E8\u57DF",
+        agent_list_col_action: "action",
+        agent_list_col_domain: "\u57DF",
+        agent_list_col_desc: "\u8BF4\u660E",
+        agent_list_col_origins: "\u751F\u6548\u6765\u6E90",
+        agent_list_narrow: "\u58F0\u660E\u4E0A\u754C",
+        agent_list_empty: "\u6CA1\u6709\u5BF9 agent \u5F00\u653E\u7684 action",
+        agent_list_loading: "\u8BFB\u53D6\u4E2D\u2026",
+        agent_desc: "\u9010\u4E2A action \u9009\u62E9\u5141\u8BB8\u7684\u8C03\u7528\u6765\u6E90\uFF08\u754C\u9762 / \u63D2\u4EF6 / agent / \u540C\u6B65\uFF09\uFF1B\u8BBE\u7F6E\u53EA\u5B58\u672C\u673A\u3001\u7ACB\u5373\u751F\u6548\uFF0C\u4E0D\u8FDB\u5907\u4EFD\u4E0E\u4E91\u540C\u6B65",
         tab_audit: "\u5BA1\u8BA1\u65E5\u5FD7",
         audit_desc: "\u672C\u673A\u884C\u4E3A\u8D26\u672C\uFF1A\u8C01\u5728\u4F55\u65F6\u8C03\u7528\u4E86\u54EA\u4E2A action\u3001\u6210\u529F\u4E0E\u5426\uFF1B\u5BC6\u7801\u4E0E token \u7B49\u53C2\u6570\u5DF2\u8131\u654F",
         audit_filters: "\u7B5B\u9009",
@@ -247,14 +269,36 @@ var require_locale = __commonJS({
         back_home: "Back to home",
         open: "Open",
         manage: "Manage",
+        // Home category names; ids match packages/shell/src/infra/categories.ts.
+        cat_work: "Work & Planning",
+        cat_comm: "Communication",
+        cat_assets: "Assets & Docs",
+        cat_finance: "Finance",
+        cat_auto: "Automation & Integrations",
+        cat_other: "Other",
         home_hint: "Open a card to enter a domain; install or remove plugins in DSH",
         search_placeholder: "Search tasks, tags, sites, connector items\u2026 (\u2318K)",
         searching: "Searching\u2026",
         search_none: "No matches",
         search_partial: "Some domains failed",
         account_desc: "Sign in to back up and sync your data",
-        tab_agent: "Agent access",
-        agent_desc: "Choose which actions the agent may call; switches stay on this machine, apply immediately, and never affect UI usage or sync",
+        tab_agent: "Host action origins",
+        tab_agent_list: "Agent access list",
+        agent_list_desc: "Read-only: every action the agent can currently call, grouped by domain.",
+        agent_list_count: "{n} actions open to the agent ({all} total across {d} domains)",
+        agent_list_readonly: "Read-only; change origins on the plugin's Action page or the Host action origins page",
+        agent_list_search: "Search",
+        agent_list_search_ph: "action name / domain / description",
+        agent_list_domain: "Domain",
+        agent_list_all_domains: "All domains",
+        agent_list_col_action: "Action",
+        agent_list_col_domain: "Domain",
+        agent_list_col_desc: "Description",
+        agent_list_col_origins: "Effective origins",
+        agent_list_narrow: "declared upper bound",
+        agent_list_empty: "No action is open to the agent",
+        agent_list_loading: "Loading\u2026",
+        agent_desc: "Pick which origins may call each action (UI / plugin / agent / sync); settings stay on this machine, apply immediately, and are never backed up or synced",
         tab_audit: "Audit log",
         audit_desc: "A local ledger of who called which action and how it went; passwords and tokens are redacted",
         audit_filters: "Filters",
@@ -373,10 +417,62 @@ var require_locale = __commonJS({
   }
 });
 
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
+    ];
+    function Switch(props) {
+      var h2 = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h2(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h2(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h2("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h2("span", { className: "wbctl-switch-text" }, text) : null
+      );
+    }
+    module2.exports = { Switch, styles: SWITCH_STYLES };
+  }
+});
+
 // packages/shell/client/styles.cjs
 var require_styles = __commonJS({
   "packages/shell/client/styles.cjs"(exports2, module2) {
     "use strict";
+    var SW = require_switch();
     var CSS2 = [
       ".wb-root{--wb-line:var(--dsw-alias-border-l2,color-mix(in oklab,currentColor 16%,transparent));--wb-surface:var(--dsw-alias-bg-layer-1,color-mix(in oklab,currentColor 4%,transparent));display:flex;flex-direction:column;height:100%;box-sizing:border-box;overflow:auto;color:inherit;font-size:13px;background:var(--dsw-alias-bg-base,var(--dsw-alias-bg-layer-2,color-mix(in oklab,currentColor 4%,transparent)));padding:24px 28px}",
       ".wb-inner{display:flex;flex-direction:column;gap:16px;width:100%;max-width:1040px;margin:0 auto}",
@@ -425,6 +521,12 @@ var require_styles = __commonJS({
       ".wb-empty-cta{padding:26px 14px}",
       ".wb-stack{display:flex;flex-direction:column;gap:10px}",
       ".wb-home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:12px}",
+      // 首页栏目分组：宿主栏目表定顺序，每个栏目一段标题 + 网格；空栏目不渲染。
+      ".wb-home-cats{display:flex;flex-direction:column;gap:20px}",
+      ".wb-home-cat{display:flex;flex-direction:column;gap:10px;min-width:0}",
+      ".wb-home-cat-head{display:flex;align-items:center;gap:8px;min-height:20px}",
+      ".wb-home-cat-head h3{margin:0;font-size:13px;font-weight:650;letter-spacing:.2px;opacity:.82}",
+      ".wb-home-cat-count{min-width:20px;padding:0 6px;border-radius:999px;border:1px solid var(--wb-line);background:var(--wb-surface);font-size:11px;line-height:18px;text-align:center;opacity:.62;font-variant-numeric:tabular-nums}",
       ".wb-home-card{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--wb-surface);border:1px solid var(--wb-line);border-radius:14px;padding:16px 16px 14px;color:inherit;font:inherit;cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease}",
       ".wb-home-card:hover{border-color:var(--dsw-alias-brand-primary,#11a89b);transform:translateY(-1px)}",
       ".wb-home-card:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#11a89b);outline-offset:2px}",
@@ -461,7 +563,7 @@ var require_styles = __commonJS({
       ".wb-immersive-main:has(.wb-fill)>.wb-inner{height:100%}",
       ".wb-inner>div:has(>.wb-fill){display:flex;flex-direction:column;height:100%;min-height:0}",
       ".wb-fill{flex:1 1 auto;min-height:0}",
-      "@media (max-width:760px){.wb-root{padding:16px}.wb-home-grid{grid-template-columns:1fr}.wb-page-title h2{font-size:17px}.wb-immersive-bar{padding:calc(8px + var(--dsh-frame-top-clearance,0px)) 14px 8px}.wb-immersive-main{padding:14px 16px 20px}.wb-immersive-title span:not(.wb-home-icon):not(.wb-badge){display:none}}",
+      "@media (max-width:760px){.wb-root{padding:16px}.wb-home-grid{grid-template-columns:1fr}.wb-home-cats{gap:16px}.wb-page-title h2{font-size:17px}.wb-immersive-bar{padding:calc(8px + var(--dsh-frame-top-clearance,0px)) 14px 8px}.wb-immersive-main{padding:14px 16px 20px}.wb-immersive-title span:not(.wb-home-icon):not(.wb-badge){display:none}}",
       ".wb-backup{display:flex;flex-direction:column;gap:14px}",
       ".wb-backup-item{display:flex;flex-direction:column}",
       ".wb-backup-row{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:1px solid var(--wb-line);border-radius:10px;background:var(--wb-surface)}",
@@ -679,7 +781,76 @@ var require_styles = __commonJS({
       ".wb-root .wb-immersive-bar .wb-page-tabs{margin:0;flex:0 1 auto;min-width:0;max-width:none;justify-content:flex-start;gap:4px}",
       ".wb-root .wb-immersive-bar .wb-tab{flex:0 0 auto;min-width:0;justify-content:center;text-align:center;padding:6px 10px}"
     ].join("\n");
-    module2.exports = CSS2;
+    module2.exports = CSS2 + "\n" + SW.styles.join("\n");
+  }
+});
+
+// packages/shell/client/panellist-icon.cjs
+var require_panellist_icon = __commonJS({
+  "packages/shell/client/panellist-icon.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function PanellistIcon(h2) {
+      return function Icon(props) {
+        var size = props && props.size || 20;
+        return h2(
+          "svg",
+          { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 1.5, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+          h2("rect", { x: 3, y: 3, width: 7, height: 9, rx: 1 }),
+          h2("rect", { x: 14, y: 3, width: 7, height: 5, rx: 1 }),
+          h2("rect", { x: 14, y: 12, width: 7, height: 9, rx: 1 }),
+          h2("rect", { x: 3, y: 16, width: 7, height: 5, rx: 1 })
+        );
+      };
+    };
+  }
+});
+
+// packages/shell/client/addon-nav.cjs
+var require_addon_nav = __commonJS({
+  "packages/shell/client/addon-nav.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function createAddonNav() {
+      var hook = null;
+      var layout = null;
+      var pending = null;
+      return {
+        setLayout: function(api) {
+          layout = api && typeof api.selectPanel === "function" ? api : null;
+        },
+        // 返回注销函数：页面卸载时钩子必须清掉，否则会往已卸载的 state 里写路由。
+        setHook: function(fn) {
+          hook = typeof fn === "function" ? fn : null;
+          return function() {
+            if (hook === fn) hook = null;
+          };
+        },
+        // 取出待办（取完即清）；没有就返回 null。
+        takePending: function() {
+          var want = pending;
+          pending = null;
+          return want;
+        },
+        /// 返回是否真的跳了。addonId 必填，viewId 为空时落到插件首页视图。
+        /// params 是视图参数（如 {messageId}），面板未挂载时一并暂存。
+        navigate: function(panelId, addonId, viewId, params) {
+          if (!addonId) return false;
+          var id = String(addonId);
+          var vid = viewId ? String(viewId) : "";
+          var extra = params && typeof params === "object" ? params : null;
+          if (hook && hook(id, vid, extra) !== false) return true;
+          pending = { addonId: id, viewId: vid, params: extra };
+          if (layout) {
+            try {
+              layout.selectPanel(panelId);
+              return true;
+            } catch (e) {
+            }
+          }
+          pending = null;
+          return false;
+        }
+      };
+    };
   }
 });
 
@@ -752,16 +923,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -814,15 +982,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -836,6 +1009,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -868,15 +1043,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -890,6 +1072,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -1033,6 +1217,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React.useState("");
@@ -1088,38 +1274,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -1154,6 +1355,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -1169,33 +1371,45 @@ var require_action_schema_view = __commonJS({
             h2("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h2("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h2("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h2(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h2("span", { className: P + "-track", "aria-hidden": true }),
-            h2("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h2("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h2(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h2("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h2("span", null, originText[origin])
+              );
+            }),
+            busy ? h2("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -1216,7 +1430,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h2("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h2("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h2(
@@ -1339,6 +1553,21 @@ var require_action_schema_view = __commonJS({
                   return h2("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h2(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h2(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h2("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h2("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -1373,17 +1602,368 @@ var require_system_pages = __commonJS({
         ] })
       ] });
     }
+    function agentListPage(deps) {
+      var jsx2 = deps.jsx;
+      var React = deps.React;
+      var t = deps.t;
+      var lang = deps.lang;
+      var api = deps.api;
+      var hostApi = {
+        call: function(action, args) {
+          return api.post("/domains/wb-shell/actions/" + encodeURIComponent(action), args || {});
+        }
+      };
+      function AgentListBody() {
+        var state = React.useState({ loading: true, error: "", actions: [] });
+        var snap = state[0], setSnap = state[1];
+        var qState = React.useState("");
+        var q = qState[0], setQ = qState[1];
+        var domainState = React.useState("");
+        var domainPick = domainState[0], setDomainPick = domainState[1];
+        React.useEffect(function() {
+          var alive = true;
+          hostApi.call("actions.list", {}).then(function(result) {
+            if (!alive) return;
+            var list = result && Array.isArray(result.actions) ? result.actions : [];
+            setSnap({ loading: false, error: "", actions: list });
+          }, function(error) {
+            if (!alive) return;
+            setSnap({ loading: false, error: error && error.message || String(error), actions: [] });
+          });
+          return function() {
+            alive = false;
+          };
+        }, []);
+        var opened = snap.actions.filter(function(a) {
+          return Array.isArray(a.origins) && a.origins.indexOf("agent") >= 0;
+        });
+        var domains = [];
+        opened.forEach(function(a) {
+          if (a.domain && domains.indexOf(a.domain) < 0) domains.push(a.domain);
+        });
+        domains.sort();
+        if (domainPick && domains.indexOf(domainPick) < 0) domains.unshift(domainPick);
+        var rows = opened.filter(function(a) {
+          if (domainPick && a.domain !== domainPick) return false;
+          if (!q.trim()) return true;
+          var text = [a.name, a.domain, a.description].join(" ").toLowerCase();
+          return text.indexOf(q.trim().toLowerCase()) >= 0;
+        });
+        var head = jsx2.jsx("div", { className: "wb-audit-summary", role: "status", "aria-live": "polite", children: [
+          jsx2.jsx("span", { children: t("agent_list_count").replace("{n}", String(rows.length)).replace("{all}", String(opened.length)).replace("{d}", String(domains.length)) }),
+          jsx2.jsx("span", { className: "wb-audit-dim", children: t("agent_list_readonly") })
+        ] });
+        var filters = jsx2.jsxs("div", { className: "wb-audit-filters", children: [
+          jsx2.jsxs("label", { className: "wb-audit-field", children: [
+            jsx2.jsx("span", { children: t("agent_list_search") }),
+            jsx2.jsx("input", { className: "wb-input", type: "search", "data-agent-search": "1", placeholder: t("agent_list_search_ph"), value: q, onChange: function(e) {
+              setQ(e.target.value);
+            } })
+          ] }),
+          jsx2.jsxs("label", { className: "wb-audit-field", children: [
+            jsx2.jsx("span", { children: t("agent_list_domain") }),
+            jsx2.jsxs("select", { className: "wb-select", "data-agent-domain": "1", value: domainPick, onChange: function(e) {
+              setDomainPick(e.target.value);
+            }, children: [
+              jsx2.jsx("option", { value: "", children: t("agent_list_all_domains") }),
+              domains.map(function(d) {
+                return jsx2.jsx("option", { value: d, children: d }, d);
+              })
+            ] })
+          ] })
+        ] });
+        var body;
+        if (snap.loading) body = jsx2.jsx("div", { className: "wb-msg", role: "status", children: t("agent_list_loading") });
+        else if (snap.error) body = jsx2.jsx("div", { className: "wb-err", role: "alert", children: snap.error });
+        else if (!rows.length) body = jsx2.jsx("div", { className: "wb-msg wb-empty-cta", children: t("agent_list_empty") });
+        else {
+          body = jsx2.jsx("div", { style: { overflowX: "auto" }, children: jsx2.jsxs("table", { className: "wb-audit-table", "data-agent-list": "1", children: [
+            jsx2.jsx("thead", { children: jsx2.jsx("tr", { children: [
+              jsx2.jsx("th", { children: t("agent_list_col_action") }),
+              jsx2.jsx("th", { children: t("agent_list_col_domain") }),
+              jsx2.jsx("th", { children: t("agent_list_col_desc") }),
+              jsx2.jsx("th", { children: t("agent_list_col_origins") })
+            ] }) }),
+            jsx2.jsx("tbody", { children: rows.map(function(a) {
+              var declared = Array.isArray(a.originsDeclared) ? a.originsDeclared : a.origins;
+              var narrow = Array.isArray(declared) && declared.length < 4;
+              return jsx2.jsxs("tr", { "data-agent-row": a.name, children: [
+                jsx2.jsx("td", { className: "wb-audit-mono", children: a.name }),
+                jsx2.jsx("td", { className: "wb-audit-dim", children: a.domain || "\u2014" }),
+                jsx2.jsx("td", { children: a.description || "\u2014" }),
+                jsx2.jsx("td", { children: jsx2.jsxs("span", { className: "wb-audit-mono", children: [
+                  (a.origins || []).join(" \xB7 "),
+                  narrow ? jsx2.jsx("span", { className: "wb-audit-dim", children: "  (" + t("agent_list_narrow") + " " + declared.join("/") + ")" }) : null
+                ] }) })
+              ] }, a.name);
+            }) })
+          ] }) });
+        }
+        return jsx2.jsxs("div", { children: [filters, head, body] });
+      }
+      return jsx2.jsxs("div", { className: "wb-root", children: [
+        jsx2.jsxs("div", { className: "wb-inner wb-wide", children: [
+          deps.head(t("tab_agent_list"), t("agent_list_desc")),
+          jsx2.jsx(AgentListBody, {})
+        ] })
+      ] });
+    }
     function manageCards(deps) {
       var t = deps.t;
       var card = deps.systemCard;
       return [
         card("agent", "agent", t("tab_agent"), t("agent_desc")),
+        card("agentList", "agent", t("tab_agent_list"), t("agent_list_desc")),
         card("backup", "backup", t("tab_backup"), t("backup_desc")),
         card("audit", "audit", t("tab_audit"), t("audit_desc")),
         card("account", "account", t("tab_account"), t("account_desc"))
       ];
     }
-    module2.exports = { agentAccessPage, manageCards };
+    module2.exports = { agentAccessPage, agentListPage, manageCards };
+  }
+});
+
+// packages/shell/client/slot-catalog.cjs
+var require_slot_catalog = __commonJS({
+  "packages/shell/client/slot-catalog.cjs"(exports2, module2) {
+    "use strict";
+    var SLOTS = [
+      {
+        id: "item.actions",
+        title: { zh: "\u6761\u76EE\u64CD\u4F5C", en: "Item actions" },
+        description: "\u5217\u8868\u6216\u8BE6\u60C5\u91CC\u9488\u5BF9\u5355\u6761\u5BF9\u8C61\u7684\u64CD\u4F5C\u6309\u94AE\uFF0C\u5982\u628A\u4E00\u5C01\u90AE\u4EF6\u53D8\u6210\u4EFB\u52A1\u3002",
+        props: { item: "WbItemRef\uFF1A{kind,id,title?,subtitle?,url?}\uFF0C\u7531\u5C5E\u4E3B\u586B\u5199\uFF1Bkind \u5E26\u547D\u540D\u7A7A\u95F4\uFF0C\u5982 mail.message" }
+      },
+      {
+        id: "view.toolbar",
+        title: { zh: "\u89C6\u56FE\u5DE5\u5177\u6761", en: "View toolbar" },
+        description: "\u63D2\u4EF6\u89C6\u56FE\u9876\u90E8\u5DE5\u5177\u6761\u4E0A\u7684\u8FFD\u52A0\u6309\u94AE\u3002",
+        props: { view: "{addonId, viewId}\uFF1A\u5F53\u524D\u6B63\u5728\u770B\u7684\u63D2\u4EF6\u89C6\u56FE" }
+      },
+      {
+        id: "settings.sections",
+        title: { zh: "\u8BBE\u7F6E\u5206\u533A", en: "Settings sections" },
+        description: "\u914D\u7F6E\u9875\u4E0A\u8FFD\u52A0\u7684\u4E00\u6BB5\u8BBE\u7F6E\u5757\u3002",
+        props: { owner: "string\uFF1A\u843D\u70B9\u6240\u5C5E\u63D2\u4EF6 id" }
+      },
+      {
+        id: "home.card.footer",
+        title: { zh: "\u9996\u9875\u5361\u7247\u5E95\u90E8", en: "Home card footer" },
+        description: "\u5DE5\u4F5C\u53F0\u9996\u9875\u63D2\u4EF6\u5361\u7247\u5E95\u90E8\u7684\u4E00\u884C\u6587\u5B57\u6216\u6309\u94AE\u3002",
+        props: { card: "{addonId,title}\uFF1A\u5361\u7247\u5BF9\u5E94\u7684\u63D2\u4EF6" }
+      }
+    ];
+    var INDEX = {};
+    SLOTS.forEach(function(slot) {
+      INDEX[slot.id] = slot;
+    });
+    module2.exports = {
+      slots: SLOTS,
+      has: function(id) {
+        return Object.prototype.hasOwnProperty.call(INDEX, String(id || ""));
+      },
+      get: function(id) {
+        return INDEX[String(id || "")] || null;
+      },
+      ids: function() {
+        return SLOTS.map(function(s) {
+          return s.id;
+        });
+      }
+    };
+  }
+});
+
+// packages/shell/client/slot-registry.cjs
+var require_slot_registry = __commonJS({
+  "packages/shell/client/slot-registry.cjs"(exports2, module2) {
+    "use strict";
+    var DEFAULT_ORDER = 100;
+    var UNKNOWN_OWNER = "unknown";
+    function idCompare(a, b) {
+      return a < b ? -1 : a > b ? 1 : 0;
+    }
+    module2.exports = function createSlotRegistry(catalog, onChange) {
+      var bySlot = {};
+      var problems = [];
+      function notify() {
+        if (typeof onChange === "function") {
+          try {
+            onChange();
+          } catch (e) {
+            console.error("[dsh-workbench] \u63D2\u69FD\u53D8\u66F4\u901A\u77E5\u5931\u8D25", e);
+          }
+        }
+      }
+      function reject(reason, detail) {
+        problems.push(Object.assign({ reason }, detail || {}));
+        console.error("[dsh-workbench] \u63D2\u69FD\u8D21\u732E\u88AB\u62D2\u7EDD\uFF08" + reason + "\uFF09", detail && (detail.slot || "") + "/" + (detail && detail.id || ""), detail && detail.addonId || "");
+        return false;
+      }
+      function add(contrib, addonId) {
+        var owner = typeof addonId === "string" && addonId ? addonId : UNKNOWN_OWNER;
+        if (!contrib || typeof contrib !== "object") return reject("invalid-contribution", { addonId: owner });
+        var slotId = String(contrib.slot || "");
+        var id = String(contrib.id || "");
+        if (!id) return reject("invalid-id", { slot: slotId, addonId: owner });
+        if (typeof contrib.component !== "function") return reject("invalid-component", { slot: slotId, id, addonId: owner });
+        if (!catalog.has(slotId)) return reject("unknown-slot", { slot: slotId, id, addonId: owner });
+        var bucket = bySlot[slotId] || (bySlot[slotId] = {});
+        if (Object.prototype.hasOwnProperty.call(bucket, id)) return reject("duplicate-id", { slot: slotId, id, addonId: owner });
+        var order = Number(contrib.order);
+        bucket[id] = {
+          slot: slotId,
+          id,
+          addonId: owner,
+          order: Number.isFinite(order) ? order : DEFAULT_ORDER,
+          title: contrib.title === void 0 ? null : contrib.title,
+          icon: typeof contrib.icon === "function" ? contrib.icon : null,
+          component: contrib.component,
+          error: null
+        };
+        notify();
+        return true;
+      }
+      function addAll(list, addonId) {
+        if (!Array.isArray(list)) return 0;
+        var accepted = 0;
+        for (var i = 0; i < list.length; i += 1) if (add(list[i], addonId)) accepted += 1;
+        return accepted;
+      }
+      function removeAddon(addonId) {
+        var removed = 0;
+        Object.keys(bySlot).forEach(function(slotId) {
+          var bucket = bySlot[slotId];
+          Object.keys(bucket).forEach(function(id) {
+            if (bucket[id].addonId !== addonId) return;
+            delete bucket[id];
+            removed += 1;
+          });
+          if (!Object.keys(bucket).length) delete bySlot[slotId];
+        });
+        if (removed) notify();
+        return removed;
+      }
+      function markError(slotId, id, error) {
+        var bucket = bySlot[slotId];
+        if (!bucket || !bucket[id]) return;
+        bucket[id].error = String(error && error.message || error || "unknown");
+      }
+      function get(slotId) {
+        var bucket = bySlot[String(slotId || "")];
+        if (!bucket) return [];
+        return Object.keys(bucket).map(function(id) {
+          return bucket[id];
+        }).sort(function(a, b) {
+          return a.order === b.order ? idCompare(a.id, b.id) : a.order - b.order;
+        });
+      }
+      function describe(slotId) {
+        return get(slotId).map(function(entry) {
+          return { slot: entry.slot, id: entry.id, addonId: entry.addonId, order: entry.order, title: entry.title, ok: entry.error === null, error: entry.error };
+        });
+      }
+      return {
+        add,
+        addAll,
+        removeAddon,
+        markError,
+        get,
+        describe,
+        problems: function() {
+          return problems.slice();
+        },
+        clearProblems: function() {
+          problems.length = 0;
+        },
+        size: function(slotId) {
+          return get(slotId).length;
+        }
+      };
+    };
+  }
+});
+
+// packages/shell/client/slot-outlet.cjs
+var require_slot_outlet = __commonJS({
+  "packages/shell/client/slot-outlet.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function createSlotOutlet(react2, deps) {
+      var h2 = react2.createElement;
+      var Component = react2.Component;
+      function pickLang(value) {
+        return value === "en" ? "en" : "zh";
+      }
+      function payloadOf(props) {
+        var out = {};
+        Object.keys(props || {}).forEach(function(key) {
+          if (key === "slot" || key === "lang" || key === "t" || key === "ownerId" || key === "children" || key === "key") return;
+          out[key] = props[key];
+        });
+        return out;
+      }
+      function makeBoundary() {
+        function Boundary(props) {
+          Component.call(this, props);
+          this.state = { failed: false };
+          this.componentDidCatch = function(error) {
+            this.setState({ failed: true });
+            deps.registry.markError(props.slot, props.contribution.id, error);
+            console.error("[dsh-workbench] \u63D2\u69FD\u8D21\u732E\u6E32\u67D3\u5931\u8D25\uFF1A" + props.slot + "/" + props.contribution.id, error);
+          };
+        }
+        Boundary.prototype = Object.create(Component.prototype);
+        Boundary.prototype.constructor = Boundary;
+        Boundary.prototype.render = function() {
+          return this.state.failed ? null : this.props.children;
+        };
+        return Boundary;
+      }
+      var SlotBoundary = makeBoundary();
+      function Slot(props) {
+        var bump = react2.useState(0);
+        react2.useEffect(function() {
+          var off = deps.subscribe(function() {
+            bump[1](function(x) {
+              return x + 1;
+            });
+          });
+          return typeof off === "function" ? off : function() {
+          };
+        }, []);
+        var entries = deps.registry.get(props.slot);
+        if (!entries.length) return null;
+        var lang = pickLang(props.lang);
+        var t = typeof props.t === "function" ? props.t : function(key) {
+          return key;
+        };
+        var payload = payloadOf(props);
+        var ownerId = typeof props.ownerId === "string" ? props.ownerId : null;
+        return h2(
+          "span",
+          { className: "wb-slot", "data-slot": props.slot, style: { display: "contents" } },
+          entries.map(function(entry) {
+            var childProps = Object.assign({}, payload, {
+              slot: props.slot,
+              ownerId,
+              contributorId: entry.addonId,
+              lang,
+              t,
+              api: deps.apiFor(entry.addonId),
+              onNavigate: function(viewId, params) {
+                return deps.navigate(entry.addonId, viewId, params);
+              }
+            });
+            return h2(
+              SlotBoundary,
+              { key: entry.id, slot: props.slot, contribution: entry },
+              h2(entry.component, childProps)
+            );
+          })
+        );
+      }
+      return { Slot, SlotBoundary, payloadOf };
+    };
   }
 });
 
@@ -1391,6 +1971,7 @@ var require_system_pages = __commonJS({
 var require_system_tabs = __commonJS({
   "packages/shell/client/system-tabs.cjs"(exports2, module2) {
     "use strict";
+    var SW = require_switch();
     module2.exports = function createSystemTabs(react2, jsx2, useApi2) {
       function AccountTab2(props) {
         var t = props.t;
@@ -1467,13 +2048,9 @@ var require_system_tabs = __commonJS({
               }, onKeyDown: function(e) {
                 if (e.key === "Enter") submit();
               } }),
-              jsx2.jsx("label", { className: "wb-msg", children: jsx2.jsxs("span", { children: [
-                jsx2.jsx("input", { type: "checkbox", checked: form.signup, onChange: function(e) {
-                  setForm(Object.assign({}, form, { signup: e.target.checked }));
-                } }),
-                " ",
-                t("signup")
-              ] }) }),
+              jsx2.jsx(SW.Switch, { h: jsx2.jsx, checked: !!form.signup, label: t("signup"), onChange: function(next) {
+                setForm(Object.assign({}, form, { signup: next }));
+              } }),
               jsx2.jsx("button", { className: "wb-btn", onClick: submit, children: form.signup ? t("signup") : t("login") })
             ] }),
             msg ? jsx2.jsx("div", { className: "wb-err", style: { marginTop: 8 }, children: msg }) : null
@@ -2074,6 +2651,79 @@ var require_system_tabs = __commonJS({
   }
 });
 
+// packages/shell/client/home-categories.cjs
+var require_home_categories = __commonJS({
+  "packages/shell/client/home-categories.cjs"(exports2, module2) {
+    "use strict";
+    function pickTitle2(title, lang) {
+      if (!title) return "";
+      if (typeof title === "string") return title;
+      return title[lang] || title.zh || title.en || "";
+    }
+    function categoryTitle(cat, t, lang) {
+      var key = "cat_" + String(cat && cat.id);
+      var text = typeof t === "function" ? t(key) : key;
+      if (text && text !== key) return text;
+      return pickTitle2(cat && cat.title, lang) || String(cat && cat.id || "");
+    }
+    function homeGroups(categories, list, t, lang) {
+      var cats = Array.isArray(categories) ? categories : null;
+      if (!cats || !cats.length) return null;
+      var known = {};
+      var fallbackId = "";
+      cats.forEach(function(c) {
+        if (!c || !c.id) return;
+        known[c.id] = true;
+        if (c.fallback && !fallbackId) fallbackId = c.id;
+      });
+      if (!fallbackId) fallbackId = cats[cats.length - 1].id;
+      var bucket = {};
+      cats.forEach(function(c) {
+        if (c && c.id) bucket[c.id] = [];
+      });
+      (Array.isArray(list) ? list : []).forEach(function(a) {
+        var id = a && typeof a.category === "string" && known[a.category] ? a.category : fallbackId;
+        (bucket[id] || (bucket[id] = [])).push(a);
+      });
+      var groups = [];
+      cats.forEach(function(c) {
+        var items = bucket[c.id] || [];
+        if (!items.length) return;
+        groups.push({ id: c.id, title: categoryTitle(c, t, lang), count: items.length, items });
+      });
+      return groups;
+    }
+    function homeSection(jsx2, categories, list, opts) {
+      var groups = homeGroups(categories, list, opts.t, opts.lang);
+      if (!groups) return jsx2.jsx("div", { className: "wb-home-grid", children: list.map(opts.addonCard) });
+      return jsx2.jsx("div", {
+        className: "wb-home-cats",
+        children: groups.map(function(g) {
+          return jsx2.jsxs("section", {
+            className: "wb-home-cat",
+            children: [
+              jsx2.jsxs("div", {
+                className: "wb-home-cat-head",
+                children: [
+                  jsx2.jsx("h3", { children: g.title }),
+                  jsx2.jsx("span", { className: "wb-home-cat-count", children: g.count })
+                ]
+              }),
+              jsx2.jsx("div", { className: "wb-home-grid", children: g.items.map(opts.addonCard) })
+            ]
+          }, g.id);
+        })
+      });
+    }
+    module2.exports = {
+      homeGroups,
+      categoryTitle,
+      pickTitle: pickTitle2,
+      homeSection
+    };
+  }
+});
+
 // packages/shell/client/view-tabs.cjs
 var require_view_tabs = __commonJS({
   "packages/shell/client/view-tabs.cjs"(exports2, module2) {
@@ -2164,11 +2814,17 @@ var h = react.createElement;
 var NS = "workbench";
 var LOCALE = require_locale();
 var CSS = require_styles();
+var createPanellistIcon = require_panellist_icon();
+var addonNav = require_addon_nav()();
 var SystemPages = require_system_pages();
+var slotCatalog = require_slot_catalog();
+var slotRegistry = require_slot_registry()(slotCatalog, function() {
+  notifyStore();
+});
 var registry = /* @__PURE__ */ new Map();
 var listeners = /* @__PURE__ */ new Set();
 var apiCache = /* @__PURE__ */ new Map();
-var addonState = { addons: [], loaded: false, shellVersion: "" };
+var addonState = { addons: [], categories: null, loaded: false, shellVersion: "" };
 var storeListeners = /* @__PURE__ */ new Set();
 var cloudStatusListeners = /* @__PURE__ */ new Set();
 var recordModes = {};
@@ -2255,12 +2911,27 @@ function apiFor(id) {
   apiCache.set(id, api);
   return api;
 }
+var slotOutlet = require_slot_outlet()(react, {
+  registry: slotRegistry,
+  apiFor,
+  navigate: function(addonId, viewId, params) {
+    return addonNav.navigate(NS, addonId, viewId, params);
+  },
+  subscribe: function(fn) {
+    storeListeners.add(fn);
+    return function() {
+      storeListeners.delete(fn);
+    };
+  }
+});
 function registerAddon(mod) {
   if (!mod || typeof mod.id !== "string" || !Array.isArray(mod.views)) {
     console.error("[dsh-workbench] registerAddon \u53C2\u6570\u4E0D\u5408\u6CD5", mod);
     return;
   }
+  if (registry.has(mod.id)) slotRegistry.removeAddon(mod.id);
   registry.set(mod.id, mod);
+  if (Array.isArray(mod.slots) && mod.slots.length) slotRegistry.addAll(mod.slots, mod.id);
   notifyStore();
 }
 function setAddons(list) {
@@ -2271,7 +2942,9 @@ function setAddons(list) {
     alive[a.id] = a;
   });
   registry.forEach(function(_m, id) {
-    if (!alive[id]) registry.delete(id);
+    if (alive[id]) return;
+    registry.delete(id);
+    slotRegistry.removeAddon(id);
   });
   notifyStore();
 }
@@ -2279,10 +2952,10 @@ function refreshAddons() {
   return fetch("/workbench/api/domains").then(function(r) {
     return r.json();
   }).then(function(j) {
-    if (j && j.domains) {
-      addonState.shellVersion = j.shellVersion || addonState.shellVersion;
-      setAddons(j.domains);
-    }
+    if (!j || !j.domains) return j;
+    addonState.shellVersion = j.shellVersion || addonState.shellVersion;
+    addonState.categories = Array.isArray(j.categories) && j.categories.length ? j.categories : null;
+    setAddons(j.domains);
     return j;
   }).catch(function(e) {
     console.warn("[dsh-workbench] \u8BFB\u53D6\u4E1A\u52A1\u63D2\u4EF6\u5931\u8D25", e);
@@ -2335,7 +3008,6 @@ function useAddonStore() {
   }, []);
   return addonState;
 }
-var navigateAddonHook = null;
 window.__WB_HOST__ = {
   react,
   jsx,
@@ -2347,8 +3019,26 @@ window.__WB_HOST__ = {
   error: function() {
     return lastAddonError;
   },
-  navigateAddon: function(addonId) {
-    return typeof navigateAddonHook === "function" && !!addonId && navigateAddonHook(String(addonId)) !== false;
+  // 第二个参数是插件内的视图 id（如消息的 inbox）；不传保持落到 views[0]，旧插件不受影响。
+  // 第三个参数是视图参数（如 {messageId}），由宿主路由带过去，插件用 viewParams 读。
+  navigateAddon: function(addonId, viewId, params) {
+    return addonNav.navigate(NS, addonId, viewId, params);
+  },
+  // ── 跨插件界面插槽 ──
+  // 落点组件：属主插件在自己界面里 h(host.Slot, {slot, item, lang, t, ownerId})。
+  Slot: slotOutlet.Slot,
+  // 宿主目录（白名单），插件可据此判断某个插槽是否存在。
+  slots: slotCatalog.slots,
+  // 单独注册一个贡献：registerSlot({slot,id,order,component,addonId}) 或 registerSlot(addonId, contrib)。
+  // 推荐写在 registerAddon 的 slots 数组里——那样卸载插件时宿主能按 addonId 一起撤销。
+  registerSlot: function(a, b) {
+    var addonId = typeof a === "string" ? a : a && a.addonId ? String(a.addonId) : "unknown";
+    var contrib = typeof a === "string" ? b : a;
+    return slotRegistry.add(contrib, addonId);
+  },
+  // 诊断快照（可 JSON 化）：[{slot,id,addonId,order,title,ok,error}]
+  slotContributions: function(slotId) {
+    return slotRegistry.describe(slotId);
   }
 };
 function useApi() {
@@ -2455,6 +3145,7 @@ var systemTabs = require_system_tabs()(react, jsx, useApi);
 var AccountTab = systemTabs.AccountTab;
 var BackupTab = systemTabs.BackupTab;
 var AuditTab = systemTabs.AuditTab;
+var homeCategory = require_home_categories();
 var ViewTabs = require_view_tabs()(react, pickTitle);
 var ViewOutlet = require_view_outlet();
 function ensureCss() {
@@ -2628,22 +3319,29 @@ function WorkbenchPage(props) {
     if (m && m.icon) return h(m.icon, { size: 18, strokeWidth: 1.9, "aria-hidden": "true" });
     return String(title || "?").slice(0, 1);
   }
-  function openAddon(a) {
+  function openAddon(a, viewId, params) {
     var m = registry.get(a.id);
-    var v = m && m.views && m.views[0] || a.views && a.views[0] || null;
-    go("addon:" + a.id + ":" + (v && v.id ? v.id : ""));
+    var list = m && m.views || a.views || [];
+    var hit = viewId ? list.filter(function(v2) {
+      return v2 && v2.id === viewId;
+    })[0] : null;
+    var v = hit || list[0] || null;
+    go("addon:" + a.id + ":" + (v && v.id ? v.id : ""), params);
   }
   react.useEffect(function() {
-    navigateAddonHook = function(addonId) {
+    var off = addonNav.setHook(function(addonId, viewId, params) {
       var t2 = addons.filter(function(a) {
         return a && a.id === addonId;
       })[0];
-      if (t2) openAddon(t2);
+      if (t2) openAddon(t2, viewId, params);
       return !!t2;
-    };
-    return function() {
-      navigateAddonHook = null;
-    };
+    });
+    var want = addons.length ? addonNav.takePending() : null;
+    var hit = want ? addons.filter(function(a) {
+      return a && a.id === want.addonId;
+    })[0] : null;
+    if (hit) openAddon(hit, want.viewId, want.params);
+    return off;
   }, [addons]);
   function pageHead(title, desc) {
     return jsx.jsxs("div", { className: "wb-page-head", children: [
@@ -2663,7 +3361,6 @@ function WorkbenchPage(props) {
     var m = registry.get(a.id);
     var v = m && m.views && m.views[0] || a.views && a.views[0] || null;
     var title = a.title || pickTitle(v && v.title, lang) || a.id;
-    var count = m && m.views ? m.views.length : a.views ? a.views.length : 0;
     return jsx.jsxs("button", { type: "button", className: "wb-home-card" + (a.error ? " dim" : ""), onClick: function() {
       openAddon(a);
     }, children: [
@@ -2672,12 +3369,8 @@ function WorkbenchPage(props) {
         jsx.jsx("span", { className: "wb-badge", children: "v" + (a.version || "?") })
       ] }),
       jsx.jsx("div", { className: "wb-home-title", children: title }),
-      jsx.jsx("div", { className: "wb-home-desc", children: a.description || (count > 1 ? count + " " + t("views") : "") }),
-      a.error ? jsx.jsx("div", { className: "wb-err", children: t("addon_error") + ": " + a.error }) : null,
-      jsx.jsxs("div", { className: "wb-home-foot", children: [
-        jsx.jsx("span", { children: count ? count + " " + t("views") : "" }),
-        jsx.jsx("b", { children: t("open") + " \u2192" })
-      ] })
+      a.description ? jsx.jsx("div", { className: "wb-home-desc", children: a.description }) : null,
+      a.error ? jsx.jsx("div", { className: "wb-err", children: t("addon_error") + ": " + a.error }) : null
     ] }, a.id);
   }
   function systemCard(key, icon, title, desc) {
@@ -2696,6 +3389,7 @@ function WorkbenchPage(props) {
     ] }, key);
   }
   if (route === "agent") return SystemPages.agentAccessPage({ jsx, t, lang, api, head: pageHead });
+  if (route === "agentList") return SystemPages.agentListPage({ jsx, React: react, t, lang, api, head: pageHead });
   if (route === "backup") {
     return jsx.jsxs("div", { className: "wb-root", children: [
       jsx.jsxs("div", { className: "wb-inner wb-wide", children: [pageHead(t("tab_backup"), t("backup_desc")), jsx.jsx(BackupTab, { t, lang, addons })] })
@@ -2744,7 +3438,7 @@ function WorkbenchPage(props) {
         } })
       ] }),
       jsx.jsx(SearchPanel, { api, addons, go, t }),
-      addons.length ? jsx.jsx("div", { className: "wb-home-grid", children: addons.map(addonCard) }) : jsx.jsx("div", { className: "wb-card", children: jsx.jsx("div", { className: "wb-msg wb-empty-cta", children: t("no_installed") }) }),
+      addons.length ? homeCategory.homeSection(jsx, addonState.categories, addons, { t, lang, addonCard }) : jsx.jsx("div", { className: "wb-card", children: jsx.jsx("div", { className: "wb-msg wb-empty-cta", children: t("no_installed") }) }),
       jsx.jsxs("div", { className: "wb-sec", children: [
         jsx.jsx("h3", { children: t("manage") }),
         jsx.jsx("span", { className: "wb-hint", children: t("home_hint") })
@@ -2826,20 +3520,18 @@ var RecordToggle = function(props) {
 };
 var exports_ = {
   name: NS,
-  inject: ["slots", "locale", "theme"],
+  // layout：跨页跳转需要把工作台面板切到前台（见 __WB_HOST__.navigateAddon 的第 2 条分支）。
+  inject: ["slots", "locale", "theme", "layout"],
   apply: function(ctx) {
     try {
       ensureCss();
-      var PanellistIcon = function() {
-        return h(
-          "svg",
-          { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" },
-          h("rect", { x: 3, y: 3, width: 7, height: 7, rx: 1 }),
-          h("rect", { x: 14, y: 3, width: 7, height: 7, rx: 1 }),
-          h("rect", { x: 3, y: 14, width: 7, height: 7, rx: 1 }),
-          h("rect", { x: 14, y: 14, width: 7, height: 7, rx: 1 })
-        );
-      };
+      addonNav.setLayout(ctx && ctx.layout);
+      ctx.effect(function() {
+        return function() {
+          addonNav.setLayout(null);
+        };
+      }, "wb-layout-api");
+      var PanellistIcon = createPanellistIcon(h);
       ctx.effect(function() {
         return ctx.locale.register(NS, LOCALE);
       }, "wb-locale");
@@ -2849,8 +3541,8 @@ var exports_ = {
           { name: "sidebar.panellist", id: NS, order: 62, label: function() {
             return t("nav");
           } },
-          function() {
-            return h(PanellistIcon, {});
+          function(props) {
+            return h(PanellistIcon, props);
           }
         );
       });

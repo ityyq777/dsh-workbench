@@ -1,22 +1,8 @@
-// Render-only filter panel; state and request ownership stay in TasksView.
+// 只负责渲染筛选面板；状态与请求仍归 TasksView 所有。
 var Icon = require("../ui/icons.cjs").Icon;
 var model = require("./task-filter-model.cjs"), DateFilter = require("../ui/date-filter.cjs").DateFilter;
 var WorkspaceFilter = require("../ui/workspacefilter.cjs");
-// Keep an editing draft so typing “10” does not swap the range after its first digit.
-function NumberInput(p) {
-  var React = p.React, draftState = React.useState(String(p.value)), draft = draftState[0], setDraft = draftState[1];
-  React.useEffect(function () { setDraft(String(p.value)); }, [p.value]);
-  function commit(node) {
-    var result = p.commit(node.validity && node.validity.badInput ? "invalid" : draft);
-    setDraft(result === undefined ? String(p.value) : result);
-  }
-  return React.createElement("input", {type:"number",className:"wbt-input wbt-limit-input",min:p.min,max:p.max,step:p.step,inputMode:p.step === 1 ? "numeric" : "decimal",value:draft,
-    "aria-label":p.label,placeholder:p.placeholder,onChange:function(e){setDraft(e.target.value);},
-    onBlur:function(e){commit(e.currentTarget);},onKeyDown:function(e){
-      if(e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); }
-      if(e.key === "Escape") { e.preventDefault(); setDraft(String(p.value)); }
-    }});
-}
+var NF = require("../../../lib/number-field.cjs");
 module.exports = function renderFilterPanel(React, p) {
   var h = React.createElement, en = p.lang === "en", value = p.value;
   var title = en ? "Filters" : "筛选";
@@ -43,7 +29,9 @@ module.exports = function renderFilterPanel(React, p) {
     if (result.autoSelected) hints.push(en ? "Corresponding status selected automatically" : "已自动勾选对应状态");
     p.onHint(hints.join(" · ")); change(result.value);
   }
-  function setLimit(key, end, text) {
+  // next 是共享控件提交的数值（null 表示留空）；留空表示清除该端点，沿用原语义。
+  function setLimit(key, end, next) {
+    var text = next === null || next === undefined ? "" : String(next);
     var result = model.limit(value,key,end,text);
     if (!result) { p.onHint(en ? (key === "difficulty" ? "Difficulty takes 0.5 steps from 0 to 5" : "Priority takes whole numbers 0–10") : (key === "difficulty" ? "难度仅接受 0–5 之间的半档数值" : "优先级仅接受 0–10 的整数")); return; }
     var hints = [];
@@ -52,13 +40,16 @@ module.exports = function renderFilterPanel(React, p) {
     p.onHint(hints.join(" · "));
     if (result.clearsMissing && p.onMissingChange) p.onMissingChange(false);
     change(result.value);
-    return result.value[key][end];
   }
   function limitRow(key, label) {
     var box = value[key], spec = model.limits[key];
     function field(end) {
       var labelText = en ? (end === "min" ? "Minimum " : "Maximum ") + label : (end === "min" ? "最低" : "最高") + label;
-      return h(NumberInput,{React:React,value:box[end],min:spec.min,max:spec.max,step:spec.step,label:labelText,placeholder:String(end === "min" ? spec.min : spec.max),commit:function(text){return setLimit(key,end,text);}});
+      // 范围与步长已由行首的说明文字承担；非法输入只在本行红字提示，不提交、不改写。
+      return h(NF.NumberField,{h:h,lang:p.lang,value:box[end],min:spec.min,max:spec.max,step:spec.step,
+        integer:spec.step === 1,allowEmpty:true,hint:false,className:"wbt-limit-field",
+        ariaLabel:labelText,placeholder:String(end === "min" ? spec.min : spec.max),
+        onCommit:function(next){setLimit(key,end,next);}});
     }
     function clear() {
       p.onHint("");

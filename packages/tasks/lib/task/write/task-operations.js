@@ -168,6 +168,9 @@ export function completeTask(db, args, origin, api) {
 }
 
 export function exportTasks(db, args, api) {
+  if (Array.isArray(args.titleKey)) {
+    throw new Error("titleKey 数组只支持 tasks.list：导出请按关键词分别调用，或先用 list 分组核对再导出");
+  }
   const format = String(args.format || "json").toLowerCase();
   if (["json", "markdown", "md", "csv"].indexOf(format) < 0) throw new Error("format 只支持 json / markdown / csv");
   let records;

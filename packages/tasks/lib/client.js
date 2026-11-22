@@ -186,142 +186,478 @@ var require_filter_checklist = __commonJS({
   }
 });
 
+// packages/addons/lib/search-picker.cjs
+var require_search_picker = __commonJS({
+  "packages/addons/lib/search-picker.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h = React.createElement;
+    var FilterChecklist = require_filter_checklist();
+    var DEFAULT_TEXTS = {
+      all: "\u5168\u90E8",
+      selected: "\u5DF2\u9009",
+      clear: "\u6E05\u7A7A",
+      searchPlaceholder: "\u641C\u7D22",
+      empty: "\u6682\u65E0\u6570\u636E",
+      noMatch: "\u6CA1\u6709\u5339\u914D\u9879",
+      loading: "\u52A0\u8F7D\u4E2D\u2026",
+      noMore: "\u6CA1\u6709\u66F4\u591A"
+    };
+    function asText(x) {
+      return String(x == null ? "" : x).toLowerCase();
+    }
+    function filterLocal(items, query) {
+      var q = String(query || "").trim();
+      if (!q) return items;
+      var needle = asText(q);
+      return items.filter(function(x) {
+        return asText(x.name).indexOf(needle) >= 0 || asText(x.meta).indexOf(needle) >= 0;
+      });
+    }
+    function useRemoteSource(conf) {
+      var RT = conf.React || React;
+      var open = conf.open;
+      var query = conf.query;
+      var fetchPage = conf.fetchPage;
+      var pageSize = conf.pageSize;
+      var debounce = conf.debounce;
+      var dedupe = conf.dedupe;
+      var mapPage = conf.mapPage;
+      var reloadKey = conf.reloadKey;
+      var rowsS = RT.useState([]);
+      var totalS = RT.useState(0);
+      var pageS = RT.useState(0);
+      var moreS = RT.useState(false);
+      var loadS = RT.useState(false);
+      var seq = RT.useRef ? RT.useRef(0) : { current: 0 };
+      function load(q, pageNumber, append) {
+        var mine = ++seq.current;
+        loadS[1](true);
+        return Promise.resolve(fetchPage(q, pageNumber)).then(function(raw) {
+          if (mine !== seq.current) return;
+          loadS[1](false);
+          var next = mapPage ? mapPage(raw, pageNumber) : raw || {};
+          var list = next.rows || [];
+          rowsS[1](function(prev) {
+            if (!append) return list;
+            var joined = dedupe === false ? prev.concat(list) : prev.concat(list);
+            if (dedupe === false) return joined;
+            var seen = {};
+            return joined.filter(function(x) {
+              var key = String(x.id);
+              if (seen[key]) return false;
+              seen[key] = true;
+              return true;
+            });
+          });
+          totalS[1](typeof next.total === "number" ? next.total : list.length);
+          pageS[1](next.page || pageNumber);
+          moreS[1](!!next.hasMore);
+        }).catch(function() {
+          if (mine === seq.current) loadS[1](false);
+        });
+      }
+      RT.useEffect(
+        function() {
+          if (!open) return void 0;
+          var timer = setTimeout(
+            function() {
+              load(query, 1, false);
+            },
+            query ? debounce : 0
+          );
+          return function() {
+            clearTimeout(timer);
+          };
+        },
+        [open, query, reloadKey]
+      );
+      return {
+        rows: rowsS[0],
+        total: totalS[0],
+        page: pageS[0],
+        hasMore: moreS[0],
+        loading: loadS[0],
+        loadQuery: load,
+        reset: function() {
+          seq.current += 1;
+          rowsS[1]([]);
+          totalS[1](0);
+          pageS[1](0);
+          moreS[1](false);
+          loadS[1](false);
+        }
+      };
+    }
+    function SearchPicker(props) {
+      var RT = props.React || React;
+      var texts = Object.assign({}, DEFAULT_TEXTS, props.texts || {});
+      var classes = props.classes || {};
+      var mode = props.mode === "single" ? "single" : "multi";
+      var disabled = props.disabled === true;
+      var selected = (props.selected || []).map(String);
+      var items = props.items || null;
+      var fetchPage = props.fetchPage || null;
+      var pageSize = props.pageSize || 20;
+      var debounce = props.debounce === void 0 ? 200 : props.debounce;
+      var allItems = items || [];
+      var openS = RT.useState(false);
+      var open = openS[0];
+      var queryS = RT.useState("");
+      var query = queryS[0];
+      var boxRef = RT.useRef ? RT.useRef(null) : { current: null };
+      var remote = fetchPage ? useRemoteSource({
+        React: RT,
+        open,
+        query,
+        fetchPage,
+        pageSize,
+        debounce,
+        dedupe: props.dedupe,
+        mapPage: props.mapPage,
+        reloadKey: props.reloadKey
+      }) : null;
+      var rows = remote ? remote.rows : filterLocal(allItems, query);
+      var loading = remote ? remote.loading : false;
+      var total = remote ? remote.total : rows.length;
+      var hasMore = remote ? remote.hasMore : false;
+      RT.useEffect(function() {
+        if (!open || typeof document === "undefined") return void 0;
+        function onDown(e) {
+          var box = boxRef.current;
+          if (box && !box.contains(e.target)) openS[1](false);
+        }
+        function onKey(e) {
+          if (e.key === "Escape") openS[1](false);
+        }
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return function() {
+          document.removeEventListener("mousedown", onDown);
+          document.removeEventListener("keydown", onKey);
+        };
+      }, [open]);
+      function commit(next) {
+        if (props.onChange) props.onChange(next);
+      }
+      function toggle(id) {
+        if (disabled) return;
+        var key = String(id);
+        if (mode === "single") {
+          openS[1](false);
+          if (props.onPick) props.onPick(key, rowOf(key));
+          commit([key]);
+          return;
+        }
+        var next = selected.slice();
+        var i = next.indexOf(key);
+        if (i >= 0) next.splice(i, 1);
+        else next.push(key);
+        commit(next);
+      }
+      function rowOf(id) {
+        var hit = rows.filter(function(x) {
+          return String(x.id) === String(id);
+        })[0];
+        if (hit) return hit;
+        return (allItems || []).filter(function(x) {
+          return String(x.id) === String(id);
+        })[0] || null;
+      }
+      var label = props.label || texts.all;
+      var caret = props.caret === void 0 ? "\u25BE" : props.caret;
+      var count = selected.length;
+      var chips = props.renderSelected ? props.renderSelected({ ids: selected, toggle, nameOf: props.nameOf || rowOf, texts }) : null;
+      return h(
+        "div",
+        { className: classes.root, ref: boxRef },
+        h(
+          "button",
+          {
+            type: "button",
+            className: classes.btn + (count ? " " + (classes.btnOn || "is-on") : ""),
+            "aria-haspopup": "dialog",
+            "aria-expanded": open ? "true" : "false",
+            disabled,
+            onClick: function(e) {
+              if (props.stopPropagation) e.stopPropagation();
+              openS[1](!open);
+            }
+          },
+          props.icon ? props.icon : null,
+          label + (count ? " \xB7 " + count : ""),
+          typeof caret === "function" ? caret : caret
+        ),
+        chips,
+        open ? h(
+          "div",
+          {
+            className: classes.menu,
+            role: props.menuRole,
+            style: props.menuStyle,
+            onClick: props.stopPropagation ? function(e) {
+              e.stopPropagation();
+            } : void 0
+          },
+          h(FilterChecklist, {
+            mode,
+            items: rows,
+            selected,
+            onToggle: toggle,
+            onPick: toggle,
+            query,
+            onQuery: queryS[1],
+            title: props.title || label,
+            total,
+            selectedText: texts.selected,
+            clearText: texts.clear,
+            onClear: function() {
+              commit([]);
+              queryS[1]("");
+            },
+            searchPlaceholder: texts.searchPlaceholder,
+            loading,
+            hasMore,
+            onLoadMore: remote ? function() {
+              remote.loadQuery(query, (remote.page || 1) + 1, true);
+            } : void 0,
+            emptyText: texts.empty,
+            noMatchText: texts.noMatch,
+            loadingText: texts.loading,
+            noMoreText: texts.noMore,
+            groupLabel: props.title || label,
+            autoFocus: props.autoFocus,
+            beforeHead: props.beforeHead || null
+          }),
+          props.footer || null
+        ) : null
+      );
+    }
+    module2.exports = SearchPicker;
+    module2.exports.filterLocal = filterLocal;
+    module2.exports.DEFAULT_TEXTS = DEFAULT_TEXTS;
+  }
+});
+
+// packages/addons/lib/tag-filter.cjs
+var require_tag_filter = __commonJS({
+  "packages/addons/lib/tag-filter.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h = React.createElement;
+    var SearchPicker = require_search_picker();
+    module2.exports = function createTagFilter(options) {
+      var conf = options || {};
+      var classes = conf.classes || {};
+      var pageSize = conf.pageSize || 20;
+      var debounce = conf.debounce === void 0 ? 200 : conf.debounce;
+      var dedupe = conf.dedupe !== false;
+      var mapPage = conf.mapPage || function(out, pageNumber) {
+        return {
+          rows: out.records || [],
+          total: out.total || 0,
+          page: out.current || pageNumber,
+          hasMore: !!out.hasNext
+        };
+      };
+      var items = conf.items || function(rows) {
+        return rows.map(function(x) {
+          return { id: x.id, name: x.name };
+        });
+      };
+      var text = conf.text || function() {
+        return {};
+      };
+      var icon = conf.icon || function() {
+        return null;
+      };
+      var caret = conf.caret === void 0 ? "\u25BE" : conf.caret;
+      var enabled = conf.enabled || function() {
+        return true;
+      };
+      var renderSelected = conf.renderSelected || null;
+      return function TagFilter(props) {
+        var api = props.api;
+        var ids = props.ids || [];
+        var onChange = props.onChange || function() {
+        };
+        var tx = text(props);
+        var namesS = React.useState({});
+        var names = namesS[0];
+        function mergeNames(rows) {
+          if (!rows || !rows.length) return;
+          namesS[1](function(prev) {
+            var next = Object.assign({}, prev);
+            var changed = false;
+            rows.forEach(function(x) {
+              if (next[String(x.id)] !== x.name) {
+                next[String(x.id)] = x.name;
+                changed = true;
+              }
+            });
+            return changed ? next : prev;
+          });
+        }
+        React.useEffect(
+          function() {
+            if (!ids.length || !conf.names) return;
+            var wanted = ids.filter(function(id) {
+              return !names[String(id)];
+            });
+            if (!wanted.length) return;
+            var args = conf.names.args ? conf.names.args(wanted) : { ids: wanted };
+            api.call(conf.names.action, args).then(function(r) {
+              if (!r || !r.ok) return;
+              mergeNames(r.result && r.result.records || []);
+            }).catch(function() {
+            });
+          },
+          [ids.join(",")]
+        );
+        function fetchPage(q, pageNumber) {
+          return api.call(conf.action, { text: q || "", pageNumber, pageSize }).then(function(r) {
+            if (!r || !r.ok) return { rows: [], total: 0, page: pageNumber, hasMore: false };
+            var next = mapPage(r.result || {}, pageNumber);
+            mergeNames(next.rows);
+            return { rows: items(next.rows), total: next.total, page: next.page, hasMore: next.hasMore };
+          });
+        }
+        function nameOf(id) {
+          return names[String(id)] || String(id).slice(0, 6);
+        }
+        if (!enabled(props)) return null;
+        return h(SearchPicker, {
+          h,
+          React,
+          mode: "multi",
+          label: tx.label,
+          title: tx.all,
+          fetchPage,
+          pageSize,
+          debounce,
+          dedupe,
+          classes,
+          menuRole: conf.menuRole,
+          menuStyle: conf.menuStyle,
+          stopPropagation: conf.stopPropagation,
+          reloadKey: props.reloadKey,
+          texts: {
+            all: tx.all,
+            selected: tx.selected,
+            clear: tx.clear,
+            searchPlaceholder: tx.searchPlaceholder,
+            empty: tx.empty,
+            noMatch: tx.noMatch,
+            loading: tx.loading,
+            noMore: tx.noMore
+          },
+          icon: icon(props, "tag", 13),
+          caret: typeof caret === "function" ? caret(props) : caret,
+          selected: ids,
+          onChange,
+          nameOf,
+          renderSelected: renderSelected ? function(ctx) {
+            return renderSelected({
+              ids: ctx.ids,
+              names,
+              toggle: ctx.toggle,
+              text: tx,
+              classes,
+              h
+            });
+          } : null
+        });
+      };
+    };
+  }
+});
+
 // packages/addons/tasks/client/ui/tagfilter.cjs
 var require_tagfilter = __commonJS({
   "packages/addons/tasks/client/ui/tagfilter.cjs"(exports2, module2) {
     var React = require("react");
     var h = React.createElement;
-    var FilterChecklist = require_filter_checklist();
-    module2.exports = function TagFilter(props) {
-      var api = props.api;
-      var t = props.t;
-      var Icon2 = props.Icon;
-      var ids = props.ids || [];
-      var onChange = props.onChange;
-      var availS = React.useState(true);
-      var available = availS[0], setAvailable = availS[1];
-      var openS = React.useState(false);
-      var open = openS[0], setOpen = openS[1];
-      var queryS = React.useState("");
-      var query = queryS[0], setQuery = queryS[1];
-      var optsS = React.useState({ tags: [], total: 0, pageNumber: 0, hasMore: false });
-      var opts = optsS[0], setOpts = optsS[1];
-      var loadingS = React.useState(false);
-      var loading = loadingS[0], setLoading = loadingS[1];
-      var namesS = React.useState({});
-      var names = namesS[0], setNames = namesS[1];
-      var load = React.useCallback(function(text, pageNumber, append) {
-        setLoading(true);
-        return api.call("tasks.tagOptions", { text: text || "", pageNumber, pageSize: 20 }).then(function(r) {
-          setLoading(false);
-          if (!r || !r.ok) return;
-          var out = r.result || {};
-          setOpts(function(prev) {
-            var tags = append ? (prev.tags || []).concat(out.tags || []) : out.tags || [];
-            return { tags, total: out.total || 0, pageNumber: out.pageNumber || pageNumber, hasMore: !!out.hasMore };
-          });
-          setNames(function(prev) {
-            var next = Object.assign({}, prev);
-            (out.tags || []).forEach(function(x) {
-              next[String(x.id)] = x.name;
-            });
-            return next;
-          });
-        }).catch(function() {
-          setLoading(false);
-        });
-      }, [api]);
-      React.useEffect(function() {
-        if (!open) return;
-        var timer = setTimeout(function() {
-          load(query, 1, false);
-        }, query ? 200 : 0);
-        return function() {
-          clearTimeout(timer);
-        };
-      }, [open, query, load, props.reloadKey]);
-      React.useEffect(function() {
-        if (!open) return void 0;
-        function onKey(e) {
-          if (e.key === "Escape") setOpen(false);
+    var createTagFilter = require_tag_filter();
+    module2.exports = createTagFilter({
+      action: "tasks.tagOptions",
+      // 标签是 tasks 的可选子插件：探针确认后端是否启用标签域。
+      probe: {
+        action: "tasks.tagOptions",
+        args: { pageSize: 1 },
+        available: function(out) {
+          return !!(out && out.available);
         }
-        document.addEventListener("keydown", onKey);
-        return function() {
-          document.removeEventListener("keydown", onKey);
+      },
+      classes: { root: "wbt-tagfilter", btn: "wbt-btn ghost", btnOn: "on", menu: "wbt-tagmenu" },
+      menuRole: "menu",
+      dedupe: false,
+      text: function(props) {
+        var t = props.t || {};
+        return {
+          label: t.tagFilter,
+          selected: t.tagSelected,
+          all: t.allTags,
+          clear: t.clear,
+          searchPlaceholder: t.tagSearchPlaceholder,
+          empty: t.noTags,
+          noMatch: t.tagNoMatch,
+          loading: t.loadingMore,
+          noMore: t.noMore,
+          remove: t.tagRemove
         };
-      }, [open]);
-      React.useEffect(function() {
-        api.call("tasks.tagOptions", { pageSize: 1 }).then(function(r) {
-          if (r && r.ok) setAvailable(!!(r.result && r.result.available));
-        }).catch(function() {
+      },
+      icon: function(props, name, size) {
+        return h(props.Icon, { name, size });
+      },
+      caret: function(props) {
+        return h(props.Icon, { name: "down", size: 12 });
+      },
+      items: function(rows) {
+        return rows.map(function(x) {
+          return { id: x.id, name: x.name, meta: x.total };
         });
-      }, [api]);
-      function toggle(id) {
-        var key = String(id);
-        var next = ids.slice();
-        var idx = next.indexOf(key);
-        if (idx >= 0) next.splice(idx, 1);
-        else next.push(key);
-        onChange(next);
-      }
-      if (!available) return null;
-      return h(
-        "div",
-        { className: "wbt-tagfilter" },
-        h("button", {
-          className: "wbt-btn ghost" + (ids.length ? " on" : ""),
-          "aria-expanded": open ? "true" : "false",
-          onClick: function() {
-            setOpen(!open);
-          }
-        }, h(Icon2, { name: "tag", size: 13 }), t.tagFilter + (ids.length ? " \xB7 " + ids.length : ""), h(Icon2, { name: "down", size: 12 })),
-        open ? h(
+      },
+      mapPage: function(out, pageNumber) {
+        return {
+          rows: out.tags || [],
+          total: out.total || 0,
+          page: out.pageNumber || pageNumber,
+          hasMore: !!out.hasMore
+        };
+      },
+      renderSelected: function(ctx) {
+        if (!ctx.ids.length) return null;
+        return h(
           "div",
-          { className: "wbt-tagmenu", role: "menu" },
-          h(FilterChecklist, {
-            beforeHead: ids.length ? h(
-              "div",
-              { className: "wbt-tagsel" },
-              h("div", { className: "wbt-tagmenu-head" }, h("span", null, t.tagSelected + " " + ids.length), h("span", { className: "wbt-grow" })),
-              h("div", { className: "wbt-tagsel-list" }, ids.map(function(id) {
-                return h(
-                  "button",
-                  { key: id, className: "wbt-tagselitem", title: t.tagRemove, onClick: function() {
-                    toggle(id);
-                  } },
-                  h("span", { className: "wbt-tagnm" }, names[String(id)] || "#" + id),
-                  h("span", { className: "wbt-tagx" }, "\xD7")
-                );
-              }))
-            ) : null,
-            items: opts.tags.map(function(x) {
-              return { id: x.id, name: x.name, meta: x.total };
-            }),
-            selected: ids,
-            onToggle: toggle,
-            query,
-            onQuery: setQuery,
-            title: t.allTags,
-            total: opts.total,
-            clearText: t.clear,
-            onClear: function() {
-              onChange([]);
-              setQuery("");
-            },
-            searchPlaceholder: t.tagSearchPlaceholder,
-            loading,
-            hasMore: opts.hasMore,
-            onLoadMore: function() {
-              load(query, (opts.pageNumber || 1) + 1, true);
-            },
-            emptyText: t.noTags,
-            noMatchText: t.tagNoMatch,
-            loadingText: t.loadingMore,
-            noMoreText: t.noMore
-          })
-        ) : null
-      );
-    };
+          { className: "wbt-tagsel" },
+          h(
+            "div",
+            { className: "wbt-tagmenu-head" },
+            h("span", null, ctx.text.selected + " " + ctx.ids.length),
+            h("span", { className: "wbt-grow" })
+          ),
+          h(
+            "div",
+            { className: "wbt-tagsel-list" },
+            ctx.ids.map(function(id) {
+              return h(
+                "button",
+                {
+                  key: id,
+                  className: "wbt-tagselitem",
+                  title: ctx.text.remove,
+                  onClick: function() {
+                    ctx.toggle(id);
+                  }
+                },
+                h("span", { className: "wbt-tagnm" }, ctx.names[String(id)] || "#" + id),
+                h("span", { className: "wbt-tagx" }, "\xD7")
+              );
+            })
+          )
+        );
+      }
+    });
   }
 });
 
@@ -931,6 +1267,608 @@ var require_date_picker_styles = __commonJS({
   }
 });
 
+// packages/addons/lib/stats-charts.cjs
+var require_stats_charts = __commonJS({
+  "packages/addons/lib/stats-charts.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var h = React.createElement;
+    var DP = require_date_picker();
+    var COLORS = [
+      "var(--dsw-alias-state-business-primary, #4f6ef7)",
+      "var(--dsw-alias-state-success-primary, #2f9e6e)",
+      "var(--dsw-alias-state-warn-primary, #d99100)",
+      "var(--dsw-alias-state-error-primary, #d9534f)",
+      "var(--dsw-alias-state-done-primary, #7c5cff)",
+      "var(--dsw-alias-state-idle-primary, #8f959e)"
+    ];
+    function css(prefix, extra) {
+      return [
+        ".@-stats{display:flex;flex-direction:column;gap:14px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-stoolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+        ".@-seg{display:inline-flex;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:9px;overflow:hidden;background:var(--dsw-alias-bg-layer-1,#fff)}",
+        ".@-seg button{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-size:12px;padding:6px 10px;cursor:pointer;white-space:nowrap}",
+        ".@-seg button.@-on{background:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-label-primary-inverted,#fff)}",
+        ".@-range{display:inline-flex;align-items:center;gap:4px}",
+        ".@-date{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary,#646a73);font-family:inherit;font-size:12px;padding:4px 2px;width:116px;outline:none}",
+        ".@-date::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}",
+        ".@-dash{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-clear{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:14px;line-height:1;padding:2px 4px;cursor:pointer;border-radius:4px}",
+        ".@-clear:hover{color:var(--dsw-alias-state-error-primary,#d9534f);background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-hint{font-size:11px;color:var(--dsw-alias-state-error-primary,#d9534f);white-space:nowrap}",
+        ".@-ghost{appearance:none;border:1px solid var(--dsw-alias-border-l2,#e5e6eb);background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-secondary,#646a73);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit}",
+        ".@-ghost:disabled{opacity:.6;cursor:progress}",
+        ".@-ico{display:block;flex:none}",
+        ".@-kpi-l .@-ico{opacity:.7}",
+        ".@-ghost:hover{border-color:var(--dsw-alias-brand-primary,#4f6ef7);color:var(--dsw-alias-brand-primary,#4f6ef7)}",
+        ".@-muted{color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}",
+        ".@-scard{grid-column:span 6;min-width:0;background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:14px 16px}",
+        ".@-span-3{grid-column:span 3}.@-span-4{grid-column:span 4}.@-span-6{grid-column:span 6}.@-span-8{grid-column:span 8}.@-span-12{grid-column:span 12}",
+        ".@-chead{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}",
+        ".@-ctitle{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329)}",
+        ".@-cnote{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-kpis{grid-column:span 12;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}",
+        ".@-kpi{background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#e5e6eb);border-radius:12px;padding:12px 14px;min-width:0}",
+        ".@-kpi-l{font-size:12px;color:var(--dsw-alias-label-tertiary,#8f959e);display:flex;align-items:center;gap:6px}",
+        ".@-kpi-v{font-size:26px;line-height:1.25;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}",
+        ".@-kpi-u{font-size:12px;font-weight:400;color:var(--dsw-alias-label-tertiary,#8f959e);margin-left:3px}",
+        ".@-kpi-h{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);margin-top:3px}",
+        ".@-kpi.@-danger .@-kpi-v{color:var(--dsw-alias-state-error-primary,#d9534f)}",
+        ".@-kpi.@-warn .@-kpi-v{color:var(--dsw-alias-state-warn-primary,#d99100)}",
+        ".@-kpi.@-ok .@-kpi-v{color:var(--dsw-alias-state-success-primary,#2f9e6e)}",
+        ".@-donut{display:flex;align-items:center;gap:16px;flex-wrap:wrap}",
+        ".@-donut svg{flex:0 0 auto}",
+        ".@-legend{display:flex;flex-direction:column;gap:7px;min-width:120px;flex:1}",
+        ".@-leg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dsw-alias-label-secondary,#646a73)}",
+        ".@-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}",
+        ".@-leg b{margin-left:auto;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
+        ".@-bars{display:flex;flex-direction:column;gap:9px}",
+        ".@-bar{display:grid;grid-template-columns:minmax(72px,1.2fr) 3fr auto;gap:8px;align-items:center;font-size:12px}",
+        ".@-bar-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary,#646a73)}",
+        ".@-bar-t{display:block;height:8px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);overflow:hidden}",
+        ".@-bar-f{display:block;height:100%;border-radius:6px;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-width:2px}",
+        ".@-bar-v{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-primary,#1f2329);font-weight:600;min-width:34px;text-align:right}",
+        ".@-stack{display:flex;flex-direction:column;gap:10px}",
+        ".@-srow-l{font-size:12px;color:var(--dsw-alias-label-secondary,#646a73);margin-bottom:4px;display:flex}",
+        ".@-srow-l b{margin-left:auto;color:var(--dsw-alias-label-primary,#1f2329);font-variant-numeric:tabular-nums}",
+        ".@-strack{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-seg-f{height:100%}",
+        ".@-hist{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:16px}",
+        ".@-hbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;min-width:0;height:100%}",
+        ".@-hbar-v{font-size:11px;color:var(--dsw-alias-label-secondary,#646a73);font-variant-numeric:tabular-nums}",
+        ".@-hbar-f{width:100%;max-width:44px;border-radius:5px 5px 0 0;background:var(--dsw-alias-state-business-primary,#4f6ef7);min-height:2px}",
+        ".@-hbar-l{font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}",
+        ".@-trend{width:100%;height:auto;display:block}",
+        ".@-tlegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-trend-wrap{position:relative}",
+        ".@-trend-hit{fill:transparent}",
+        ".@-trend-slot{fill:transparent;cursor:crosshair}",
+        ".@-trend-cross{stroke:var(--dsw-alias-border-l2,#e5e6eb);stroke-width:1;stroke-dasharray:3 3}",
+        ".@-tlegend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--dsw-alias-label-tertiary,#8f959e)}",
+        ".@-tleg-item{appearance:none;border:0;background:transparent;color:inherit;font:inherit;display:inline-flex;align-items:center;gap:5px;padding:2px 4px;border-radius:5px;cursor:pointer}",
+        ".@-tleg-item.off{opacity:.45;text-decoration:line-through}",
+        ".@-tleg-item:hover{background:var(--dsw-alias-bg-skeleton,#f2f3f5)}",
+        ".@-table-scroll{max-width:100%;overflow-x:auto}.@-table{width:100%;border-collapse:collapse;font-size:12px}",
+        ".@-table th{text-align:left;font-weight:500;color:var(--dsw-alias-label-tertiary,#8f959e);padding:6px 8px;border-bottom:1px solid var(--dsw-alias-border-l2,#e5e6eb);white-space:nowrap}",
+        ".@-table td{padding:7px 8px;border-bottom:1px solid var(--dsw-alias-border-l1,#f2f3f5);color:var(--dsw-alias-label-secondary,#646a73);vertical-align:top}",
+        ".@-table tr:last-child td{border-bottom:0}",
+        ".@-table th.@-num,.@-table td.@-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}",
+        ".@-empty{padding:26px 8px;text-align:center;color:var(--dsw-alias-label-tertiary,#8f959e);font-size:12px}",
+        ".@-err{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 8%,transparent);border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#d9534f) 30%,transparent);color:var(--dsw-alias-state-error-primary,#d9534f);border-radius:10px;padding:10px 12px;font-size:12px}",
+        ".@-warn{grid-column:span 12;border:1px dashed var(--dsw-alias-state-warn-primary,#d99100);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--dsw-alias-state-warn-primary,#d99100);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary,#d99100) 6%,transparent)}",
+        ".@-sk{height:14px;border-radius:6px;background:var(--dsw-alias-bg-skeleton,#f2f3f5);margin:7px 0;animation:@-pulse 1.2s ease-in-out infinite}",
+        "@keyframes @-pulse{0%,100%{opacity:.55}50%{opacity:1}}",
+        "@media (max-width:900px){.@-scard{grid-column:span 12}.@-span-3,.@-span-4,.@-span-6,.@-span-8{grid-column:span 12}.@-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}",
+        "@media (max-width:600px){.@-stats{padding-bottom:16px}.@-hist{height:130px}.@-kpi-v{font-size:22px}}",
+        "@media (prefers-reduced-motion:reduce){.@-sk{animation:none}}"
+      ].concat(extra || []).concat([require_date_picker_styles()(prefix)]).join("\n").replace(/@-/g, prefix + "-");
+    }
+    function primitives(prefix, options) {
+      var opts = options || {};
+      var ICONS = opts.icons || {};
+      var showNote = !!opts.showNote;
+      function ico(name, size) {
+        var C = ICONS[name];
+        if (!C) return null;
+        return h(C, { size: size || 13, strokeWidth: 2, "aria-hidden": "true", className: prefix + "-ico" });
+      }
+      function num(lang, n) {
+        var v = Number(n);
+        if (!isFinite(v)) return "\u2014";
+        try {
+          return new Intl.NumberFormat(lang === "en" ? "en-US" : "zh-CN").format(v);
+        } catch (e) {
+          return String(v);
+        }
+      }
+      function pct(v, digits) {
+        if (v === null || v === void 0 || !isFinite(Number(v))) return "\u2014";
+        return (Number(v) * 100).toFixed(digits === void 0 ? 1 : digits) + "%";
+      }
+      function timeText(ms) {
+        if (!ms) return "";
+        var d = new Date(Number(ms));
+        function p(n) {
+          return String(n).padStart(2, "0");
+        }
+        return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+      }
+      function dateText(ms) {
+        if (!ms) return "\u2014";
+        var d = new Date(Number(ms));
+        function p(n) {
+          return String(n).padStart(2, "0");
+        }
+        return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+      }
+      function Card(props) {
+        var cls = prefix + "-scard" + (props.span ? " " + prefix + "-span-" + props.span : "");
+        return h(
+          "section",
+          { className: cls },
+          props.title || props.right ? h(
+            "div",
+            { className: prefix + "-chead" },
+            h("span", { className: prefix + "-ctitle" }, props.title),
+            props.note ? h("span", { className: prefix + "-cnote" }, props.note) : null,
+            props.right ? h("span", { style: { marginLeft: "auto" } }, props.right) : null
+          ) : null,
+          props.children
+        );
+      }
+      function Kpi(props) {
+        var tone = props.tone ? " " + prefix + "-" + props.tone : "";
+        return h(
+          "div",
+          { className: prefix + "-kpi" + tone },
+          h("div", { className: prefix + "-kpi-l" }, ico(props.icon, 13), props.label),
+          h(
+            "div",
+            { className: prefix + "-kpi-v" },
+            props.value === null || props.value === void 0 ? "\u2014" : typeof props.value === "number" ? num(props.lang, props.value) : props.value,
+            props.unit ? h("span", { className: prefix + "-kpi-u" }, props.unit) : null
+          ),
+          props.hint ? h("div", { className: prefix + "-kpi-h" }, props.hint) : null
+        );
+      }
+      function Donut(props) {
+        var data = (props.data || []).filter(function(d) {
+          return Number(d.count) > 0;
+        });
+        var total = Number(props.total || 0);
+        var size = props.size || 168;
+        var r = size / 2 - 16;
+        var c = 2 * Math.PI * r;
+        var offset = 0;
+        var aria = props.aria || data.map(function(d) {
+          return d.label + " " + d.count;
+        }).join("\uFF0C");
+        return h(
+          "div",
+          { className: prefix + "-donut" },
+          h(
+            "svg",
+            { width: size, height: size, viewBox: "0 0 " + size + " " + size, role: "img", "aria-label": aria },
+            h("circle", { cx: size / 2, cy: size / 2, r, fill: "none", stroke: "var(--dsw-alias-bg-skeleton,#f2f3f5)", strokeWidth: 18 }),
+            total > 0 ? data.map(function(d, i) {
+              var len = Number(d.count) / total * c;
+              var seg = h("circle", {
+                key: d.key || d.label || i,
+                cx: size / 2,
+                cy: size / 2,
+                r,
+                fill: "none",
+                stroke: d.color || COLORS[i % COLORS.length],
+                strokeWidth: 18,
+                strokeDasharray: len + " " + (c - len),
+                strokeDashoffset: -offset,
+                transform: "rotate(-90 " + size / 2 + " " + size / 2 + ")",
+                strokeLinecap: "butt"
+              }, h("title", null, d.label + "\uFF1A" + d.count + (showNote && d.note ? "\uFF08" + d.note + "\uFF09" : "")));
+              offset += len;
+              return seg;
+            }) : null,
+            h("text", { x: size / 2, y: size / 2 - 2, textAnchor: "middle", fill: "var(--dsw-alias-label-primary,#1f2329)", fontSize: 24, fontWeight: 650 }, num(props.lang, total)),
+            h("text", { x: size / 2, y: size / 2 + 18, textAnchor: "middle", fill: "var(--dsw-alias-label-tertiary,#8f959e)", fontSize: 11 }, props.centerLabel || "")
+          ),
+          h("div", { className: prefix + "-legend" }, (props.data || []).map(function(d, i) {
+            return h(
+              "div",
+              { key: d.key || d.label || i, className: prefix + "-leg" },
+              h("span", { className: prefix + "-dot", style: { background: d.color || COLORS[i % COLORS.length] } }),
+              h("span", null, d.label, showNote && d.note ? h("i", { className: prefix + "-leg-note" }, "\xB7 " + d.note) : null),
+              h("b", null, num(props.lang, d.count))
+            );
+          }))
+        );
+      }
+      function BarList(props) {
+        var data = props.data || [];
+        var max = Number(props.max || 0) || data.reduce(function(m, d) {
+          return Math.max(m, Number(d.value || 0));
+        }, 0) || 1;
+        return h("div", { className: prefix + "-bars" }, data.map(function(d, i) {
+          var v = Number(d.value || 0);
+          return h(
+            "div",
+            { key: d.key || d.label || i, className: prefix + "-bar" },
+            h("span", { className: prefix + "-bar-l", title: d.title || d.label }, d.label),
+            h("span", { className: prefix + "-bar-t" }, h("span", { className: prefix + "-bar-f", style: { width: Math.max(2, v / max * 100) + "%", background: d.color || props.color || COLORS[0] } })),
+            h("span", { className: prefix + "-bar-v" }, props.format ? props.format(v) : num(props.lang, v))
+          );
+        }));
+      }
+      function StackedRows(props) {
+        var rows = props.rows || [];
+        var keys = props.keys || [];
+        return h("div", { className: prefix + "-stack" }, rows.map(function(row, ri) {
+          var total = Number(row.total || 0) || 1;
+          return h(
+            "div",
+            { key: row.key || ri },
+            h("div", { className: prefix + "-srow-l" }, h("span", null, row.label), h("b", null, num(props.lang, row.total))),
+            h("div", { className: prefix + "-strack" }, keys.map(function(k, i) {
+              var v = Number(row.parts && row.parts[k.key] || 0);
+              if (v <= 0) return null;
+              return h("span", {
+                key: k.key,
+                className: prefix + "-seg-f",
+                title: k.label + " " + v,
+                style: { width: v / total * 100 + "%", background: k.color || COLORS[i % COLORS.length] }
+              });
+            }))
+          );
+        }));
+      }
+      function useWidth() {
+        if (typeof React.useRef !== "function" || typeof React.useEffect !== "function") return [null, 0];
+        var state = React.useState(0);
+        var ref = React.useRef(null);
+        var setWidth = state[1];
+        var useIso = React.useLayoutEffect || React.useEffect;
+        useIso(function() {
+          var node = ref.current;
+          if (!node) return void 0;
+          function read() {
+            var w = node.clientWidth || 0;
+            if (w > 0) setWidth(w);
+          }
+          read();
+          if (typeof ResizeObserver === "undefined") return void 0;
+          var ro = new ResizeObserver(read);
+          ro.observe(node);
+          return function() {
+            ro.disconnect();
+          };
+        }, []);
+        return [ref, state[0]];
+      }
+      function Trend(props) {
+        var data = props.data || [];
+        var series = props.series || [];
+        var lang = props.lang;
+        var fmt = typeof props.format === "function" ? props.format : function(v) {
+          return num(lang, v);
+        };
+        var visible = props.visible || null;
+        var shown = series.filter(function(s) {
+          return !visible || visible[s.key] !== false;
+        });
+        if (!data.length) return h("div", { className: prefix + "-empty" }, props.emptyText || "\u6682\u65E0\u6570\u636E");
+        var size = useWidth();
+        var width = Math.max(260, size[1] || props.width || 640);
+        var height = props.height || 200;
+        var left = props.left || 60, right = 12, top = 14, bottom = 26;
+        var pw = width - left - right, ph = height - top - bottom;
+        var max = 0;
+        data.forEach(function(d) {
+          shown.forEach(function(s) {
+            max = Math.max(max, Math.abs(Number(d[s.key] || 0)));
+          });
+        });
+        var raw = Math.max(max, 1) / 4;
+        var exp = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+        var norm = raw / exp;
+        var mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+        var step = mult * exp;
+        var axisMax = step * 4;
+        function x(i2) {
+          return left + (data.length <= 1 ? pw / 2 : i2 / (data.length - 1) * pw);
+        }
+        function y(v) {
+          return top + ph - Math.max(0, Number(v) || 0) / axisMax * ph;
+        }
+        var active = typeof props.active === "number" ? props.active : null;
+        var band = data.length > 1 ? pw / (data.length - 1) : pw;
+        var labelIdx = [];
+        var labelStep = Math.max(1, Math.ceil(data.length / 8));
+        for (var i = 0; i < data.length; i += labelStep) labelIdx.push(i);
+        if (labelIdx[labelIdx.length - 1] !== data.length - 1) labelIdx.push(data.length - 1);
+        var aria = props.aria || shown.map(function(s) {
+          return s.label + " " + data.reduce(function(n, d) {
+            return n + Number(d[s.key] || 0);
+          }, 0);
+        }).join("\uFF0C");
+        var ticks = [];
+        for (var t = 0; t <= 4; t++) ticks.push(step * t);
+        var children = [];
+        if (typeof props.onHover === "function") {
+          children.push(h("rect", {
+            key: "hit-area",
+            x: left,
+            y: top,
+            width: pw,
+            height: ph,
+            className: prefix + "-trend-hit",
+            onMouseLeave: function() {
+              props.onHover(null);
+            }
+          }));
+          data.forEach(function(d, di) {
+            children.push(h("rect", {
+              key: "hit" + di,
+              x: x(di) - band / 2,
+              y: top,
+              width: band,
+              height: ph,
+              className: prefix + "-trend-slot",
+              onMouseEnter: function() {
+                props.onHover(di);
+              }
+            }));
+          });
+        }
+        ticks.forEach(function(v, ti) {
+          children.push(h(
+            "g",
+            { key: "t" + ti },
+            h("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
+            h("text", { x: left - 8, y: y(v) + 3, textAnchor: "end", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, fmt(v))
+          ));
+        });
+        if (active !== null && data[active]) {
+          children.push(h("line", {
+            key: "cross",
+            x1: x(active),
+            y1: top,
+            x2: x(active),
+            y2: top + ph,
+            className: prefix + "-trend-cross"
+          }));
+        }
+        shown.forEach(function(s, si) {
+          var color = s.color || COLORS[series.indexOf(s) % COLORS.length];
+          var pts = data.map(function(d, di) {
+            return x(di) + "," + y(d[s.key]);
+          }).join(" ");
+          if (data.length > 1) {
+            children.push(h("polyline", {
+              key: "line" + s.key,
+              points: pts,
+              fill: "none",
+              stroke: color,
+              strokeWidth: 2,
+              strokeLinejoin: "round",
+              strokeLinecap: "round",
+              // className 供插件用自有色调样式挂靠，也方便测试按系列归类
+              className: prefix + "-trend-line" + (s.className ? " " + s.className : "")
+            }));
+          }
+          data.forEach(function(d, di) {
+            children.push(h("circle", {
+              key: "dot" + s.key + di,
+              cx: x(di),
+              cy: y(d[s.key]),
+              fill: color,
+              r: di === active ? 5 : 3,
+              className: prefix + "-trend-dot" + (di === active ? " is-hot" : "")
+            }, h("title", null, labelOf(d, di) + " \xB7 " + s.label + " " + fmt(d[s.key]) + (props.note ? " \xB7 " + props.note(d) : ""))));
+          });
+        });
+        function labelOf(d, di) {
+          if (typeof props.label === "function") return props.label(d, di);
+          return String(d.bucket === void 0 ? di + 1 : d.bucket).slice(5);
+        }
+        labelIdx.forEach(function(di) {
+          children.push(h("text", { key: "x" + di, x: x(di), y: height - 8, textAnchor: "middle", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, labelOf(data[di], di)));
+        });
+        var legend = props.showLegend === false ? null : h("div", { className: prefix + "-tlegend" }, series.map(function(s, si) {
+          var off = !!(visible && visible[s.key] === false);
+          var color = s.color || COLORS[si % COLORS.length];
+          var inner = [h("span", { key: "d", className: prefix + "-dot", style: { background: color } }), s.label];
+          if (typeof props.onToggle !== "function") {
+            return h("span", { key: s.key, className: prefix + "-tleg-item" + (off ? " off" : "") }, inner);
+          }
+          return h("button", {
+            key: s.key,
+            type: "button",
+            className: prefix + "-tleg-item" + (off ? " off" : ""),
+            "aria-pressed": !off,
+            title: (off ? "\u663E\u793A" : "\u9690\u85CF") + s.label,
+            onClick: function() {
+              props.onToggle(s.key);
+            }
+          }, inner);
+        }));
+        return h(
+          "div",
+          { className: prefix + "-trend-wrap", ref: size[0] },
+          h("svg", { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, width, height, role: "img", "aria-label": aria }, children),
+          legend
+        );
+      }
+      function Histogram(props) {
+        var data = props.data || [];
+        var max = data.reduce(function(m, d) {
+          return Math.max(m, Number(d.count || 0));
+        }, 0) || 1;
+        return h(
+          "div",
+          { className: prefix + "-hist", role: "img", "aria-label": props.aria || data.map(function(d) {
+            return d.label + " " + d.count;
+          }).join("\uFF0C") },
+          data.map(function(d, i) {
+            return h(
+              "div",
+              { key: d.key || d.label || i, className: prefix + "-hbar", title: d.label + "\uFF1A" + d.count },
+              h("span", { className: prefix + "-hbar-v" }, num(props.lang, d.count)),
+              h("span", { className: prefix + "-hbar-f", style: { height: Math.max(2, Number(d.count || 0) / max * 100) + "%", background: d.color || props.color || COLORS[0] } }),
+              h("span", { className: prefix + "-hbar-l" }, d.label)
+            );
+          })
+        );
+      }
+      function DataTable(props) {
+        var cols = props.columns || [];
+        var rows = props.rows || [];
+        if (!rows.length) return h("div", { className: prefix + "-empty" }, props.empty || "\u6682\u65E0\u6570\u636E");
+        return h("div", { className: prefix + "-table-scroll", tabIndex: 0, role: "region", "aria-label": props.lang === "en" ? "Data table" : "\u6570\u636E\u8868\u683C" }, h(
+          "table",
+          { className: prefix + "-table" },
+          h("thead", null, h("tr", null, cols.map(function(c) {
+            return h("th", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.label);
+          }))),
+          h("tbody", null, rows.map(function(row, ri) {
+            return h("tr", { key: row.id || row.key || ri }, cols.map(function(c) {
+              return h("td", { key: c.key, className: c.num ? prefix + "-num" : "" }, c.render ? c.render(row) : row[c.key]);
+            }));
+          }))
+        ));
+      }
+      function RangeSwitch(props) {
+        var custom = props.custom || null;
+        var from = custom && custom.from ? custom.from : "";
+        var to = custom && custom.to ? custom.to : "";
+        function setDate(key, value) {
+          if (typeof props.onCustomChange !== "function") return;
+          var next = { from, to };
+          next[key] = value;
+          props.onCustomChange(next);
+        }
+        return h(
+          "div",
+          { className: prefix + "-stoolbar" },
+          h("div", { className: prefix + "-seg", role: "group", "aria-label": props.aria || "\u65F6\u95F4\u8303\u56F4" }, (props.options || []).map(function(o) {
+            return h("button", {
+              key: o.key,
+              type: "button",
+              className: o.key === props.value ? prefix + "-on" : "",
+              "aria-pressed": !!props.value && o.key === props.value,
+              onClick: function() {
+                props.onChange(o.key);
+              }
+            }, o.label);
+          })),
+          h(
+            "div",
+            { className: prefix + "-range", role: "group", "aria-label": props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4" },
+            h(DP.RangePicker, {
+              React,
+              h,
+              prefix,
+              lang: props.lang,
+              label: props.customAria || "\u81EA\u5B9A\u4E49\u65E5\u671F\u8303\u56F4",
+              value: { from, to },
+              max: props.today || void 0,
+              clearable: false,
+              onChange: function(next) {
+                if (typeof props.onCustomChange !== "function") return;
+                props.onCustomChange({ from: next.from, to: next.to });
+              }
+            }),
+            from || to ? h("button", {
+              type: "button",
+              className: prefix + "-clear",
+              "aria-label": props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
+              title: props.clearLabel || "\u6E05\u9664\u81EA\u5B9A\u4E49\u8303\u56F4",
+              onClick: function() {
+                if (props.onCustomClear) props.onCustomClear();
+              }
+            }, "\xD7") : null
+          ),
+          props.customHint ? h("span", { className: prefix + "-hint", role: "status" }, props.customHint) : null,
+          h("button", { type: "button", className: prefix + "-ghost", disabled: !!props.loading, onClick: props.onRefresh }, ico("refresh", 13), props.refreshLabel || "\u5237\u65B0"),
+          h("span", { className: prefix + "-muted" }, props.generatedAt ? (props.timeLabel || "\u622A\u81F3") + " " + timeText(props.generatedAt) : ""),
+          props.right ? h("span", { style: { marginLeft: "auto" } }, props.right) : null
+        );
+      }
+      function Empty(props) {
+        return h("div", { className: prefix + "-empty" }, props.text || "\u6682\u65E0\u6570\u636E");
+      }
+      function Skeleton() {
+        return h(
+          "div",
+          { className: prefix + "-sgrid" },
+          h("div", { className: prefix + "-kpis" }, [0, 1, 2, 3].map(function(i) {
+            return h(
+              "div",
+              { key: i, className: prefix + "-kpi" },
+              h("div", { className: prefix + "-sk", style: { width: "40%" } }),
+              h("div", { className: prefix + "-sk", style: { width: "65%", height: 26 } })
+            );
+          })),
+          [0, 1].map(function(i) {
+            return h(
+              "div",
+              { key: "c" + i, className: prefix + "-scard " + prefix + "-span-6" },
+              h("div", { className: prefix + "-sk", style: { width: "30%" } }),
+              h("div", { className: prefix + "-sk", style: { height: 120 } })
+            );
+          })
+        );
+      }
+      function ErrorBar(props) {
+        return h(
+          "div",
+          { className: prefix + "-err", role: "alert" },
+          h("span", null, props.message),
+          props.onRetry ? h("button", { type: "button", className: prefix + "-ghost", onClick: props.onRetry }, props.retryLabel || "\u91CD\u8BD5") : null
+        );
+      }
+      function Warnings(props) {
+        var items = props.items || [];
+        if (!items.length) return null;
+        return h("div", { className: prefix + "-warn", role: "status" }, items.map(function(w) {
+          return w.message;
+        }).join("\uFF1B"));
+      }
+      return {
+        Card,
+        Kpi,
+        Donut,
+        BarList,
+        StackedRows,
+        Trend,
+        Histogram,
+        DataTable,
+        RangeSwitch,
+        Empty,
+        Skeleton,
+        ErrorBar,
+        Warnings,
+        num,
+        pct,
+        timeText,
+        dateText,
+        colors: COLORS,
+        useWidth
+      };
+    }
+    function makeCharts(prefix, options) {
+      var opts = options || {};
+      if (typeof document !== "undefined" && !document.getElementById(prefix + "-charts-css")) {
+        var el = document.createElement("style");
+        el.id = prefix + "-charts-css";
+        el.textContent = css(prefix, opts.styles);
+        document.head.appendChild(el);
+      }
+      return primitives(prefix, opts);
+    }
+    module2.exports = { makeCharts, primitives, css, colors: COLORS };
+  }
+});
+
 // packages/addons/tasks/client/stats/trend-interaction.cjs
 var require_trend_interaction = __commonJS({
   "packages/addons/tasks/client/stats/trend-interaction.cjs"(exports2, module2) {
@@ -1021,6 +1959,7 @@ var require_charts = __commonJS({
     var React = require("react");
     var h = React.createElement;
     var DP = require_date_picker();
+    var LIB = require_stats_charts();
     var COLORS = [
       "var(--dsw-alias-state-business-primary, #4f6ef7)",
       "var(--dsw-alias-state-success-primary, #2f9e6e)",
@@ -1151,35 +2090,10 @@ var require_charts = __commonJS({
         el.textContent = css(prefix);
         document.head.appendChild(el);
       }
-      function num(lang, n) {
-        var v = Number(n);
-        if (!isFinite(v)) return "\u2014";
-        try {
-          return new Intl.NumberFormat(lang === "en" ? "en-US" : "zh-CN").format(v);
-        } catch (e) {
-          return String(v);
-        }
-      }
-      function pct(v, digits) {
-        if (v === null || v === void 0 || !isFinite(Number(v))) return "\u2014";
-        return (Number(v) * 100).toFixed(digits === void 0 ? 1 : digits) + "%";
-      }
-      function timeText(ms) {
-        if (!ms) return "";
-        var d = new Date(Number(ms));
-        function p(n) {
-          return String(n).padStart(2, "0");
-        }
-        return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-      }
-      function dateText(ms) {
-        if (!ms) return "\u2014";
-        var d = new Date(Number(ms));
-        function p(n) {
-          return String(n).padStart(2, "0");
-        }
-        return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
-      }
+      var base = LIB.primitives(prefix);
+      var num = base.num, pct = base.pct, timeText = base.timeText, dateText = base.dateText;
+      var Donut = base.Donut, BarList = base.BarList, StackedRows = base.StackedRows;
+      var ErrorBar = base.ErrorBar, Empty = base.Empty, Skeleton = base.Skeleton;
       function Card(props) {
         var cls = prefix + "-scard" + (props.span ? " " + prefix + "-span-" + props.span : "");
         return h(
@@ -1230,99 +2144,11 @@ var require_charts = __commonJS({
           props.hint ? h("div", { className: prefix + "-kpi-h" }, props.hint) : null
         );
       }
-      function Donut(props) {
-        var data = (props.data || []).filter(function(d) {
-          return Number(d.count) > 0;
-        });
-        var total = Number(props.total || 0);
-        var size = props.size || 168;
-        var r = size / 2 - 16;
-        var c = 2 * Math.PI * r;
-        var offset = 0;
-        var aria = props.aria || data.map(function(d) {
-          return d.label + " " + d.count;
-        }).join("\uFF0C");
-        return h(
-          "div",
-          { className: prefix + "-donut" },
-          h(
-            "svg",
-            { width: size, height: size, viewBox: "0 0 " + size + " " + size, role: "img", "aria-label": aria },
-            h("circle", { cx: size / 2, cy: size / 2, r, fill: "none", stroke: "var(--dsw-alias-bg-skeleton,#f2f3f5)", strokeWidth: 18 }),
-            total > 0 ? data.map(function(d, i) {
-              var len = Number(d.count) / total * c;
-              var seg = h("circle", {
-                key: d.key || d.label || i,
-                cx: size / 2,
-                cy: size / 2,
-                r,
-                fill: "none",
-                stroke: d.color || COLORS[i % COLORS.length],
-                strokeWidth: 18,
-                strokeDasharray: len + " " + (c - len),
-                strokeDashoffset: -offset,
-                transform: "rotate(-90 " + size / 2 + " " + size / 2 + ")",
-                strokeLinecap: "butt"
-              }, h("title", null, d.label + "\uFF1A" + d.count));
-              offset += len;
-              return seg;
-            }) : null,
-            h("text", { x: size / 2, y: size / 2 - 2, textAnchor: "middle", fill: "var(--dsw-alias-label-primary,#1f2329)", fontSize: 24, fontWeight: 650 }, num(props.lang, total)),
-            h("text", { x: size / 2, y: size / 2 + 18, textAnchor: "middle", fill: "var(--dsw-alias-label-tertiary,#8f959e)", fontSize: 11 }, props.centerLabel || "")
-          ),
-          h("div", { className: prefix + "-legend" }, (props.data || []).map(function(d, i) {
-            return h(
-              "div",
-              { key: d.key || d.label || i, className: prefix + "-leg" },
-              h("span", { className: prefix + "-dot", style: { background: d.color || COLORS[i % COLORS.length] } }),
-              h("span", null, d.label),
-              h("b", null, num(props.lang, d.count))
-            );
-          }))
-        );
-      }
-      function BarList(props) {
-        var data = props.data || [];
-        var max = Number(props.max || 0) || data.reduce(function(m, d) {
-          return Math.max(m, Number(d.value || 0));
-        }, 0) || 1;
-        return h("div", { className: prefix + "-bars" }, data.map(function(d, i) {
-          var v = Number(d.value || 0);
-          return h(
-            "div",
-            { key: d.key || d.label || i, className: prefix + "-bar" },
-            h("span", { className: prefix + "-bar-l", title: d.title || d.label }, d.label),
-            h("span", { className: prefix + "-bar-t" }, h("span", { className: prefix + "-bar-f", style: { width: Math.max(2, v / max * 100) + "%", background: d.color || props.color || COLORS[0] } })),
-            h("span", { className: prefix + "-bar-v" }, props.format ? props.format(v) : num(props.lang, v))
-          );
-        }));
-      }
-      function StackedRows(props) {
-        var rows = props.rows || [];
-        var keys = props.keys || [];
-        return h("div", { className: prefix + "-stack" }, rows.map(function(row, ri) {
-          var total = Number(row.total || 0) || 1;
-          return h(
-            "div",
-            { key: row.key || ri },
-            h("div", { className: prefix + "-srow-l" }, h("span", null, row.label), h("b", null, num(props.lang, row.total))),
-            h("div", { className: prefix + "-strack" }, keys.map(function(k, i) {
-              var v = Number(row.parts && row.parts[k.key] || 0);
-              if (v <= 0) return null;
-              return h("span", {
-                key: k.key,
-                className: prefix + "-seg-f",
-                title: k.label + " " + v,
-                style: { width: v / total * 100 + "%", background: k.color || COLORS[i % COLORS.length] }
-              });
-            }))
-          );
-        }));
-      }
       function Trend(props) {
         var data = props.data || [];
         var series = props.series || [];
-        var width = 640;
+        var size = base.useWidth();
+        var width = Math.max(260, size[1] || 640);
         var height = props.height || 200;
         var left = 30, right = 10, top = 12, bottom = 24;
         var pw = width - left - right, ph = height - top - bottom;
@@ -1375,7 +2201,7 @@ var require_charts = __commonJS({
         ) : null;
         return h(
           "div",
-          { className: prefix + "-trend-wrap" },
+          { className: prefix + "-trend-wrap", ref: size[0] },
           h(
             "div",
             {
@@ -1400,13 +2226,13 @@ var require_charts = __commonJS({
             },
             h(
               "svg",
-              { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, "aria-hidden": "true" },
+              { className: prefix + "-trend", viewBox: "0 0 " + width + " " + height, width, height, "aria-hidden": "true" },
               ticks.map(function(v, i2) {
                 return h(
                   "g",
                   { key: "t" + i2 },
                   h("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), stroke: "var(--dsw-alias-border-l1,#f2f3f5)", strokeWidth: 1 }),
-                  h("text", { x: left - 5, y: y(v) + 3, textAnchor: "end", fontSize: 9, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, num(props.lang, v))
+                  h("text", { x: left - 6, y: y(v) + 3, textAnchor: "end", fontSize: 11, fill: "var(--dsw-alias-label-tertiary,#8f959e)" }, num(props.lang, v))
                 );
               }),
               activeRow ? h("line", {
@@ -1600,39 +2426,6 @@ var require_charts = __commonJS({
       function Missing(props) {
         return h("div", { className: prefix + "-empty " + prefix + "-missing", role: "status" }, props.text || "\u6682\u65E0\u6570\u636E");
       }
-      function Empty(props) {
-        return h("div", { className: prefix + "-empty" }, props.text || "\u6682\u65E0\u6570\u636E");
-      }
-      function Skeleton() {
-        return h(
-          "div",
-          { className: prefix + "-sgrid" },
-          h("div", { className: prefix + "-kpis" }, [0, 1, 2, 3].map(function(i) {
-            return h(
-              "div",
-              { key: i, className: prefix + "-kpi" },
-              h("div", { className: prefix + "-sk", style: { width: "40%" } }),
-              h("div", { className: prefix + "-sk", style: { width: "65%", height: 26 } })
-            );
-          })),
-          [0, 1].map(function(i) {
-            return h(
-              "div",
-              { key: "c" + i, className: prefix + "-scard " + prefix + "-span-6" },
-              h("div", { className: prefix + "-sk", style: { width: "30%" } }),
-              h("div", { className: prefix + "-sk", style: { height: 120 } })
-            );
-          })
-        );
-      }
-      function ErrorBar(props) {
-        return h(
-          "div",
-          { className: prefix + "-err", role: "alert" },
-          h("span", null, props.message),
-          props.onRetry ? h("button", { type: "button", className: prefix + "-ghost", onClick: props.onRetry }, props.retryLabel || "\u91CD\u8BD5") : null
-        );
-      }
       function Warnings(props) {
         var items = props.items || [];
         if (!items.length) return null;
@@ -1669,11 +2462,262 @@ var require_charts = __commonJS({
   }
 });
 
+// packages/addons/lib/switch.cjs
+var require_switch = __commonJS({
+  "packages/addons/lib/switch.cjs"(exports2, module2) {
+    "use strict";
+    var SWITCH_STYLES = [
+      ".wbctl-switch{display:inline-flex;align-items:center;gap:7px;min-height:24px;padding:2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--wb-muted,#6b7280);cursor:pointer;user-select:none;border-radius:999px}",
+      ".wbctl-switch-track{position:relative;display:inline-flex;align-items:center;box-sizing:border-box;width:34px;height:20px;padding:2px;border-radius:999px;background:color-mix(in oklab,currentColor 22%,transparent);transition:background .16s ease;flex:none}",
+      ".wbctl-switch-knob{display:block;width:16px;height:16px;border-radius:50%;background:var(--wb-card,#fff);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}",
+      ".wbctl-switch[aria-checked=true]{color:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-track{background:var(--wb-accent,#2563eb)}",
+      ".wbctl-switch[aria-checked=true] .wbctl-switch-knob{transform:translateX(14px)}",
+      ".wbctl-switch:hover:not(:disabled) .wbctl-switch-track{outline:1px solid var(--wb-accent,#2563eb)}",
+      ".wbctl-switch:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-switch:disabled{opacity:.45;cursor:not-allowed}",
+      ".wbctl-switch-text{white-space:nowrap}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-switch-track,.wbctl-switch-knob{transition:none}}"
+    ];
+    function Switch(props) {
+      var h = props.h;
+      var on = props.checked === true || props.checked === "true";
+      var disabled = !!props.disabled;
+      var text = props.label;
+      if (props.showState) text = on ? props.onText || "\u5F00" : props.offText || "\u5173";
+      return h(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          className: "wbctl-switch" + (props.className ? " " + props.className : ""),
+          disabled,
+          title: props.title,
+          "aria-label": text ? void 0 : props.ariaLabel,
+          onClick: function(e) {
+            e.preventDefault();
+            if (disabled) return;
+            if (typeof props.onChange === "function") props.onChange(!on);
+          }
+        },
+        h(
+          "span",
+          { className: "wbctl-switch-track", "aria-hidden": "true" },
+          h("span", { className: "wbctl-switch-knob" })
+        ),
+        text ? h("span", { className: "wbctl-switch-text" }, text) : null
+      );
+    }
+    module2.exports = { Switch, styles: SWITCH_STYLES };
+  }
+});
+
+// packages/addons/lib/number-field.cjs
+var require_number_field = __commonJS({
+  "packages/addons/lib/number-field.cjs"(exports2, module2) {
+    "use strict";
+    var React = require("react");
+    var NUM = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    var TEXT = {
+      zh: {
+        required: "\u8BF7\u586B\u5199\u6570\u5B57",
+        invalid: "\u8BF7\u8F93\u5165\u6570\u5B57",
+        integer: "\u9700\u8981\u662F\u6574\u6570",
+        min: "\u4E0D\u80FD\u5C0F\u4E8E {min}",
+        max: "\u4E0D\u80FD\u5927\u4E8E {max}",
+        range: "\u9700\u8981\u5728 {min}\u2013{max} \u4E4B\u95F4",
+        step: "\u9700\u8981\u662F {step} \u7684\u500D\u6570",
+        unit: "\u5355\u4F4D"
+      },
+      en: {
+        required: "Please enter a number",
+        invalid: "Please enter a number",
+        integer: "Must be a whole number",
+        min: "Must be at least {min}",
+        max: "Must be at most {max}",
+        range: "Must be between {min} and {max}",
+        step: "Must be a multiple of {step}",
+        unit: "unit"
+      }
+    };
+    function messages(lang) {
+      return lang === "en" ? TEXT.en : TEXT.zh;
+    }
+    function fill(text, vars) {
+      return String(text).replace(/\{(\w+)\}/g, function(m, key) {
+        return vars && vars[key] !== void 0 ? String(vars[key]) : m;
+      });
+    }
+    function validateNumber(raw, opts) {
+      var o = opts || {};
+      var M = messages(o.lang);
+      var text = raw === null || raw === void 0 ? "" : String(raw).trim();
+      if (text === "") {
+        return o.allowEmpty ? { ok: true, value: null, error: "" } : { ok: false, value: null, error: M.required };
+      }
+      if (!NUM.test(text)) return { ok: false, value: null, error: M.invalid };
+      var n = Number(text);
+      if (!isFinite(n)) return { ok: false, value: null, error: M.invalid };
+      if (o.integer && Math.round(n) !== n) return { ok: false, value: null, error: M.integer };
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      if (hasMin && hasMax && n >= o.min && n <= o.max) {
+      } else if (hasMin && hasMax) {
+        return { ok: false, value: null, error: fill(M.range, { min: o.min, max: o.max }) };
+      } else if (hasMin && n < o.min) {
+        return { ok: false, value: null, error: fill(M.min, { min: o.min }) };
+      } else if (hasMax && n > o.max) {
+        return { ok: false, value: null, error: fill(M.max, { max: o.max }) };
+      }
+      if (o.step && Number(o.step) > 0) {
+        var q = n / Number(o.step);
+        if (Math.abs(q - Math.round(q)) > 1e-9) {
+          return { ok: false, value: null, error: fill(M.step, { step: o.step }) };
+        }
+      }
+      return { ok: true, value: n, error: "" };
+    }
+    function rangeHint(opts, lang) {
+      var o = opts || {};
+      var M = messages(lang);
+      var en = lang === "en";
+      var hasMin = o.min !== void 0 && o.min !== null && o.min !== "";
+      var hasMax = o.max !== void 0 && o.max !== null && o.max !== "";
+      var parts = [];
+      if (hasMin && hasMax) parts.push(String(o.min) + "\u2013" + String(o.max));
+      else if (hasMin) parts.push((en ? "\u2265 " : "\u2265 ") + String(o.min));
+      else if (hasMax) parts.push((en ? "\u2264 " : "\u2264 ") + String(o.max));
+      if (o.integer) parts.push(en ? "whole numbers" : "\u6574\u6570");
+      else if (o.step && Number(o.step) > 0) parts.push((en ? "step " : "\u6B65\u957F ") + String(o.step));
+      return parts.join(en ? ", " : "\uFF0C");
+    }
+    function NumberField(props) {
+      var h = props.h || React.createElement;
+      var lang = props.lang;
+      var M = messages(lang);
+      var text = props.value === null || props.value === void 0 ? "" : String(props.value);
+      var draftS = React.useState(text);
+      var draft = draftS[0];
+      var setDraft = draftS[1];
+      var focusS = React.useState(false);
+      var focused = focusS[0];
+      var setFocused = focusS[1];
+      var errS = React.useState("");
+      var err = errS[0];
+      var setErr = errS[1];
+      var lastRef = React.useRef(text);
+      var skipBlurRef = React.useRef(false);
+      React.useEffect(
+        function() {
+          if (focused) return;
+          if (lastRef.current === text) return;
+          lastRef.current = text;
+          setDraft(text);
+          setErr("");
+        },
+        [text, focused]
+      );
+      function commit(raw) {
+        var r = validateNumber(raw, props);
+        if (!r.ok) {
+          setErr(r.error);
+          if (typeof props.onValidChange === "function") props.onValidChange(false, r.error);
+          return false;
+        }
+        setErr("");
+        if (typeof props.onValidChange === "function") props.onValidChange(true, "");
+        var cur = props.value === null || props.value === void 0 ? null : Number(props.value);
+        if (r.value !== cur) {
+          lastRef.current = r.value === null ? "" : String(r.value);
+          if (typeof props.onCommit === "function") props.onCommit(r.value);
+        }
+        return true;
+      }
+      var hint = props.hint !== void 0 ? props.hint : rangeHint(props, lang);
+      var shown = props.hint === false ? "" : hint;
+      return h(
+        "span",
+        { className: "wbctl-num" + (props.wide ? " is-wide" : "") + (props.className ? " " + props.className : "") },
+        h(
+          "span",
+          { className: "wbctl-num-box" },
+          h("input", {
+            className: "wbctl-num-input" + (err ? " is-invalid" : ""),
+            type: "text",
+            inputMode: props.integer || Number(props.step) === 1 ? "numeric" : "decimal",
+            value: draft,
+            disabled: !!props.disabled,
+            placeholder: props.placeholder,
+            title: props.title,
+            "aria-label": props.ariaLabel,
+            "aria-invalid": err ? "true" : void 0,
+            onFocus: function() {
+              setFocused(true);
+            },
+            onChange: function(e) {
+              setDraft(e.target.value);
+              if (err) setErr("");
+              if (typeof props.onDraft === "function") props.onDraft(e.target.value);
+            },
+            onBlur: function() {
+              setFocused(false);
+              if (skipBlurRef.current) {
+                skipBlurRef.current = false;
+                return;
+              }
+              commit(draft);
+            },
+            onKeyDown: function(e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.target && e.target.blur) e.target.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                skipBlurRef.current = true;
+                setDraft(text);
+                setErr("");
+                if (e.target && e.target.blur) e.target.blur();
+              }
+            }
+          }),
+          props.unit ? h("span", { className: "wbctl-num-unit" }, props.unit) : null
+        ),
+        err ? h("span", { className: "wbctl-num-err", role: "alert" }, err) : shown ? h("span", { className: "wbctl-num-hint" }, shown) : null
+      );
+    }
+    var NUMBER_STYLES = [
+      ".wbctl-num{display:inline-flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}",
+      ".wbctl-num.is-wide{display:flex;width:100%}",
+      ".wbctl-num-box{display:inline-flex;align-items:center;gap:6px;min-width:0}",
+      ".wbctl-num-input{box-sizing:border-box;width:96px;min-width:0;padding:6px 9px;border:1px solid var(--wb-line,rgba(127,127,127,.35));border-radius:6px;background:var(--wb-surface,var(--wb-card,transparent));color:inherit;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;transition:border-color .14s ease,outline-color .14s ease}",
+      ".wbctl-num-input:hover:not(:disabled){border-color:var(--wb-border,var(--wb-line))}",
+      ".wbctl-num-input:focus{outline:2px solid color-mix(in oklab,var(--wb-accent,#2563eb) 55%,transparent);outline-offset:1px;border-color:var(--wb-accent,#2563eb)}",
+      ".wbctl-num-input.is-invalid{border-color:var(--wb-danger,#dc2626)}",
+      ".wbctl-num-input.is-invalid:focus{outline-color:color-mix(in oklab,var(--wb-danger,#dc2626) 55%,transparent)}",
+      ".wbctl-num-input:disabled{opacity:.5;cursor:not-allowed}",
+      ".wbctl-num-unit{color:var(--wb-muted,inherit);font-size:12px;white-space:nowrap}",
+      ".wbctl-num-hint{color:var(--wb-muted,inherit);font-size:11px;line-height:1.4}",
+      ".wbctl-num-err{color:var(--wb-danger,#dc2626);font-size:11px;line-height:1.4}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-num-input{transition:none}}"
+    ];
+    module2.exports = {
+      NumberField,
+      validateNumber,
+      rangeHint,
+      messages,
+      styles: NUMBER_STYLES
+    };
+  }
+});
+
 // packages/addons/tasks/client/views/config.cjs
 var require_config = __commonJS({
   "packages/addons/tasks/client/views/config.cjs"(exports2, module2) {
     var React = require("react");
     var h = React.createElement;
+    var SW = require_switch();
+    var NF = require_number_field();
     var DOMAIN = "tasks";
     var PREFIX = "wbt";
     var COPY = {
@@ -1748,13 +2792,6 @@ var require_config = __commonJS({
       ".__P__-cfg-select:focus,.__P__-cfg-input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
       ".__P__-cfg-select{min-width:152px;padding-right:10px}",
       ".__P__-cfg-input{width:132px}",
-      ".__P__-cfg-switch{position:relative;display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--cfg-muted);user-select:none}",
-      ".__P__-cfg-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-      ".__P__-cfg-track{position:relative;width:38px;height:22px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-      ".__P__-cfg-track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-      ".__P__-cfg-switch input:checked+.__P__-cfg-track::after{transform:translateX(16px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-      ".__P__-cfg-switch input:focus-visible+.__P__-cfg-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
       ".__P__-cfg-multi{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:100%}",
       ".__P__-cfg-multi label{position:relative;display:inline-flex;align-items:center;padding:5px 11px;border:1px solid var(--cfg-line);border-radius:999px;font-size:12px;color:var(--cfg-muted);cursor:pointer;line-height:1.4;transition:color .12s ease,border-color .12s ease,background .12s ease}",
       ".__P__-cfg-multi label:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
@@ -1779,8 +2816,8 @@ var require_config = __commonJS({
       ".__P__-cfg-empty{border:1px dashed var(--cfg-line);border-radius:14px;padding:40px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
       ".__P__-cfg-error{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:10px 13px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12.5px;line-height:1.5}",
       "@media (max-width:820px){.__P__-cfg-row{grid-template-columns:1fr;gap:10px;padding:13px 16px}.__P__-cfg-control{justify-content:flex-start}.__P__-cfg-multi{justify-content:flex-start}.__P__-cfg-gtitle{padding:11px 16px}}",
-      "@media (prefers-reduced-motion:reduce){.__P__-cfg-track,.__P__-cfg-track::after,.__P__-cfg-sk{animation:none;transition:none}}"
-    ].join("\n").split("__P__").join(PREFIX);
+      "@media (prefers-reduced-motion:reduce){.__P__-cfg-sk{animation:none;transition:none}}"
+    ].concat(SW.styles).concat(NF.styles).join("\n").split("__P__").join(PREFIX);
     function injectCss() {
       if (typeof document === "undefined") return;
       var old = document.getElementById("wb-addon-" + DOMAIN + "-config-css");
@@ -1863,8 +2900,6 @@ var require_config = __commonJS({
       var notice = noticeS[0], setNotice = noticeS[1];
       var savingS = React.useState("");
       var savingId = savingS[0], setSavingId = savingS[1];
-      var draftsS = React.useState({});
-      var drafts = draftsS[0], setDrafts = draftsS[1];
       var busyS = React.useState(false);
       var busy = busyS[0], setBusy = busyS[1];
       var requestLock = React.useRef(false), mounted = React.useRef(true);
@@ -1979,40 +3014,21 @@ var require_config = __commonJS({
           setNotice({ id: "", text: String(e && e.message || e), error: true });
         }).finally(release);
       }
-      function commitDraft(item) {
-        if (requestLock.current) return;
-        var raw = drafts[item.id];
-        if (raw === void 0) return;
-        var next = String(raw).trim();
-        setDrafts(function(prev) {
-          var copy = Object.assign({}, prev);
-          delete copy[item.id];
-          return copy;
-        });
-        if (next === "") return;
-        var value = Number(next);
-        if (!Number.isFinite(value)) return;
-        if (sameValue(value, state.values[item.id])) return;
-        save(item.id, value);
-      }
       function renderControl(item) {
         var value = state.values[item.id];
         var label = lang === "en" ? item.en : item.zh;
         if (item.type === "bool") {
-          return h(
-            "label",
-            { className: PREFIX + "-cfg-switch" },
-            h("input", {
-              type: "checkbox",
-              disabled: locked,
-              checked: value === true,
-              onChange: function(e) {
-                save(item.id, e.target.checked);
-              }
-            }),
-            h("span", { className: PREFIX + "-cfg-track", "aria-hidden": "true" }),
-            h("span", { className: PREFIX + "-cfg-switchstate" }, value === true ? t.on : t.off)
-          );
+          return h(SW.Switch, {
+            h,
+            checked: value === true,
+            disabled: locked,
+            showState: true,
+            onText: t.on,
+            offText: t.off,
+            onChange: function(next) {
+              save(item.id, next);
+            }
+          });
         }
         if (item.type === "enum") {
           return h("select", {
@@ -2030,31 +3046,17 @@ var require_config = __commonJS({
           }));
         }
         if (item.type === "int") {
-          var draft = drafts[item.id] !== void 0 ? drafts[item.id] : String(value);
-          return h("input", {
-            className: PREFIX + "-cfg-input",
-            disabled: locked,
-            type: "number",
-            value: draft,
+          return h(NF.NumberField, {
+            h,
+            lang,
+            value: value === void 0 ? "" : value,
             min: item.min,
             max: item.max,
-            "aria-label": label,
-            onChange: function(e) {
-              var v = e.target.value;
-              setDrafts(function(prev) {
-                var c = Object.assign({}, prev);
-                c[item.id] = v;
-                return c;
-              });
-            },
-            onBlur: function() {
-              commitDraft(item);
-            },
-            onKeyDown: function(e) {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                commitDraft(item);
-              }
+            integer: true,
+            disabled: locked,
+            ariaLabel: label,
+            onCommit: function(next) {
+              save(item.id, next);
             }
           });
         }
@@ -2323,8 +3325,8 @@ var require_heatmap_model = __commonJS({
     var TYPES = FILTER_TYPES.concat(["target"]);
     var LEVELS = [{ min: 1, max: 1, label: "1" }, { min: 2, max: 3, label: "2\u20133" }, { min: 4, max: 6, label: "4\u20136" }, { min: 7, max: null, label: "7+" }];
     var COPY = {
-      zh: { title: "\u5E74\u5EA6\u6D3B\u52A8", previous: "\u4E0A\u4E00\u5E74", next: "\u4E0B\u4E00\u5E74", done: "\u5B8C\u6210", publish: "\u53D1\u5E03", shutdown: "\u5173\u95ED", claimed: "\u63A5\u53D6", target: "\u76EE\u6807", empty: { done: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5B8C\u6210\u8BB0\u5F55", publish: "\u672C\u5E74\u5EA6\u6CA1\u6709\u53D1\u5E03\u8BB0\u5F55", shutdown: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5173\u95ED\u8BB0\u5F55", claimed: "\u672C\u5E74\u5EA6\u6CA1\u6709\u63A5\u53D6\u8BB0\u5F55", target: "\u672C\u5E74\u5EA6\u6CA1\u6709\u76EE\u6807\u8BA1\u5212" }, loading: "\u6B63\u5728\u52A0\u8F7D\u5E74\u5EA6\u6D3B\u52A8", error: "\u5E74\u5EA6\u6D3B\u52A8\u52A0\u8F7D\u5931\u8D25", retry: "\u91CD\u8BD5", future: "\u672A\u6765\u65E5\u671F", none: "\u65E0\u6D3B\u52A8", clear: "\u6E05\u9664\u6D3B\u52A8\u7B5B\u9009", filter: "\u6D3B\u52A8\u7B5B\u9009", total: "\u6D3B\u52A8\u603B\u6570", dailyCount: "\u6BCF\u65E5\u6B21\u6570", weekdays: ["\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D", "\u65E5"], claimedNote: "\u5DF2\u63A5\u53D6/\u5DF2\u5B8C\u6210\u4EFB\u52A1\uFF1B\u5386\u53F2\u4EFB\u52A1\u672A\u8BB0\u5F55\u63A5\u53D6\u65F6\u95F4\uFF0C\u6309\u53D1\u5E03\u65E5\u671F\u8BA1", targetNote: "\u6309\u76EE\u6807\u8BA1\u5212\u65E5\u671F\u7EDF\u8BA1\uFF0C\u5C5E\u4E8E\u8BA1\u5212\u53E3\u5F84\uFF0C\u4E0D\u8BA1\u5165\u6D3B\u52A8\u603B\u6570", targetTotal: "\u76EE\u6807\u603B\u6570" },
-      en: { title: "Annual task activity", previous: "Previous year", next: "Next year", done: "Done", publish: "Published", shutdown: "Closed", claimed: "Claimed", target: "Target", empty: { done: "No completed tasks this year", publish: "No published tasks this year", shutdown: "No closed tasks this year", claimed: "No claimed tasks this year", target: "No target dates this year" }, loading: "Loading annual activity", error: "Could not load annual activity", retry: "Retry", future: "Future date", none: "No activity", clear: "Clear activity filter", filter: "Activity filter", total: "Total events", dailyCount: "Daily count", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], claimedNote: "claimed or completed tasks; historical tasks without a claim time use the publish date", targetNote: "counted by target plan date; planning scope, not included in total events", targetTotal: "Planned" }
+      zh: { title: "\u5E74\u5EA6\u6D3B\u52A8", previous: "\u4E0A\u4E00\u5E74", next: "\u4E0B\u4E00\u5E74", done: "\u5B8C\u6210", publish: "\u53D1\u5E03", shutdown: "\u5173\u95ED", claimed: "\u63A5\u53D6", target: "\u76EE\u6807", empty: { done: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5B8C\u6210\u8BB0\u5F55", publish: "\u672C\u5E74\u5EA6\u6CA1\u6709\u53D1\u5E03\u8BB0\u5F55", shutdown: "\u672C\u5E74\u5EA6\u6CA1\u6709\u5173\u95ED\u8BB0\u5F55", claimed: "\u672C\u5E74\u5EA6\u6CA1\u6709\u63A5\u53D6\u8BB0\u5F55", target: "\u672C\u5E74\u5EA6\u6CA1\u6709\u76EE\u6807\u8BA1\u5212" }, loading: "\u6B63\u5728\u52A0\u8F7D\u5E74\u5EA6\u6D3B\u52A8", error: "\u5E74\u5EA6\u6D3B\u52A8\u52A0\u8F7D\u5931\u8D25", retry: "\u91CD\u8BD5", future: "\u672A\u6765\u65E5\u671F", none: "\u65E0\u6D3B\u52A8", nonePlan: "\u65E0\u8BA1\u5212", clear: "\u6E05\u9664\u6D3B\u52A8\u7B5B\u9009", filter: "\u6D3B\u52A8\u7B5B\u9009", total: "\u6D3B\u52A8\u603B\u6570", dailyCount: "\u6BCF\u65E5\u6B21\u6570", weekdays: ["\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D", "\u65E5"], claimedNote: "\u5DF2\u63A5\u53D6/\u5DF2\u5B8C\u6210\u4EFB\u52A1\uFF1B\u5386\u53F2\u4EFB\u52A1\u672A\u8BB0\u5F55\u63A5\u53D6\u65F6\u95F4\uFF0C\u6309\u53D1\u5E03\u65E5\u671F\u8BA1", targetNote: "\u6309\u76EE\u6807\u8BA1\u5212\u65E5\u671F\u7EDF\u8BA1\uFF0C\u5C5E\u4E8E\u8BA1\u5212\u53E3\u5F84\uFF0C\u4E0D\u8BA1\u5165\u6D3B\u52A8\u603B\u6570", targetTotal: "\u76EE\u6807\u603B\u6570" },
+      en: { title: "Annual task activity", previous: "Previous year", next: "Next year", done: "Done", publish: "Published", shutdown: "Closed", claimed: "Claimed", target: "Target", empty: { done: "No completed tasks this year", publish: "No published tasks this year", shutdown: "No closed tasks this year", claimed: "No claimed tasks this year", target: "No target dates this year" }, loading: "Loading annual activity", error: "Could not load annual activity", retry: "Retry", future: "Future date", none: "No activity", nonePlan: "No plan", clear: "Clear activity filter", filter: "Activity filter", total: "Total events", dailyCount: "Daily count", weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], claimedNote: "claimed or completed tasks; historical tasks without a claim time use the publish date", targetNote: "counted by target plan date; planning scope, not included in total events", targetTotal: "Planned" }
     };
     function localDay(d) {
       return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -2351,6 +3353,12 @@ var require_heatmap_model = __commonJS({
     function count(day, type) {
       return Number(day[type]) || 0;
     }
+    function suppressFuture(type) {
+      return FILTER_TYPES.indexOf(type) >= 0;
+    }
+    function isFuture(date, today, type) {
+      return !!suppressFuture(type) && date > today;
+    }
     function background(day, type) {
       return count(day, type) ? "var(--hm-" + type + "-" + level(count(day, type)) + ")" : "var(--hm-empty)";
     }
@@ -2361,7 +3369,7 @@ var require_heatmap_model = __commonJS({
       if (!params || !/^\d{4}-\d{2}-\d{2}$/.test(params.activityDate || "")) return null;
       return { activityDate: params.activityDate, activityType: FILTER_TYPES.indexOf(params.activityType) >= 0 ? params.activityType : "done" };
     }
-    module2.exports = { TYPES, FILTER_TYPES, LEVELS, COPY, legendLabel, localDay, calendar, level, count, background, label, activityParams };
+    module2.exports = { TYPES, FILTER_TYPES, LEVELS, COPY, legendLabel, localDay, calendar, level, count, suppressFuture, isFuture, background, label, activityParams };
   }
 });
 
@@ -2542,10 +3550,10 @@ var require_heatmap = __commonJS({
               return h("span", { key: d.date, style: { gridColumn: d.column } }, new Date(Date.UTC(year, d.month, 1)).toLocaleString(lang === "en" ? "en-US" : "zh-CN", { month: "short", timeZone: "UTC" }));
             })),
             h("div", { className: "wbt-hm-grid" }, geometry.days.map(function(d) {
-              var day = byDate[d.date] || {}, future = d.date > today, n = future ? 0 : model.count(day, type), enabled = !future && n > 0;
+              var day = byDate[d.date] || {}, future = model.isFuture(d.date, today, type), n = future ? 0 : model.count(day, type), enabled = !future && n > 0;
               var clickable = enabled && type !== "target";
               var text = !future && n > 0 ? n >= 100 ? "99+" : String(n) : "";
-              var title = model.label(d.date, day, t, type) + (future ? " \xB7 " + t.future : !n ? " \xB7 " + t.none : "");
+              var title = model.label(d.date, day, t, type) + (future ? " \xB7 " + t.future : !n ? " \xB7 " + (type === "target" ? t.nonePlan : t.none) : "");
               return h("button", {
                 key: d.date,
                 type: "button",
@@ -3861,13 +4869,6 @@ var require_data_style = __commonJS({
         "." + P + "-search input:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
         "." + P + "-select{border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;outline:none}",
         "." + P + "-select:focus{border-color:var(--dsw-alias-brand-primary,currentColor);box-shadow:0 0 0 3px color-mix(in oklab,var(--dsw-alias-brand-primary,currentColor) 14%,transparent)}",
-        "." + P + "-switch{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--cfg-muted);user-select:none;padding:4px 2px}",
-        "." + P + "-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}",
-        "." + P + "-track{position:relative;width:34px;height:20px;border-radius:999px;background:color-mix(in oklab,currentColor 18%,transparent);transition:background .16s ease;flex:none}",
-        "." + P + "-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-label-primary,currentColor);transition:transform .16s ease,background .16s ease}",
-        "." + P + "-switch input:checked+." + P + "-track{background:var(--dsw-alias-brand-primary,currentColor)}",
-        "." + P + "-switch input:checked+." + P + "-track::after{transform:translateX(14px);background:var(--dsw-alias-label-primary-inverted,var(--dsw-alias-bg-base))}",
-        "." + P + "-switch input:focus-visible+." + P + "-track{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
         "." + P + "-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--cfg-line);background:transparent;color:var(--cfg-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .12s ease,color .12s ease}",
         "." + P + "-btn:hover{background:var(--cfg-hover);color:var(--dsw-alias-label-primary,inherit)}",
         "." + P + "-btn:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,currentColor);outline-offset:2px}",
@@ -3896,8 +4897,8 @@ var require_data_style = __commonJS({
         "." + P + "-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:2px;font-size:11.5px;color:var(--cfg-muted)}",
         "." + P + "-grow{flex:1}",
         "." + P + "-pageinfo{font-variant-numeric:tabular-nums}",
-        "." + P + "-jump{width:56px;border:1px solid var(--cfg-line);background:var(--dsw-alias-bg-base,transparent);color:inherit;border-radius:7px;padding:4px 7px;font:inherit;font-size:11.5px;text-align:right;outline:none}",
-        "." + P + "-jump:focus{border-color:var(--dsw-alias-brand-primary,currentColor)}",
+        "." + P + "-jump .wbctl-num-input{width:56px;padding:4px 7px;font-size:11.5px;text-align:right}",
+        "." + P + "-jump .wbctl-num-hint{display:none}",
         "." + P + "-empty{border:1px dashed var(--cfg-line);border-radius:11px;padding:44px 16px;text-align:center;font-size:12.5px;color:var(--cfg-muted)}",
         "." + P + "-err{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid color-mix(in oklab,var(--dsw-alias-state-error-primary,currentColor) 32%,var(--cfg-line));border-radius:10px;padding:9px 12px;color:var(--dsw-alias-state-error-primary,inherit);font-size:12px;line-height:1.5}",
         "." + P + "-skwrap{display:flex;flex-direction:column;gap:1px;padding:2px}",
@@ -3935,7 +4936,7 @@ var require_data_style = __commonJS({
         "." + P + "-images img{width:36px;height:36px;object-fit:cover;border-radius:5px}",
         "." + P + "-gallery{display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}",
         "." + P + "-gallery img{width:100%;height:auto;object-fit:contain;border-radius:8px}"
-      ].join("\n");
+      ].concat(require_switch().styles).concat(require_number_field().styles).join("\n");
       if (DOMAIN === "storage") {
         var buttons = "." + P + " :is(button)";
         CSS += buttons + "{border:none;background:var(--wb-btn-bg);min-height:var(--wb-btn-size-sm);min-width:var(--wb-btn-size-sm)}" + buttons + ":enabled:hover{background:var(--wb-btn-hover-bg)}" + buttons + ":enabled:active{background:var(--wb-btn-active-bg)}" + buttons + ":disabled{background:var(--wb-btn-bg);color:var(--cfg-muted)}" + buttons + ":focus-visible{outline:var(--wb-btn-focus);outline-offset:var(--wb-btn-focus-offset)}." + P + "-fcell:has(button) input{padding-right:34px}";
@@ -3963,8 +4964,10 @@ var require_data_view = __commonJS({
   "packages/addons/lib/data-view.cjs"(exports2, module2) {
     "use strict";
     var React = require("react");
+    var NF = require_number_field();
     var h = React.createElement;
     var COPY = require_data_copy();
+    var SW = require_switch();
     module2.exports = function createDataView(options) {
       var DOMAIN = options.domain;
       function icon(name) {
@@ -4518,17 +5521,18 @@ var require_data_view = __commonJS({
             h("button", { type: "button", className: P + "-btn", disabled: !data || page >= pages, onClick: function() {
               setPage(Math.min(pages, page + 1));
             } }, t.next + " \u203A"),
-            h("input", {
+            h(NF.NumberField, {
+              h,
+              lang,
               className: P + "-jump",
-              type: "number",
+              value: page,
               min: 1,
               max: pages,
-              "aria-label": t.jump,
-              onKeyDown: function(e) {
-                if (e.key === "Enter") {
-                  var n = Math.floor(Number(e.target.value));
-                  if (n >= 1) setPage(Math.min(pages, n));
-                }
+              integer: true,
+              ariaLabel: t.jump,
+              hint: false,
+              onCommit: function(next) {
+                if (next !== null) setPage(next);
               }
             }),
             data && data.queryMs !== void 0 ? h("span", null, fmt(t.queryTime, { n: data.queryMs })) : null
@@ -4625,25 +5629,23 @@ var require_data_view = __commonJS({
                     }
                   })
                 ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: includeDeleted, onChange: function(e) {
-                    setIncludeDeleted(e.target.checked);
+                h(SW.Switch, {
+                  h,
+                  checked: includeDeleted,
+                  label: t.includeDeleted,
+                  onChange: function(next) {
+                    setIncludeDeleted(next);
                     setPage(1);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.includeDeleted)
-                ),
-                h(
-                  "label",
-                  { className: P + "-switch" },
-                  h("input", { type: "checkbox", checked: showSystem, onChange: function(e) {
-                    setShowSystem(e.target.checked);
-                  } }),
-                  h("span", { className: P + "-track" }),
-                  h("span", null, t.showSystem)
-                ),
+                  }
+                }),
+                h(SW.Switch, {
+                  h,
+                  checked: showSystem,
+                  label: t.showSystem,
+                  onChange: function(next) {
+                    setShowSystem(next);
+                  }
+                }),
                 h("span", { className: P + "-grow" }),
                 h(
                   "label",
@@ -4796,16 +5798,13 @@ var require_action_schema_style = __commonJS({
         "." + P + "-cardmeta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:24px}",
         "." + P + "-cardhead code{font-weight:640;overflow-wrap:anywhere;min-width:0}",
         "." + P + "-hintline{margin:0;color:var(--dsw-alias-label-tertiary,inherit);font-size:11.5px;line-height:1.5}",
-        "." + P + "-toggle{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 2px;border:0;background:transparent;font:inherit;font-size:11.5px;color:var(--wb-muted);cursor:pointer}",
-        "." + P + "-track{display:inline-flex;align-items:center;box-sizing:border-box;width:30px;height:18px;padding:2px;border:1px solid var(--wb-muted);border-radius:999px;background:var(--wb-surface);color:var(--wb-muted)}",
-        "." + P + "-track::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;transition:transform .15s ease}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track{background:var(--wb-accent);border-color:var(--wb-accent);color:var(--wb-card)}",
-        "." + P + "-toggle[aria-checked=true] ." + P + "-track::before{transform:translateX(12px)}",
-        "." + P + "-toggle:hover:not(:disabled) ." + P + "-track{outline:1px solid var(--wb-accent)}",
-        "." + P + "-toggle:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
-        "." + P + "-toggle:disabled{opacity:.6;cursor:progress}",
-        "@media(prefers-reduced-motion:reduce){." + P + "-track::before{transition:none}}",
-        // 安全约束（不可放开）：用警示色描边，和可切换的开关区分开。
+        "." + P + "-origins{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+        "." + P + "-origins-label{font-size:11px;color:var(--wb-muted);white-space:nowrap}",
+        "." + P + "-origin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--wb-muted);cursor:pointer;user-select:none}",
+        // 该 action 本身不支持的来源：整项置灰、不可点，示意「不是没开，是开不了」。
+        "." + P + "-origin-off{opacity:.55;cursor:not-allowed}",
+        "." + P + "-origin input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--wb-accent);cursor:inherit}",
+        "." + P + "-origin input[type=checkbox]:focus-visible{outline:2px solid var(--wb-accent);outline-offset:2px}",
         "." + P + "-locked{border-color:var(--wb-warn,#b7791f);color:var(--wb-warn,#b7791f)}",
         "." + P + "-desc{margin:0;color:var(--dsw-alias-label-secondary,inherit);line-height:1.55;font-size:12.5px}",
         // 搜索命中：用品牌色透明度叠加而不是写死浅色，深浅主题都可读；继承文字颜色、不覆盖 ::selection。
@@ -4858,15 +5857,20 @@ var require_action_schema_view = __commonJS({
       zh: {
         title: "Action",
         hint: "\u8FD0\u884C\u65F6\u6CE8\u518C \xB7 \u53EA\u8BFB",
-        switchHint: "agent \u5F00\u5173\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1B\u754C\u9762\u64CD\u4F5C\u4E0D\u53D7\u5F71\u54CD\u3002",
-        hostHint: "\u5BBF\u4E3B action \u7684 agent \u5F00\u5173\uFF1B\u6807\u300C\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F\u300D\u7684\u4E0D\u53EF\u653E\u5F00\u3002",
-        agentSwitch: "agent \u53EF\u7528",
-        agentLocked: "\u4EC5\u754C\u9762 \xB7 \u5B89\u5168\u7EA6\u675F",
-        agentLockedHint: "\u8BE5 action \u53EA\u80FD\u5728\u754C\u9762\u6267\u884C\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0Cagent \u5F00\u5173\u4E0D\u53EF\u653E\u5F00",
-        agentSaving: "\u4FDD\u5B58\u4E2D\u2026",
-        agentOnToast: "\u5DF2\u5141\u8BB8 agent \u8C03\u7528",
-        agentOffToast: "\u5DF2\u7981\u6B62 agent \u8C03\u7528",
-        agentFail: "\u5207\u6362 agent \u5F00\u5173\u5931\u8D25",
+        switchHint: "\u5141\u8BB8\u6765\u6E90\u843D\u672C\u673A\u3001\u5373\u6539\u5373\u751F\u6548\uFF1A\u52FE\u4E0A\u7684\u6765\u6E90\u624D\u80FD\u8C03\u7528\u8BE5 action\uFF0C\u5176\u4F59\u4F1A\u88AB ACTION_ORIGIN_DENIED \u62E6\u4E0B\u3002",
+        hostHint: "\u5BBF\u4E3B action \u7684\u5141\u8BB8\u6765\u6E90\uFF1B\u6807\u300C\u6765\u6E90\u56FA\u5B9A\u300D\u7684\u4E0D\u53EF\u4FEE\u6539\u3002",
+        originsLabel: "\u5141\u8BB8\u6765\u6E90",
+        originUi: "\u754C\u9762",
+        originPlugin: "\u63D2\u4EF6",
+        originAgent: "agent",
+        originSync: "\u540C\u6B65",
+        originsSaving: "\u4FDD\u5B58\u4E2D\u2026",
+        originsToast: "\u5DF2\u66F4\u65B0\u5141\u8BB8\u6765\u6E90",
+        originsFail: "\u66F4\u65B0\u5141\u8BB8\u6765\u6E90\u5931\u8D25",
+        originsEmpty: "\u81F3\u5C11\u8981\u4FDD\u7559\u4E00\u4E2A\u6765\u6E90",
+        originsUnsupported: "\u8BE5 action \u672C\u8EAB\u4E0D\u652F\u6301\u8FD9\u4E2A\u6765\u6E90",
+        originsPinned: "\u6765\u6E90\u56FA\u5B9A",
+        originsPinnedHint: "\u8BE5 action \u7684\u5141\u8BB8\u6765\u6E90\u88AB\u56FA\u5B9A\uFF08\u5B89\u5168\u7EA6\u675F\uFF09\uFF0C\u4E0D\u80FD\u4FEE\u6539",
         domain: "\u57DF",
         versionLabel: "\u7248\u672C",
         shell: "\u5BBF\u4E3B",
@@ -4880,6 +5884,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "\u65E0\u5FC5\u586B\u9879",
         filterType: "\u53C2\u6570\u7C7B\u578B",
         allTypes: "\u5168\u90E8\u7C7B\u578B",
+        filterOrigin: "\u5141\u8BB8\u6765\u6E90",
+        allOrigins: "\u5168\u90E8\u6765\u6E90",
         colName: "\u53C2\u6570",
         colType: "\u7C7B\u578B",
         colReq: "\u5FC5\u586B",
@@ -4912,15 +5918,22 @@ var require_action_schema_view = __commonJS({
       en: {
         title: "Actions",
         hint: "runtime registry \xB7 read-only",
-        switchHint: "The agent switch is stored locally and applies immediately; UI actions are unaffected.",
-        hostHint: "Agent switch for host actions; items marked UI-only (security) cannot be opened up.",
-        agentSwitch: "Agent callable",
-        agentLocked: "UI only \xB7 security",
-        agentLockedHint: "This action can only run from the UI (security constraint); the agent switch cannot be opened",
-        agentSaving: "Saving\u2026",
-        agentOnToast: "Agent calls allowed",
-        agentOffToast: "Agent calls blocked",
-        agentFail: "Failed to change the agent switch",
+        switchHint: "Allowed origins are stored locally and apply immediately: only checked origins may call the action; others get ACTION_ORIGIN_DENIED.",
+        hostHint: "Allowed origins for host actions; items marked pinned cannot be changed.",
+        originsLabel: "Origins",
+        originUi: "UI",
+        originPlugin: "Plugin",
+        originAgent: "Agent",
+        originSync: "Sync",
+        originsSaving: "Saving\u2026",
+        originsToast: "Allowed origins updated",
+        originsFail: "Failed to update allowed origins",
+        originsEmpty: "Keep at least one origin",
+        originsUnsupported: "This action does not support this origin",
+        originsPinned: "Pinned",
+        originsPinnedHint: "Allowed origins are pinned for this action (security constraint) and cannot be changed",
+        originsDefaultOn: "Allowed by default",
+        originsDefaultOff: "Off by default, can be enabled",
         domain: "Domain",
         versionLabel: "Version",
         shell: "Host",
@@ -4934,6 +5947,8 @@ var require_action_schema_view = __commonJS({
         onlyOptional: "No required",
         filterType: "Param type",
         allTypes: "All types",
+        filterOrigin: "Origins",
+        allOrigins: "All origins",
         colName: "Param",
         colType: "Type",
         colReq: "Required",
@@ -5077,6 +6092,8 @@ var require_action_schema_view = __commonJS({
         var reqMode = reqState[0], setReqMode = reqState[1];
         var typeState = React.useState("");
         var typePick = typeState[0], setTypePick = typeState[1];
+        var originFilterState = React.useState("");
+        var originPick = originFilterState[0], setOriginPick = originFilterState[1];
         var toastState = React.useState("");
         var toast = toastState[0], setToast = toastState[1];
         var savingState = React.useState("");
@@ -5132,38 +6149,53 @@ var require_action_schema_view = __commonJS({
           plainCopy(text);
           done();
         }
-        function setAgent(action, next) {
+        var ORIGINS = ["ui", "plugin", "agent", "sync"];
+        var originText = { ui: t.originUi, plugin: t.originPlugin, agent: t.originAgent, sync: t.originSync };
+        function setOrigins(action, origin) {
           var name = action.name;
+          var current = Array.isArray(action.origins) ? action.origins.slice() : [];
+          var index = current.indexOf(origin);
+          var next = index >= 0 ? current.filter(function(o) {
+            return o !== origin;
+          }) : current.concat([origin]);
+          if (next.length === 0) {
+            setToast(t.originsEmpty);
+            return;
+          }
+          next = ORIGINS.filter(function(o) {
+            return next.indexOf(o) >= 0;
+          });
           setSaving(name);
           setToast("");
           var fail = function(e) {
             setSaving("");
-            setToast(t.agentFail + "\uFF1A" + String(e && e.message || e || ""));
+            setToast(t.originsFail + "\uFF1A" + String(e && e.message || e || ""));
           };
           var done = function(r) {
             setSaving("");
             var payload = r && typeof r === "object" && Object.prototype.hasOwnProperty.call(r, "result") ? r.result : r;
             if (r && r.ok === false) {
-              setToast(t.agentFail + "\uFF1A" + String(r.error || r.text || ""));
+              setToast(t.originsFail + "\uFF1A" + String(r.error || r.text || ""));
               return;
             }
-            var value = payload && typeof payload.agentEnabled === "boolean" ? payload.agentEnabled : next;
+            var value = payload && Array.isArray(payload.origins) ? payload.origins : next;
+            var source = payload && typeof payload.source === "string" ? payload.source : action.originsSource;
             setSnap(function(prev) {
               if (!prev || !Array.isArray(prev.actions)) return prev;
               return Object.assign({}, prev, {
                 actions: prev.actions.map(function(a) {
                   if (!a || a.name !== name) return a;
-                  return Object.assign({}, a, { agentEnabled: value });
+                  return Object.assign({}, a, { origins: value, originsSource: source });
                 })
               });
             });
-            setToast(value ? t.agentOnToast : t.agentOffToast);
+            setToast(t.originsToast);
           };
           if (!api || typeof api.call !== "function") {
             fail(new Error("no call api"));
             return;
           }
-          Promise.resolve(api.call("actions.setAgentAccess", { action: name, agentEnabled: next })).then(done, fail);
+          Promise.resolve(api.call("actions.setActionOrigins", { action: name, origins: next })).then(done, fail);
         }
         var all = snap && Array.isArray(snap.actions) ? snap.actions.filter(function(a) {
           return a && a.domain === DOMAIN;
@@ -5198,6 +6230,7 @@ var require_action_schema_view = __commonJS({
           if (typePick && !rows.some(function(row) {
             return row.types.indexOf(typePick) >= 0;
           })) return false;
+          if (originPick && (!Array.isArray(a.origins) || a.origins.indexOf(originPick) < 0)) return false;
           return true;
         });
         function paramRow(row) {
@@ -5213,33 +6246,45 @@ var require_action_schema_view = __commonJS({
             h("td", null, Highlight.hit(row.description, kw))
           );
         }
-        function agentSwitch(action) {
-          if (action.agentLocked === true) {
-            return h("span", {
-              className: P + "-badge " + P + "-locked",
-              title: t.agentLockedHint,
-              "data-agent-locked": action.name
-            }, t.agentLocked);
+        function originsChips(action) {
+          if (!Array.isArray(action.origins)) return null;
+          if (action.originsSource === "invalid") {
+            return h("span", { className: P + "-badge " + P + "-locked", title: t.originsPinnedHint, "data-origins-invalid": action.name }, t.originsPinned);
           }
-          if (typeof action.agentEnabled !== "boolean") return null;
           var busy = saving === action.name;
+          var pinned = action.name === "actions.setActionOrigins";
+          var supported = Array.isArray(action.originsDeclared) ? action.originsDeclared : action.origins;
           return h(
-            "button",
-            {
-              className: P + "-toggle",
-              "data-agent-row": action.name,
-              type: "button",
-              role: "switch",
-              "aria-checked": action.agentEnabled,
-              disabled: busy,
-              "data-agent-toggle": action.name,
-              "aria-label": t.agentSwitch + " \xB7 " + action.name,
-              onClick: function() {
-                setAgent(action, !action.agentEnabled);
-              }
-            },
-            h("span", { className: P + "-track", "aria-hidden": true }),
-            h("span", null, busy ? t.agentSaving : t.agentSwitch)
+            "div",
+            { className: P + "-origins", "data-origins-row": action.name },
+            h("span", { className: P + "-origins-label" }, t.originsLabel),
+            ORIGINS.map(function(origin) {
+              var on = action.origins.indexOf(origin) >= 0;
+              var allowed = supported.indexOf(origin) >= 0;
+              var preset = Array.isArray(action.originsDefault) ? action.originsDefault : supported;
+              var byDefault = preset.indexOf(origin) >= 0;
+              return h(
+                "label",
+                {
+                  key: origin,
+                  className: P + "-origin" + (allowed ? "" : " " + P + "-origin-off"),
+                  title: pinned ? t.originsPinnedHint : !allowed ? t.originsUnsupported : originText[origin] + " \xB7 " + action.name + " \xB7 " + (byDefault ? t.originsDefaultOn : t.originsDefaultOff)
+                },
+                h("input", {
+                  type: "checkbox",
+                  checked: on,
+                  disabled: busy || pinned || !allowed,
+                  "data-origin": origin,
+                  "data-origin-row": action.name,
+                  "data-origin-supported": allowed ? "1" : "0",
+                  onChange: function() {
+                    setOrigins(action, origin);
+                  }
+                }),
+                h("span", null, originText[origin])
+              );
+            }),
+            busy ? h("span", { className: P + "-origins-label" }, t.originsSaving) : null
           );
         }
         function card(action) {
@@ -5260,7 +6305,7 @@ var require_action_schema_view = __commonJS({
                   return row.required;
                 }) ? h("span", { className: P + "-badge " + P + "-req" }, t.required) : null
               ),
-              agentSwitch(action)
+              originsChips(action)
             ),
             action.description ? h("p", { className: P + "-desc" }, Highlight.hit(action.description, kw)) : null,
             rows.length ? h(
@@ -5383,6 +6428,21 @@ var require_action_schema_view = __commonJS({
                   return h("option", { value: name, key: name }, name);
                 })
               )
+            ),
+            h(
+              "label",
+              { className: P + "-none" },
+              t.filterOrigin + " ",
+              h(
+                "select",
+                { value: originPick, "aria-label": t.filterOrigin, "data-origin-filter": "", onChange: function(e) {
+                  setOriginPick(e.target.value);
+                } },
+                h("option", { value: "" }, t.allOrigins),
+                ORIGINS.map(function(origin) {
+                  return h("option", { value: origin, key: origin }, originText[origin]);
+                })
+              )
             )
           ) : null,
           body,
@@ -5465,6 +6525,27 @@ var require_copy = __commonJS({
         create: "\u521B\u5EFA",
         close: "\u5173\u95ED",
         taskId: "\u4EFB\u52A1 ID",
+        stepContent: "\u5185\u5BB9",
+        stepContentHint: "\u6807\u9898\u3001\u63CF\u8FF0\u4E0E\u8BA1\u5212",
+        stepTags: "\u6807\u7B7E",
+        stepTagsHint: "\u641C\u7D22\u5DF2\u6709\u6807\u7B7E\uFF0C\u6216\u8F93\u5165\u65B0\u6807\u7B7E\u56DE\u8F66\u6DFB\u52A0",
+        stepTable: "\u4EFB\u52A1\u8868",
+        stepTableHint: "\u9009\u62E9\u4EFB\u52A1\u5F52\u5230\u54EA\u5F20\u8868",
+        stepTimeline: "\u65F6\u95F4\u7EBF",
+        stepTimelineHint: "\u5173\u8054\u73B0\u6709\u65F6\u95F4\u7EBF\u6216\u65B0\u5EFA",
+        stepWorkspace: "\u5DE5\u4F5C\u533A",
+        stepWorkspaceHint: "\u5173\u8054\u5230\u5DE5\u4F5C\u533A\uFF08\u53EF\u9009\uFF09",
+        stepConfirm: "\u786E\u8BA4",
+        stepConfirmHint: "\u6838\u5BF9\u540E\u521B\u5EFA",
+        stepBelong: "\u5F52\u5C5E",
+        stepBelongHint: "\u65F6\u95F4\u7EBF\u3001\u5DE5\u4F5C\u533A\u4E0E\u4EFB\u52A1\u8868",
+        stepPlan: "\u8BA1\u5212",
+        stepPlanHint: "\u72B6\u6001\u3001\u4F18\u5148\u7EA7\u4E0E\u65E5\u671F",
+        confirmHint: "\u786E\u8BA4\u65E0\u8BEF\u540E\u70B9\u300C\u521B\u5EFA\u300D\uFF1B\u521B\u5EFA\u540E\u4ECD\u53EF\u7F16\u8F91\u6807\u9898\u3001\u63CF\u8FF0\u4E0E\u5F52\u5C5E\u3002",
+        createSteps: "\u521B\u5EFA\u6B65\u9AA4",
+        nextStep: "\u4E0B\u4E00\u6B65",
+        prevStep: "\u4E0A\u4E00\u6B65",
+        workspace: "\u5DE5\u4F5C\u533A",
         addGroup: "\u65B0\u5EFA\u7EC4",
         addTable: "\u65B0\u5EFA\u8868",
         rename: "\u91CD\u547D\u540D",
@@ -5476,7 +6557,6 @@ var require_copy = __commonJS({
         nodeDescPh: "\u5199\u6E05\u8FD9\u5F20\u8868\u662F\u505A\u4EC0\u4E48\u7684\uFF0C\u4EE5\u540E\u53EF\u6309\u63CF\u8FF0\u5173\u952E\u8BCD\u68C0\u7D22\u5B9A\u4F4D",
         needName: "\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A",
         nodeDescSave: "\u63CF\u8FF0\u5DF2\u4FDD\u5B58",
-        editTitle: "\u7F16\u8F91\u4EFB\u52A1",
         deleteConfirm: "\u786E\u5B9A\u5220\u9664\u8FD9\u4E2A\u8282\u70B9\u53CA\u5176\u5B50\u6811\uFF1F\u5B50\u6811\u4E2D\u7684\u4EFB\u52A1\u4F1A\u88AB\u8F6F\u5220\u9664\u3002",
         deleteTaskConfirm: "\u786E\u5B9A\u5220\u9664\u8FD9\u6761\u4EFB\u52A1\u5417\uFF1F\u5220\u9664\u540E\u4E0D\u53EF\u6062\u590D\u3002",
         batchDelete: "\u6279\u91CF\u5220\u9664",
@@ -5504,6 +6584,10 @@ var require_copy = __commonJS({
         noMore: "\u6CA1\u6709\u66F4\u591A",
         tagSelected: "\u5DF2\u9009",
         tagRemove: "\u79FB\u9664",
+        tagSearchExisting: "\u641C\u7D22\u5DF2\u6709\u6807\u7B7E",
+        tagNewPlaceholder: "\u65B0\u5EFA\u6807\u7B7E\uFF0C\u56DE\u8F66\u6DFB\u52A0\uFF0C\u591A\u4E2A\u7528\u9017\u53F7\u5206\u9694",
+        tagAdd: "\u6DFB\u52A0",
+        tagNoPick: "\u8FD8\u6CA1\u6709\u9009\u6807\u7B7E\uFF0C\u4ECE\u4E0B\u9762\u70B9\u4E00\u4E2A\u6216\u76F4\u63A5\u8F93\u5165\u65B0\u6807\u7B7E\u540D",
         workspaceFilter: "\u5DE5\u4F5C\u533A\u7B5B\u9009",
         allWorkspaces: "\u5168\u90E8\u5DE5\u4F5C\u533A",
         noWorkspaces: "\u6682\u65E0\u5DE5\u4F5C\u533A",
@@ -5632,6 +6716,27 @@ var require_copy = __commonJS({
         create: "Create",
         close: "Close",
         taskId: "Task ID",
+        stepContent: "Content",
+        stepContentHint: "Title, description, schedule",
+        stepTags: "Tags",
+        stepTagsHint: "Search existing tags, or type a new one and press Enter",
+        stepTable: "Table",
+        stepTableHint: "Pick the table this task belongs to",
+        stepTimeline: "Timeline",
+        stepTimelineHint: "Attach to an existing timeline or create one",
+        stepWorkspace: "Workspace",
+        stepWorkspaceHint: "Link to a workspace (optional)",
+        stepConfirm: "Review",
+        stepConfirmHint: "Check before creating",
+        stepBelong: "Placement",
+        stepBelongHint: "Timeline, workspace, table",
+        stepPlan: "Schedule",
+        stepPlanHint: "Status, priority, dates",
+        confirmHint: "Review the summary, then Create. Title, description and placement stay editable afterwards.",
+        createSteps: "Create steps",
+        nextStep: "Next",
+        prevStep: "Back",
+        workspace: "Workspace",
         addGroup: "New group",
         addTable: "New table",
         rename: "Rename",
@@ -5643,7 +6748,6 @@ var require_copy = __commonJS({
         nodeDescPh: "Say what this table is for; agents can find it by description keywords",
         needName: "Name is required",
         nodeDescSave: "Description saved",
-        editTitle: "Edit task",
         deleteConfirm: "Delete this node and its subtree? Tasks under it will be soft-deleted.",
         deleteTaskConfirm: "Delete this task? This cannot be undone.",
         batchDelete: "Delete",
@@ -5671,6 +6775,10 @@ var require_copy = __commonJS({
         noMore: "No more",
         tagSelected: "Selected",
         tagRemove: "Remove",
+        tagSearchExisting: "Search existing tags",
+        tagNewPlaceholder: "New tag \u2014 press Enter to add, comma for several",
+        tagAdd: "Add",
+        tagNoPick: "No tags picked yet \u2014 click one below or type a new name",
         workspaceFilter: "Filter by workspace",
         allWorkspaces: "All workspaces",
         noWorkspaces: "No workspaces",
@@ -5756,6 +6864,42 @@ var require_copy = __commonJS({
         needDifficulty: "Pick a difficulty"
       }
     };
+  }
+});
+
+// packages/addons/lib/icons.cjs
+var require_icons = __commonJS({
+  "packages/addons/lib/icons.cjs"(exports2, module2) {
+    "use strict";
+    var h = require("react").createElement;
+    function create(prefix, glyphs, options) {
+      var opts = options || {};
+      var ICONS = Object.assign({}, glyphs);
+      function Icon2(props) {
+        var C = ICONS[props.name] || (opts.fallback ? ICONS[opts.fallback] : null);
+        if (!C) return null;
+        var size = typeof opts.sizeOf === "function" ? opts.sizeOf(props) : props.size || 14;
+        var cls = prefix + "-svg" + (opts.classNameAppend && props.className ? " " + props.className : "");
+        var attrs = {
+          size,
+          strokeWidth: props.strokeWidth || 2,
+          "aria-hidden": "true",
+          className: cls
+        };
+        if (opts.focusable) attrs.focusable = false;
+        return h(C, attrs);
+      }
+      var set = { ICONS, Icon: Icon2 };
+      if (opts.tabIcon) {
+        set.tabIcon = function(name) {
+          return function TabIcon() {
+            return h(Icon2, { name, size: 14 });
+          };
+        };
+      }
+      return set;
+    }
+    module2.exports = { create };
   }
 });
 
@@ -6503,17 +7647,43 @@ var init_list = __esm({
   }
 });
 
+// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list-checks.mjs
+var list_checks_exports = {};
+__export(list_checks_exports, {
+  __iconData: () => __iconData19,
+  default: () => ListChecks
+});
+var __iconData19, ListChecks;
+var init_list_checks = __esm({
+  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list-checks.mjs"() {
+    init_createLucideIcon();
+    __iconData19 = {
+      name: "list-checks",
+      size: 24,
+      node: [
+        ["path", { d: "M13 5h8", key: "a7qcls" }],
+        ["path", { d: "M13 12h8", key: "h98zly" }],
+        ["path", { d: "M13 19h8", key: "c3s6r1" }],
+        ["path", { d: "m3 17 2 2 4-4", key: "1jhpwq" }],
+        ["path", { d: "m3 7 2 2 4-4", key: "1obspn" }]
+      ]
+    };
+    __iconData19.node;
+    ListChecks = createLucideIcon(__iconData19);
+  }
+});
+
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/square-check-big.mjs
 var square_check_big_exports = {};
 __export(square_check_big_exports, {
-  __iconData: () => __iconData19,
+  __iconData: () => __iconData20,
   default: () => SquareCheckBig
 });
-var __iconData19, SquareCheckBig;
+var __iconData20, SquareCheckBig;
 var init_square_check_big = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/square-check-big.mjs"() {
     init_createLucideIcon();
-    __iconData19 = {
+    __iconData20 = {
       name: "square-check-big",
       size: 24,
       node: [
@@ -6525,62 +7695,62 @@ var init_square_check_big = __esm({
       ],
       aliases: ["check-square"]
     };
-    __iconData19.node;
-    SquareCheckBig = createLucideIcon(__iconData19);
+    __iconData20.node;
+    SquareCheckBig = createLucideIcon(__iconData20);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-left.mjs
 var chevron_left_exports = {};
 __export(chevron_left_exports, {
-  __iconData: () => __iconData20,
+  __iconData: () => __iconData21,
   default: () => ChevronLeft
 });
-var __iconData20, ChevronLeft;
+var __iconData21, ChevronLeft;
 var init_chevron_left = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-left.mjs"() {
     init_createLucideIcon();
-    __iconData20 = {
+    __iconData21 = {
       name: "chevron-left",
       size: 24,
       node: [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]]
     };
-    __iconData20.node;
-    ChevronLeft = createLucideIcon(__iconData20);
+    __iconData21.node;
+    ChevronLeft = createLucideIcon(__iconData21);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-right.mjs
 var chevron_right_exports = {};
 __export(chevron_right_exports, {
-  __iconData: () => __iconData21,
+  __iconData: () => __iconData22,
   default: () => ChevronRight
 });
-var __iconData21, ChevronRight;
+var __iconData22, ChevronRight;
 var init_chevron_right = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-right.mjs"() {
     init_createLucideIcon();
-    __iconData21 = {
+    __iconData22 = {
       name: "chevron-right",
       size: 24,
       node: [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]]
     };
-    __iconData21.node;
-    ChevronRight = createLucideIcon(__iconData21);
+    __iconData22.node;
+    ChevronRight = createLucideIcon(__iconData22);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder.mjs
 var folder_exports = {};
 __export(folder_exports, {
-  __iconData: () => __iconData22,
+  __iconData: () => __iconData23,
   default: () => Folder
 });
-var __iconData22, Folder;
+var __iconData23, Folder;
 var init_folder = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder.mjs"() {
     init_createLucideIcon();
-    __iconData22 = {
+    __iconData23 = {
       name: "folder",
       size: 24,
       node: [
@@ -6593,22 +7763,22 @@ var init_folder = __esm({
         ]
       ]
     };
-    __iconData22.node;
-    Folder = createLucideIcon(__iconData22);
+    __iconData23.node;
+    Folder = createLucideIcon(__iconData23);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-open.mjs
 var folder_open_exports = {};
 __export(folder_open_exports, {
-  __iconData: () => __iconData23,
+  __iconData: () => __iconData24,
   default: () => FolderOpen
 });
-var __iconData23, FolderOpen;
+var __iconData24, FolderOpen;
 var init_folder_open = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-open.mjs"() {
     init_createLucideIcon();
-    __iconData23 = {
+    __iconData24 = {
       name: "folder-open",
       size: 24,
       node: [
@@ -6621,22 +7791,22 @@ var init_folder_open = __esm({
         ]
       ]
     };
-    __iconData23.node;
-    FolderOpen = createLucideIcon(__iconData23);
+    __iconData24.node;
+    FolderOpen = createLucideIcon(__iconData24);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/table-2.mjs
 var table_2_exports = {};
 __export(table_2_exports, {
-  __iconData: () => __iconData24,
+  __iconData: () => __iconData25,
   default: () => Table2
 });
-var __iconData24, Table2;
+var __iconData25, Table2;
 var init_table_2 = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/table-2.mjs"() {
     init_createLucideIcon();
-    __iconData24 = {
+    __iconData25 = {
       name: "table-2",
       size: 24,
       node: [
@@ -6645,22 +7815,22 @@ var init_table_2 = __esm({
         ["rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", key: "h1oib" }]
       ]
     };
-    __iconData24.node;
-    Table2 = createLucideIcon(__iconData24);
+    __iconData25.node;
+    Table2 = createLucideIcon(__iconData25);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/house.mjs
 var house_exports = {};
 __export(house_exports, {
-  __iconData: () => __iconData25,
+  __iconData: () => __iconData26,
   default: () => House
 });
-var __iconData25, House;
+var __iconData26, House;
 var init_house = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/house.mjs"() {
     init_createLucideIcon();
-    __iconData25 = {
+    __iconData26 = {
       name: "house",
       size: 24,
       node: [
@@ -6675,22 +7845,22 @@ var init_house = __esm({
       ],
       aliases: ["home"]
     };
-    __iconData25.node;
-    House = createLucideIcon(__iconData25);
+    __iconData26.node;
+    House = createLucideIcon(__iconData26);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-plus.mjs
 var folder_plus_exports = {};
 __export(folder_plus_exports, {
-  __iconData: () => __iconData26,
+  __iconData: () => __iconData27,
   default: () => FolderPlus
 });
-var __iconData26, FolderPlus;
+var __iconData27, FolderPlus;
 var init_folder_plus = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/folder-plus.mjs"() {
     init_createLucideIcon();
-    __iconData26 = {
+    __iconData27 = {
       name: "folder-plus",
       size: 24,
       node: [
@@ -6705,22 +7875,22 @@ var init_folder_plus = __esm({
         ]
       ]
     };
-    __iconData26.node;
-    FolderPlus = createLucideIcon(__iconData26);
+    __iconData27.node;
+    FolderPlus = createLucideIcon(__iconData27);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/file-plus.mjs
 var file_plus_exports = {};
 __export(file_plus_exports, {
-  __iconData: () => __iconData27,
+  __iconData: () => __iconData28,
   default: () => FilePlus
 });
-var __iconData27, FilePlus;
+var __iconData28, FilePlus;
 var init_file_plus = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/file-plus.mjs"() {
     init_createLucideIcon();
-    __iconData27 = {
+    __iconData28 = {
       name: "file-plus",
       size: 24,
       node: [
@@ -6736,22 +7906,22 @@ var init_file_plus = __esm({
         ["path", { d: "M12 18v-6", key: "17g6i2" }]
       ]
     };
-    __iconData27.node;
-    FilePlus = createLucideIcon(__iconData27);
+    __iconData28.node;
+    FilePlus = createLucideIcon(__iconData28);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs
 var pencil_exports = {};
 __export(pencil_exports, {
-  __iconData: () => __iconData28,
+  __iconData: () => __iconData29,
   default: () => Pencil
 });
-var __iconData28, Pencil;
+var __iconData29, Pencil;
 var init_pencil = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/pencil.mjs"() {
     init_createLucideIcon();
-    __iconData28 = {
+    __iconData29 = {
       name: "pencil",
       size: 24,
       node: [
@@ -6765,17 +7935,17 @@ var init_pencil = __esm({
         ["path", { d: "m15 5 4 4", key: "1mk7zo" }]
       ]
     };
-    __iconData28.node;
-    Pencil = createLucideIcon(__iconData28);
+    __iconData29.node;
+    Pencil = createLucideIcon(__iconData29);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs
-var __iconData29, Trash;
+var __iconData30, Trash;
 var init_trash = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/trash.mjs"() {
     init_createLucideIcon();
-    __iconData29 = {
+    __iconData30 = {
       name: "trash",
       size: 24,
       node: [
@@ -6787,8 +7957,8 @@ var init_trash = __esm({
       ],
       aliases: ["trash-2"]
     };
-    __iconData29.node;
-    Trash = createLucideIcon(__iconData29);
+    __iconData30.node;
+    Trash = createLucideIcon(__iconData30);
   }
 });
 
@@ -6806,14 +7976,14 @@ var init_trash_2 = __esm({
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs
 var x_exports = {};
 __export(x_exports, {
-  __iconData: () => __iconData30,
+  __iconData: () => __iconData31,
   default: () => X
 });
-var __iconData30, X;
+var __iconData31, X;
 var init_x = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/x.mjs"() {
     init_createLucideIcon();
-    __iconData30 = {
+    __iconData31 = {
       name: "x",
       size: 24,
       node: [
@@ -6821,42 +7991,42 @@ var init_x = __esm({
         ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
       ]
     };
-    __iconData30.node;
-    X = createLucideIcon(__iconData30);
+    __iconData31.node;
+    X = createLucideIcon(__iconData31);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-down.mjs
 var chevron_down_exports = {};
 __export(chevron_down_exports, {
-  __iconData: () => __iconData31,
+  __iconData: () => __iconData32,
   default: () => ChevronDown
 });
-var __iconData31, ChevronDown;
+var __iconData32, ChevronDown;
 var init_chevron_down = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/chevron-down.mjs"() {
     init_createLucideIcon();
-    __iconData31 = {
+    __iconData32 = {
       name: "chevron-down",
       size: 24,
       node: [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]]
     };
-    __iconData31.node;
-    ChevronDown = createLucideIcon(__iconData31);
+    __iconData32.node;
+    ChevronDown = createLucideIcon(__iconData32);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs
 var tag_exports = {};
 __export(tag_exports, {
-  __iconData: () => __iconData32,
+  __iconData: () => __iconData33,
   default: () => Tag
 });
-var __iconData32, Tag;
+var __iconData33, Tag;
 var init_tag = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/tag.mjs"() {
     init_createLucideIcon();
-    __iconData32 = {
+    __iconData33 = {
       name: "tag",
       size: 24,
       node: [
@@ -6870,22 +8040,22 @@ var init_tag = __esm({
         ["circle", { cx: "7.5", cy: "7.5", r: ".5", fill: "currentColor", key: "kqv944" }]
       ]
     };
-    __iconData32.node;
-    Tag = createLucideIcon(__iconData32);
+    __iconData33.node;
+    Tag = createLucideIcon(__iconData33);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/clock.mjs
 var clock_exports = {};
 __export(clock_exports, {
-  __iconData: () => __iconData33,
+  __iconData: () => __iconData34,
   default: () => Clock
 });
-var __iconData33, Clock;
+var __iconData34, Clock;
 var init_clock = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/clock.mjs"() {
     init_createLucideIcon();
-    __iconData33 = {
+    __iconData34 = {
       name: "clock",
       size: 24,
       node: [
@@ -6893,22 +8063,22 @@ var init_clock = __esm({
         ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }]
       ]
     };
-    __iconData33.node;
-    Clock = createLucideIcon(__iconData33);
+    __iconData34.node;
+    Clock = createLucideIcon(__iconData34);
   }
 });
 
 // node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs
 var refresh_cw_exports = {};
 __export(refresh_cw_exports, {
-  __iconData: () => __iconData34,
+  __iconData: () => __iconData35,
   default: () => RefreshCw
 });
-var __iconData34, RefreshCw;
+var __iconData35, RefreshCw;
 var init_refresh_cw = __esm({
   "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs"() {
     init_createLucideIcon();
-    __iconData34 = {
+    __iconData35 = {
       name: "refresh-cw",
       size: 24,
       node: [
@@ -6918,58 +8088,156 @@ var init_refresh_cw = __esm({
         ["path", { d: "M8 16H3v5", key: "1cv678" }]
       ]
     };
-    __iconData34.node;
-    RefreshCw = createLucideIcon(__iconData34);
+    __iconData35.node;
+    RefreshCw = createLucideIcon(__iconData35);
   }
 });
 
 // packages/addons/tasks/client/ui/icons.cjs
-var require_icons = __commonJS({
+var require_icons2 = __commonJS({
   "packages/addons/tasks/client/ui/icons.cjs"(exports2, module2) {
     "use strict";
-    var h = require("react").createElement;
-    var ICONS = {
-      "filter": (init_sliders_horizontal(), __toCommonJS(sliders_horizontal_exports)).default,
-      "chart": (init_chart_column(), __toCommonJS(chart_column_exports)).default,
-      "settings": (init_settings(), __toCommonJS(settings_exports)).default,
-      "database": (init_database(), __toCommonJS(database_exports)).default,
-      "calendar": (init_calendar_days(), __toCommonJS(calendar_days_exports)).default,
+    var icons = require_icons();
+    var set = icons.create("wbt", {
+      filter: (init_sliders_horizontal(), __toCommonJS(sliders_horizontal_exports)).default,
+      chart: (init_chart_column(), __toCommonJS(chart_column_exports)).default,
+      settings: (init_settings(), __toCommonJS(settings_exports)).default,
+      database: (init_database(), __toCommonJS(database_exports)).default,
+      calendar: (init_calendar_days(), __toCommonJS(calendar_days_exports)).default,
       "code-2": (init_code_xml(), __toCommonJS(code_xml_exports)).default,
-      "terminal": (init_terminal(), __toCommonJS(terminal_exports)).default,
-      "pilcrow": (init_pilcrow(), __toCommonJS(pilcrow_exports)).default,
-      "plus": (init_plus(), __toCommonJS(plus_exports)).default,
-      "minus": (init_minus(), __toCommonJS(minus_exports)).default,
-      "check": (init_check(), __toCommonJS(check_exports)).default,
-      "stop": (init_square(), __toCommonJS(square_exports)).default,
-      "restart": (init_rotate_ccw(), __toCommonJS(rotate_ccw_exports)).default,
-      "timeline": (init_list_tree(), __toCommonJS(list_tree_exports)).default,
-      "tree": (init_folder_tree(), __toCommonJS(folder_tree_exports)).default,
-      "search": (init_search(), __toCommonJS(search_exports)).default,
-      "grid": (init_layout_grid(), __toCommonJS(layout_grid_exports)).default,
-      "list": (init_list(), __toCommonJS(list_exports)).default,
-      "select": (init_square_check_big(), __toCommonJS(square_check_big_exports)).default,
-      "left": (init_chevron_left(), __toCommonJS(chevron_left_exports)).default,
-      "right": (init_chevron_right(), __toCommonJS(chevron_right_exports)).default,
-      "folder": (init_folder(), __toCommonJS(folder_exports)).default,
-      "folderOpen": (init_folder_open(), __toCommonJS(folder_open_exports)).default,
-      "table": (init_table_2(), __toCommonJS(table_2_exports)).default,
-      "house": (init_house(), __toCommonJS(house_exports)).default,
-      "folderPlus": (init_folder_plus(), __toCommonJS(folder_plus_exports)).default,
-      "filePlus": (init_file_plus(), __toCommonJS(file_plus_exports)).default,
-      "pencil": (init_pencil(), __toCommonJS(pencil_exports)).default,
-      "trash": (init_trash_2(), __toCommonJS(trash_2_exports)).default,
-      "close": (init_x(), __toCommonJS(x_exports)).default,
-      "down": (init_chevron_down(), __toCommonJS(chevron_down_exports)).default,
-      "tag": (init_tag(), __toCommonJS(tag_exports)).default,
-      "clock": (init_clock(), __toCommonJS(clock_exports)).default,
-      "refresh": (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default
+      terminal: (init_terminal(), __toCommonJS(terminal_exports)).default,
+      pilcrow: (init_pilcrow(), __toCommonJS(pilcrow_exports)).default,
+      plus: (init_plus(), __toCommonJS(plus_exports)).default,
+      minus: (init_minus(), __toCommonJS(minus_exports)).default,
+      check: (init_check(), __toCommonJS(check_exports)).default,
+      stop: (init_square(), __toCommonJS(square_exports)).default,
+      restart: (init_rotate_ccw(), __toCommonJS(rotate_ccw_exports)).default,
+      timeline: (init_list_tree(), __toCommonJS(list_tree_exports)).default,
+      tree: (init_folder_tree(), __toCommonJS(folder_tree_exports)).default,
+      search: (init_search(), __toCommonJS(search_exports)).default,
+      grid: (init_layout_grid(), __toCommonJS(layout_grid_exports)).default,
+      list: (init_list(), __toCommonJS(list_exports)).default,
+      "list-checks": (init_list_checks(), __toCommonJS(list_checks_exports)).default,
+      select: (init_square_check_big(), __toCommonJS(square_check_big_exports)).default,
+      left: (init_chevron_left(), __toCommonJS(chevron_left_exports)).default,
+      right: (init_chevron_right(), __toCommonJS(chevron_right_exports)).default,
+      folder: (init_folder(), __toCommonJS(folder_exports)).default,
+      folderOpen: (init_folder_open(), __toCommonJS(folder_open_exports)).default,
+      table: (init_table_2(), __toCommonJS(table_2_exports)).default,
+      house: (init_house(), __toCommonJS(house_exports)).default,
+      folderPlus: (init_folder_plus(), __toCommonJS(folder_plus_exports)).default,
+      filePlus: (init_file_plus(), __toCommonJS(file_plus_exports)).default,
+      pencil: (init_pencil(), __toCommonJS(pencil_exports)).default,
+      trash: (init_trash_2(), __toCommonJS(trash_2_exports)).default,
+      close: (init_x(), __toCommonJS(x_exports)).default,
+      down: (init_chevron_down(), __toCommonJS(chevron_down_exports)).default,
+      tag: (init_tag(), __toCommonJS(tag_exports)).default,
+      clock: (init_clock(), __toCommonJS(clock_exports)).default,
+      refresh: (init_refresh_cw(), __toCommonJS(refresh_cw_exports)).default
+      // 「原邮件」回链：从邮件建出来的任务要能跳回去看一眼原文。
+    }, {});
+    module2.exports = { ICONS: set.ICONS, Icon: set.Icon };
+  }
+});
+
+// packages/addons/lib/overlay.cjs
+var require_overlay = __commonJS({
+  "packages/addons/lib/overlay.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var FOCUSABLE = "button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]";
+    module2.exports = function createOverlay(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h = React.createElement;
+      var tag = opts.tag || "section";
+      var maskClass = opts.maskClass;
+      var dialogClass = opts.dialogClass;
+      var dialogClassOf = opts.dialogClassOf || function() {
+        return "";
+      };
+      var ariaLabelOf = opts.ariaLabelOf || function(props) {
+        return props["aria-label"] || props.title;
+      };
+      var ariaLabelledByOf = opts.ariaLabelledByOf || function() {
+        return null;
+      };
+      var header = opts.header || null;
+      var closeOnEscape = opts.closeOnEscape || function() {
+        return true;
+      };
+      var closeOnMask = opts.closeOnMask || function() {
+        return true;
+      };
+      var extraKeyDown = opts.onKeyDown || null;
+      var autoFocusDialog = opts.autoFocusDialog !== false;
+      var focusableSelector = opts.focusableSelector || FOCUSABLE;
+      function Modal(props) {
+        var R = props.React || React;
+        var ref = R.useRef(null);
+        R.useEffect(function() {
+          var previous = typeof document !== "undefined" ? document.activeElement : null;
+          var focusIt = props.autoFocus !== void 0 ? props.autoFocus : autoFocusDialog;
+          if (focusIt && ref.current) ref.current.focus();
+          return function() {
+            if (previous && previous.isConnected) previous.focus();
+          };
+        }, []);
+        function onKeyDown(e) {
+          if (extraKeyDown && extraKeyDown(e, props, ref)) return;
+          if (e.key === "Escape") {
+            if (!(props.closeOnEscape !== void 0 ? props.closeOnEscape : closeOnEscape(props))) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (props.onClose) props.onClose();
+            return;
+          }
+          if (e.key !== "Tab" || !ref.current) return;
+          var els = ref.current.querySelectorAll(focusableSelector);
+          if (!els.length) {
+            e.preventDefault();
+            return;
+          }
+          var first = els[0];
+          var last = els[els.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+            e.preventDefault();
+            last.focus();
+          }
+          if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+        var labelledBy = ariaLabelledByOf(props);
+        return h(
+          "div",
+          {
+            className: maskClass,
+            onMouseDown: function(e) {
+              var allowed = props.closeOnMask !== void 0 ? props.closeOnMask : closeOnMask(props);
+              if (e.target === e.currentTarget && props.onClose && allowed) props.onClose();
+            }
+          },
+          h(
+            tag,
+            {
+              className: dialogClass + dialogClassOf(props),
+              role: "dialog",
+              "aria-modal": true,
+              "aria-label": labelledBy ? null : ariaLabelOf(props),
+              "aria-labelledby": labelledBy || null,
+              ref,
+              tabIndex: -1,
+              onKeyDown
+            },
+            header ? header(props) : null,
+            props.children
+          )
+        );
+      }
+      return Modal;
     };
-    function Icon2(props) {
-      var C = ICONS[props.name];
-      if (!C) return null;
-      return h(C, { size: props.size || 14, strokeWidth: 2, "aria-hidden": "true", className: "wbt-svg" });
-    }
-    module2.exports = { ICONS, Icon: Icon2 };
   }
 });
 
@@ -6979,6 +8247,16 @@ var require_workspace_view = __commonJS({
     "use strict";
     module2.exports = function(deps) {
       var React = deps.React, h = React.createElement;
+      var createOverlay = deps.createOverlay;
+      var FormOverlay = createOverlay({
+        React,
+        maskClass: "wbt-modal-mask",
+        dialogClass: "wbt-modal",
+        ariaLabelOf: function(props) {
+          return props.mode === "edit" ? props.t.formEdit : props.t.formCreate;
+        },
+        closeOnMask: false
+      });
       var Icon2 = typeof deps.Icon === "function" ? deps.Icon : null;
       function icon(name, size) {
         return Icon2 ? h(Icon2, { name, size: size || 13 }) : null;
@@ -7154,27 +8432,23 @@ var require_workspace_view = __commonJS({
           });
         }
         return h(
-          "div",
-          { className: "wbt-modal-mask", role: "dialog", "aria-modal": "true", "aria-label": props.mode === "edit" ? t.formEdit : t.formCreate },
+          FormOverlay,
+          { t, mode: props.mode, onClose: props.onCancel, closeOnMask: false },
+          h("div", { className: "wbt-modal-head" }, h("h3", null, props.mode === "edit" ? t.formEdit : t.formCreate)),
           h(
             "div",
-            { className: "wbt-modal" },
-            h("div", { className: "wbt-modal-head" }, h("h3", null, props.mode === "edit" ? t.formEdit : t.formCreate)),
-            h(
-              "div",
-              { className: "wbt-ws-fields" },
-              h("input", { className: "wbt-input", value: draft.title, placeholder: t.fTitle, "aria-label": t.fTitle, onChange: field("title") }),
-              h("input", { className: "wbt-input", value: draft.name, placeholder: t.fName, "aria-label": t.fName, onChange: field("name") }),
-              h("input", { className: "wbt-input", value: draft.dir, placeholder: t.fDir, "aria-label": t.fDir, onChange: field("dir") }),
-              h("textarea", { className: "wbt-input", value: draft.description, placeholder: t.fDesc, "aria-label": t.fDesc, onChange: field("description") })
-            ),
-            err ? h("div", { className: "wbt-err", role: "alert" }, err) : null,
-            h(
-              "div",
-              { className: "wbt-modal-foot" },
-              h("button", { className: "wbt-btn primary", type: "button", disabled: busy, onClick: submit }, t.save),
-              h("button", { className: "wbt-btn ghost", type: "button", onClick: props.onCancel }, t.cancel)
-            )
+            { className: "wbt-ws-fields" },
+            h("input", { className: "wbt-input", value: draft.title, placeholder: t.fTitle, "aria-label": t.fTitle, onChange: field("title") }),
+            h("input", { className: "wbt-input", value: draft.name, placeholder: t.fName, "aria-label": t.fName, onChange: field("name") }),
+            h("input", { className: "wbt-input", value: draft.dir, placeholder: t.fDir, "aria-label": t.fDir, onChange: field("dir") }),
+            h("textarea", { className: "wbt-input", value: draft.description, placeholder: t.fDesc, "aria-label": t.fDesc, onChange: field("description") })
+          ),
+          err ? h("div", { className: "wbt-err", role: "alert" }, err) : null,
+          h(
+            "div",
+            { className: "wbt-modal-foot" },
+            h("button", { className: "wbt-btn primary", type: "button", disabled: busy, onClick: submit }, t.save),
+            h("button", { className: "wbt-btn ghost", type: "button", onClick: props.onCancel }, t.cancel)
           )
         );
       }
@@ -7973,6 +9247,305 @@ var require_filter_checklist_styles = __commonJS({
   }
 });
 
+// packages/addons/lib/stepper.cjs
+var require_stepper = __commonJS({
+  "packages/addons/lib/stepper.cjs"(exports2, module2) {
+    "use strict";
+    function stepState(index, current, maxVisited) {
+      if (index === current) return "current";
+      if (index < current) return "done";
+      if (index <= maxVisited) return "visited";
+      return "todo";
+    }
+    function Steps(props) {
+      var h = props.h;
+      var steps = props.steps || [];
+      var current = props.current || 0;
+      var maxVisited = props.maxVisited === void 0 ? current : props.maxVisited;
+      var invalid = props.invalid || {};
+      var disabled = !!props.disabled;
+      var label = props.label || "\u6B65\u9AA4";
+      return h(
+        "nav",
+        { className: "wbctl-steps" + (props.className ? " " + props.className : ""), "aria-label": label },
+        h(
+          "ol",
+          { className: "wbctl-step-list" },
+          steps.map(function(step, index) {
+            var state = stepState(index, current, maxVisited);
+            var canJump = !disabled && typeof props.onJump === "function" && state !== "current" && state !== "todo";
+            var isInvalid = !!invalid[index] || !!invalid[step.key];
+            return h(
+              "li",
+              { key: step.key || index, className: "wbctl-step-item" },
+              h(
+                "button",
+                {
+                  type: "button",
+                  className: "wbctl-step",
+                  "data-state": state,
+                  "data-invalid": isInvalid ? "true" : null,
+                  "aria-current": state === "current" ? "step" : void 0,
+                  "aria-label": index + 1 + " \xB7 " + step.label + (state === "done" ? "\uFF08\u5DF2\u5B8C\u6210\uFF09" : ""),
+                  disabled: disabled || state === "todo",
+                  title: step.hint || "",
+                  onClick: function() {
+                    if (canJump) props.onJump(index);
+                  }
+                },
+                h("span", { className: "wbctl-step-index", "aria-hidden": "true" }, state === "done" ? "\u2713" : String(index + 1)),
+                h("span", { className: "wbctl-step-label" }, step.label),
+                step.hint ? h("span", { className: "wbctl-step-hint" }, step.hint) : null,
+                step.optional ? h("span", { className: "wbctl-step-opt" }, "\u53EF\u9009") : null
+              )
+            );
+          })
+        )
+      );
+    }
+    var STYLES = [
+      ".wbctl-steps{display:block;min-width:0}",
+      ".wbctl-step-list{display:flex;align-items:stretch;gap:6px;list-style:none;margin:0 0 14px;padding:0;min-width:0}",
+      ".wbctl-step-item{display:flex;flex:1 1 0;min-width:0}",
+      ".wbctl-step{display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;padding:7px 9px;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;background:transparent;color:var(--wb-muted,inherit);font:inherit;font-size:12px;line-height:1.35;text-align:left;cursor:default;transition:background .14s ease,border-color .14s ease,color .14s ease}",
+      ".wbctl-step[data-state=done],.wbctl-step[data-state=visited]{color:inherit;cursor:pointer}",
+      ".wbctl-step[data-state=done]{border-color:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 36%,var(--wb-border))}",
+      ".wbctl-step[data-state=current]{border-color:color-mix(in oklab,var(--wb-accent,#2563eb) 58%,var(--wb-border));background:color-mix(in oklab,var(--wb-accent,#2563eb) 8%,transparent);color:inherit;font-weight:600}",
+      ".wbctl-step[data-state=visited]:hover,.wbctl-step[data-state=done]:hover{background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-step[data-invalid=true]{border-color:var(--wb-danger,#d33)}",
+      ".wbctl-step:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-step:disabled{cursor:default;opacity:.72}",
+      ".wbctl-step-index{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;border-radius:50%;font-size:11px;font-variant-numeric:tabular-nums;background:color-mix(in oklab,currentColor 15%,transparent)}",
+      ".wbctl-step[data-state=current] .wbctl-step-index{background:var(--wb-accent,#2563eb);color:var(--wb-on-accent,#fff)}",
+      ".wbctl-step[data-state=done] .wbctl-step-index{background:color-mix(in oklab,var(--wb-ok,var(--wb-accent,#2563eb)) 20%,transparent);color:var(--wb-ok,var(--wb-accent,#2563eb))}",
+      ".wbctl-step-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbctl-step-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:400;opacity:.62}",
+      ".wbctl-step-opt{flex:none;font-size:10px;font-weight:400;opacity:.55}",
+      "@media (max-width:760px){.wbctl-step{padding:6px 7px;font-size:11.5px}.wbctl-step-hint,.wbctl-step-opt{display:none}.wbctl-step-index{width:18px;height:18px;font-size:10px}}",
+      "@media (max-width:520px){.wbctl-step-list{gap:4px}.wbctl-step-label{white-space:normal}.wbctl-step{gap:5px}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-step{transition:none}}"
+    ];
+    module2.exports = { Steps, stepState, styles: STYLES };
+  }
+});
+
+// packages/addons/lib/staged-dialog.cjs
+var require_staged_dialog = __commonJS({
+  "packages/addons/lib/staged-dialog.cjs"(exports2, module2) {
+    "use strict";
+    var defaultReact = require("react");
+    var overlayFactory = require_overlay();
+    var stepper = require_stepper();
+    function validateStep(step) {
+      if (!step || typeof step.validate !== "function") return "";
+      var message = step.validate();
+      return message ? String(message) : "";
+    }
+    function firstFailing(steps) {
+      var list = steps || [];
+      for (var i = 0; i < list.length; i += 1) {
+        var message = validateStep(list[i]);
+        if (message) return { index: i, key: list[i] && list[i].key, message };
+      }
+      return null;
+    }
+    function createStagedDialog(options) {
+      var opts = options || {};
+      var React = opts.React || defaultReact;
+      var h = React.createElement;
+      var dialogClass = ((opts.dialogClass || "") + " wbctl-dialog").trim();
+      var Overlay = overlayFactory(
+        Object.assign({}, opts, {
+          React,
+          dialogClass,
+          // 首焦点由外壳送进对话框，字段由 focusStep 负责，避免打开瞬间落进第一个输入框。
+          autoFocusDialog: opts.autoFocusDialog !== false
+        })
+      );
+      function StagedDialog(props) {
+        var R = props.React || React;
+        var steps = props.steps || [];
+        var count = steps.length;
+        var busy = !!props.submitting || !!props.busy;
+        var indexState = R.useState(props.initialStep || 0);
+        var rawIndex = indexState[0];
+        var setIndex = indexState[1];
+        var index = count === 0 ? 0 : Math.min(Math.max(rawIndex, 0), count - 1);
+        var visitedState = R.useState(props.initialStep || 0);
+        var maxVisited = count === 0 ? 0 : Math.min(Math.max(visitedState[0], index), count - 1);
+        var setMaxVisited = visitedState[1];
+        var errorState = R.useState("");
+        var stepError = errorState[0];
+        var setStepError = errorState[1];
+        var invalidState = R.useState({});
+        var invalid = invalidState[0];
+        var setInvalid = invalidState[1];
+        var bodyRef = R.useRef(null);
+        var mounted = R.useRef(true);
+        function runValidate(step) {
+          return validateStep(step);
+        }
+        function markInvalid(i, bad) {
+          setInvalid(function(prev) {
+            var next2 = Object.assign({}, prev);
+            if (bad) next2[i] = true;
+            else delete next2[i];
+            return next2;
+          });
+        }
+        function focusBody() {
+          var el = bodyRef.current;
+          if (el && typeof el.focus === "function") el.focus();
+        }
+        R.useEffect(
+          function() {
+            if (!mounted.current) return;
+            focusBody();
+          },
+          [index]
+        );
+        R.useEffect(function() {
+          mounted.current = true;
+          return function() {
+            mounted.current = false;
+          };
+        }, []);
+        function goTo(i) {
+          if (busy || i < 0 || i >= count) return;
+          setIndex(i);
+          if (i > maxVisited) setMaxVisited(i);
+          setStepError("");
+        }
+        function fail(i, message) {
+          markInvalid(i, true);
+          goTo(i);
+          setStepError(message);
+          focusBody();
+        }
+        function next() {
+          if (busy) return;
+          var message = runValidate(steps[index]);
+          if (message) {
+            fail(index, message);
+            return;
+          }
+          markInvalid(index, false);
+          goTo(Math.min(index + 1, count - 1));
+        }
+        function back() {
+          if (busy || index === 0) return;
+          goTo(index - 1);
+        }
+        function jump(i) {
+          if (busy || i > maxVisited) return;
+          goTo(i);
+        }
+        function submit() {
+          if (busy) return;
+          var bad = firstFailing(steps);
+          if (bad) {
+            fail(bad.index, bad.message);
+            return;
+          }
+          for (var i = 0; i < count; i++) markInvalid(i, false);
+          setStepError("");
+          if (typeof props.onSubmit === "function") props.onSubmit();
+        }
+        function cancel() {
+          if (busy) return;
+          if (typeof props.onClose === "function") props.onClose();
+        }
+        var current = steps[index];
+        var isLast = index >= count - 1;
+        var saveText = props.submitText || "\u4FDD\u5B58";
+        var shownError = stepError || props.error || "";
+        return h(
+          Overlay,
+          props,
+          count > 1 ? h(stepper.Steps, {
+            h,
+            steps: steps.map(function(step) {
+              return { key: step.key, label: step.label, hint: step.hint, optional: step.optional };
+            }),
+            current: index,
+            maxVisited,
+            onJump: jump,
+            invalid,
+            disabled: busy,
+            label: props.stepsLabel || "\u521B\u5EFA\u6B65\u9AA4"
+          }) : null,
+          h(
+            "div",
+            {
+              className: "wbctl-dialog-body" + (props.bodyClassName ? " " + props.bodyClassName : ""),
+              ref: bodyRef,
+              tabIndex: -1
+            },
+            current ? current.render(h, props) : null
+          ),
+          props.footerExtra || null,
+          shownError ? h("div", { className: "wbctl-dialog-err", role: "alert" }, shownError) : null,
+          h(
+            "div",
+            { className: "wbctl-dialog-foot" },
+            count > 1 ? h("span", { className: "wbctl-dialog-progress" }, index + 1 + " / " + count) : null,
+            props.footerNote ? h("span", { className: "wbctl-dialog-note" }, props.footerNote) : null,
+            h("span", { className: "wbctl-dialog-spacer" }),
+            index > 0 ? h(
+              "button",
+              { type: "button", className: "wbctl-btn", onClick: back, disabled: busy },
+              props.backText || "\u4E0A\u4E00\u6B65"
+            ) : null,
+            h("button", { type: "button", className: "wbctl-btn", onClick: cancel, disabled: busy }, props.cancelText || "\u53D6\u6D88"),
+            h(
+              "button",
+              {
+                type: "button",
+                className: "wbctl-btn wbctl-btn-p",
+                onClick: isLast ? submit : next,
+                // submitDisabled 只作用于末步的保存：插件据此把「结构性不合法」（JSON 语法、无可选 action）
+                // 提前反映成禁用态，避免用户点到保存才被弹回第一步。
+                disabled: busy || isLast && !!props.submitDisabled
+              },
+              busy ? saveText + "\u4E2D\u2026" : isLast ? saveText : props.nextText || "\u4E0B\u4E00\u6B65"
+            )
+          )
+        );
+      }
+      StagedDialog.displayName = opts.displayName || "StagedDialog";
+      return StagedDialog;
+    }
+    var STYLES = [
+      // 宽表单：内容多时给足横向空间，窄屏留 16px 边距后铺满。
+      ".wbctl-dialog{width:min(880px,calc(100vw - 32px));max-height:min(92vh,760px);display:flex;flex-direction:column;overflow:hidden}",
+      ".wbctl-dialog-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 2px 10px;outline:none}",
+      ".wbctl-dialog-body:focus-visible{outline:none}",
+      ".wbctl-dialog-foot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:10px;margin-top:10px;border-top:1px solid var(--wb-line,var(--wb-border))}",
+      ".wbctl-dialog-progress{font-size:11.5px;color:var(--wb-muted,#666);font-variant-numeric:tabular-nums}",
+      ".wbctl-dialog-note{font-size:11.5px;color:var(--wb-muted,#666);min-width:0}",
+      ".wbctl-dialog-spacer{flex:1 1 auto}",
+      ".wbctl-dialog-err{margin-top:8px;padding:7px 10px;border-radius:8px;border:1px solid color-mix(in oklab,var(--wb-danger,#d33) 45%,transparent);background:color-mix(in oklab,var(--wb-danger,#d33) 8%,transparent);color:var(--wb-danger,#d33);font-size:12px}",
+      ".wbctl-btn{padding:6px 14px;border:1px solid var(--wb-border,#d0d5dd);border-radius:8px;background:var(--wb-card,#fff);color:inherit;font:inherit;font-size:12.5px;cursor:pointer}",
+      ".wbctl-btn:hover:not(:disabled){background:color-mix(in oklab,currentColor 7%,transparent)}",
+      ".wbctl-btn:focus-visible{outline:2px solid var(--wb-accent,#2563eb);outline-offset:2px}",
+      ".wbctl-btn:disabled{opacity:.55;cursor:default}",
+      ".wbctl-btn.wbctl-btn-p{background:var(--wb-accent,#2563eb);border-color:transparent;color:var(--wb-on-accent,#fff)}",
+      ".wbctl-btn.wbctl-btn-p:hover:not(:disabled){background:color-mix(in oklab,var(--wb-accent,#2563eb) 86%,#000)}",
+      // 确认步：键值对清单，各插件共用，避免再各写一套只读摘要。\n  ".wbctl-review{display:flex;flex-direction:column;border:1px solid var(--wb-line,var(--wb-border));border-radius:10px;overflow:hidden}",\n  ".wbctl-review-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 12px;font-size:12.5px;background:var(--wb-surface,transparent)}",\n  ".wbctl-review-row+.wbctl-review-row{border-top:1px solid var(--wb-line,var(--wb-border))}",\n  ".wbctl-review-k{color:var(--wb-muted,inherit);font-size:11.5px;line-height:1.6}",\n  ".wbctl-review-v{min-width:0;word-break:break-word;line-height:1.6}",\n  ".wbctl-note{margin:10px 0 0;font-size:11.5px;color:var(--wb-muted,inherit)}",\n  // 两列字段布局：内容多的弹窗不再单列拉长，窄屏回落单列。
+      ".wbctl-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}",
+      ".wbctl-form>.full{grid-column:1/-1}",
+      "@media (max-width:760px){.wbctl-dialog{width:calc(100vw - 16px);max-height:94vh}.wbctl-form{grid-template-columns:1fr}.wbctl-form>.full{grid-column:auto}}",
+      "@media (prefers-reduced-motion:reduce){.wbctl-btn{transition:none}}"
+    ];
+    module2.exports = {
+      createStagedDialog,
+      validateStep,
+      firstFailing,
+      styles: STYLES
+    };
+  }
+});
+
 // packages/addons/tasks/client/ui/styles.cjs
 var require_styles = __commonJS({
   "packages/addons/tasks/client/ui/styles.cjs"(exports2, module2) {
@@ -8006,7 +9579,7 @@ var require_styles = __commonJS({
       ".wbt-body{display:flex;gap:14px;align-items:stretch;min-height:0;flex:1;overflow:hidden}",
       ".wbt-filter-panel{flex:0 0 248px;width:248px;min-width:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--wbt-line);border-radius:10px;background:var(--wbt-bg);box-sizing:border-box;padding:12px}",
       ".wbt-filter-content{display:flex;flex-direction:column;gap:12px}.wbt-filter-toggle{display:none}.wbt-filter-group{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0;padding:10px 0;border:0;border-bottom:1px solid var(--wbt-line)}.wbt-filter-group legend{font-weight:600;padding:0}.wbt-filter-search{display:flex;gap:4px}.wbt-filter-search input{width:100%;min-width:0}.wbt-filter-panel .wbt-check{white-space:normal}.wbt-filter-panel .wbt-tagmenu{position:static;width:100%;box-sizing:border-box;max-height:240px}.wbt-filter-panel .wbt-tagfilter{flex-wrap:wrap}.wbt-filter-panel input:disabled{opacity:.45;cursor:not-allowed}.wbt-filter-panel .wbt-mhint{margin:0;line-height:1.6}.wbt-filter-panel .wbt-field input{width:100%;box-sizing:border-box}",
-      ".wbt-limit-row{display:flex;flex-direction:column;gap:4px;min-width:0}.wbt-limit-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0}.wbt-limit-hint{margin:0;font-size:11.5px;line-height:1.6;opacity:.65;overflow-wrap:anywhere}.wbt-limit-head>strong{font-weight:560;font-size:12.5px;flex:none}.wbt-limit-fields{display:flex;align-items:center;gap:4px;min-width:0}.wbt-limit-fields input{flex:1 1 0;width:0;min-width:0;box-sizing:border-box;text-align:center;padding-left:6px;padding-right:6px}.wbt-limit-fields .wbt-limit-input{background-color:var(--wbt-surface);border:1px solid var(--wbt-line);border-radius:8px;padding:6px 4px;font-size:13px;color:inherit;font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield}.wbt-limit-fields .wbt-limit-input:focus{border-color:var(--wbt-accent);outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--wbt-accent) 18%,transparent)}.wbt-limit-fields .wbt-limit-input::-webkit-outer-spin-button,.wbt-limit-fields .wbt-limit-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.wbt-limit-fields>span{flex:none;opacity:.55;font-size:11.5px}.wbt-limit-clear{flex:none;padding:2px 6px;line-height:1.2}.wbt-limit-unit{font-size:11px;opacity:.55;overflow-wrap:anywhere;min-width:0}",
+      ".wbt-limit-row{display:flex;flex-direction:column;gap:4px;min-width:0}.wbt-limit-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0}.wbt-limit-hint{margin:0;font-size:11.5px;line-height:1.6;opacity:.65;overflow-wrap:anywhere}.wbt-limit-head>strong{font-weight:560;font-size:12.5px;flex:none}.wbt-limit-fields{display:flex;align-items:flex-start;gap:4px;min-width:0}.wbt-limit-fields .wbctl-num{flex:1 1 0;min-width:0;width:0}.wbt-limit-fields .wbctl-num-box{width:100%}.wbt-limit-fields .wbctl-num-input{width:100%;box-sizing:border-box;text-align:center;padding:6px 4px;border-radius:8px;border-color:var(--wbt-line);background-color:var(--wbt-surface)}.wbt-limit-fields>span{flex:none;opacity:.55;font-size:11.5px}.wbt-limit-fields .wbt-limit-join{padding-top:7px}.wbt-limit-fields .wbt-limit-clear{margin-top:1px}.wbt-limit-clear{flex:none;padding:2px 6px;line-height:1.2}.wbt-limit-fields .wbctl-num-err{overflow-wrap:anywhere}.wbt-limit-unit{font-size:11px;opacity:.55;overflow-wrap:anywhere;min-width:0}",
       ".wbt-presets{gap:6px}.wbt-preset-list{display:flex;flex-wrap:wrap;gap:6px}.wbt-preset{padding:4px 9px;border:1px solid var(--wbt-line);border-radius:999px;background:var(--wbt-surface);color:inherit;font-size:12px;line-height:1.5;white-space:normal}.wbt-preset:hover{border-color:var(--wbt-accent)}.wbt-preset.active{background:var(--wbt-accent);border-color:var(--wbt-accent);color:#fff}.wbt-preset:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:2px}.wbt-target-group{gap:8px}",
       ".wbt-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px}.wbt-status-grid .wbt-check{min-width:0;overflow-wrap:anywhere}.wbt-pathrow>.wbt-sum{flex:none;white-space:nowrap}",
       ".wbt-nav{display:flex;flex-direction:column;gap:2px;flex:0 0 138px;width:138px;padding:3px 0;border-right:1px solid var(--wbt-line)}",
@@ -8174,7 +9747,23 @@ var require_styles = __commonJS({
       ".wbt-form{display:grid;grid-template-columns:1fr 1fr;gap:9px}",
       ".wbt-field{display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:0}",
       ".wbt-field.full{grid-column:1 / -1}",
-      ".wbt-field>span{opacity:.62;font-size:11.5px}",
+      ".wbt-create-tl{grid-column:1 / -1;display:flex;flex-direction:column;gap:6px;min-width:0;padding:9px 10px;border:1px solid var(--wbt-line);border-radius:10px;background:color-mix(in oklab,var(--wbt-accent) 4%,transparent);box-sizing:border-box}",
+      ".wbt-create-tl-head{display:flex;align-items:baseline;gap:8px;min-width:0;font-size:12px}",
+      ".wbt-create-tl-head>span:first-child{font-weight:600}",
+      ".wbt-create-tl-hint{font-size:11px;opacity:.55;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".wbt-create-tl .wbt-timeline-picker{display:flex;flex-direction:column;gap:6px;min-width:0}",
+      ".wbt-create-tl .wbt-picker-list{max-height:180px;scrollbar-gutter:stable}",
+      ".wbt-create-tl .wbt-timeline-pager{margin-top:4px;font-size:11.5px}",
+      // 标签步：已选 chip + 共享勾选清单 + 新标签输入，清单限高内部滚动。
+      ".wbt-tagpick{display:flex;flex-direction:column;gap:8px;min-width:0}",
+      ".wbt-tagchips{display:flex;flex-wrap:wrap;gap:6px}",
+      ".wbt-tagchip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:1px solid var(--wbt-line);border-radius:999px;background:color-mix(in oklab,var(--wbt-accent) 10%,transparent);color:inherit;font:inherit;font-size:12px;cursor:pointer}",
+      ".wbt-tagchip:hover{border-color:var(--wbt-accent)}",
+      ".wbt-tagchip-x{opacity:.55;font-size:12px}",
+      ".wbt-tagpick .wbck-list{max-height:220px}",
+      ".wbt-tagnew{display:flex;gap:8px;align-items:center}",
+      ".wbt-tagnew .wbt-input{flex:1;min-width:0}",
+      ".wbt-field>span{opacity:.62;font-size:11.5px}.wbt-field>span.wbctl-num{opacity:1;font-size:12px;align-self:stretch}.wbt-field .wbt-difficulty-num{width:110px}",
       ".wbt-modal-foot{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:2px}",
       // 预览面板：只让内容区滚动，头部标题与右上角 × 固定不动（滚动壳限定在 .wbt-preview，不影响其它弹窗）。
       ".wbt-preview{overflow:hidden}",
@@ -8233,8 +9822,80 @@ var require_styles = __commonJS({
       ".wbt-countdown.overdue{color:var(--dsw-alias-label-primary-inverted,#fff);background:var(--dsw-alias-state-error-primary,#e5484d);border-color:transparent}",
       "@media (max-width:760px){.wbt-body{flex-direction:column;gap:8px}.wbt-nav{flex-direction:row;width:100%;flex:0 0 auto;overflow-x:auto;border-right:none;border-bottom:1px solid var(--wbt-line);padding:0 0 6px}.wbt-tab{width:auto;white-space:nowrap;padding:6px 9px}.wbt-tab.on{box-shadow:inset 0 -2px 0 var(--wbt-accent)}.wbt-nav-sep{width:1px;height:18px;flex:none;margin:auto 4px}.wbt-tree-slot{flex:0 0 auto;width:auto;margin-right:0}.wbt-pathrow .wbt-search{flex:1 1 160px;max-width:none}}",
       "@media (max-width:760px){.wbt-filter-panel{width:100%;flex:0 0 auto;padding:8px;max-height:40%}.wbt-filter-toggle{display:inline-flex}.wbt-filter-panel:not(.expanded) .wbt-filter-content{display:none}.wbt-filter-panel.expanded .wbt-filter-content{padding-top:10px}.wbt-content{width:100%;box-sizing:border-box}}",
-      "@media (max-width:640px){.wbt-form{grid-template-columns:1fr}.wbt-drawer{width:94vw}.wbt-search{width:100%}.wbt-item{padding:9px}.wbt-ops{width:100%;justify-content:flex-end}}"
-    ].concat(require_filter_checklist_styles(), require_date_picker_styles()("wbt")).join("\n");
+      "@media (max-width:640px){.wbt-form{grid-template-columns:1fr}.wbt-drawer{width:94vw}.wbt-search{width:100%}.wbt-item{padding:9px}.wbt-ops{width:100%;justify-content:flex-end}}",
+      // ── 插槽贡献：渲染在别的插件的界面里（如邮件详情动作条） ──
+      // 那里没有 .wbt-root，--wbt-* 变量不存在，所以每个变量都带主题变量兜底。
+      ".wbt-metazone:empty{display:none}",
+      ".wbtx-slot{position:relative;display:inline-flex;align-items:center;gap:6px}",
+      ".wbtx-slot-btn{font-size:12.5px;white-space:nowrap}",
+      ".wbtx-slot-btn[aria-expanded=true]{border-color:var(--wbt-accent,var(--wb-accent));color:var(--wbt-accent,var(--wb-accent))}",
+      ".wbtx-slot-panel{position:absolute;top:calc(100% + 6px);right:0;z-index:40;display:flex;flex-direction:column;gap:8px;width:264px;padding:10px;border-radius:10px;border:1px solid var(--wbt-line,var(--wb-border));background:var(--dsw-alias-bg-layer-1,var(--wb-card,transparent));box-shadow:0 12px 28px color-mix(in oklab,var(--wbt-line,var(--wb-border)) 60%,transparent);text-align:left}",
+      ".wbtx-slot-row{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--wbt-muted,var(--wb-muted))}",
+      ".wbtx-slot-input{width:100%;box-sizing:border-box;font-size:12.5px}",
+      ".wbtx-slot-muted{font-size:12px;color:var(--wbt-muted,var(--wb-muted))}",
+      ".wbtx-slot-foot{display:flex;justify-content:flex-end;gap:8px}",
+      ".wbtx-slot-done{display:inline-flex;align-items:center;gap:8px;font-size:12px}",
+      ".wbtx-slot-note{color:var(--wbt-muted,var(--wb-muted))}",
+      ".wbtx-slot-link{border:0;background:transparent;padding:0;font:inherit;font-size:12px;color:var(--wbt-accent,var(--wb-accent));cursor:pointer;text-decoration:underline}",
+      ".wbt-mailback{font-size:11.5px;padding:2px 7px}"
+    ].concat(require_filter_checklist_styles(), require_date_picker_styles()("wbt"), require_switch().styles, require_number_field().styles, require_stepper().styles, require_staged_dialog().styles).join("\n");
+  }
+});
+
+// packages/addons/tasks/client/timeline/timeline-styles.cjs
+var require_timeline_styles = __commonJS({
+  "packages/addons/tasks/client/timeline/timeline-styles.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = [
+      ".wbt-timeline-view{padding:0;color:inherit;box-sizing:border-box;overflow:auto}",
+      ".wbt-timeline-toolbar,.wbt-timeline-search,.wbt-timeline-pager,.wbt-timeline-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+      ".wbt-timeline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}",
+      ".wbt-timeline-toolbar-main{display:flex;align-items:center;gap:8px;flex:1 1 320px;min-width:0;flex-wrap:wrap}",
+      ".wbt-timeline-toolbar-main .wbt-timeline-search{flex:1 1 220px;min-width:0}",
+      ".wbt-timeline-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}",
+      ".wbt-timeline-columns{display:grid;grid-template-columns:minmax(240px,32%) minmax(0,1fr);gap:12px;align-items:start}",
+      ".wbt-timeline-left,.wbt-timeline-right{min-width:0;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-card,10px);padding:12px}",
+      ".wbt-timeline-search input{min-width:0;flex:1}",
+      ".wbt-timeline-list{max-height:840px;overflow:auto;overscroll-behavior:contain}.wbt-timeline-left>.wbt-timeline-list,.wbt-timeline-left>.wbt-err{margin-top:2px}.wbt-timeline-view .wbt-timeline-option{position:relative;box-sizing:border-box;min-height:56px;padding:10px 12px;border:0;border-bottom:1px solid var(--wbt-line);border-radius:var(--wb-radius-sm,6px);display:flex;flex-direction:column;gap:4px;cursor:pointer;color:inherit;background:transparent;background-image:none}",
+      ".wbt-timeline-option-title{display:flex;gap:8px;align-items:center;min-width:0}.wbt-timeline-option-title strong{font-size:13px;font-weight:560;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}.wbt-timeline-option>span{font-size:11.5px;opacity:.6;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
+      ".wbt-timeline-option>.wbt-timeline-excerpt{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+      ".wbt-timeline-view .wbt-timeline-option.current{box-shadow:inset 3px 0 var(--wbt-accent),inset 0 0 0 1px var(--wbt-line);background:color-mix(in oklab,var(--wbt-accent) 8%,transparent);background-image:none}.wbt-timeline-view .wbt-timeline-option:hover{background:color-mix(in oklab,var(--wbt-accent) 12%,transparent)}",
+      ".wbt-timeline-option:focus-visible,.wbt-timeline-view button:focus-visible,.wbt-timeline-modal button:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:2px}.wbt-timeline-option input[type=checkbox]{appearance:auto;width:15px;height:15px;flex:none;accent-color:var(--wbt-accent)}",
+      ".wbt-timeline-pager{justify-content:space-between;font-size:12px;margin-top:12px}.wbt-timeline-right h3,.wbt-timeline-summary h4{font-size:15px;font-weight:600;margin:0 0 8px;overflow-wrap:anywhere}.wbt-timeline-eyebrow{font-size:11.5px;opacity:.55;margin-bottom:4px;overflow-wrap:anywhere}",
+      ".wbt-timeline-summary{min-width:0}.wbt-timeline-desc{max-height:64px;overflow:hidden;margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere}.wbt-timeline-actions{margin:8px 0}.wbt-timeline-actions>.wbt-act-del{margin-left:auto}",
+      ".wbt-timeline-right>.wbt-timeline-members{min-height:0;max-height:65vh;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-gutter:stable}",
+      // Scoped reset defeats ordinary host button surfaces without touching unrelated task controls.
+      ":is(.wbt-timeline-view,.wbt-timeline-modal) button:is(.wbt-timeline-member,.wbt-timeline-remove,.wbt-timeline-id){appearance:none;background:transparent;background-image:none;color:inherit;border:0;box-shadow:none;border-radius:var(--wb-radius-sm,6px);font:inherit;cursor:pointer;min-width:0;min-height:0;width:auto;margin:0}",
+      ":is(.wbt-timeline-view,.wbt-timeline-modal) .wbt-timeline-id{display:inline-flex;align-items:center;gap:4px;padding:4px;max-width:180px}.wbt-timeline-id code{font-size:11.5px;opacity:.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ":is(.wbt-timeline-view,.wbt-timeline-modal) .wbt-act-del{color:var(--dsw-alias-state-error-primary,var(--wbt-accent));background:transparent;border-color:var(--wbt-line)}",
+      '.wbt-timeline-members{list-style:none;padding:0;margin:8px 0;min-width:0}.wbt-timeline-member-row{display:grid;grid-template-columns:92px 14px minmax(0,1fr) auto 28px;gap:8px;align-items:center;min-height:40px;position:relative;padding:0;margin:0}.wbt-timeline-date{font-size:11.5px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;opacity:.7}.wbt-timeline-node{align-self:stretch;position:relative}.wbt-timeline-node:before{content:"";position:absolute;width:1px;left:50%;top:0;bottom:0;background:var(--wbt-line)}.wbt-timeline-node:after{content:"";position:absolute;width:6px;height:6px;left:calc(50% - 2.5px);top:calc(50% - 3px);border-radius:50%;background:var(--wbt-accent)}',
+      ":is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-member{padding:8px 0;text-align:left;font-size:13px;line-height:1.5;overflow-wrap:anywhere;white-space:normal}:is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-member:hover{text-decoration:underline;text-underline-offset:3px}:is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-remove{display:flex;justify-content:center;align-items:center;width:28px;height:28px;padding:4px;opacity:.35}:is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-remove:is(:hover,:focus-visible){opacity:.9;background:var(--wbt-surface)}.wbt-timeline-member-row>.wbt-badge{white-space:nowrap;margin:0}.wbt-timeline-remove:disabled{cursor:default}",
+      ".wbt-timeline-member-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--wbt-line);padding-top:8px}.wbt-timeline-member-footer>span{font-size:11.5px;opacity:.65}.wbt-timeline-member-footer .wbt-timeline-pager{margin:0}",
+      ".wbt-modal.wide.wbt-timeline-modal{display:flex;flex-direction:column;max-height:90vh;overflow:hidden}.wbt-timeline-modal-body{min-height:0;overflow:auto;flex:1;padding:12px}.wbt-timeline-member-section{min-width:0;margin-top:12px}.wbt-timeline-member-scroll{max-height:40vh;overflow:auto;overscroll-behavior:contain}.wbt-timeline-pick{border-top:1px solid var(--wbt-line);padding-top:12px;margin-top:12px}.wbt-timeline-empty{padding:12px 0}.wbt-picker-selected{font-size:12px;margin:6px 0;min-height:16px}.wbt-picker-list{max-height:220px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-sm,6px);padding:4px;background:var(--wbt-surface)}.wbt-picker-note{margin:6px;font-size:12px;opacity:.7}.wbt-picker-opt{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:6px 8px;border:0;border-radius:var(--wb-radius-sm,6px);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.wbt-picker-opt:hover,.wbt-picker-opt:focus-visible{background:color-mix(in oklab,var(--wbt-accent) 12%,transparent)}.wbt-picker-opt:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:-2px}.wbt-picker-opt.selected{background:color-mix(in oklab,var(--wbt-accent) 16%,transparent);font-weight:600}.wbt-picker-opt-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wbt-picker-opt-count{font-size:11px;opacity:.6;white-space:nowrap}.wbt-timeline-confirm{padding:12px;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-card,10px);margin:8px 0;line-height:1.6;background:var(--wbt-surface)}.wbt-timeline-confirm .wbt-btn{margin:8px 8px 0 0}",
+      ".wbt-timeline-desc.expanded{max-height:none}.wbt-timeline-selected{min-width:0;overflow-wrap:anywhere;flex:1}.wbt-modal-foot.wbt-timeline-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:none}.wbt-timeline-modal .wbt-empty{padding:12px;margin:8px 0;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-card,10px);background:var(--wbt-surface);line-height:1.6}",
+      "@media(max-width:720px){.wbt-timeline-selected{flex:1 1 100%}.wbt-picker-list{max-height:180px}.wbt-timeline-columns{grid-template-columns:1fr}.wbt-timeline-toolbar-main{flex:1 1 100%}.wbt-timeline-toolbar-actions{flex:1 1 100%;justify-content:flex-end;margin-left:0}.wbt-timeline-list{max-height:320px}.wbt-timeline-toolbar{flex-wrap:wrap}.wbt-timeline-member-row{grid-template-columns:76px 8px minmax(0,1fr) auto 28px;gap:4px}.wbt-timeline-left,.wbt-timeline-right{padding:12px}.wbt-timeline-date{font-size:10.5px}.wbt-timeline-member-row>.wbt-badge{font-size:10.5px;padding:2px 4px}.wbt-timeline-actions>.wbt-act-del{margin-left:0}.wbt-timeline-id{max-width:140px}}"
+    ].join("\n");
+  }
+});
+
+// packages/addons/tasks/client/ui/inject-css.cjs
+var require_inject_css = __commonJS({
+  "packages/addons/tasks/client/ui/inject-css.cjs"(exports2, module2) {
+    "use strict";
+    var CSS = require_styles() + "\n" + require_timeline_styles();
+    module2.exports = function injectTasksCss() {
+      if (typeof document === "undefined") return;
+      var old = document.getElementById("wb-addon-tasks-v2-css");
+      if (old) {
+        old.textContent = CSS;
+        return;
+      }
+      var s = document.createElement("style");
+      s.id = "wb-addon-tasks-v2-css";
+      s.setAttribute("data-wb-addon", "wb-addon-tasks");
+      s.textContent = CSS;
+      document.head.appendChild(s);
+    };
   }
 });
 
@@ -8260,6 +9921,7 @@ var require_task_item = __commonJS({
       var statusInfo = deps.statusInfo, stars = deps.stars, pClass = deps.pClass;
       var today = deps.today, daysBetween = deps.daysBetween, cx = deps.cx;
       var Icon2 = deps.Icon, Countdown = deps.Countdown, PathCrumbs = deps.PathCrumbs;
+      var Slot = deps.Slot;
       function TaskItem(props) {
         var t = props.t;
         var initialMode = props.bodyMode === "text" ? "text" : "markdown";
@@ -8375,13 +10037,25 @@ var require_task_item = __commonJS({
         );
         var opsNode = h("div", { className: "wbt-ops", key: "ops" }, ops);
         var tagBlock = tagNodes.length ? h("div", { className: "wbt-tags", key: "tags" }, tagNodes) : null;
+        var sourceBlock = h(Slot, {
+          slot: "item.actions",
+          ownerId: "wb-addon-tasks",
+          lang: props.lang,
+          key: "source",
+          item: {
+            kind: "task",
+            id: String(task.id || ""),
+            title: String(task.title || ""),
+            description: String(task.description || "")
+          }
+        });
         var wsList = Array.isArray(task.workspaces) ? task.workspaces : [];
         var wsBlock = wsList.length ? h("div", { className: "wbt-wschips", key: "workspaces" }, wsList.map(function(w) {
           return h("span", { className: "wbt-wschip wbt-wschip-ro", key: String(w.id), title: w.dir || "" }, (w.dir ? "" : "\u25E6 ") + (w.title || w.id));
         })) : null;
         var metaBlock = meta.length ? h("div", { className: "wbt-foot", key: "meta" }, h("div", { className: "wbt-meta" }, meta)) : null;
         var pathBlock = task.path && task.path.length ? h("div", { className: "wbt-taskpath", key: "path" }, h(PathCrumbs, { path: task.path, t, onPick: props.onPathPick })) : null;
-        var metaZone = tagBlock || wsBlock || metaBlock || pathBlock ? h("div", { className: "wbt-metazone", key: "metazone" }, tagBlock, wsBlock, metaBlock, pathBlock) : null;
+        var metaZone = tagBlock || sourceBlock || wsBlock || metaBlock || pathBlock ? h("div", { className: "wbt-metazone", key: "metazone" }, tagBlock, sourceBlock, wsBlock, metaBlock, pathBlock) : null;
         var idNode = String(task.id || "") ? h("div", {
           className: "wbt-item-id",
           key: "taskid",
@@ -8481,43 +10155,64 @@ var require_timeline_copy = __commonJS({
 var require_timeline_controls = __commonJS({
   "packages/addons/tasks/client/timeline/timeline-controls.cjs"(exports2, module2) {
     "use strict";
+    var createOverlay = require_overlay();
     function result(r) {
       if (!r || !r.ok) throw Error(r && r.error || "\u8BF7\u6C42\u5931\u8D25");
       return r.result;
     }
     module2.exports = function(React) {
       var h = React.createElement;
+      var EditorOverlay = createOverlay({
+        maskClass: "wbt-modal-mask",
+        dialogClass: "wbt-modal",
+        ariaLabelOf: function(p) {
+          var tr = require_timeline_copy()(p.t);
+          return p.item ? tr("\u7F16\u8F91\u65F6\u95F4\u7EBF") : tr("\u65B0\u5EFA\u65F6\u95F4\u7EBF");
+        },
+        // 表单弹窗点遮罩容易误关，保持原有行为：只有 Esc 与取消按钮关闭。
+        closeOnMask: false
+      });
       function Picker(p) {
         var tr = require_timeline_copy()(p.t);
+        var PAGE_SIZE = 20;
         var ds = React.useState({ records: [], total: 0 }), data = ds[0], setData = ds[1];
         var ps = React.useState(1), page = ps[0], setPage = ps[1];
         var qs = React.useState(""), query = qs[0], setQuery = qs[1];
         var es = React.useState(""), error = es[0], setError = es[1];
         var bs = React.useState(false), busy = bs[0], setBusy = bs[1];
+        var ms = React.useState(false), more = ms[0], setMore = ms[1];
         var rs = React.useState(0), retry = rs[0], setRetry = rs[1];
         var as = React.useState(-1), active = as[0], setActive = as[1];
         var list = React.useRef(null);
+        var loading = React.useRef(false);
         React.useEffect(function() {
-          var cancelled = false;
-          setBusy(true);
+          var cancelled = false, first = page <= 1;
+          if (first) setBusy(true);
+          else setMore(true);
           setError("");
-          p.api.call("tasks.timelines", { includeSingletons: true, titleKey: query, pageNumber: page, pageSize: 20 }).then(result).then(function(r) {
-            if (!cancelled) {
-              setData(r);
-              setActive(-1);
-              setBusy(false);
-            }
+          loading.current = true;
+          p.api.call("tasks.timelines", { includeSingletons: true, titleKey: query, pageNumber: page, pageSize: PAGE_SIZE }).then(result).then(function(r) {
+            if (cancelled) return;
+            loading.current = false;
+            setData(function(prev) {
+              if (first) return r;
+              return { records: (prev.records || []).concat(r.records || []), total: r.total };
+            });
+            setActive(-1);
+            setBusy(false);
+            setMore(false);
           }).catch(function(e) {
-            if (!cancelled) {
-              setError(String(e.message || e));
-              setBusy(false);
-            }
+            if (cancelled) return;
+            loading.current = false;
+            setError(String(e.message || e));
+            setBusy(false);
+            setMore(false);
           });
           return function() {
             cancelled = true;
           };
         }, [p.api, page, query, retry]);
-        var rows = data.records || [], pages = Math.max(1, Math.ceil(data.total / 20));
+        var rows = data.records || [], pages = Math.max(1, Math.ceil(data.total / PAGE_SIZE));
         function choose(row) {
           if (row) p.onChange(row.timelineId || row.timelineKey, row.title || "");
         }
@@ -8536,11 +10231,21 @@ var require_timeline_controls = __commonJS({
           var nodes = list.current ? list.current.querySelectorAll('[role="option"]') : [];
           return Array.prototype.indexOf.call(nodes, document.activeElement);
         }
+        function loadMore() {
+          if (loading.current || busy || more || page >= pages) return;
+          setPage(page + 1);
+        }
+        function onScroll(e) {
+          var el = e.currentTarget;
+          if (!el || !el.scrollHeight) return;
+          if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) loadMore();
+        }
         function onKeyDown(e) {
           var base = focusedIndex() >= 0 ? focusedIndex() : active;
           if (e.key === "ArrowDown") {
             e.preventDefault();
             move(base + 1);
+            loadMore();
           } else if (e.key === "ArrowUp") {
             e.preventDefault();
             move(base <= 0 ? 0 : base - 1);
@@ -8550,6 +10255,7 @@ var require_timeline_controls = __commonJS({
           } else if (e.key === "End") {
             e.preventDefault();
             move(rows.length - 1);
+            loadMore();
           } else if (e.key === "Enter") {
             if (document.activeElement && document.activeElement.getAttribute("role") === "option") return;
             e.preventDefault();
@@ -8563,15 +10269,20 @@ var require_timeline_controls = __commonJS({
             "label",
             { className: "wbt-field" },
             tr("\u641C\u7D22\u5DF2\u6709\u65F6\u95F4\u7EBF"),
-            h("input", { className: "wbt-input", "aria-label": tr("\u641C\u7D22\u5DF2\u6709\u65F6\u95F4\u7EBF"), value: query, onChange: function(e) {
-              setQuery(e.target.value);
-              setPage(1);
-            } })
+            h("input", {
+              className: "wbt-input",
+              "aria-label": tr("\u641C\u7D22\u5DF2\u6709\u65F6\u95F4\u7EBF"),
+              value: query,
+              onChange: function(e) {
+                setQuery(e.target.value);
+                setPage(1);
+              }
+            })
           ),
           h("div", { className: "wbt-picker-selected", role: "status" }, p.value ? tr("\u5DF2\u9009\u65F6\u95F4\u7EBF") + "\uFF1A" + (p.title || p.value) : tr("\u5C1A\u672A\u9009\u62E9\u65F6\u95F4\u7EBF")),
           h(
             "div",
-            { ref: list, className: "wbt-picker-list", role: "listbox", "aria-label": tr("\u9009\u62E9\u5DF2\u6709\u65F6\u95F4\u7EBF"), "aria-busy": busy ? "true" : "false", onKeyDown },
+            { ref: list, className: "wbt-picker-list", role: "listbox", "aria-label": tr("\u9009\u62E9\u5DF2\u6709\u65F6\u95F4\u7EBF"), "aria-busy": busy ? "true" : "false", onKeyDown, onScroll },
             busy ? h("p", { className: "wbt-picker-note" }, tr("\u52A0\u8F7D\u4E2D\u2026")) : null,
             error ? h("div", { className: "wbt-picker-note wbt-err", role: "alert" }, error, h("button", { type: "button", className: "wbt-btn", onClick: function() {
               setRetry(retry + 1);
@@ -8589,18 +10300,9 @@ var require_timeline_controls = __commonJS({
                 h("span", { className: "wbt-picker-opt-title" }, row.title || tr("\u672A\u547D\u540D\u65F6\u95F4\u7EBF")),
                 h("span", { className: "wbt-picker-opt-count" }, row.taskCount + tr(" \u4E2A\u4EFB\u52A1"))
               );
-            }) : null
-          ),
-          h(
-            "div",
-            { className: "wbt-timeline-pager" },
-            h("button", { type: "button", className: "wbt-btn", disabled: busy || page <= 1, onClick: function() {
-              setPage(page - 1);
-            } }, tr("\u4E0A\u4E00\u9875")),
-            h("span", null, page + " / " + pages),
-            h("button", { type: "button", className: "wbt-btn", disabled: busy || page >= pages, onClick: function() {
-              setPage(page + 1);
-            } }, tr("\u4E0B\u4E00\u9875"))
+            }) : null,
+            more ? h("p", { className: "wbt-picker-note" }, tr("\u52A0\u8F7D\u66F4\u591A\u2026")) : null,
+            !busy && !error && rows.length && page >= pages ? h("p", { className: "wbt-picker-note" }, tr("\u5DF2\u5230\u6700\u540E\u4E00\u6761")) : null
           )
         );
       }
@@ -8626,14 +10328,9 @@ var require_timeline_controls = __commonJS({
             setBusy(false);
           });
         }
-        return h("div", { className: "wbt-modal-mask", onKeyDown: function(e) {
-          if (e.key === "Escape" && !busy) {
-            e.stopPropagation();
-            p.onClose();
-          }
-        } }, h(
-          "div",
-          { className: "wbt-modal", role: "dialog", "aria-modal": true, "aria-label": item ? tr("\u7F16\u8F91\u65F6\u95F4\u7EBF") : tr("\u65B0\u5EFA\u65F6\u95F4\u7EBF") },
+        return h(
+          EditorOverlay,
+          { onClose: p.onClose, closeOnEscape: !busy, closeOnMask: false, autoFocus: false },
           h("div", { className: "wbt-modal-head" }, h("h3", null, item ? tr("\u7F16\u8F91\u65F6\u95F4\u7EBF") : tr("\u65B0\u5EFA\u65F6\u95F4\u7EBF"))),
           h("label", { className: "wbt-field" }, tr("\u65F6\u95F4\u7EBF\u6807\u9898"), h("input", { className: "wbt-input", autoFocus: true, value: title, placeholder: tr("\u672A\u547D\u540D\u65F6\u95F4\u7EBF"), onChange: function(e) {
             setTitle(e.target.value);
@@ -8643,7 +10340,7 @@ var require_timeline_controls = __commonJS({
           } })),
           error ? h("p", { role: "alert", className: "wbt-err" }, error) : null,
           h("div", { className: "wbt-modal-foot" }, h("button", { className: "wbt-btn", disabled: busy, onClick: p.onClose }, tr("\u53D6\u6D88")), h("button", { className: "wbt-btn primary", disabled: busy, onClick: save }, busy ? tr("\u4FDD\u5B58\u4E2D\u2026") : tr("\u4FDD\u5B58\u65F6\u95F4\u7EBF")))
-        ));
+        );
       }
       return { Picker, Editor, result };
     };
@@ -8833,32 +10530,37 @@ var require_workspace_select = __commonJS({
 var require_difficulty_field = __commonJS({
   "packages/addons/tasks/client/item/difficulty-field.cjs"(exports2, module2) {
     "use strict";
+    var NF = require_number_field();
     module2.exports = function(React) {
       var h = React.createElement;
-      return function difficultyField(t, value, onChange, id) {
+      return function difficultyField(t, value, onChange, id, lang) {
         var n = Number(value) || 0, full = Math.floor(n), half = n - full >= 0.5;
         var stars = "\u2605".repeat(full) + (half ? "\u2BEA" : "") + "\u2606".repeat(Math.max(0, 5 - full - (half ? 1 : 0)));
         return h(
           "div",
           { className: "wbt-field full" },
-          h("label", { htmlFor: id }, t.difficulty + " (0\u20135)"),
+          h("span", { className: "wbt-field-label" }, t.difficulty + " (0\u20135)"),
           h(
             "div",
             { className: "wbt-row" },
-            h("input", {
-              id,
-              className: "wbt-input",
-              type: "number",
+            h(NF.NumberField, {
+              h,
+              lang,
+              value,
               min: 0,
               max: 5,
               step: 0.5,
-              "aria-label": t.difficulty,
-              "aria-describedby": id + "-hint",
+              allowEmpty: true,
+              ariaLabel: t.difficulty,
               placeholder: t.difficultyUnsetHint,
-              value,
-              onChange: function(e) {
-                var raw = e.target.value;
-                onChange(raw === "" ? "" : Math.max(0, Math.min(5, Number(raw) || 0)));
+              hint: false,
+              className: "wbt-difficulty-num",
+              // 键入期同步草稿，让 ★ 预览即时更新；提交只在失焦/回车且合法时发生。
+              onDraft: function(raw) {
+                onChange(raw);
+              },
+              onCommit: function(next) {
+                onChange(next === null ? "" : String(next));
               }
             }),
             h("span", { className: "wbt-stars", "aria-hidden": true }, n > 0 ? stars : t.difficultyUnset),
@@ -9089,48 +10791,33 @@ var require_ownership_fields = __commonJS({
     "use strict";
     var limits = require_limits();
     var ownership = require_ownership();
+    var SW = require_switch();
     module2.exports = function(React) {
       var h = React.createElement;
       var Picker = require_table_picker()(React);
       function Selection(props) {
-        var state = React.useState(false), open = state[0], setOpen = state[1], trigger = React.useRef(null);
         var chosen = ownership.tables(props.tree).find(function(x) {
           return x.id === props.form.tableId;
         });
-        function close() {
-          setOpen(false);
-          if (trigger.current) trigger.current.focus();
-        }
         return h(
           "div",
           null,
           h("div", { className: "wbt-picker-detail" }, props.edit ? "\u5F53\u524D\u5F52\u5C5E\uFF1A" + props.current : "\u76EE\u6807\u4EFB\u52A1\u8868 *"),
-          h("button", {
-            ref: trigger,
-            type: "button",
-            className: "wbt-btn",
-            disabled: !!props.form.newPath,
-            "aria-expanded": open,
-            onClick: function() {
-              setOpen(!open);
-            }
-          }, props.edit ? "\u66F4\u6362\u4EFB\u52A1\u8868" : "\u9009\u62E9\u76EE\u6807\u4EFB\u52A1\u8868"),
-          open && !props.form.newPath ? h(Picker, {
+          props.form.newPath ? null : h(Picker, {
             tree: props.tree,
             value: props.form.tableId,
             recommended: props.recommended,
+            onClose: null,
             onChange: function(id) {
               props.set("tableId", props.edit && id === String(props.currentId) ? "" : id);
-            },
-            onClose: close
-          }) : null,
+            }
+          }),
           chosen ? h(
             "div",
             { className: "wbt-picker-detail", role: "status" },
             (props.edit ? "\u5C06\u79FB\u52A8\u5230\uFF1A" : "\u5DF2\u9009\u62E9\uFF1A") + chosen.path,
             props.edit ? h("button", { type: "button", className: "wbt-btn ghost", onClick: function() {
               props.set("tableId", "");
-              close();
             } }, "\u64A4\u9500\uFF0C\u4FDD\u7559\u539F\u4F4D") : null
           ) : h("div", { className: "wbt-mhint" }, props.edit ? "\u672A\u66F4\u6362\uFF0C\u4FDD\u7559\u5F53\u524D\u5F52\u5C5E\u3002" : props.form.newPath ? "\u8BF7\u786E\u8BA4\u65B0\u5EFA\u8DEF\u5F84\u3002" : "\u8BF7\u5148\u9009\u62E9\u76EE\u6807\u4EFB\u52A1\u8868\uFF0C\u518D\u786E\u8BA4\u63D0\u4EA4\u3002")
         );
@@ -9142,14 +10829,14 @@ var require_ownership_fields = __commonJS({
           "div",
           { className: "wbt-field full" },
           h(Selection, { form, set, tree: props.tree, recommended: props.recommended, edit: props.edit, current: props.current, currentId: props.currentId }),
-          !props.edit ? h("label", { className: "wbt-check" }, h("input", {
-            type: "checkbox",
-            "aria-label": "\u6CA1\u6709\u5408\u9002\u7684\u8868\uFF1F\u65B0\u5EFA\u8282\u70B9",
+          !props.edit ? h(SW.Switch, {
+            h,
             checked: !!form.newPath,
-            onChange: function(e) {
-              props.setMany({ newPath: e.target.checked, tableId: "", confirmed: false });
+            label: "\u6CA1\u6709\u5408\u9002\u7684\u8868\uFF1F\u65B0\u5EFA\u8282\u70B9",
+            onChange: function(next) {
+              props.setMany({ newPath: next, tableId: "", confirmed: false });
             }
-          }), "\u6CA1\u6709\u5408\u9002\u7684\u8868\uFF1F\u65B0\u5EFA\u8282\u70B9") : null,
+          }) : null,
           form.newPath ? h(
             "div",
             null,
@@ -9182,15 +10869,15 @@ var require_ownership_fields = __commonJS({
               );
             }),
             plan.error ? h("div", { className: "wbt-err", role: "alert" }, plan.error) : null,
-            h("label", { className: "wbt-check" }, h("input", {
-              type: "checkbox",
-              "aria-label": "\u786E\u8BA4\u65B0\u5EFA\u8DEF\u5F84",
+            h(SW.Switch, {
+              h,
               checked: !!form.confirmed,
               disabled: !!plan.error,
-              onChange: function(e) {
-                set("confirmed", e.target.checked);
+              label: "\u786E\u8BA4\u4EE5\u4E0A\u8DEF\u5F84\u4E0E\u804C\u8D23\uFF0C\u968F\u4EFB\u52A1\u4E00\u8D77\u63D0\u4EA4",
+              onChange: function(next) {
+                set("confirmed", next);
               }
-            }), "\u786E\u8BA4\u4EE5\u4E0A\u8DEF\u5F84\u4E0E\u804C\u8D23\uFF0C\u968F\u4EFB\u52A1\u4E00\u8D77\u63D0\u4EA4")
+            })
           ) : null
         );
       };
@@ -9201,15 +10888,14 @@ var require_ownership_fields = __commonJS({
 // packages/addons/tasks/client/modals/create-modal.cjs
 var require_create_modal = __commonJS({
   "packages/addons/tasks/client/modals/create-modal.cjs"(exports2, module2) {
+    var NF = require_number_field();
+    var staged = require_staged_dialog();
+    var FilterChecklist = require_filter_checklist();
     function initialPriority(source, origin, fallback) {
       var original = Number(origin && origin.priority);
       if (source === "2" && Number.isInteger(original) && original >= 1 && original <= 10) return original;
       var n = Number(fallback);
       return Number.isFinite(n) ? Math.min(10, Math.max(1, Math.floor(n))) : 1;
-    }
-    function clampInputPriority(value) {
-      if (String(value).trim() === "" || Number(value) === 0 || !Number.isFinite(Number(value))) return value;
-      return Math.min(10, Math.max(1, Math.floor(Number(value))));
     }
     function validatePriority(value, source, t) {
       var n = Number(value);
@@ -9224,6 +10910,35 @@ var require_create_modal = __commonJS({
       var DP = require_date_picker();
       var allTables = deps.allTables, tagNames = deps.tagNames, splitTags = deps.splitTags;
       var today = deps.today, addDays = deps.addDays, hostHasAddon = deps.hostHasAddon;
+      var StagedDialog = staged.createStagedDialog({
+        React,
+        tag: "div",
+        displayName: "TaskCreateDialog",
+        maskClass: "wbt-modal-mask",
+        dialogClass: "wbt-modal",
+        header: function(p) {
+          return h(
+            "div",
+            { className: "wbt-modal-head" },
+            h("h3", null, p.title),
+            h("button", { type: "button", className: "wbt-icon", disabled: !!p.submitting, onClick: p.onClose, "aria-label": p.closeLabel }, "\xD7")
+          );
+        },
+        closeOnEscape: function(p) {
+          return !p.submitting;
+        },
+        closeOnMask: function(p) {
+          return !p.submitting;
+        },
+        // 表选择器内部自己用 Esc 收面板，别把它一起关掉。
+        onKeyDown: function(e) {
+          if (e.key === "Escape" && e.target && e.target.closest && e.target.closest(".wbt-table-picker")) {
+            e.stopPropagation();
+            return true;
+          }
+          return false;
+        }
+      });
       function CreateModal(props) {
         var t = props.t, tr = require_timeline_copy()(props.t);
         var source = String(props.source || "0");
@@ -9263,14 +10978,9 @@ var require_create_modal = __commonJS({
         function requestClose() {
           if (!submission.pending) props.onClose();
         }
-        function onModalKey(e) {
-          if (e.key !== "Escape" || e.target && e.target.closest && e.target.closest(".wbt-table-picker")) return;
-          e.preventDefault();
-          e.stopPropagation();
-          requestClose();
-        }
         var active = source === "2" || form.status === "0";
         var priorityError = active ? validatePriority(form.priority, source, t) : "";
+        var difficultyCheck = NF.validateNumber(form.difficulty, { min: 0, max: 5, step: 0.5, allowEmpty: true, lang: props.lang });
         var plan = ownership.preview(props.tree, form.tablePath, form.pathDescriptions);
         var targetValid = form.newPath ? !plan.error && form.confirmed : tables.some(function(x) {
           return x.id === form.tableId;
@@ -9292,7 +11002,7 @@ var require_create_modal = __commonJS({
         }
         function set(k, v) {
           var next = Object.assign({}, form);
-          next[k] = k === "priority" ? clampInputPriority(v) : v;
+          next[k] = v;
           setForm(next);
         }
         function failed(message) {
@@ -9309,6 +11019,10 @@ var require_create_modal = __commonJS({
         }
         function submit() {
           if (priorityError || isBusy || submission.pending) return;
+          if (!difficultyCheck.ok) {
+            setError(difficultyCheck.error);
+            return;
+          }
           if (source === "2" && !(origin && origin.timelineId)) {
             setError(tr("\u8BF7\u5148\u624B\u52A8\u5EFA\u7ACB\u5E76\u5173\u8054\u65F6\u95F4\u7EBF\uFF0C\u518D\u91CD\u542F"));
             return;
@@ -9338,7 +11052,7 @@ var require_create_modal = __commonJS({
             tags: splitTags(form.tags),
             status: source === "2" ? "0" : String(form.status),
             priority: active ? Number(form.priority) : 0,
-            difficulty: Number(form.difficulty) || 0,
+            difficulty: difficultyCheck.value || 0,
             publishDate: form.publishDate,
             targetDate: form.targetDate,
             source: source === "2" ? "2" : form.timelineId ? "1" : "0"
@@ -9370,77 +11084,546 @@ var require_create_modal = __commonJS({
           });
         }
         var title = source === "2" ? t.restartTitle : source === "1" ? tr("\u5411\u5DF2\u6709\u65F6\u95F4\u7EBF\u6DFB\u52A0\u4EFB\u52A1") : t.newTask;
-        return h(
+        var timelineSection = h(
           "div",
-          { className: "wbt-modal-mask", onKeyDownCapture: onModalKey, onMouseDown: function(e) {
-            if (e.target === e.currentTarget) requestClose();
-          } },
+          { className: "wbt-create-tl full" },
           h(
             "div",
-            { className: "wbt-modal" },
-            h("div", { className: "wbt-modal-head" }, h("h3", null, title), h("button", { className: "wbt-icon", disabled: isBusy, onClick: requestClose }, "\xD7")),
-            source === "2" ? h("div", { className: "wbt-mhint" }, t.restartPriorityHint) : null,
-            source !== "0" && origin ? h("div", { className: "wbt-mhint" }, "\u6765\u6E90\uFF1A" + (origin.title || origin.id) + (source === "2" ? tr(" \xB7 \u81EA\u52A8\u7EE7\u627F\u539F\u65F6\u95F4\u7EBF") : "")) : null,
-            source === "2" && !(origin && origin.timelineId) ? h("p", { className: "wbt-err", role: "alert" }, tr("\u8BF7\u5148\u624B\u52A8\u5EFA\u7ACB\u5E76\u5173\u8054\u65F6\u95F4\u7EBF\uFF0C\u518D\u91CD\u542F")) : null,
-            source !== "2" ? h(TimelinePicker, { api: props.api, t, value: form.timelineId, onChange: function(value) {
-              set("timelineId", value);
-            }, disabled: isBusy }) : null,
-            h(
+            { className: "wbt-create-tl-head" },
+            h("span", null, t.timeline),
+            source === "1" ? h("span", { className: "wbt-create-tl-hint" }, tr("\u5411\u5DF2\u6709\u65F6\u95F4\u7EBF\u6DFB\u52A0\u4EFB\u52A1")) : null
+          ),
+          h(TimelinePicker, { api: props.api, t, value: form.timelineId, onChange: function(value) {
+            set("timelineId", value);
+          }, disabled: isBusy })
+        );
+        function stepContent(h2) {
+          return h2(
+            "div",
+            { className: "wbctl-form" },
+            origin ? h2(
               "div",
-              { className: "wbt-form" },
-              h("label", { className: "wbt-field full" }, h("span", null, t.titleField + " *"), h("input", { className: "wbt-input", value: form.title, onChange: function(e) {
+              { className: "wbt-mhint full" },
+              "\u6765\u6E90\uFF1A" + (origin.title || origin.id) + (source === "2" ? tr(" \xB7 \u81EA\u52A8\u7EE7\u627F\u539F\u65F6\u95F4\u7EBF") : "")
+            ) : null,
+            h2(
+              "label",
+              { className: "wbt-field full" },
+              h2("span", null, t.titleField + " *"),
+              h2("input", { className: "wbt-input", value: form.title, onChange: function(e) {
                 set("title", e.target.value);
-              }, autoFocus: true })),
-              h("label", { className: "wbt-field full" }, h("span", null, t.desc), h("textarea", { className: "wbt-textarea", rows: 2, value: form.description, onChange: function(e) {
+              } })
+            ),
+            h2(
+              "label",
+              { className: "wbt-field full" },
+              h2("span", null, t.desc),
+              h2("textarea", { className: "wbt-textarea", rows: 3, value: form.description, onChange: function(e) {
                 set("description", e.target.value);
-              } })),
-              hostHasAddon("wb-addon-tags") ? h("label", { className: "wbt-field full" }, h("span", null, t.tags), h("input", { className: "wbt-input", value: form.tags, placeholder: t.tagPlaceholder, onChange: function(e) {
-                set("tags", e.target.value);
-              } })) : null,
-              h(WorkspaceSelect, { api: props.api, lang: props.lang, value: form.workspaceIds, onChange: function(ids) {
-                set("workspaceIds", ids);
-              } }),
-              h("label", { className: "wbt-field" }, h("span", null, t.status), h(
+              } })
+            ),
+            source === "2" ? h2("div", { className: "wbt-mhint full" }, t.restartPriorityHint) : null,
+            h2(
+              "label",
+              { className: "wbt-field" },
+              h2("span", null, t.status),
+              h2(
                 "select",
                 { className: "wbt-select", value: source === "2" ? "0" : form.status, disabled: source === "2", onChange: function(e) {
                   set("status", e.target.value);
                 } },
-                h("option", { value: "0" }, "\u5DF2\u5F00\u542F"),
-                h("option", { value: "2" }, "\u5DF2\u5B8C\u6210"),
-                h("option", { value: "1" }, "\u5DF2\u5173\u95ED")
-              )),
-              h("label", { className: "wbt-field" }, h("span", null, t.priority + "\uFF081\u201310\uFF09"), h("input", { className: "wbt-input", type: "number", min: 1, max: 10, step: 1, disabled: !active, "aria-invalid": !!priorityError, "aria-describedby": priorityError ? "wbt-create-priority-error" : void 0, value: form.priority, onChange: function(e) {
-                set("priority", e.target.value);
-              } })),
-              fields({ form, set, setMany, tree: props.tree, recommended: props.defaultTableId || origin && origin.tableId }),
-              h("label", { className: "wbt-field" }, h("span", null, t.publishDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.publishDate, value: form.publishDate, onChange: function(next) {
-                set("publishDate", next);
-              } })),
-              h("label", { className: "wbt-field" }, h("span", null, t.targetDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.targetDate, value: form.targetDate, onChange: function(next) {
-                set("targetDate", next);
-              } })),
-              source !== "2" && form.status === "2" ? h("label", { className: "wbt-field" }, h("span", null, t.doneDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.doneDate, value: form.doneDate, onChange: function(next) {
-                set("doneDate", next);
-              } })) : null,
-              difficultyField(t, form.difficulty, function(value) {
-                set("difficulty", value);
-              }, "wbt-create-difficulty"),
-              source !== "2" && form.status === "1" ? h("label", { className: "wbt-field" }, h("span", null, t.shutdownDate), h(DP.DatePicker, { React, h, prefix: "wbt", lang: props.lang, label: t.shutdownDate, value: form.shutdownDate, onChange: function(next) {
-                set("shutdownDate", next);
-              } })) : null
+                h2("option", { value: "0" }, "\u5DF2\u5F00\u542F"),
+                h2("option", { value: "2" }, "\u5DF2\u5B8C\u6210"),
+                h2("option", { value: "1" }, "\u5DF2\u5173\u95ED")
+              )
             ),
-            priorityError ? h("div", { id: "wbt-create-priority-error", className: "wbt-err", role: "alert" }, priorityError) : null,
-            error ? h("div", { className: "wbt-err" }, error) : null,
-            h(
+            h2(
               "div",
-              { className: "wbt-modal-foot" },
-              h("button", { className: "wbt-btn ghost", disabled: isBusy, onClick: requestClose }, t.cancel),
-              h("button", { className: "wbt-btn primary", disabled: isBusy || !!priorityError || !targetValid || source === "2" && !(origin && origin.timelineId), onClick: submit }, isBusy ? "\u2026" : t.create)
+              { className: "wbt-field" },
+              h2("span", { className: "wbt-field-label" }, t.priority + "\uFF081\u201310\uFF09"),
+              h2(NF.NumberField, {
+                h: h2,
+                lang: props.lang,
+                value: form.priority,
+                min: 1,
+                max: 10,
+                integer: true,
+                disabled: !active,
+                hint: false,
+                ariaLabel: t.priority,
+                // 键入即写入草稿；合法性由下面的 priorityError 实时判定，绝不回写夹取后的值。
+                onDraft: function(raw) {
+                  set("priority", raw);
+                },
+                onCommit: function(next) {
+                  set("priority", String(next));
+                }
+              })
+            ),
+            priorityError ? h2("div", { className: "wbt-err full", role: "alert" }, priorityError) : null,
+            difficultyField(t, form.difficulty, function(value) {
+              set("difficulty", value);
+            }, "wbt-create-difficulty", props.lang),
+            h2(
+              "label",
+              { className: "wbt-field" },
+              h2("span", null, t.publishDate),
+              h2(DP.DatePicker, { React, h: h2, prefix: "wbt", lang: props.lang, label: t.publishDate, value: form.publishDate, onChange: function(next) {
+                set("publishDate", next);
+              } })
+            ),
+            h2(
+              "label",
+              { className: "wbt-field" },
+              h2("span", null, t.targetDate),
+              h2(DP.DatePicker, { React, h: h2, prefix: "wbt", lang: props.lang, label: t.targetDate, value: form.targetDate, onChange: function(next) {
+                set("targetDate", next);
+              } })
+            ),
+            source !== "2" && form.status === "2" ? h2(
+              "label",
+              { className: "wbt-field" },
+              h2("span", null, t.doneDate),
+              h2(DP.DatePicker, { React, h: h2, prefix: "wbt", lang: props.lang, label: t.doneDate, value: form.doneDate, onChange: function(next) {
+                set("doneDate", next);
+              } })
+            ) : null,
+            source !== "2" && form.status === "1" ? h2(
+              "label",
+              { className: "wbt-field" },
+              h2("span", null, t.shutdownDate),
+              h2(DP.DatePicker, { React, h: h2, prefix: "wbt", lang: props.lang, label: t.shutdownDate, value: form.shutdownDate, onChange: function(next) {
+                set("shutdownDate", next);
+              } })
+            ) : null
+          );
+        }
+        function TagPicker(p2) {
+          var h2 = p2.h;
+          var names = splitTags(p2.value);
+          var qs = React.useState(""), query = qs[0], setQuery = qs[1];
+          var rs = React.useState([]), rows = rs[0], setRows = rs[1];
+          var ts = React.useState(0), total = ts[0], setTotal = ts[1];
+          var ps = React.useState(1), page = ps[0], setPage = ps[1];
+          var hs = React.useState(false), hasMore = hs[0], setHasMore = hs[1];
+          var ls = React.useState(false), loading = ls[0], setLoading = ls[1];
+          var ds = React.useState(""), draft = ds[0], setDraft = ds[1];
+          var seq = React.useRef(0);
+          React.useEffect(function() {
+            var mine = ++seq.current;
+            setLoading(true);
+            var timer = setTimeout(function() {
+              p2.api.call("tasks.tagOptions", { query, pageNumber: 1, pageSize: 30 }).then(function(r) {
+                if (mine !== seq.current) return;
+                var out = r && r.ok ? r.result : {};
+                var list = out.tags || [];
+                setRows(list);
+                setTotal(out.total || list.length);
+                setPage(1);
+                setHasMore(!!out.hasMore);
+                setLoading(false);
+              }).catch(function() {
+                if (mine !== seq.current) return;
+                setRows([]);
+                setTotal(0);
+                setHasMore(false);
+                setLoading(false);
+              });
+            }, 200);
+            return function() {
+              clearTimeout(timer);
+            };
+          }, [p2.api, query]);
+          function loadMore() {
+            if (loading || !hasMore) return;
+            var mine = seq.current, next = page + 1;
+            setLoading(true);
+            p2.api.call("tasks.tagOptions", { query, pageNumber: next, pageSize: 30 }).then(function(r) {
+              if (mine !== seq.current) return;
+              var out = r && r.ok ? r.result : {};
+              setRows(rows.concat(out.tags || []));
+              setPage(next);
+              setHasMore(!!out.hasMore);
+              setLoading(false);
+            }).catch(function() {
+              if (mine === seq.current) setLoading(false);
+            });
+          }
+          function emit(next) {
+            p2.onChange(next.join(", "));
+          }
+          function toggle(name) {
+            emit(names.indexOf(name) >= 0 ? names.filter(function(x) {
+              return x !== name;
+            }) : names.concat([name]));
+          }
+          function toggleId(id) {
+            var row = rows.filter(function(x) {
+              return String(x.id) === String(id);
+            })[0];
+            if (row) toggle(String(row.name));
+          }
+          function addDraft() {
+            var parts = splitTags(draft);
+            if (!parts.length) return;
+            var next = names.slice();
+            parts.forEach(function(name2) {
+              if (next.indexOf(name2) < 0) next.push(name2);
+            });
+            emit(next);
+            setDraft("");
+          }
+          var selectedIds = rows.filter(function(x) {
+            return names.indexOf(String(x.name)) >= 0;
+          }).map(function(x) {
+            return String(x.id);
+          });
+          return h2(
+            "div",
+            { className: "wbt-tagpick" },
+            names.length ? h2("div", { className: "wbt-tagchips", role: "group", "aria-label": t.tagSelected }, names.map(function(name2) {
+              return h2(
+                "button",
+                { key: name2, type: "button", className: "wbt-tagchip", title: t.tagRemove, onClick: function() {
+                  toggle(name2);
+                } },
+                h2("span", null, name2),
+                h2("span", { className: "wbt-tagchip-x", "aria-hidden": true }, "\xD7")
+              );
+            })) : h2("p", { className: "wbctl-note" }, t.tagNoPick),
+            h2(FilterChecklist, {
+              items: rows.map(function(x) {
+                return { id: String(x.id), name: x.name, meta: x.total };
+              }),
+              selected: selectedIds,
+              onToggle: toggleId,
+              onClear: function() {
+                emit([]);
+              },
+              query,
+              onQuery: setQuery,
+              loading,
+              hasMore,
+              onLoadMore: loadMore,
+              total,
+              title: t.allTags || "\u5168\u90E8\u6807\u7B7E",
+              selectedText: t.tagSelected || "\u5DF2\u9009",
+              clearText: t.clear || "\u6E05\u7A7A",
+              searchPlaceholder: t.tagSearchExisting || "\u641C\u7D22\u5DF2\u6709\u6807\u7B7E",
+              emptyText: t.noTags || "\u6682\u65E0\u6807\u7B7E",
+              noMatchText: t.tagNoMatch || "\u6CA1\u6709\u5339\u914D\u7684\u6807\u7B7E",
+              loadingText: t.loadingMore || "\u52A0\u8F7D\u4E2D\u2026",
+              noMoreText: t.noMore || "\u6CA1\u6709\u66F4\u591A",
+              autoFocus: false
+            }),
+            h2(
+              "div",
+              { className: "wbt-tagnew" },
+              h2("input", {
+                className: "wbt-input",
+                value: draft,
+                placeholder: t.tagNewPlaceholder,
+                "aria-label": t.tagNewPlaceholder,
+                onChange: function(e) {
+                  setDraft(e.target.value);
+                },
+                onKeyDown: function(e) {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addDraft();
+                  }
+                }
+              }),
+              h2("button", { type: "button", className: "wbt-btn", disabled: !splitTags(draft).length, onClick: addDraft }, t.tagAdd || "\u6DFB\u52A0")
             )
-          )
-        );
+          );
+        }
+        function stepTags(h2) {
+          return h2(
+            "div",
+            { className: "wbctl-form" },
+            h2("div", { className: "full" }, h2(TagPicker, { h: h2, api: props.api, t, value: form.tags, onChange: function(next) {
+              set("tags", next);
+            } }))
+          );
+        }
+        function stepTable(h2) {
+          return h2(
+            "div",
+            { className: "wbctl-form" },
+            h2(
+              "div",
+              { className: "full" },
+              fields({ form, set, setMany, tree: props.tree, recommended: props.defaultTableId || origin && origin.tableId })
+            )
+          );
+        }
+        function stepTimeline(h2) {
+          if (source === "2") {
+            return h2(
+              "div",
+              { className: "wbctl-form" },
+              h2("p", { className: "wbt-mhint full" }, tr("\u7EE7\u627F\u6765\u6E90\u4EFB\u52A1\u7684\u65F6\u95F4\u7EBF")),
+              !(origin && origin.timelineId) ? h2("p", { className: "wbt-err full", role: "alert" }, tr("\u8BF7\u5148\u624B\u52A8\u5EFA\u7ACB\u5E76\u5173\u8054\u65F6\u95F4\u7EBF\uFF0C\u518D\u91CD\u542F")) : null
+            );
+          }
+          return h2("div", { className: "wbctl-form" }, timelineSection);
+        }
+        function stepWorkspace(h2) {
+          return h2(
+            "div",
+            { className: "wbctl-form" },
+            h2(WorkspaceSelect, { api: props.api, lang: props.lang, value: form.workspaceIds, onChange: function(ids) {
+              set("workspaceIds", ids);
+            } })
+          );
+        }
+        var steps = [
+          {
+            key: "content",
+            label: t.stepContent,
+            hint: t.stepContentHint,
+            render: stepContent,
+            validate: function() {
+              if (!String(form.title).trim()) return t.needTitle;
+              if (priorityError) return priorityError;
+              if (!difficultyCheck.ok) return difficultyCheck.error;
+              if (!form.publishDate || !form.targetDate) return t.needDate;
+              return "";
+            }
+          }
+        ];
+        if (hostHasAddon("wb-addon-tags")) {
+          steps.push({ key: "tags", label: t.stepTags, hint: t.stepTagsHint, render: stepTags });
+        }
+        steps.push({
+          key: "table",
+          label: t.stepTable,
+          hint: t.stepTableHint,
+          render: stepTable,
+          validate: function() {
+            return targetValid ? "" : form.newPath ? plan.error || "\u8BF7\u786E\u8BA4\u65B0\u5EFA\u8DEF\u5F84" : t.needTable;
+          }
+        });
+        steps.push({
+          key: "timeline",
+          label: t.stepTimeline,
+          hint: t.stepTimelineHint,
+          render: stepTimeline,
+          validate: function() {
+            if (source === "2" && !(origin && origin.timelineId)) return tr("\u8BF7\u5148\u624B\u52A8\u5EFA\u7ACB\u5E76\u5173\u8054\u65F6\u95F4\u7EBF\uFF0C\u518D\u91CD\u542F");
+            if (source === "1" && !form.timelineId) return tr("\u8BF7\u9009\u62E9\u5DF2\u6709\u65F6\u95F4\u7EBF");
+            return "";
+          }
+        });
+        steps.push({ key: "workspace", label: t.stepWorkspace, hint: t.stepWorkspaceHint, render: stepWorkspace });
+        return h(StagedDialog, {
+          title,
+          closeLabel: t.cancel,
+          steps,
+          submitting: isBusy,
+          error,
+          onClose: requestClose,
+          onSubmit: submit,
+          submitText: t.create,
+          cancelText: t.cancel,
+          nextText: t.nextStep || "\u4E0B\u4E00\u6B65",
+          backText: t.prevStep || "\u4E0A\u4E00\u6B65",
+          stepsLabel: t.createSteps || "\u521B\u5EFA\u6B65\u9AA4"
+        });
       }
       return CreateModal;
+    };
+  }
+});
+
+// packages/addons/tasks/client/views/slot-task-from-message.cjs
+var require_slot_task_from_message = __commonJS({
+  "packages/addons/tasks/client/views/slot-task-from-message.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = function(deps) {
+      var React = deps.React;
+      var h = React.createElement;
+      var Icon2 = deps.Icon;
+      var injectCss = deps.injectCss;
+      var KIND = "mail.message";
+      function flattenTables(nodes, out) {
+        var list = out || [];
+        (nodes || []).forEach(function(node) {
+          if (!node) return;
+          if (String(node.type) === "1") list.push({ id: String(node.id), name: String(node.name || node.path || node.id) });
+          if (node.children && node.children.length) flattenTables(node.children, list);
+        });
+        return list;
+      }
+      function defaultTitle(item, en) {
+        var subject = String(item && item.title || "").trim();
+        if (subject) return subject;
+        return en ? "Follow up: (no subject)" : "\u8DDF\u8FDB\uFF1A\uFF08\u65E0\u4E3B\u9898\uFF09";
+      }
+      function buildDescription(item, en) {
+        var lines = [en ? "Created from a mail message." : "\u7531\u90AE\u4EF6\u521B\u5EFA\u3002"];
+        if (item.subtitle) lines.push((en ? "From: " : "\u53D1\u4EF6\u4EBA\uFF1A") + item.subtitle);
+        if (item.title) lines.push((en ? "Subject: " : "\u4E3B\u9898\uFF1A") + item.title);
+        lines.push((en ? "Source mail: " : "\u6765\u6E90\u90AE\u4EF6\uFF1A") + "wb-mail:" + item.id);
+        return lines.join("\n");
+      }
+      return function TaskFromMessage(props) {
+        React.useEffect(function() {
+          injectCss();
+        }, []);
+        var item = props.item;
+        var en = props.lang === "en";
+        var api = props.api;
+        var open = React.useState(false);
+        var tables = React.useState(null);
+        var tableId = React.useState("");
+        var title = React.useState("");
+        var busy = React.useState(false);
+        var error = React.useState("");
+        var created = React.useState(null);
+        if (!item || item.kind !== KIND || !item.id) return null;
+        function loadTables() {
+          if (tables[0] !== null) return;
+          tables[1](void 0);
+          api.call("taskNodes.tree").then(function(r) {
+            if (!r || !r.ok) throw new Error(r && r.error || "tree load failed");
+            var list = flattenTables(Array.isArray(r.result) ? r.result : []);
+            tables[1](list);
+            if (list.length === 1) tableId[1](list[0].id);
+          }).catch(function(e) {
+            tables[1]([]);
+            error[1](String(e && e.message || e));
+          });
+        }
+        function toggle() {
+          if (!open[0]) {
+            title[1](defaultTitle(item, en));
+            loadTables();
+          }
+          open[1](!open[0]);
+        }
+        function submit() {
+          if (busy[0]) return;
+          var name = String(title[0] || "").trim();
+          if (!name) {
+            error[1](en ? "Title is required" : "\u6807\u9898\u4E0D\u80FD\u4E3A\u7A7A");
+            return;
+          }
+          if (!tableId[0]) {
+            error[1](en ? "Pick a target table" : "\u8BF7\u9009\u62E9\u76EE\u6807\u8868");
+            return;
+          }
+          busy[1](true);
+          error[1]("");
+          api.call("tasks.create", {
+            title: name,
+            description: buildDescription(item, en),
+            tableId: tableId[0],
+            dedupeKey: KIND + ":" + item.id
+          }).then(function(r) {
+            if (!r || !r.ok) throw new Error(r && r.error || "create failed");
+            created[1](r.result || {});
+            open[1](false);
+          }).catch(function(e) {
+            error[1](String(e && e.message || e));
+          }).finally(function() {
+            busy[1](false);
+          });
+        }
+        if (created[0]) {
+          var task = created[0];
+          var shortId = String(task.id || "").slice(0, 8);
+          return h(
+            "span",
+            { className: "wbtx-slot-done" },
+            h("span", { className: "wbtx-slot-note" }, (en ? "Task created" : "\u5DF2\u5EFA\u4EFB\u52A1") + (shortId ? " \xB7 " + shortId : "")),
+            h("button", {
+              type: "button",
+              className: "wbtx-slot-link",
+              onClick: function(e) {
+                e.stopPropagation();
+                props.onNavigate("tasks");
+              }
+            }, en ? "Open tasks" : "\u53BB\u4EFB\u52A1\u9875")
+          );
+        }
+        var loading = tables[0] === void 0;
+        var options = Array.isArray(tables[0]) ? tables[0] : [];
+        return h(
+          "span",
+          { className: "wbtx-slot" },
+          h("button", {
+            type: "button",
+            className: "wbt-btn wbtx-slot-btn",
+            "aria-expanded": !!open[0],
+            disabled: busy[0],
+            title: en ? "Create a task from this message" : "\u628A\u8FD9\u5C01\u90AE\u4EF6\u53D8\u6210\u4EFB\u52A1",
+            onClick: function(e) {
+              e.stopPropagation();
+              toggle();
+            }
+          }, h(Icon2, { name: "plus", size: 13 }), en ? "New task" : "\u5EFA\u4EFB\u52A1"),
+          open[0] ? h(
+            "span",
+            { className: "wbtx-slot-panel" },
+            h(
+              "label",
+              { className: "wbtx-slot-row" },
+              h("span", null, en ? "Title" : "\u6807\u9898"),
+              h("input", {
+                className: "wbt-input wbtx-slot-input",
+                value: title[0],
+                autoFocus: true,
+                onChange: function(e) {
+                  title[1](e.target.value);
+                },
+                onKeyDown: function(e) {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    submit();
+                  }
+                  if (e.key === "Escape") open[1](false);
+                }
+              })
+            ),
+            h(
+              "label",
+              { className: "wbtx-slot-row" },
+              h("span", null, en ? "Table" : "\u76EE\u6807\u8868"),
+              loading ? h("span", { className: "wbtx-slot-muted" }, en ? "Loading\u2026" : "\u8BFB\u53D6\u4E2D\u2026") : options.length ? h("select", {
+                className: "wbt-input wbtx-slot-input",
+                value: tableId[0],
+                onChange: function(e) {
+                  tableId[1](e.target.value);
+                }
+              }, [h("option", { key: "", value: "" }, en ? "Pick a table" : "\u9009\u62E9\u76EE\u6807\u8868")].concat(
+                options.map(function(o) {
+                  return h("option", { key: o.id, value: o.id }, o.name);
+                })
+              )) : h("span", { className: "wbtx-slot-muted" }, en ? "No task table yet" : "\u8FD8\u6CA1\u6709\u4EFB\u52A1\u8868")
+            ),
+            error[0] ? h("span", { className: "wbt-err", role: "alert" }, error[0]) : null,
+            h(
+              "span",
+              { className: "wbtx-slot-foot" },
+              h("button", { type: "button", className: "wbt-btn ghost", onClick: function(e) {
+                e.stopPropagation();
+                open[1](false);
+              } }, en ? "Cancel" : "\u53D6\u6D88"),
+              h("button", {
+                type: "button",
+                className: "wbt-btn primary",
+                disabled: busy[0] || loading || !options.length,
+                onClick: function(e) {
+                  e.stopPropagation();
+                  submit();
+                }
+              }, busy[0] ? "\u2026" : en ? "Create" : "\u521B\u5EFA")
+            )
+          ) : null
+        );
+      };
     };
   }
 });
@@ -9487,41 +11670,6 @@ var require_timeline_title = __commonJS({
   }
 });
 
-// packages/addons/tasks/client/timeline/timeline-styles.cjs
-var require_timeline_styles = __commonJS({
-  "packages/addons/tasks/client/timeline/timeline-styles.cjs"(exports2, module2) {
-    "use strict";
-    module2.exports = [
-      ".wbt-timeline-view{padding:0;color:inherit;box-sizing:border-box;overflow:auto}",
-      ".wbt-timeline-toolbar,.wbt-timeline-search,.wbt-timeline-pager,.wbt-timeline-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-      ".wbt-timeline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}",
-      ".wbt-timeline-toolbar-main{display:flex;align-items:center;gap:8px;flex:1 1 320px;min-width:0;flex-wrap:wrap}",
-      ".wbt-timeline-toolbar-main .wbt-timeline-search{flex:1 1 220px;min-width:0}",
-      ".wbt-timeline-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}",
-      ".wbt-timeline-columns{display:grid;grid-template-columns:minmax(240px,32%) minmax(0,1fr);gap:12px;align-items:start}",
-      ".wbt-timeline-left,.wbt-timeline-right{min-width:0;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-card,10px);padding:12px}",
-      ".wbt-timeline-single{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;white-space:nowrap}.wbt-timeline-search input{min-width:0;flex:1}",
-      ".wbt-timeline-list{max-height:840px;overflow:auto;overscroll-behavior:contain}.wbt-timeline-left>.wbt-timeline-list,.wbt-timeline-left>.wbt-err{margin-top:2px}.wbt-timeline-view .wbt-timeline-option{position:relative;box-sizing:border-box;min-height:56px;padding:10px 12px;border:0;border-bottom:1px solid var(--wbt-line);border-radius:var(--wb-radius-sm,6px);display:flex;flex-direction:column;gap:4px;cursor:pointer;color:inherit;background:transparent;background-image:none}",
-      ".wbt-timeline-option-title{display:flex;gap:8px;align-items:center;min-width:0}.wbt-timeline-option-title strong{font-size:13px;font-weight:560;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}.wbt-timeline-option>span{font-size:11.5px;opacity:.6;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-      ".wbt-timeline-option>.wbt-timeline-excerpt{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
-      ".wbt-timeline-view .wbt-timeline-option.current{box-shadow:inset 3px 0 var(--wbt-accent),inset 0 0 0 1px var(--wbt-line);background:color-mix(in oklab,var(--wbt-accent) 8%,transparent);background-image:none}.wbt-timeline-view .wbt-timeline-option:hover{background:color-mix(in oklab,var(--wbt-accent) 12%,transparent)}",
-      ".wbt-timeline-option:focus-visible,.wbt-timeline-view button:focus-visible,.wbt-timeline-modal button:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:2px}.wbt-timeline-option input[type=checkbox],.wbt-timeline-single input{appearance:auto;width:15px;height:15px;flex:none;accent-color:var(--wbt-accent)}",
-      ".wbt-timeline-pager{justify-content:space-between;font-size:12px;margin-top:12px}.wbt-timeline-right h3,.wbt-timeline-summary h4{font-size:15px;font-weight:600;margin:0 0 8px;overflow-wrap:anywhere}.wbt-timeline-eyebrow{font-size:11.5px;opacity:.55;margin-bottom:4px;overflow-wrap:anywhere}",
-      ".wbt-timeline-summary{min-width:0}.wbt-timeline-desc{max-height:64px;overflow:hidden;margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere}.wbt-timeline-actions{margin:8px 0}.wbt-timeline-actions>.wbt-act-del{margin-left:auto}",
-      // Scoped reset defeats ordinary host button surfaces without touching unrelated task controls.
-      ":is(.wbt-timeline-view,.wbt-timeline-modal) button:is(.wbt-timeline-member,.wbt-timeline-remove,.wbt-timeline-id){appearance:none;background:transparent;background-image:none;color:inherit;border:0;box-shadow:none;border-radius:var(--wb-radius-sm,6px);font:inherit;cursor:pointer;min-width:0;min-height:0;width:auto;margin:0}",
-      ":is(.wbt-timeline-view,.wbt-timeline-modal) .wbt-timeline-id{display:inline-flex;align-items:center;gap:4px;padding:4px;max-width:180px}.wbt-timeline-id code{font-size:11.5px;opacity:.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-      ":is(.wbt-timeline-view,.wbt-timeline-modal) .wbt-act-del{color:var(--dsw-alias-state-error-primary,var(--wbt-accent));background:transparent;border-color:var(--wbt-line)}",
-      '.wbt-timeline-members{list-style:none;padding:0;margin:8px 0;min-width:0}.wbt-timeline-member-row{display:grid;grid-template-columns:92px 14px minmax(0,1fr) auto 28px;gap:8px;align-items:center;min-height:40px;position:relative;padding:0;margin:0}.wbt-timeline-date{font-size:11.5px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;opacity:.7}.wbt-timeline-node{align-self:stretch;position:relative}.wbt-timeline-node:before{content:"";position:absolute;width:1px;left:50%;top:0;bottom:0;background:var(--wbt-line)}.wbt-timeline-node:after{content:"";position:absolute;width:6px;height:6px;left:calc(50% - 2.5px);top:calc(50% - 3px);border-radius:50%;background:var(--wbt-accent)}',
-      ":is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-member{padding:8px 0;text-align:left;font-size:13px;line-height:1.5;overflow-wrap:anywhere;white-space:normal}:is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-member:hover{text-decoration:underline;text-underline-offset:3px}:is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-remove{display:flex;justify-content:center;align-items:center;width:28px;height:28px;padding:4px;opacity:.35}:is(.wbt-timeline-view,.wbt-timeline-modal) button.wbt-timeline-remove:is(:hover,:focus-visible){opacity:.9;background:var(--wbt-surface)}.wbt-timeline-member-row>.wbt-badge{white-space:nowrap;margin:0}.wbt-timeline-remove:disabled{cursor:default}",
-      ".wbt-timeline-member-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--wbt-line);padding-top:8px}.wbt-timeline-member-footer>span{font-size:11.5px;opacity:.65}.wbt-timeline-member-footer .wbt-timeline-pager{margin:0}",
-      ".wbt-modal.wide.wbt-timeline-modal{display:flex;flex-direction:column;max-height:90vh;overflow:hidden}.wbt-timeline-modal-body{min-height:0;overflow:auto;flex:1;padding:12px}.wbt-timeline-member-section{min-width:0;margin-top:12px}.wbt-timeline-member-scroll{max-height:40vh;overflow:auto;overscroll-behavior:contain}.wbt-timeline-pick{border-top:1px solid var(--wbt-line);padding-top:12px;margin-top:12px}.wbt-timeline-empty{padding:12px 0}.wbt-picker-selected{font-size:12px;margin:6px 0;min-height:16px}.wbt-picker-list{max-height:220px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-sm,6px);padding:4px;background:var(--wbt-surface)}.wbt-picker-note{margin:6px;font-size:12px;opacity:.7}.wbt-picker-opt{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:6px 8px;border:0;border-radius:var(--wb-radius-sm,6px);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.wbt-picker-opt:hover,.wbt-picker-opt:focus-visible{background:color-mix(in oklab,var(--wbt-accent) 12%,transparent)}.wbt-picker-opt:focus-visible{outline:2px solid var(--wbt-accent);outline-offset:-2px}.wbt-picker-opt.selected{background:color-mix(in oklab,var(--wbt-accent) 16%,transparent);font-weight:600}.wbt-picker-opt-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wbt-picker-opt-count{font-size:11px;opacity:.6;white-space:nowrap}.wbt-timeline-confirm{padding:12px;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-card,10px);margin:8px 0;line-height:1.6;background:var(--wbt-surface)}.wbt-timeline-confirm .wbt-btn{margin:8px 8px 0 0}",
-      ".wbt-timeline-desc.expanded{max-height:none}.wbt-timeline-selected{min-width:0;overflow-wrap:anywhere;flex:1}.wbt-modal-foot.wbt-timeline-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:none}.wbt-timeline-modal .wbt-empty{padding:12px;margin:8px 0;border:1px solid var(--wbt-line);border-radius:var(--wb-radius-card,10px);background:var(--wbt-surface);line-height:1.6}",
-      "@media(max-width:720px){.wbt-timeline-selected{flex:1 1 100%}.wbt-picker-list{max-height:180px}.wbt-timeline-columns{grid-template-columns:1fr}.wbt-timeline-toolbar-main{flex:1 1 100%}.wbt-timeline-toolbar-actions{flex:1 1 100%;justify-content:flex-end;margin-left:0}.wbt-timeline-list{max-height:320px}.wbt-timeline-toolbar{flex-wrap:wrap}.wbt-timeline-member-row{grid-template-columns:76px 8px minmax(0,1fr) auto 28px;gap:4px}.wbt-timeline-left,.wbt-timeline-right{padding:12px}.wbt-timeline-date{font-size:10.5px}.wbt-timeline-member-row>.wbt-badge{font-size:10.5px;padding:2px 4px}.wbt-timeline-actions>.wbt-act-del{margin-left:0}.wbt-timeline-id{max-width:140px}}"
-    ].join("\n");
-  }
-});
-
 // packages/addons/tasks/client/timeline/timeline-members.cjs
 var require_timeline_members = __commonJS({
   "packages/addons/tasks/client/timeline/timeline-members.cjs"(exports2, module2) {
@@ -9544,7 +11692,6 @@ var require_task_timeline_modal = __commonJS({
       var h = React.createElement, controls = require_timeline_controls()(React);
       var MemberRows = require_timeline_member_rows()(React, statusInfo);
       var splitTitle = require_timeline_title();
-      var CSS = require_timeline_styles();
       return function TaskTimelineModal(p) {
         var tr = require_timeline_copy()(p.t), lang = p.t && p.t.timeline === "Timeline" ? "en" : "zh";
         var ts = React.useState(p.task), task = ts[0], setTask = ts[1];
@@ -9716,7 +11863,6 @@ var require_task_timeline_modal = __commonJS({
         return h(
           "div",
           { className: "wbt-modal-mask", onKeyDown },
-          h("style", null, CSS),
           h(
             "div",
             { ref: dialog, tabIndex: -1, className: "wbt-modal wide wbt-timeline-modal", role: "dialog", "aria-modal": true, "aria-label": tr("\u4EFB\u52A1\u65F6\u95F4\u7EBF") },
@@ -9765,6 +11911,7 @@ var require_task_timeline_modal = __commonJS({
 var require_edit_modal = __commonJS({
   "packages/addons/tasks/client/modals/edit-modal.cjs"(exports2, module2) {
     "use strict";
+    var NF = require_number_field();
     module2.exports = function createEditModal(React, statusInfo, stars) {
       var h = React.createElement;
       var difficultyField = require_difficulty_field()(React);
@@ -9828,10 +11975,20 @@ var require_edit_modal = __commonJS({
           });
         }
         var titleOk = String(form.title).trim().length > 0;
+        var priorityCheck = canPriority ? NF.validateNumber(form.priority, { min: String(task.status) === "1" ? 0 : 1, max: 10, integer: true, lang: props.lang }) : { ok: true, value: 0, error: "" };
+        var difficultyCheck = NF.validateNumber(form.difficulty, { min: 0, max: 5, step: 0.5, allowEmpty: true, lang: props.lang });
         function submit() {
           if (isBusy || submission.pending) return;
           if (!titleOk) {
             setErr(t.needTitle);
+            return;
+          }
+          if (!priorityCheck.ok) {
+            setErr(priorityCheck.error);
+            return;
+          }
+          if (!difficultyCheck.ok) {
+            setErr(difficultyCheck.error);
             return;
           }
           var patch = { id: task.id, title: String(form.title).trim(), description: String(form.description || "") };
@@ -9845,13 +12002,10 @@ var require_edit_modal = __commonJS({
             patch.tableId = form.tableId;
           }
           if (canPriority) {
-            var p = Math.round(Number(form.priority));
-            if (!isFinite(p)) p = 1;
-            if (!Number.isFinite(p)) p = 0;
-            patch.priority = Math.max(1, Math.min(10, p));
+            patch.priority = priorityCheck.value;
             if (String(form.targetDate || "").trim()) patch.targetDate = String(form.targetDate).trim();
           }
-          patch.difficulty = Math.max(0, Math.min(5, Number(form.difficulty) || 0));
+          patch.difficulty = difficultyCheck.value || 0;
           patch.workspaceIds = (form.workspaceIds || []).slice();
           if (String(form.review) !== String(task.review || "")) patch.review = String(form.review);
           submission.pending = true;
@@ -9920,16 +12074,30 @@ var require_edit_modal = __commonJS({
               } })
             ) : null,
             canPriority ? h(
-              "label",
+              "div",
               { className: "wbt-field" },
-              h("span", null, t.priority + "\uFF081\u201310\uFF09"),
-              h("input", { className: "wbt-input", type: "number", min: 1, max: 10, step: 1, value: form.priority, onChange: function(e) {
-                set("priority", e.target.value);
-              } })
+              h("span", { className: "wbt-field-label" }, t.priority + "\uFF081\u201310\uFF09"),
+              h(NF.NumberField, {
+                h,
+                lang: props.lang,
+                value: form.priority,
+                min: 1,
+                max: 10,
+                integer: true,
+                hint: false,
+                ariaLabel: t.priority,
+                // 键入即写草稿，合法性交给 priorityCheck（保存按钮据此禁用），绝不夹取。
+                onDraft: function(raw) {
+                  set("priority", raw);
+                },
+                onCommit: function(next) {
+                  set("priority", String(next));
+                }
+              })
             ) : null,
             difficultyField(t, form.difficulty, function(value) {
               set("difficulty", value);
-            }, "wbt-edit-difficulty"),
+            }, "wbt-edit-difficulty", props.lang),
             h(WorkspaceSelect, { api: props.api, lang: props.lang, value: form.workspaceIds, onChange: function(ids) {
               set("workspaceIds", ids);
             } }),
@@ -9938,7 +12106,7 @@ var require_edit_modal = __commonJS({
               "div",
               { className: "wbt-modal-foot" },
               h("button", { className: "wbt-btn ghost", disabled: isBusy, onClick: requestClose }, t.cancel),
-              h("button", { className: "wbt-btn primary", disabled: isBusy || !titleOk, onClick: submit }, isBusy ? "\u2026" : t.save)
+              h("button", { className: "wbt-btn primary", disabled: isBusy || !titleOk || !priorityCheck.ok || !difficultyCheck.ok, onClick: submit }, isBusy ? "\u2026" : t.save)
             )
           )
         );
@@ -10324,47 +12492,11 @@ var require_task_filter_model = __commonJS({
 // packages/addons/tasks/client/views/task-filter-panel.cjs
 var require_task_filter_panel = __commonJS({
   "packages/addons/tasks/client/views/task-filter-panel.cjs"(exports2, module2) {
-    var Icon2 = require_icons().Icon;
+    var Icon2 = require_icons2().Icon;
     var model = require_task_filter_model();
     var DateFilter = require_date_filter().DateFilter;
     var WorkspaceFilter = require_workspacefilter();
-    function NumberInput(p) {
-      var React = p.React, draftState = React.useState(String(p.value)), draft = draftState[0], setDraft = draftState[1];
-      React.useEffect(function() {
-        setDraft(String(p.value));
-      }, [p.value]);
-      function commit(node) {
-        var result = p.commit(node.validity && node.validity.badInput ? "invalid" : draft);
-        setDraft(result === void 0 ? String(p.value) : result);
-      }
-      return React.createElement("input", {
-        type: "number",
-        className: "wbt-input wbt-limit-input",
-        min: p.min,
-        max: p.max,
-        step: p.step,
-        inputMode: p.step === 1 ? "numeric" : "decimal",
-        value: draft,
-        "aria-label": p.label,
-        placeholder: p.placeholder,
-        onChange: function(e) {
-          setDraft(e.target.value);
-        },
-        onBlur: function(e) {
-          commit(e.currentTarget);
-        },
-        onKeyDown: function(e) {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            e.currentTarget.blur();
-          }
-          if (e.key === "Escape") {
-            e.preventDefault();
-            setDraft(String(p.value));
-          }
-        }
-      });
-    }
+    var NF = require_number_field();
     module2.exports = function renderFilterPanel(React, p) {
       var h = React.createElement, en = p.lang === "en", value = p.value;
       var title = en ? "Filters" : "\u7B5B\u9009";
@@ -10394,7 +12526,8 @@ var require_task_filter_panel = __commonJS({
         p.onHint(hints.join(" \xB7 "));
         change(result.value);
       }
-      function setLimit(key, end, text) {
+      function setLimit(key, end, next) {
+        var text = next === null || next === void 0 ? "" : String(next);
         var result = model.limit(value, key, end, text);
         if (!result) {
           p.onHint(en ? key === "difficulty" ? "Difficulty takes 0.5 steps from 0 to 5" : "Priority takes whole numbers 0\u201310" : key === "difficulty" ? "\u96BE\u5EA6\u4EC5\u63A5\u53D7 0\u20135 \u4E4B\u95F4\u7684\u534A\u6863\u6570\u503C" : "\u4F18\u5148\u7EA7\u4EC5\u63A5\u53D7 0\u201310 \u7684\u6574\u6570");
@@ -10406,15 +12539,28 @@ var require_task_filter_panel = __commonJS({
         p.onHint(hints.join(" \xB7 "));
         if (result.clearsMissing && p.onMissingChange) p.onMissingChange(false);
         change(result.value);
-        return result.value[key][end];
       }
       function limitRow(key, label) {
         var box = value[key], spec = model.limits[key];
         function field(end) {
           var labelText = en ? (end === "min" ? "Minimum " : "Maximum ") + label : (end === "min" ? "\u6700\u4F4E" : "\u6700\u9AD8") + label;
-          return h(NumberInput, { React, value: box[end], min: spec.min, max: spec.max, step: spec.step, label: labelText, placeholder: String(end === "min" ? spec.min : spec.max), commit: function(text) {
-            return setLimit(key, end, text);
-          } });
+          return h(NF.NumberField, {
+            h,
+            lang: p.lang,
+            value: box[end],
+            min: spec.min,
+            max: spec.max,
+            step: spec.step,
+            integer: spec.step === 1,
+            allowEmpty: true,
+            hint: false,
+            className: "wbt-limit-field",
+            ariaLabel: labelText,
+            placeholder: String(end === "min" ? spec.min : spec.max),
+            onCommit: function(next) {
+              setLimit(key, end, next);
+            }
+          });
         }
         function clear() {
           p.onHint("");
@@ -10584,64 +12730,30 @@ var require_selection_bar = __commonJS({
 var require_task_preview = __commonJS({
   "packages/addons/tasks/client/modals/task-preview.cjs"(exports2, module2) {
     "use strict";
+    var createOverlay = require_overlay();
     module2.exports = function createTaskPreview(React, TaskItem) {
       var h = React.createElement;
+      var Overlay = createOverlay({
+        maskClass: "wbt-modal-mask",
+        dialogClass: "wbt-modal wide wbt-preview",
+        ariaLabelledByOf: function() {
+          return "wbt-preview-title";
+        },
+        // 关闭按钮自己带 autoFocus，外壳不要抢首焦点。
+        autoFocusDialog: false
+      });
       function TaskPreview(props) {
         var t = props.t, task = props.task;
-        var titleId = "wbt-preview-title";
-        function onKey(e) {
-          if (e.key === "Escape") {
-            e.preventDefault();
-            e.stopPropagation();
-            props.onClose();
-            return;
-          }
-          if (e.key !== "Tab") return;
-          var mask = e.currentTarget;
-          var box = mask && mask.querySelector ? mask.querySelector('[role="dialog"]') : null;
-          if (!box) return;
-          var nodes = Array.from(box.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]')).filter(function(node) {
-            return node.getClientRects().length > 0;
-          });
-          var first = nodes[0], last = nodes[nodes.length - 1];
-          if (!first) {
-            e.preventDefault();
-            if (box.focus) box.focus();
-          } else if (e.shiftKey && (document.activeElement === first || document.activeElement === box)) {
-            e.preventDefault();
-            last.focus();
-          } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
         return h(
-          "div",
-          {
-            className: "wbt-modal-mask",
-            onKeyDownCapture: onKey,
-            onMouseDown: function(e) {
-              if (e.target === e.currentTarget) props.onClose();
-            }
-          },
+          Overlay,
+          { onClose: props.onClose, autoFocus: false },
           h(
             "div",
-            {
-              tabIndex: -1,
-              className: "wbt-modal wide wbt-preview",
-              role: "dialog",
-              "aria-modal": "true",
-              "aria-labelledby": titleId,
-              "aria-label": t.previewLabel
-            },
-            h(
-              "div",
-              { className: "wbt-modal-head wbt-preview-head" },
-              h("h3", { id: titleId }, String(task.title || "").trim() || t.previewUntitled),
-              h("button", { type: "button", className: "wbt-icon", title: t.close, "aria-label": t.close, autoFocus: true, onClick: props.onClose }, "\xD7")
-            ),
-            h("div", { className: "wbt-preview-body" }, h(TaskItem, props.cardProps))
-          )
+            { className: "wbt-modal-head wbt-preview-head" },
+            h("h3", { id: "wbt-preview-title" }, String(task.title || "").trim() || t.previewUntitled),
+            h("button", { type: "button", className: "wbt-icon", title: t.close, "aria-label": t.close, autoFocus: true, onClick: props.onClose }, "\xD7")
+          ),
+          h("div", { className: "wbt-preview-body" }, h(TaskItem, props.cardProps))
         );
       }
       return TaskPreview;
@@ -10656,6 +12768,7 @@ var require_tasks_view = __commonJS({
       var React = deps.React, configView = deps.configView, CFG_FALLBACK = deps.CFG_FALLBACK, COPY = deps.COPY, injectCss = deps.injectCss, allTables = deps.allTables, findFirstTable = deps.findFirstTable, treeWalk = deps.treeWalk, treeFlat = deps.treeFlat, cx = deps.cx, Icon2 = deps.Icon, TaskItem = deps.TaskItem, PathCrumbs = deps.PathCrumbs, TagFilter = deps.TagFilter, TreeNode = deps.TreeNode, CreateModal = deps.CreateModal, TimelineModal = deps.TimelineModal, NodeModal = deps.NodeModal, EditModal = deps.EditModal, DoneModal = deps.DoneModal, BatchModal = deps.BatchModal;
       var h = React.createElement, filters = require_task_filter_model(), renderFilters = require_task_filter_panel(), claimBatch = require_claim_batch(), renderSelectionBar = require_selection_bar();
       var TaskPreview = require_task_preview()(React, TaskItem);
+      var SW = require_switch();
       function TasksView(props) {
         var lang = props.lang === "en" ? "en" : "zh";
         var cfg = configView.useConfig(props.api, CFG_FALLBACK);
@@ -11246,16 +13359,16 @@ var require_tasks_view = __commonJS({
           api,
           t,
           Icon: Icon2,
-          missing: h("label", { className: "wbt-check" }, h("input", {
-            type: "checkbox",
-            checked: difficultyMissing,
-            onChange: function(e) {
-              var next = e.target.checked;
+          missing: h(SW.Switch, {
+            h,
+            checked: !!difficultyMissing,
+            label: t.difficultyMissing,
+            onChange: function(next) {
               setDifficultyMissing(next);
               if (next) setFilterValue(filters.clearDifficulty(filterValue));
               setPageNumber(1);
             }
-          }), t.difficultyMissing)
+          })
         });
         var listBody = loading ? h("div", { className: "wbt-empty" }, t.loading) : error ? h("div", { className: "wbt-err" }, t.error + error) : data.records.length === 0 ? h("div", { className: "wbt-empty" }, t.empty) : h("div", { className: "wbt-list" }, data.records.map(function(task) {
           return h(TaskItem, {
@@ -11579,6 +13692,7 @@ var require_tasks_view = __commonJS({
             t,
             api,
             task: doneTask,
+            lang: props.lang,
             onClose: function() {
               setDoneTask(null);
             },
@@ -11618,8 +13732,17 @@ var require_tasks_view = __commonJS({
 var require_timeline_add_members = __commonJS({
   "packages/addons/tasks/client/timeline/timeline-add-members.cjs"(exports2, module2) {
     "use strict";
+    var createOverlay = require_overlay();
     module2.exports = function(React) {
       var h = React.createElement, result = require_timeline_controls()(React).result;
+      var Overlay = createOverlay({
+        maskClass: "wbt-modal-mask",
+        dialogClass: "wbt-modal",
+        ariaLabelOf: function(props) {
+          return require_timeline_copy()(props.t)("\u6DFB\u52A0\u5DF2\u6709\u4EFB\u52A1");
+        },
+        closeOnMask: false
+      });
       return function AddMembers(p) {
         var tr = require_timeline_copy()(p.t);
         var qs = React.useState(""), query = qs[0], setQuery = qs[1];
@@ -11648,9 +13771,9 @@ var require_timeline_add_members = __commonJS({
             setBusy(false);
           });
         }
-        return h("div", { className: "wbt-modal-mask" }, h(
-          "div",
-          { className: "wbt-modal", role: "dialog", "aria-modal": true, "aria-label": tr("\u6DFB\u52A0\u5DF2\u6709\u4EFB\u52A1") },
+        return h(
+          Overlay,
+          { onClose: p.onClose, closeOnEscape: !busy, closeOnMask: false },
           h("h3", null, tr("\u6DFB\u52A0\u5DF2\u6709\u4EFB\u52A1")),
           h("p", null, tr("\u9009\u4E2D\u7684\u4EFB\u52A1\u5C06\u5173\u8054\u5230\u6B64\u65F6\u95F4\u7EBF\uFF1B\u539F\u6709\u5173\u8054\u4F1A\u88AB\u66FF\u6362\u3002")),
           h("input", { className: "wbt-input", "aria-label": tr("\u641C\u7D22\u5DF2\u6709\u4EFB\u52A1"), value: query, onChange: function(e) {
@@ -11671,7 +13794,7 @@ var require_timeline_add_members = __commonJS({
           } }, tr("\u4E0B\u4E00\u9875"))),
           error ? h("p", { role: "alert" }, error) : null,
           h("div", { className: "wbt-modal-foot" }, h("button", { className: "wbt-btn", disabled: busy, onClick: p.onClose }, tr("\u53D6\u6D88")), h("button", { className: "wbt-btn primary", disabled: busy || !selected.length, onClick: submit }, tr("\u5173\u8054\u4EFB\u52A1 (") + selected.length + ")"))
-        ));
+        );
       };
     };
   }
@@ -11681,14 +13804,24 @@ var require_timeline_add_members = __commonJS({
 var require_timeline_merge = __commonJS({
   "packages/addons/tasks/client/timeline/timeline-merge.cjs"(exports2, module2) {
     "use strict";
+    var createOverlay = require_overlay();
     module2.exports = function(React) {
       var h = React.createElement;
+      var Overlay = createOverlay({
+        maskClass: "wbt-modal-mask",
+        dialogClass: "wbt-modal",
+        ariaLabelOf: function(p) {
+          return p.t.timelineMerge;
+        },
+        // 合并是不可逆操作，点遮罩不关闭；保存中 Esc 也不关闭。
+        closeOnMask: false
+      });
       return function Merge(props) {
         var t = props.t, targetS = React.useState(props.items[0].timelineKey), target = targetS[0], setTarget = targetS[1];
         var previewS = React.useState(null), preview = previewS[0], setPreview = previewS[1];
         var busyS = React.useState(false), busy = busyS[0], setBusy = busyS[1];
         var errorS = React.useState(""), error = errorS[0], setError = errorS[1];
-        var pending = React.useRef(false), panel = React.useRef(null);
+        var pending = React.useRef(false);
         function submit(dryRun) {
           if (pending.current || !dryRun && preview === null) return;
           pending.current = true;
@@ -11708,26 +13841,9 @@ var require_timeline_merge = __commonJS({
             setBusy(false);
           });
         }
-        function keys(e) {
-          if (e.key === "Escape" && !busy) {
-            e.stopPropagation();
-            props.onClose();
-          }
-          if (e.key !== "Tab") return;
-          var nodes = panel.current.querySelectorAll("button:not(:disabled),select:not(:disabled)");
-          var first = nodes[0], last = nodes[nodes.length - 1];
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault();
-            last.focus();
-          }
-          if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-        return h("div", { className: "wbt-modal-mask" }, h(
-          "div",
-          { ref: panel, className: "wbt-modal", role: "dialog", "aria-modal": true, "aria-label": t.timelineMerge, onKeyDown: keys },
+        return h(
+          Overlay,
+          { onClose: props.onClose, closeOnEscape: !busy, closeOnMask: false, autoFocus: false },
           h("h3", null, t.timelineMerge),
           h("p", null, t.timelineMergeHint),
           h(
@@ -11751,7 +13867,7 @@ var require_timeline_merge = __commonJS({
               submit(preview === null);
             } }, busy ? t.loading : preview === null ? t.timelinePreview : t.timelineConfirm)
           )
-        ));
+        );
       };
     };
   }
@@ -11765,12 +13881,12 @@ var require_timeline_view = __commonJS({
       var React = deps.React, h = React.createElement, COPY = deps.COPY;
       var controls = require_timeline_controls()(React), AddMembers = require_timeline_add_members()(React);
       var Merge = require_timeline_merge()(React);
-      var CSS = require_timeline_styles();
       var MemberRows = require_timeline_member_rows()(React, deps.statusInfo);
       var TaskPreview = require_task_preview()(React, deps.TaskItem);
       var receipts = require_ownership();
       var splitTitle = require_timeline_title();
       var Highlight = require_highlight2()(React);
+      var SW = require_switch();
       function result(r) {
         if (!r || !r.ok) throw new Error(r && r.error || "Request failed");
         return r.result;
@@ -11802,8 +13918,7 @@ var require_timeline_view = __commonJS({
         var busyS = React.useState(true), busy = busyS[0], setBusy = busyS[1];
         var errorS = React.useState(""), error = errorS[0], setError = errorS[1];
         var activeS = React.useState(null), active = activeS[0], setActive = activeS[1];
-        var memberPageS = React.useState(1), memberPage = memberPageS[0], setMemberPage = memberPageS[1];
-        var membersS = React.useState({ records: [], total: 0 }), members = membersS[0], setMembers = membersS[1];
+        var membersS = React.useState(null), loaded = membersS[0], setMembers = membersS[1];
         var memberBusyS = React.useState(false), memberBusy = memberBusyS[0], setMemberBusy = memberBusyS[1];
         var memberErrorS = React.useState(""), memberError = memberErrorS[0], setMemberError = memberErrorS[1];
         var refreshS = React.useState(0), refresh = refreshS[0], setRefresh = refreshS[1];
@@ -11815,6 +13930,7 @@ var require_timeline_view = __commonJS({
         var listRef = React.useRef(null), mergeButton = React.useRef(null), detailTrigger = React.useRef(null);
         var createdRef = React.useRef(null);
         var activeKey = active && active.timelineKey;
+        var members = loaded && loaded.key === activeKey ? loaded.rows : [];
         var heading = splitTitle(active && active.title);
         var editorS = React.useState(null), editor = editorS[0], setEditor = editorS[1];
         var addS = React.useState(false), adding = addS[0], setAdding = addS[1];
@@ -11860,23 +13976,19 @@ var require_timeline_view = __commonJS({
           };
         }, [api, query, single, page, refresh]);
         React.useEffect(function() {
-          setMemberPage(1);
-        }, [activeKey]);
-        React.useEffect(function() {
           var cancelled = false;
           setMemberError("");
-          setMembers({ records: [], total: 0 });
+          setMembers(null);
           if (!activeKey) {
             setMemberBusy(false);
             return;
           }
           setMemberBusy(true);
-          api.call("tasks.timeline", { timelineKey: activeKey, pageNumber: memberPage, pageSize: 20 }).then(result).then(function(r) {
-            if (cancelled) return;
-            var next = pageData(r);
-            setMembers(next);
-            setMemberBusy(false);
-            if (memberPage > 1 && !next.records.length) setMemberPage(Math.max(1, Math.ceil(next.total / 20)));
+          api.call("tasks.timeline", { timelineKey: activeKey }).then(result).then(function(rows) {
+            if (!cancelled) {
+              setMembers({ key: activeKey, rows });
+              setMemberBusy(false);
+            }
           }).catch(function(e) {
             if (!cancelled) {
               setMemberBusy(false);
@@ -11886,7 +13998,7 @@ var require_timeline_view = __commonJS({
           return function() {
             cancelled = true;
           };
-        }, [api, activeKey, memberPage, refresh]);
+        }, [api, activeKey, refresh]);
         React.useEffect(function() {
           if (!editTask && !createState) return;
           var cancelled = false;
@@ -11915,7 +14027,6 @@ var require_timeline_view = __commonJS({
         function choose(item, toggle) {
           if (busy) return;
           setActive(item);
-          setMemberPage(1);
           if (toggle && item.taskCount > 0) setSelected(function(old) {
             return old.some(function(x) {
               return x.timelineKey === item.timelineKey;
@@ -11996,7 +14107,6 @@ var require_timeline_view = __commonJS({
         return h(
           "div",
           { className: "wbt-root wbt-timeline-view" },
-          h("style", null, CSS),
           h(
             "div",
             { className: "wbt-timeline-toolbar" },
@@ -12015,10 +14125,10 @@ var require_timeline_view = __commonJS({
                 } }),
                 h("button", { className: "wbt-btn", type: "submit" }, t.timelineSearchButton)
               ),
-              h("label", { className: "wbt-timeline-single" }, h("input", { type: "checkbox", "aria-label": t.timelineSingletons, checked: single, onChange: function(e) {
-                setSingle(e.target.checked);
+              h(SW.Switch, { h, checked: !!single, label: t.timelineSingletons, onChange: function(next) {
+                setSingle(next);
                 setPage(1);
-              } }), t.timelineSingletons)
+              } })
             ),
             h(
               "div",
@@ -12129,7 +14239,7 @@ var require_timeline_view = __commonJS({
               ) : null,
               memberError ? h("p", { role: "alert", className: "wbt-err" }, t.error + memberError) : null,
               memberBusy ? h("p", { role: "status" }, t.loading) : h(MemberRows, {
-                rows: members.records,
+                rows: members,
                 lang,
                 disabled: writing,
                 onOpen: function(task, e) {
@@ -12148,8 +14258,8 @@ var require_timeline_view = __commonJS({
                   });
                 }
               }),
-              !memberBusy && !memberError && !members.records.length ? h("p", { className: "wbt-empty" }, active ? tr("\u6682\u65E0\u53EF\u663E\u793A\u6210\u5458") : t.timelineEmpty) : null,
-              active ? h("div", { className: "wbt-timeline-member-footer" }, h("span", null, t.timelineOrder), h(Pager, { t, label: t.timelineMembers, busy: memberBusy, page: memberPage, total: members.total, set: setMemberPage })) : null
+              !memberBusy && !memberError && !members.length ? h("p", { className: "wbt-empty" }, active ? tr("\u6682\u65E0\u53EF\u663E\u793A\u6210\u5458") : t.timelineEmpty) : null,
+              active ? h("div", { className: "wbt-timeline-member-footer" }, h("span", null, t.timelineOrder), loaded && loaded.key === activeKey ? h("span", null, t.total + " " + members.length) : null) : null
             )
           ),
           editor ? h(controls.Editor, { api, t, item: editor.timelineKey ? editor : null, onClose: function() {
@@ -12297,32 +14407,6 @@ var require_timeline_view = __commonJS({
   }
 });
 
-// node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list-checks.mjs
-var list_checks_exports = {};
-__export(list_checks_exports, {
-  __iconData: () => __iconData35,
-  default: () => ListChecks
-});
-var __iconData35, ListChecks;
-var init_list_checks = __esm({
-  "node_modules/.pnpm/lucide-react@1.70.0_react@19.2.0/node_modules/lucide-react/dist/esm/icons/list-checks.mjs"() {
-    init_createLucideIcon();
-    __iconData35 = {
-      name: "list-checks",
-      size: 24,
-      node: [
-        ["path", { d: "M13 5h8", key: "a7qcls" }],
-        ["path", { d: "M13 12h8", key: "h98zly" }],
-        ["path", { d: "M13 19h8", key: "c3s6r1" }],
-        ["path", { d: "m3 17 2 2 4-4", key: "1jhpwq" }],
-        ["path", { d: "m3 7 2 2 4-4", key: "1obspn" }]
-      ]
-    };
-    __iconData35.node;
-    ListChecks = createLucideIcon(__iconData35);
-  }
-});
-
 // packages/addons/tasks/client/client.src.cjs
 (function() {
   "use strict";
@@ -12357,8 +14441,9 @@ var init_list_checks = __esm({
     "3": { zh: "\u5DF2\u91CD\u542F", en: "Restarted", cls: "restarted" },
     "4": { zh: "\u5DF2\u63A5\u53D6", en: "Claimed", cls: "claimed" }
   };
-  var icons = require_icons(), ICONS = icons.ICONS, Icon2 = icons.Icon;
-  var workspaceView = require_workspace_view()({ React, Icon: Icon2 });
+  var icons = require_icons2(), ICONS = icons.ICONS, Icon2 = icons.Icon;
+  var createOverlay = require_overlay();
+  var workspaceView = require_workspace_view()({ React, Icon: Icon2, createOverlay });
   var commandsView = require_commands()({
     React,
     Icon: Icon2,
@@ -12397,20 +14482,7 @@ var init_list_checks = __esm({
       title: over ? "\u5DF2\u8D85\u8FC7\u8BA1\u5212\u5B8C\u6210\u65F6\u95F4" : "\u8DDD\u8BA1\u5212\u5B8C\u6210"
     }, h(Icon2, { name: "clock", size: 11 }), h("span", { className: "wbt-cd-num" }, text));
   }
-  var CSS = require_styles();
-  function injectCss() {
-    if (typeof document === "undefined") return;
-    var old = document.getElementById("wb-addon-tasks-v2-css");
-    if (old) {
-      old.textContent = CSS;
-      return;
-    }
-    var s = document.createElement("style");
-    s.id = "wb-addon-tasks-v2-css";
-    s.setAttribute("data-wb-addon", "wb-addon-tasks");
-    s.textContent = CSS;
-    document.head.appendChild(s);
-  }
+  var injectCss = require_inject_css();
   function cx() {
     return Array.prototype.filter.call(arguments, Boolean).join(" ");
   }
@@ -12534,7 +14606,9 @@ var init_list_checks = __esm({
     cx,
     Icon: Icon2,
     Countdown,
-    PathCrumbs
+    PathCrumbs,
+    // 任务详情也开 item.actions 落点：来源插件把「回到原处」挂进来。
+    Slot: host.Slot
   });
   function TreeNode(props) {
     var node = props.node;
@@ -12726,6 +14800,7 @@ var init_list_checks = __esm({
     );
   }
   var CreateModal = require_create_modal()({ React, allTables, tagNames, splitTags, today, addDays, hostHasAddon });
+  var slotTaskFromMessage = require_slot_task_from_message()({ React, Icon: Icon2, injectCss });
   var TimelineModal = require_task_timeline_modal()(React, statusInfo);
   function DoneModal(props) {
     var t = props.t;
@@ -12745,7 +14820,7 @@ var init_list_checks = __esm({
         { className: "wbt-modal", style: { width: "420px" } },
         h("div", { className: "wbt-modal-head" }, h("h3", null, t.complete + " \xB7 " + props.task.title), h("button", { className: "wbt-icon", onClick: props.onClose }, "\xD7")),
         h("div", { className: "wbt-mhint" }, t.difficultyHint),
-        require_difficulty_field()(React)(t, value, setValue, "wbt-done-difficulty"),
+        require_difficulty_field()(React)(t, value, setValue, "wbt-done-difficulty", props.lang),
         h(
           "label",
           { className: "wbt-field", style: { marginTop: "12px" } },
@@ -12795,8 +14870,11 @@ var init_list_checks = __esm({
   var TimelineView = require_timeline_view()({ React, COPY, injectCss, statusInfo, configView, CFG_FALLBACK, TaskItem, EditModal, DoneModal, TimelineModal, CreateModal });
   host.registerAddon({
     id: "wb-addon-tasks",
-    version: "5.2.26",
-    icon: (init_list_checks(), __toCommonJS(list_checks_exports)).default,
+    version: "5.2.40",
+    icon: ICONS["list-checks"],
+    // 贡献声明写在 registerAddon 里：卸载任务插件时宿主按 addonId 一起撤销，
+    // 不会在邮件里留一个渲染即报错的孤儿按钮。
+    slots: [{ slot: "item.actions", id: "tasks.create-from-mail", order: 100, component: slotTaskFromMessage }],
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "\u7EDF\u8BA1", en: "Stats" }, component: statsView.TasksStatsView, keepAlive: true },
       { id: "tasks", icon: tabIcon("list"), title: { zh: "\u8BB0\u5F55", en: "Records" }, component: TasksView },
