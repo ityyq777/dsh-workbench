@@ -3121,7 +3121,7 @@ var GLYPHS = require_icons2().ICONS;
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-calendar",
-    version: "0.1.7",
+    version: "0.1.8",
     icon: GLYPHS["calendar-days"],
     views: [
       { id: "events", icon: tabIcon("calendar"), title: { zh: "\u65E5\u7A0B", en: "Agenda" }, component: withProps(require_events(), "\u65E5\u7A0B") },

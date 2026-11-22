@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-salary",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "个人工作台工资插件：按发薪日期记录工资构成、扣款与实发",
   "type": "module",
   "main": "lib/index.js",
@@ -16,7 +16,7 @@
     "addon": {
       "id": "wb-addon-salary",
       "title": "工资",
-      "version": "0.4.5",
+      "version": "0.4.6",
       "minShell": "0.8.0",
       "tables": [
         "salary_record"

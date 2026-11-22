@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-automation",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "个人工作台自动化：定时/域事件/手动触发白名单 action，含模板、条件、限频与运行记录",
   "type": "module",
   "main": "lib/index.js",
@@ -16,7 +16,7 @@
     "addon": {
       "id": "wb-addon-automation",
       "title": "自动化",
-      "version": "0.4.4",
+      "version": "0.4.5",
       "minShell": "0.8.0",
       "tables": [
         "automation_rule",

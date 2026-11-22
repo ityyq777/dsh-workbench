@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-storage",
-  "version": "1.5.14",
+  "version": "1.5.15",
   "type": "module",
   "description": "个人工作台储物插件：名称、品牌、位置、单位、库存文本与标签",
   "main": "lib/index.js",
@@ -9,7 +9,7 @@
       "id": "wb-addon-storage",
       "title": "储物",
       "description": "储物：统计/记录/配置/数据四个视图",
-      "version": "1.5.14",
+      "version": "1.5.15",
       "minShell": "0.8.0",
       "tables": [
         "storage"

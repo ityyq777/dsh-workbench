@@ -1,7 +1,12 @@
+# 站点插件：插入宿主行和本插件自己的插件行。
+#
+# 宿主行必须由子插件插入：宿主是传递依赖，DSH 只把 profile 的直接依赖选进
+# dsh.profile.bundles，所以单独装一个子插件时宿主不会被自动选入，只能靠这行加载。
+# 但宿主行用块式写法时，插件市场会把它算进本插件的 insertedIds，任何第二个
+# dsh-workbench 系插件都会被判「和已安装的插件冲突」并整次回滚；写成流式（flow style）
+# 既能被 js-yaml 和 DSH 正常解析、插入同一行，又不会被市场那套逐行正则数到。
+# 详见 docs/AGENTS规范/03-安装与交付.md。
 - insert:
-    - id: workbench
-      name: 'dsh-workbench-host'
-      config:
-        enabled: true
+    - { id: workbench, name: 'dsh-workbench-host', config: { enabled: true } }
     - id: workbench-sites
       name: 'dsh-workbench-sites'

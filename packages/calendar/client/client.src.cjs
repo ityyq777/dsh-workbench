@@ -33,7 +33,7 @@ var GLYPHS = require("./ui/icons.cjs").ICONS;
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-calendar",
-    version: "0.1.7",
+    version: "0.1.8",
     icon: GLYPHS["calendar-days"],
     views: [
       { id: "events", icon: tabIcon("calendar"), title: { zh: "日程", en: "Agenda" }, component: withProps(require("./views/events.cjs"), "日程") },

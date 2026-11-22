@@ -12,7 +12,7 @@ if (host) {
   function tabIcon(name) { return function StorageTabIcon() { return h(Icon, { name: name, size: 14 }); }; }
   host.registerAddon({
     id: "wb-addon-storage",
-    version: "1.5.13",
+    version: "1.5.15",
     icon: GLYPHS["stock"],
     views: [
       { id: "stats", icon: tabIcon("chart"), title: { zh: "统计", en: "Statistics" }, component: require("./views/stats.cjs").Stats },

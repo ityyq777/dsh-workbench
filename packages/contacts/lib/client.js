@@ -3233,7 +3233,7 @@ var GLYPHS = require_icons2().ICONS;
   ensureStyles();
   host.registerAddon({
     id: "wb-addon-contacts",
-    version: "0.1.6",
+    version: "0.1.7",
     icon: GLYPHS["users"],
     views: [
       { id: "contacts", icon: tabIcon("users"), title: { zh: "\u8054\u7CFB\u4EBA", en: "Contacts" }, component: withProps(require_contacts(), "\u8054\u7CFB\u4EBA") },

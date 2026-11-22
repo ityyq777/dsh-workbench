@@ -7449,7 +7449,7 @@ var GLYPHS = require_icons2().ICONS;
   var slotBackToMessage = require_slot_back_to_message()({ React, h, C, Icon: Icon2 });
   host.registerAddon({
     id: "wb-addon-mail",
-    version: "0.6.0",
+    version: "0.6.2",
     icon: GLYPHS["mail"],
     slots: [{ slot: "item.actions", id: "mail.back-to-message", order: 100, component: slotBackToMessage }],
     views: [

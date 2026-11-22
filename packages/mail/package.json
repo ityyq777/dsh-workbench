@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-mail",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "个人工作台邮件插件：安全 IMAP 收信、文件夹与已读同步、附件按需下载、草稿与 SMTP 回复转发",
   "type": "module",
   "main": "lib/index.js",
@@ -16,7 +16,7 @@
     "addon": {
       "id": "wb-addon-mail",
       "title": "邮件",
-      "version": "0.6.1",
+      "version": "0.6.2",
       "minShell": "0.8.4",
       "tables": [
         "mail_account",
@@ -63,7 +63,7 @@
     }
   },
   "dependencies": {
-    "dsh-workbench-vault": "^0.4.3",
+    "dsh-workbench-vault": "^0.4.4",
     "dsh-workbench-host": "^0.9.1"
   },
   "dsh": {

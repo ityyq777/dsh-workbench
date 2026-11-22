@@ -1,6 +1,6 @@
 {
   "name": "dsh-workbench-contacts",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "个人工作台联系人插件：本地联系人、分组、多值字段与 vCard 导入导出",
   "type": "module",
   "main": "lib/index.js",
@@ -16,7 +16,7 @@
     "addon": {
       "id": "wb-addon-contacts",
       "title": "联系人",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "minShell": "0.8.0",
       "tables": [
         "contact",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T16:03:45.942Z",
+  "generatedAt": "2026-11-22T06:45:29.628Z",
   "packages": [
     "host",
     "tasks",
@@ -23,55 +23,55 @@
   "addons": {
     "tasks": {
       "name": "dsh-workbench-tasks",
-      "version": "5.2.41"
+      "version": "5.2.42"
     },
     "tags": {
       "name": "dsh-workbench-tags",
-      "version": "1.7.7"
+      "version": "1.7.8"
     },
     "sites": {
       "name": "dsh-workbench-sites",
-      "version": "1.12.12"
+      "version": "1.12.13"
     },
     "storage": {
       "name": "dsh-workbench-storage",
-      "version": "1.5.14"
+      "version": "1.5.15"
     },
     "message": {
       "name": "dsh-workbench-message",
-      "version": "0.1.9"
+      "version": "0.1.10"
     },
     "vault": {
       "name": "dsh-workbench-vault",
-      "version": "0.4.3"
+      "version": "0.4.4"
     },
     "connector": {
       "name": "dsh-workbench-connector",
-      "version": "0.1.7"
+      "version": "0.1.8"
     },
     "automation": {
       "name": "dsh-workbench-automation",
-      "version": "0.4.4"
+      "version": "0.4.5"
     },
     "contacts": {
       "name": "dsh-workbench-contacts",
-      "version": "0.1.6"
+      "version": "0.1.7"
     },
     "calendar": {
       "name": "dsh-workbench-calendar",
-      "version": "0.1.7"
+      "version": "0.1.8"
     },
     "salary": {
       "name": "dsh-workbench-salary",
-      "version": "0.4.5"
+      "version": "0.4.6"
     },
     "mail": {
       "name": "dsh-workbench-mail",
-      "version": "0.6.1"
+      "version": "0.6.2"
     },
     "danmaku": {
       "name": "dsh-workbench-danmaku",
-      "version": "0.2.6"
+      "version": "0.2.7"
     }
   }
 }
